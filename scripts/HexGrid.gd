@@ -17,12 +17,13 @@ var tiles: Dictionary = {}
 
 func _ready() -> void:
 	randomize()
-	initialize_map()
+	y_sort_enabled = true
 
 ## Haritayı sıfırlar ve 3 birim yarıçapındaki altıgenleri kurar
 func initialize_map() -> void:
 	# Varsa eski arsaları temizle
 	for child in get_children():
+		remove_child(child)
 		child.queue_free()
 	tiles.clear()
 
@@ -121,7 +122,6 @@ func spawn_tile(coord: Vector2i) -> HexTile:
 	tile_instance.grid_coord = coord
 	tile_instance.position = HexMath.hex_to_pixel(coord.x, coord.y, hex_size, y_scale)
 	
-	tile_instance.z_index = int(tile_instance.position.y)
 	tile_instance.tile_clicked.connect(_on_tile_clicked)
 	add_child(tile_instance)
 	tiles[coord] = tile_instance
@@ -167,6 +167,7 @@ func get_neighbor_buildings(coord: Vector2i) -> Array[Node2D]:
 ## Kaydedilmiş harita verisini yükler ve binaları ayağa kaldırır
 func load_from_saved_tiles(tiles_data: Array, scenes_dict: Dictionary) -> Dictionary:
 	for child in get_children():
+		remove_child(child)
 		child.queue_free()
 	tiles.clear()
 	
@@ -209,6 +210,7 @@ func load_from_saved_tiles(tiles_data: Array, scenes_dict: Dictionary) -> Dictio
 			elif b_type == "worker": building_refs["worker_huts"].append(b_inst)
 			elif b_type == "corn": building_refs["corn_fields"].append(b_inst)
 			
+	recalculate_visibility(false)
 	return building_refs
 
 

@@ -426,7 +426,8 @@ func _load_from_dict(d: Dictionary) -> void:
 		"windmill": windmill_scene,
 		"lumberjack": lumberjack_hut_scene,
 		"sawmill": sawmill_scene,
-		"worker": worker_hut_scene
+		"worker": worker_hut_scene,
+		"bridge": bridge_scene
 	}
 	
 	if d.has("tiles"):

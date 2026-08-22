@@ -13,6 +13,10 @@ var _drag_start_pos: Vector2 = Vector2.ZERO
 var _touch_points: Dictionary = {}
 var _last_touch_dist: float = 0.0
 
+func _ready() -> void:
+	zoom = Vector2(1.0, 1.0)
+	position = Vector2.ZERO
+
 func _unhandled_input(event: InputEvent) -> void:
 	# Fare tekerleği zoom desteği
 	if event is InputEventMouseButton:
