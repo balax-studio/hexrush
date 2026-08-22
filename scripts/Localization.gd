@@ -26,7 +26,7 @@ const STRINGS = {
 		# İpuçları
 		"hint_castle_1": "Şatoyu Seviye 2'ye yükselterek Odunculuğun kilidini aç! (Gerekli: 6 🥡)",
 		"hint_castle_2": "Şatoyu Seviye 3'e yükselterek Değirmen & Kereste Fabrikasını aç! (18 🥡 + 10 🪵)",
-		"hint_expand": "Yeni altıgen fethet: 1 🥡 Gıda | Fabrikalarla katma değerli ürün üret!",
+		"hint_expand": "Yeni altıgen fethet: Üstel maliyet | Fabrikalarla katma değerli ürün üret!",
 		"hint_no_food": "Gıda tükendi! Mısır tarlalarını hasat et veya işçi kulübesi kur.",
 		
 		# İnşaat Menüsü
@@ -52,8 +52,6 @@ const STRINGS = {
 		# Üretim Menüleri
 		"level": "Seviye",
 		"per_sec": "/sn",
-		"flour": "Un",
-		"plank": "Kalas",
 		"collect": "Topla",
 		"upgrade": "Geliştir",
 		"full": "DOLU",
@@ -104,7 +102,7 @@ const STRINGS = {
 		"offline_claim": "Tümünü Al",
 		"offline_claim_3x": "📺 3x Al (Bonus)",
 		
-		# Ayarlar & İstatistikler & Prestij
+		# Ayarlar & İstatistik & Prestij
 		"settings_title": "⚙️ Ayarlar & Krallık Yönetimi",
 		"tab_general": "🌐 Genel & Ses",
 		"tab_stats": "📊 İstatistikler",
@@ -115,7 +113,7 @@ const STRINGS = {
 		
 		# İstatistikler
 		"stat_playtime": "Toplam Oynama Süresi",
-		"stat_conquered": "Toplam Fethedilen Toprak",
+		"stat_conquered": "Fethedilen Toprak",
 		"stat_total_food": "Toplam Üretilen Gıda",
 		"stat_total_wood": "Toplam Üretilen Odun",
 		"stat_total_flour": "Toplam Üretilen Un",
@@ -154,12 +152,13 @@ const STRINGS = {
 		# Hints
 		"hint_castle_1": "Upgrade Castle to Level 2 to unlock Lumberjack! (Req: 6 🥡)",
 		"hint_castle_2": "Upgrade Castle to Level 3 to unlock Windmill & Sawmill! (18 🥡 + 10 🪵)",
-		"hint_expand": "Conquer new land: 1 🥡 Food | Process raw resources into refined goods!",
+		"hint_expand": "Conquer new land: Scaled Cost | Process raw resources into refined goods!",
 		"hint_no_food": "Out of food! Harvest corn fields or build a worker hut.",
 		
 		# Build Menu
 		"build_title_meadow": "🌾 Meadow Build Menu",
 		"build_title_forest": "🌲 Forest Build Menu",
+		"build_title_sea": "🌊 Sea Build Menu",
 		"free": "FREE",
 		"build_btn": "Build",
 		"corn_name": "Corn Field",
@@ -172,6 +171,8 @@ const STRINGS = {
 		"sawmill_desc": "Converts Wood into Planks.",
 		"worker_name": "Worker Hut",
 		"worker_desc": "Transfers resources from neighbors.",
+		"bridge_name": "Wooden Bridge",
+		"bridge_desc": "Crosses open sea and unlocks neighbor land.",
 		"locked_castle_3": "🔒 CASTLE LV. 3",
 		
 		# Production Menus
@@ -197,10 +198,12 @@ const STRINGS = {
 		
 		# Toasts
 		"toast_free_tile": "✨ First land conquered for FREE! (+1 Land)",
-		"toast_buy_tile": "🏰 Land conquered for 1 🥡 Food! (+1 Land)",
+		"toast_buy_tile": "🏰 Land conquered for %d 🥡 Food! (+1 Land)",
 		"toast_mountain_conquered": "🏔️ Mountain Conquered! All lands within 1-unit boundary revealed.",
 		"toast_mountain_info": "🏔️ Conquered Mountain Peak. All surrounding lands in line of sight.",
-		"toast_no_food_tile": "⚠️ Not enough food! 1 🥡 Food required to unlock hex.",
+		"toast_no_food_tile": "⚠️ Not enough food! %d 🥡 Food required to unlock hex.",
+		"toast_need_bridge": "⚠️ Open Sea Barrier! Build a bridge across this sea tile first.",
+		"toast_bridge_need_land": "⚠️ Bridge requires connection to at least 1 adjacent land tile.",
 		"toast_forest_locked": "🔒 Forest Locked! Upgrade Castle to Level 2 (Fiefdom) first.",
 		"toast_no_build_biome": "ℹ️ No constructible buildings for this biome yet.",
 		"toast_built_corn": "🌽 Corn Field constructed!",
@@ -208,6 +211,7 @@ const STRINGS = {
 		"toast_built_lumberjack": "🪓 Lumberjack Hut built! Wood production started.",
 		"toast_built_sawmill": "🪵 Sawmill built! Plank production started.",
 		"toast_built_worker": "🛖 Worker Hut built! Auto-transport active.",
+		"toast_built_bridge": "🌉 Bridge built! Oversea lands unlocked for conquest.",
 		"toast_collected_food": "🥡 +%.2f Food added to storage!",
 		"toast_collected_wood": "🪵 +%.2f Wood added to storage!",
 		"toast_collected_flour": "🌾 +%.2f Flour added to storage!",
@@ -274,12 +278,13 @@ const STRINGS = {
 		# Hints
 		"hint_castle_1": "¡Mejora el Castillo a Nivel 2 para desbloquear Leñadores! (Req: 6 🥡)",
 		"hint_castle_2": "¡Mejora el Castillo a Nivel 3 para desbloquear Molino y Aserradero! (18 🥡 + 10 🪵)",
-		"hint_expand": "Conquista tierra: 1 🥡 Comida | ¡Procesa materias primas!",
+		"hint_expand": "Conquista tierra: Costo Escalonado | ¡Procesa materias primas!",
 		"hint_no_food": "¡Sin comida! Cosecha campos de maíz o construye cabañas de obreros.",
 		
 		# Build Menu
 		"build_title_meadow": "🌾 Menú de Pradera",
 		"build_title_forest": "🌲 Menú de Bosque",
+		"build_title_sea": "🌊 Menú de Mar",
 		"free": "GRATIS",
 		"build_btn": "Construir",
 		"corn_name": "Campo de Maíz",
@@ -292,6 +297,8 @@ const STRINGS = {
 		"sawmill_desc": "Convierte madera en tablones.",
 		"worker_name": "Cabaña de Obreros",
 		"worker_desc": "Transporte automático de vecinos.",
+		"bridge_name": "Puente de Madera",
+		"bridge_desc": "Permite cruzar el mar y desbloquea tierras.",
 		"locked_castle_3": "🔒 CASTILLO NV. 3",
 		
 		# Production Menus
@@ -317,10 +324,12 @@ const STRINGS = {
 		
 		# Toasts
 		"toast_free_tile": "✨ ¡Primera tierra conquistada GRATIS! (+1 Tierra)",
-		"toast_buy_tile": "🏰 ¡Tierra conquistada por 1 🥡 Comida! (+1 Tierra)",
+		"toast_buy_tile": "🏰 ¡Tierra conquistada por %d 🥡 Comida! (+1 Tierra)",
 		"toast_mountain_conquered": "🏔️ ¡Montaña Conquistada! Todas las tierras dentro del límite de 1 unidad reveladas.",
 		"toast_mountain_info": "🏔️ Pico de Montaña Conquistado. Todas las tierras circundantes a la vista.",
-		"toast_no_food_tile": "⚠️ ¡Comida insuficiente! Se requiere 1 🥡 Comida.",
+		"toast_no_food_tile": "⚠️ ¡Comida insuficiente! Se requiere %d 🥡 Comida.",
+		"toast_need_bridge": "⚠️ ¡Barrera de Mar! Construye un puente en este mar primero.",
+		"toast_bridge_need_land": "⚠️ El puente requiere conexión con al menos 1 tierra adyacente.",
 		"toast_forest_locked": "🔒 ¡Bosque bloqueado! Mejora el castillo a Nivel 2 primero.",
 		"toast_no_build_biome": "ℹ️ No hay construcciones para este bioma todavía.",
 		"toast_built_corn": "🌽 ¡Campo de Maíz construido!",
@@ -328,6 +337,7 @@ const STRINGS = {
 		"toast_built_lumberjack": "🪓 ¡Cabaña de Leñador construida!",
 		"toast_built_sawmill": "🪵 ¡Aserradero construido! Producción de tablones iniciada.",
 		"toast_built_worker": "🛖 ¡Cabaña de Obreros construida!",
+		"toast_built_bridge": "🌉 ¡Puente construido! Tierras de ultramar desbloqueadas.",
 		"toast_collected_food": "🥡 ¡+%.2f Comida añadida!",
 		"toast_collected_wood": "🪵 ¡+%.2f Madera añadida!",
 		"toast_collected_flour": "🌾 ¡+%.2f Harina añadida!",
@@ -394,12 +404,13 @@ const STRINGS = {
 		# Hints
 		"hint_castle_1": "Burg auf Stufe 2 verbessern, um Holzfäller freizuschalten! (Benötigt: 6 🥡)",
 		"hint_castle_2": "Burg auf Stufe 3 verbessern für Mühle & Sägewerk! (18 🥡 + 10 🪵)",
-		"hint_expand": "Neues Land erobern: 1 🥡 Nahrung | Rohstoffe verarbeiten!",
+		"hint_expand": "Neues Land erobern: Skalierte Kosten | Rohstoffe verarbeiten!",
 		"hint_no_food": "Keine Nahrung! Ernte Maisfelder oder baue eine Arbeiterhütte.",
 		
 		# Build Menu
 		"build_title_meadow": "🌾 Wiesen-Baumenü",
 		"build_title_forest": "🌲 Wald-Baumenü",
+		"build_title_sea": "🌊 Meeres-Baumenü",
 		"free": "KOSTENLOS",
 		"build_btn": "Bauen",
 		"corn_name": "Maisfeld",
@@ -412,6 +423,8 @@ const STRINGS = {
 		"sawmill_desc": "Verarbeitet Holz zu Brettern.",
 		"worker_name": "Arbeiterhütte",
 		"worker_desc": "Automatischer Warentransport von Nachbarn.",
+		"bridge_name": "Holzbrücke",
+		"bridge_desc": "Ermöglicht Überquerung und schaltet Nachbarland frei.",
 		"locked_castle_3": "🔒 BURG STUFE 3",
 		
 		# Production Menus
@@ -437,10 +450,12 @@ const STRINGS = {
 		
 		# Toasts
 		"toast_free_tile": "✨ Erstes Land KOSTENLOS erobert! (+1 Land)",
-		"toast_buy_tile": "🏰 Land für 1 🥡 Nahrung erobert! (+1 Land)",
+		"toast_buy_tile": "🏰 Land für %d 🥡 Nahrung erobert! (+1 Land)",
 		"toast_mountain_conquered": "🏔️ Berg erobert! Alle Ländereien im 1-Einheiten-Umkreis aufgedeckt.",
 		"toast_mountain_info": "🏔️ Eroberter Berggipfel. Alle umliegenden Ländereien im Sichtfeld.",
-		"toast_no_food_tile": "⚠️ Zu wenig Nahrung! 1 🥡 Nahrung erforderlich.",
+		"toast_no_food_tile": "⚠️ Zu wenig Nahrung! %d 🥡 Nahrung erforderlich.",
+		"toast_need_bridge": "⚠️ Offenes Meer! Baue zuerst eine Brücke auf diesem Seefeld.",
+		"toast_bridge_need_land": "⚠️ Brücke erfordert Verbindung zu mindestens 1 Landfeld.",
 		"toast_forest_locked": "🔒 Wald gesperrt! Burg zuerst auf Stufe 2 bringen.",
 		"toast_no_build_biome": "ℹ️ Noch keine Gebäude für dieses Biom verfügbar.",
 		"toast_built_corn": "🌽 Maisfeld errichtet!",
@@ -448,6 +463,7 @@ const STRINGS = {
 		"toast_built_lumberjack": "🪓 Holzfällerhütte errichtet!",
 		"toast_built_sawmill": "🪵 Sägewerk errichtet! Bretterproduktion gestartet.",
 		"toast_built_worker": "🛖 Arbeiterhütte errichtet! Transport aktiv.",
+		"toast_built_bridge": "🌉 Brücke gebaut! Überseeländer freigeschaltet.",
 		"toast_collected_food": "🥡 +%.2f Nahrung ins Lager gelegt!",
 		"toast_collected_wood": "🪵 +%.2f Holz ins Lager gelegt!",
 		"toast_collected_flour": "🌾 +%.2f Mehl ins Lager gelegt!",
