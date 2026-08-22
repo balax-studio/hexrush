@@ -323,6 +323,11 @@ func _ready() -> void:
 	btn_claim_all.pressed.connect(_claim_offline_normal)
 	btn_claim_3x.pressed.connect(_claim_offline_3x)
 	
+	# Tıklamaların UI etiketleri ve bildirimlerce yutulmasını önle (MOUSE_FILTER_IGNORE)
+	if toast_panel: toast_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if toast_label: toast_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if hint_label: hint_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
 	# Başlangıçta panelleri gizle
 	close_all_menus()
 	settings_modal.visible = false
