@@ -1991,11 +1991,28 @@ function handleTileClick(tile) {
       return;
     }
 
-    // Arsa Satın Alma / Fethetme (Üstel Artan Maliyet)
-    const cost = game.getLandExpansionCost();
-    if (game.food >= cost) {
-      game.food -= cost;
-      game.purchasedTilesCount += 1;
+    // Arsa Satın Alma / Fethetme (Mesafe Bölgeleri 1-6, 7-12, 13+)
+    const cost = game.getLandExpansionCost(tile.q, tile.r, tile.biome);
+    const reqFood = cost.food || 0;
+    const reqWood = cost.wood || 0;
+    const reqFlour = cost.flour || 0;
+    const reqPlank = cost.plank || 0;
+    const reqBread = cost.bread || 0;
+    const reqFurn = cost.furniture || 0;
+
+    if (game.food >= reqFood && game.wood >= reqWood && game.flour >= reqFlour && game.plank >= reqPlank && game.bread >= reqBread && game.furniture >= reqFurn) {
+      game.food -= reqFood;
+      game.wood -= reqWood;
+      game.flour -= reqFlour;
+      game.plank -= reqPlank;
+      game.bread -= reqBread;
+      game.furniture -= reqFurn;
+
+      if (tile.biome === BIOMES.MEADOW) game.purchasedMeadowCount++;
+      else if (tile.biome === BIOMES.FOREST) game.purchasedForestCount++;
+      else if (tile.biome === BIOMES.SEA) game.purchasedSeaCount++;
+      else if (tile.biome === BIOMES.MOUNTAIN) game.purchasedMountainCount++;
+
       game.ownedCount += 1;
       game.statTotalConquered += 1;
       tile.state = "OWNED";
@@ -2004,16 +2021,18 @@ function handleTileClick(tile) {
       game.revealNeighbors(tile.q, tile.r);
       saveGame();
 
-      if (tile.biome === BIOMES.MOUNTAIN) {
-        showToast(t("toast_mountain_conquered"));
-      } else if (cost === 0) {
-        showToast(t("toast_free_tile"));
-      } else {
-        showToast(t("toast_buy_tile").replace("%d", cost).replace("1", cost));
-      }
+      let msg = `🏰 Bölge ${cost.zone} yeni arsa fethedildi! (+1 Toprak)`;
+      showToast(msg);
     } else {
       audio.playError();
-      showToast(t("toast_no_food_tile").replace("%d", cost).replace("1", cost), true);
+      let reqMsg = "⚠️ Yetersiz Kaynak! Gerekli: ";
+      if (reqFood > 0) reqMsg += `${reqFood} 🥡 `;
+      if (reqWood > 0) reqMsg += `${reqWood} 🪵 `;
+      if (reqFlour > 0) reqMsg += `${reqFlour} 🌾 `;
+      if (reqPlank > 0) reqMsg += `${reqPlank} 🪵 `;
+      if (reqBread > 0) reqMsg += `${reqBread} 🍞 `;
+      if (reqFurn > 0) reqMsg += `${reqFurn} 🪑 `;
+      showToast(reqMsg, true);
     }
   } else if (tile.state === "OWNED") {
     // Sahipli arsa etkileşimi
@@ -2067,10 +2086,13 @@ const crownLabel = document.getElementById("crown-label");
 const landLabel = document.getElementById("land-label");
 const flourLabel = document.getElementById("flour-label");
 const plankLabel = document.getElementById("plank-label");
+const breadLabel = document.getElementById("bread-label");
+const furnitureLabel = document.getElementById("furniture-label");
 const hintLabel = document.getElementById("hint-label");
 const drawerRow = document.getElementById("drawer-row");
 const btnToggleDrawer = document.getElementById("btn-toggle-drawer");
 const btnSettings = document.getElementById("btn-settings");
+const btnFrenzy = document.getElementById("btn-frenzy");
 
 const bottomMenu = document.getElementById("bottom-menu");
 const menuTitle = document.getElementById("menu-title");
@@ -2083,17 +2105,26 @@ const prestigeConfirmModal = document.getElementById("prestige-confirm-modal");
 const offlineModal = document.getElementById("offline-modal");
 
 function updateUI() {
-  foodLabel.textContent = `${t("food")}: ${game.food % 1 === 0 ? game.food : game.food.toFixed(1)}`;
-  woodLabel.textContent = `${t("wood")}: ${game.wood % 1 === 0 ? game.wood : game.wood.toFixed(1)}`;
-  flourLabel.textContent = `${t("flour")}: ${game.flour % 1 === 0 ? game.flour : game.flour.toFixed(1)}`;
-  plankLabel.textContent = `${t("plank")}: ${game.plank % 1 === 0 ? game.plank : game.plank.toFixed(1)}`;
-  crownLabel.textContent = `${game.crowns}`;
-  landLabel.textContent = `${game.ownedCount}`;
+  if (foodLabel) foodLabel.textContent = `${t("food")}: ${game.food % 1 === 0 ? game.food : game.food.toFixed(1)}`;
+  if (woodLabel) woodLabel.textContent = `${t("wood")}: ${game.wood % 1 === 0 ? game.wood : game.wood.toFixed(1)}`;
+  if (flourLabel) flourLabel.textContent = `${t("flour")}: ${game.flour % 1 === 0 ? game.flour : game.flour.toFixed(1)}`;
+  if (plankLabel) plankLabel.textContent = `${t("plank")}: ${game.plank % 1 === 0 ? game.plank : game.plank.toFixed(1)}`;
+  if (breadLabel) breadLabel.textContent = `Ekmek: ${game.bread % 1 === 0 ? game.bread : game.bread.toFixed(1)}`;
+  if (furnitureLabel) furnitureLabel.textContent = `Mobilya: ${game.furniture % 1 === 0 ? game.furniture : game.furniture.toFixed(1)}`;
+  if (crownLabel) crownLabel.textContent = `${game.crowns}`;
+  if (landLabel) landLabel.textContent = `${game.ownedCount}`;
 
-  if (game.castleLevel === 1) hintLabel.textContent = t("hint_castle_1");
-  else if (game.castleLevel === 2) hintLabel.textContent = t("hint_castle_2");
-  else if (game.food < 1.0) hintLabel.textContent = t("hint_no_food");
-  else hintLabel.textContent = t("hint_expand");
+  if (btnFrenzy) {
+    btnFrenzy.textContent = game.frenzyTimer > 0 ? `⚡ 10x (${Math.ceil(game.frenzyTimer)}s)` : "⚡";
+  }
+
+  if (hintLabel) {
+    if (game.frenzyTimer > 0) hintLabel.textContent = `⚡ 10x MEGA ÇILGINLIK AKTİF! (${Math.ceil(game.frenzyTimer)}s kaldı)`;
+    else if (game.castleLevel === 1) hintLabel.textContent = t("hint_castle_1");
+    else if (game.castleLevel === 2) hintLabel.textContent = t("hint_castle_2");
+    else if (game.food < 1.0) hintLabel.textContent = t("hint_no_food");
+    else hintLabel.textContent = t("hint_expand");
+  }
 }
 
 function openBuildMenu(tile) {
@@ -2534,6 +2565,39 @@ function setupModalHandlers() {
     drawerRow.classList.toggle("hidden");
     btnToggleDrawer.textContent = drawerRow.classList.contains("hidden") ? "▼" : "▲";
   });
+
+  if (btnFrenzy) {
+    btnFrenzy.addEventListener("click", () => {
+      audio.playPrestige();
+      game.frenzyTimer = 300.0; // 5 dk 10x
+      // Anında 10 dk üretim
+      const baseMult = game.getCastleMultiplier() * game.getPrestigeMultiplier();
+      const instantFood = 20.0 * baseMult;
+      const instantWood = 15.0 * baseMult;
+      const instantFlour = 10.0 * baseMult;
+      const instantPlank = 10.0 * baseMult;
+      const instantBread = 5.0 * baseMult;
+      const instantFurniture = 5.0 * baseMult;
+
+      game.food += instantFood;
+      game.wood += instantWood;
+      game.flour += instantFlour;
+      game.plank += instantPlank;
+      game.bread += instantBread;
+      game.furniture += instantFurniture;
+
+      game.statTotalFood += instantFood;
+      game.statTotalWood += instantWood;
+      game.statTotalFlour += instantFlour;
+      game.statTotalPlank += instantPlank;
+      game.statTotalBread += instantBread;
+      game.statTotalFurniture += instantFurniture;
+
+      updateUI();
+      saveGame();
+      showToast("⚡ 10x ÇILGINLIK BAŞLADI! (5 Dk 10x Hız + Anında 10 Dk Kaynak Yüklendi!)");
+    });
+  }
 
   btnSettings.addEventListener("click", () => {
     audio.playClick();
