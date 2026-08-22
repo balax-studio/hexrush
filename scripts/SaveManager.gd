@@ -69,6 +69,9 @@ static func save_game(main_node: Node) -> bool:
 				b_type = "castle"
 				b_lvl = main_node.get("castle_level")
 				
+		var is_warmed: bool = t.get("is_warmed") if "is_warmed" in t else false
+		var warm_timer: float = t.get("warm_timer") if "warm_timer" in t else 0.0
+				
 		tiles_data.append({
 			"x": coord.x,
 			"y": coord.y,
@@ -76,7 +79,9 @@ static func save_game(main_node: Node) -> bool:
 			"type": int(t.tile_type),
 			"building_type": b_type,
 			"building_level": b_lvl,
-			"building_accum": b_accum
+			"building_accum": b_accum,
+			"is_warmed": is_warmed,
+			"warm_timer": warm_timer
 		})
 		
 	var sound_mgr = main_node.get("sound_manager")
@@ -84,7 +89,7 @@ static func save_game(main_node: Node) -> bool:
 	var sfx_muted = sound_mgr.is_muted if sound_mgr else false
 	
 	var data = {
-		"version": 1,
+		"version": 2,
 		"timestamp": int(Time.get_unix_time_from_system()),
 		"resources": {
 			"food": main_node.get("food"),
@@ -92,7 +97,12 @@ static func save_game(main_node: Node) -> bool:
 			"flour": main_node.get("flour"),
 			"plank": main_node.get("plank"),
 			"bread": main_node.get("bread"),
-			"furniture": main_node.get("furniture")
+			"furniture": main_node.get("furniture"),
+			"stone": main_node.get("stone") if "stone" in main_node else 0.0,
+			"iron": main_node.get("iron") if "iron" in main_node else 0.0,
+			"obsidian": main_node.get("obsidian") if "obsidian" in main_node else 0.0,
+			"mithril": main_node.get("mithril") if "mithril" in main_node else 0.0,
+			"tamgas": main_node.get("tamgas") if "tamgas" in main_node else 0
 		},
 		"progression": {
 			"owned_count": main_node.get("owned_count"),
@@ -100,11 +110,26 @@ static func save_game(main_node: Node) -> bool:
 			"purchased_forest_count": main_node.get("purchased_forest_count"),
 			"purchased_sea_count": main_node.get("purchased_sea_count"),
 			"purchased_mountain_count": main_node.get("purchased_mountain_count"),
-			"castle_level": main_node.get("castle_level")
+			"castle_level": main_node.get("castle_level"),
+			"total_migrations": main_node.get("total_migrations") if "total_migrations" in main_node else 0
 		},
 		"prestige": {
 			"crowns": main_node.get("crowns"),
 			"total_rebirths": main_node.get("total_rebirths")
+		},
+		"tore": {
+			"tore_talents": main_node.get("tore_talents") if "tore_talents" in main_node else {}
+		},
+		"titles": {
+			"unlocked": main_node.get("titles") if "titles" in main_node else {},
+			"market_trades_count": main_node.get("market_trades_count") if "market_trades_count" in main_node else 0,
+			"warmed_tiles_count": main_node.get("warmed_tiles_count") if "warmed_tiles_count" in main_node else 0
+		},
+		"season": {
+			"current": main_node.get("season") if "season" in main_node else "SPRING",
+			"timer": main_node.get("season_timer") if "season_timer" in main_node else 0.0,
+			"year": main_node.get("season_year") if "season_year" in main_node else 1,
+			"is_zud": main_node.get("is_zud") if "is_zud" in main_node else false
 		},
 		"stats": {
 			"total_food_produced": main_node.get("stat_total_food"),
@@ -113,6 +138,9 @@ static func save_game(main_node: Node) -> bool:
 			"total_plank_produced": main_node.get("stat_total_plank"),
 			"total_bread_produced": main_node.get("stat_total_bread"),
 			"total_furniture_produced": main_node.get("stat_total_furniture"),
+			"total_stone_produced": main_node.get("stat_total_stone") if "stat_total_stone" in main_node else 0.0,
+			"total_iron_produced": main_node.get("stat_total_iron") if "stat_total_iron" in main_node else 0.0,
+			"total_obsidian_produced": main_node.get("stat_total_obsidian") if "stat_total_obsidian" in main_node else 0.0,
 			"total_tiles_conquered": main_node.get("stat_total_conquered"),
 			"playtime_seconds": main_node.get("stat_playtime")
 		},

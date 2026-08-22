@@ -644,6 +644,9 @@ class SoundSynth {
   playTileUnlock() { this.playTones([523.25, 659.25, 783.99], 0.16, 'triangle'); }
   playBuild() { this.playTones([220, 160, 110], 0.14, 'square'); }
   playCollect() { this.playTones([987.77, 1318.51], 0.09, 'sine'); }
+  playCritHarvest() { this.playTones([523.25, 783.99, 1046.5, 1567.98, 2093.0], 0.38, 'triangle'); }
+  playTradeSuccess() { this.playTones([440, 554.37, 659.25, 880, 1108.7], 0.28, 'sine'); }
+  playFireBurn() { this.playTones([150, 220, 180, 290, 120], 0.25, 'sawtooth'); }
   playUpgrade() { this.playTones([440, 554.37, 659.25, 880], 0.22, 'triangle'); }
   playCastleUpgrade() { this.playTones([523.25, 659.25, 783.99, 1046.5], 0.35, 'triangle'); }
   playPrestige() { this.playTones([523.25, 659.25, 783.99, 1046.5, 1318.51, 1567.98], 0.55, 'triangle'); }
@@ -994,6 +997,20 @@ class GameState {
     this.statTotalConquered = 1;
     this.statPlaytime = 0.0;
 
+    // Unvanlar & Başarımlar (Titles & Achievements)
+    this.titles = {
+      farmer: false,
+      lumberjack: false,
+      conqueror: false,
+      khagan: false,
+      nomad: false,
+      zudMaster: false,
+      ergenekonLord: false,
+      merchant: false
+    };
+    this.marketTradesCount = 0;
+    this.warmedTilesCount = 0;
+
     // Altıgen Karolar: key = "q,r" -> Tile Object
     this.tiles = {};
     
@@ -1007,7 +1024,8 @@ class GameState {
 
   getPrestigeMultiplier() {
     const talentBoost = (this.talents ? (this.talents.boostAll || 0) : 0) * 0.10;
-    return 1.0 + this.crowns * 0.05 + talentBoost;
+    const khaganBonus = (this.titles && this.titles.khagan) ? 0.15 : 0.0;
+    return 1.0 + this.crowns * 0.05 + talentBoost + khaganBonus;
   }
 
   getFrenzyMultiplier() {
@@ -1022,7 +1040,10 @@ class GameState {
     if (this.season === "SPRING") seasonBonus = 1.20;
     else if (this.season === "SUMMER") seasonBonus = 1.15;
     else if (this.season === "AUTUMN") seasonBonus = 1.25;
-    else if (this.season === "WINTER") seasonBonus = this.isZud ? 0.85 : 1.0;
+    else if (this.season === "WINTER") {
+      const zudResistance = (this.titles && this.titles.zudMaster) ? 0.95 : 0.85;
+      seasonBonus = this.isZud ? zudResistance : 1.0;
+    }
 
     // Töre Yağmur Bereketi
     const rainTalent = (this.toreTalents && this.toreTalents.gokTengri && this.toreTalents.gokTengri.rainBlessing) ? (this.toreTalents.gokTengri.rainBlessing * 0.30) : 0;
@@ -5403,6 +5424,23 @@ function openBuildingMenu(tile) {
     `;
   }
 
+  if (b.type !== "castle") {
+    if (tile.isWarmed) {
+      menuContent.innerHTML += `
+        <div style="background:rgba(249,115,22,0.15);border:1px solid #f97316;border-radius:8px;padding:6px 10px;margin-top:6px;font-size:0.75rem;color:#fdba74;text-align:center;font-weight:600">
+          🔥 Tarla Isıtıldı! (+%50 Hız & Donma Koruması Aktif)
+        </div>
+      `;
+    } else {
+      const canAfford = (game.wood || 0) >= 5;
+      menuContent.innerHTML += `
+        <button class="btn-warm-tile" style="margin-top:6px;width:100%" onclick="warmTile()" ${canAfford ? '' : 'style="opacity:0.6"'}>
+          🔥 Ateş Yak & Tarlayı Isıt (5 🪵 Odun) <small>— +%50 Hız</small>
+        </button>
+      `;
+    }
+  }
+
   bottomMenu.classList.remove("hidden");
 }
 
@@ -5460,23 +5498,42 @@ window.deforestTile = function() {
   updateUI();
 };
 
-// Koleksiyon İşlemleri
+// Koleksiyon İşlemleri (Kritik Hasat / Bereketli Hasat Destekli)
+function processLuckyHarvest(val, icon, resColor, toastKey) {
+  const isCrit = Math.random() < 0.15;
+  const mult = isCrit ? 3.0 : 1.0;
+  const finalVal = val * mult;
+  const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
+  
+  triggerTileBounce(game.selectedTile.q, game.selectedTile.r);
+  triggerFlyingResource(p.x, p.y, icon, resColor);
+  triggerFloatingText(p.x, p.y - 25, `+${formatCompact(finalVal)}`, isCrit ? "#f59e0b" : resColor);
+  triggerScreenShake(isCrit ? 6.0 : 2.5, isCrit ? 0.22 : 0.12);
+
+  if (isCrit) {
+    if (audio.playCritHarvest) audio.playCritHarvest();
+    else audio.playCollect();
+    triggerShockwave(p.x, p.y, "#f59e0b");
+    showToast(`✨ BEREKETLİ HASAT! +${formatCompact(finalVal)} ${icon} (3x Kritik)`);
+  } else {
+    audio.playCollect();
+    if (toastKey) showToast(t(toastKey, [formatCompact(finalVal)]));
+  }
+  
+  checkTitlesAndAchievements();
+  return finalVal;
+}
+
 window.collectCorn = function() {
   if (!game.selectedTile || !game.selectedTile.building) return;
   const b = game.selectedTile.building;
   const val = b.accumulated || 0;
   if (val > 0.001) {
-    game.food += val;
-    game.statTotalFood += val;
     b.accumulated = 0;
-    audio.playCollect();
-    const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
-    triggerTileBounce(game.selectedTile.q, game.selectedTile.r);
-    triggerFlyingResource(p.x, p.y, "🌽", "#eab308");
-    triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🥡`, "#fde047");
-    triggerScreenShake(2.5, 0.12);
-    showToast(t("toast_collected_food", [formatCompact(val)]));
-    updateQuestProgress("collect_food", val);
+    const gained = processLuckyHarvest(val, "🌽", "#eab308", "toast_collected_food");
+    game.food += gained;
+    game.statTotalFood += gained;
+    updateQuestProgress("collect_food", gained);
     openBuildingMenu(game.selectedTile);
   }
 };
@@ -5486,17 +5543,11 @@ window.collectWood = function() {
   const b = game.selectedTile.building;
   const val = b.accumulated || 0;
   if (val > 0.001) {
-    game.wood += val;
-    game.statTotalWood += val;
     b.accumulated = 0;
-    audio.playCollect();
-    const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
-    triggerTileBounce(game.selectedTile.q, game.selectedTile.r);
-    triggerFlyingResource(p.x, p.y, "🪵", "#d4a373");
-    triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🪵`, "#d4a373");
-    triggerScreenShake(2.5, 0.12);
-    showToast(t("toast_collected_wood", [formatCompact(val)]));
-    updateQuestProgress("collect_wood", val);
+    const gained = processLuckyHarvest(val, "🪵", "#d4a373", "toast_collected_wood");
+    game.wood += gained;
+    game.statTotalWood += gained;
+    updateQuestProgress("collect_wood", gained);
     openBuildingMenu(game.selectedTile);
   }
 };
@@ -5506,16 +5557,10 @@ window.collectFlour = function() {
   const b = game.selectedTile.building;
   const val = b.accumulated || 0;
   if (val > 0.001) {
-    game.flour += val;
-    game.statTotalFlour += val;
     b.accumulated = 0;
-    audio.playCollect();
-    const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
-    triggerTileBounce(game.selectedTile.q, game.selectedTile.r);
-    triggerFlyingResource(p.x, p.y, "🌾", "#fef08a");
-    triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🌾`, "#fef08a");
-    triggerScreenShake(2.5, 0.12);
-    showToast(t("toast_collected_flour", [formatCompact(val)]));
+    const gained = processLuckyHarvest(val, "🌾", "#fef08a", "toast_collected_flour");
+    game.flour += gained;
+    game.statTotalFlour += gained;
     openBuildingMenu(game.selectedTile);
   }
 };
@@ -5525,16 +5570,10 @@ window.collectPlank = function() {
   const b = game.selectedTile.building;
   const val = b.accumulated || 0;
   if (val > 0.001) {
-    game.plank += val;
-    game.statTotalPlank += val;
     b.accumulated = 0;
-    audio.playCollect();
-    const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
-    triggerTileBounce(game.selectedTile.q, game.selectedTile.r);
-    triggerFlyingResource(p.x, p.y, "🪵", "#fbcfe8");
-    triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🪵`, "#fbcfe8");
-    triggerScreenShake(2.5, 0.12);
-    showToast(t("toast_collected_plank", [formatCompact(val)]));
+    const gained = processLuckyHarvest(val, "🪵", "#fbcfe8", "toast_collected_plank");
+    game.plank += gained;
+    game.statTotalPlank += gained;
     openBuildingMenu(game.selectedTile);
   }
 };
@@ -5544,16 +5583,10 @@ window.collectBread = function() {
   const b = game.selectedTile.building;
   const val = b.accumulated || 0;
   if (val > 0.001) {
-    game.bread += val;
-    game.statTotalBread += val;
     b.accumulated = 0;
-    audio.playCollect();
-    const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
-    triggerTileBounce(game.selectedTile.q, game.selectedTile.r);
-    triggerFlyingResource(p.x, p.y, "🍞", "#fdba74");
-    triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🍞`, "#fdba74");
-    triggerScreenShake(2.5, 0.12);
-    showToast(t("toast_collected_bread", [formatCompact(val)]));
+    const gained = processLuckyHarvest(val, "🍞", "#fdba74", "toast_collected_bread");
+    game.bread += gained;
+    game.statTotalBread += gained;
     openBuildingMenu(game.selectedTile);
   }
 };
@@ -5563,16 +5596,10 @@ window.collectFurniture = function() {
   const b = game.selectedTile.building;
   const val = b.accumulated || 0;
   if (val > 0.001) {
-    game.furniture += val;
-    game.statTotalFurniture += val;
     b.accumulated = 0;
-    audio.playCollect();
-    const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
-    triggerTileBounce(game.selectedTile.q, game.selectedTile.r);
-    triggerFlyingResource(p.x, p.y, "🪑", "#93c5fd");
-    triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🪑`, "#93c5fd");
-    triggerScreenShake(2.5, 0.12);
-    showToast(t("toast_collected_furniture", [formatCompact(val)]));
+    const gained = processLuckyHarvest(val, "🪑", "#93c5fd", "toast_collected_furniture");
+    game.furniture += gained;
+    game.statTotalFurniture += gained;
     openBuildingMenu(game.selectedTile);
   }
 };
@@ -5582,17 +5609,11 @@ window.collectStone = function() {
   const b = game.selectedTile.building;
   const val = b.accumulated || 0;
   if (val > 0.001) {
-    game.stone = (game.stone || 0) + val;
-    game.statTotalStone = (game.statTotalStone || 0) + val;
     b.accumulated = 0;
-    audio.playCollect();
-    const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
-    triggerTileBounce(game.selectedTile.q, game.selectedTile.r);
-    triggerFlyingResource(p.x, p.y, "🪨", "#cbd5e1");
-    triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🪨`, "#94a3b8");
-    triggerScreenShake(2.5, 0.12);
-    showToast(t("toast_collected_stone", [formatCompact(val)]) || `🪨 +${formatCompact(val)} Taş Toplandı!`);
-    updateQuestProgress("collect_stone", val);
+    const gained = processLuckyHarvest(val, "🪨", "#cbd5e1", "toast_collected_stone");
+    game.stone = (game.stone || 0) + gained;
+    game.statTotalStone = (game.statTotalStone || 0) + gained;
+    updateQuestProgress("collect_stone", gained);
     openBuildingMenu(game.selectedTile);
   }
 };
@@ -5602,19 +5623,167 @@ window.collectIron = function() {
   const b = game.selectedTile.building;
   const val = b.accumulated || 0;
   if (val > 0.001) {
-    game.iron = (game.iron || 0) + val;
-    game.statTotalIron = (game.statTotalIron || 0) + val;
     b.accumulated = 0;
-    audio.playCollect();
-    const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
-    triggerTileBounce(game.selectedTile.q, game.selectedTile.r);
-    triggerFlyingResource(p.x, p.y, "⛏️", "#38bdf8");
-    triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} ⛏️`, "#38bdf8");
-    triggerScreenShake(2.5, 0.12);
-    showToast(t("toast_collected_iron", [formatCompact(val)]) || `⛏️ +${formatCompact(val)} Demir Toplandı!`);
+    const gained = processLuckyHarvest(val, "⛏️", "#38bdf8", "toast_collected_iron");
+    game.iron = (game.iron || 0) + gained;
+    game.statTotalIron = (game.statTotalIron || 0) + gained;
     openBuildingMenu(game.selectedTile);
   }
 };
+
+// =============================================================================
+// ZUD FELAKETİ ISINMA & TARLA KURTARMA MEKANİĞİ
+// =============================================================================
+
+window.warmTile = function() {
+  if (!game.selectedTile) return;
+  const tile = game.selectedTile;
+  const WOOD_COST = 5;
+
+  if ((game.wood || 0) < WOOD_COST) {
+    audio.playError();
+    showToast("⚠️ Tarlayı ısıtmak için en az 5 🪵 Odun gerekli!", true);
+    return;
+  }
+
+  game.wood -= WOOD_COST;
+  tile.isWarmed = true;
+  tile.warmTimer = 60.0; // 60 saniye boyunca koruma & +%50 hız
+  game.warmedTilesCount = (game.warmedTilesCount || 0) + 1;
+
+  if (audio.playFireBurn) audio.playFireBurn();
+  else audio.playUpgrade();
+
+  const p = hexToPixel(tile.q, tile.r);
+  triggerShockwave(p.x, p.y, "#f97316");
+  triggerFloatingText(p.x, p.y - 30, "🔥 +%50 ISINMA!", "#f97316");
+  showToast("🔥 Tarla ısıtıldı! Buzlar eridi ve 60 saniye boyunca +%50 üretim hızı kazandı!");
+
+  checkTitlesAndAchievements();
+  saveGame();
+  openBuildingMenu(tile);
+};
+
+// =============================================================================
+// İPEK YOLU PAZAR YERİ TAKAS FONKSİYONU
+// =============================================================================
+
+window.tradeMarket = function(recipeKey) {
+  const merchantBonus = (game.titles && game.titles.merchant) ? 1.20 : 1.0;
+
+  if (recipeKey === "flour_to_stone") {
+    if ((game.flour || 0) < 15) {
+      audio.playError();
+      showToast("⚠️ Yetersiz Un! (15 🌾 Un gerekli)", true);
+      return;
+    }
+    game.flour -= 15;
+    const gain = Math.round(8 * merchantBonus);
+    game.stone = (game.stone || 0) + gain;
+    game.statTotalStone = (game.statTotalStone || 0) + gain;
+    audio.playTradeSuccess();
+    showToast(`⚖️ Takas Başarılı! 15 Un verildi, +${gain} 🪨 Taş alındı.`);
+  } else if (recipeKey === "bread_to_iron") {
+    if ((game.bread || 0) < 10) {
+      audio.playError();
+      showToast("⚠️ Yetersiz Ekmek! (10 🍞 Ekmek gerekli)", true);
+      return;
+    }
+    game.bread -= 10;
+    const gain = Math.round(5 * merchantBonus);
+    game.iron = (game.iron || 0) + gain;
+    game.statTotalIron = (game.statTotalIron || 0) + gain;
+    audio.playTradeSuccess();
+    showToast(`⚖️ Takas Başarılı! 10 Ekmek verildi, +${gain} ⛏️ Demir alındı.`);
+  } else if (recipeKey === "furniture_to_stone") {
+    if ((game.furniture || 0) < 10) {
+      audio.playError();
+      showToast("⚠️ Yetersiz Mobilya! (10 🪑 Mobilya gerekli)", true);
+      return;
+    }
+    game.furniture -= 10;
+    const gain = Math.round(15 * merchantBonus);
+    game.stone = (game.stone || 0) + gain;
+    game.statTotalStone = (game.statTotalStone || 0) + gain;
+    audio.playTradeSuccess();
+    showToast(`⚖️ Takas Başarılı! 10 Mobilya verildi, +${gain} 🪨 Taş alındı.`);
+  } else if (recipeKey === "iron_stone_to_crown") {
+    if ((game.iron || 0) < 25 || (game.stone || 0) < 25) {
+      audio.playError();
+      showToast("⚠️ Yetersiz Maden! (25 ⛏️ Demir + 25 🪨 Taş gerekli)", true);
+      return;
+    }
+    game.iron -= 25;
+    game.stone -= 25;
+    game.crowns = (game.crowns || 0) + 1;
+    audio.playTradeSuccess();
+    showToast(`👑 Kraliyet Satışı Tamamlandı! +1 👑 Kraliyet Tacı kazanıldı!`);
+  } else if (recipeKey === "obsidian_to_tamga") {
+    if ((game.obsidian || 0) < 15) {
+      audio.playError();
+      showToast("⚠️ Yetersiz Obsidiyen! (15 🔮 Obsidiyen gerekli)", true);
+      return;
+    }
+    game.obsidian -= 15;
+    game.tamgas = (game.tamgas || 0) + 1;
+    audio.playTradeSuccess();
+    showToast(`𐰋 Ata Kutsaması! 15 Obsidiyen verildi, +1 𐰋 Göktürk Damgası kazanıldı!`);
+  }
+
+  game.marketTradesCount = (game.marketTradesCount || 0) + 1;
+  checkTitlesAndAchievements();
+  saveGame();
+  updateUI();
+};
+
+// =============================================================================
+// 8 KADEMELİ BOZKIR UNVANLARI & BAŞARIMLARI (TITLES & ACHIEVEMENTS)
+// =============================================================================
+
+const TITLES_CONFIG = [
+  { key: "farmer", name: "🌾 Bozkır Çiftçisi", desc: "Toplam 500 Gıda üret.", perk: "Gıda üretimi kalıcı +%5", check: () => (game.statTotalFood || 0) >= 500 },
+  { key: "lumberjack", name: "🪓 Ulu Oduncu", desc: "Toplam 500 Odun üret.", perk: "Odun üretimi kalıcı +%5", check: () => (game.statTotalWood || 0) >= 500 },
+  { key: "conqueror", name: "🏰 Toprak Fatihi", desc: "En az 10 arsa fethet.", perk: "Arsa maliyetleri -%10", check: () => (game.ownedCount || 1) >= 10 },
+  { key: "khagan", name: "👑 Bozkır Hakanı", desc: "Şatoyu 5. Seviyeye yükselt.", perk: "Küresel hız kalıcı +%15", check: () => (game.castleLevel || 1) >= 5 },
+  { key: "nomad", name: "🐎 Kutlu Göçer", desc: "En az 1 kez Büyük Bozkır Göçü yap.", perk: "Göç başlangıcı +50 Gıda, +50 Odun", check: () => (game.totalMigrations || 0) >= 1 },
+  { key: "zudMaster", name: "❄️ Zud Fatihi", desc: "Zud felaketinde donan en az 3 tarlayı ısıt.", perk: "Kışın felaket kaybı -%50 azalır", check: () => (game.warmedTilesCount || 0) >= 3 },
+  { key: "ergenekonLord", name: "🌋 Ergenekon Efendisi", desc: "Yeraltı dünyasında 50 Obsidiyen üret.", perk: "Yeraltı madenlerine +%20 hız", check: () => (game.statTotalObsidian || 0) >= 50 },
+  { key: "merchant", name: "⚖️ İpek Yolu Taciri", desc: "Pazar yerinde en az 5 takas yap.", perk: "Pazar takaslarında +%20 ek kazanç", check: () => (game.marketTradesCount || 0) >= 5 }
+];
+
+function checkTitlesAndAchievements() {
+  if (!game.titles) game.titles = {};
+  TITLES_CONFIG.forEach(cfg => {
+    if (!game.titles[cfg.key] && cfg.check()) {
+      game.titles[cfg.key] = true;
+      if (audio.playQuestComplete) audio.playQuestComplete();
+      showToast(`🏆 YENİ UNVAN KAZANILDI: ${cfg.name}! (${cfg.perk})`);
+      triggerShockwave(0, 0, "#f59e0b");
+      updateTitlesUI();
+    }
+  });
+}
+
+function updateTitlesUI() {
+  const container = document.getElementById("titles-grid");
+  if (!container) return;
+  container.innerHTML = "";
+
+  TITLES_CONFIG.forEach(cfg => {
+    const isUnlocked = !!(game.titles && game.titles[cfg.key]);
+    const card = document.createElement("div");
+    card.className = `title-card ${isUnlocked ? "unlocked" : "locked"}`;
+    card.innerHTML = `
+      <div class="title-icon">${cfg.name.split(" ")[0]}</div>
+      <div class="title-info">
+        <div class="title-name">${cfg.name} ${isUnlocked ? "✅" : "🔒"}</div>
+        <div class="title-desc">${cfg.desc}</div>
+        <div class="title-perk">${cfg.perk}</div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
 
 window.buyTalent = function(key) {
   if (!game.talents) game.talents = { workerSpeed: 0, boostAll: 0, treasureHunter: 0, conquestMaster: 0 };
@@ -5921,6 +6090,21 @@ function setupModalHandlers() {
   const btnDeclineEnc = document.getElementById("btn-decline-encounter");
   if (btnDeclineEnc) btnDeclineEnc.addEventListener("click", declineEncounter);
 
+  // Hakan Otağı (Kingdom Hub) Butonu
+  const btnOtag = document.getElementById("btn-otag");
+  if (btnOtag) btnOtag.addEventListener("click", () => openOtagModal("migration"));
+
+  const btnCloseOtag = document.getElementById("btn-close-otag");
+  if (btnCloseOtag) btnCloseOtag.addEventListener("click", closeModals);
+
+  // Otağ Sekme Butonları
+  ["migration", "quests", "relics", "market", "layer", "titles"].forEach(tabName => {
+    const btn = document.getElementById(`tab-btn-${tabName}`);
+    if (btn) {
+      btn.addEventListener("click", () => switchOtagTab(tabName));
+    }
+  });
+
   // Zindan Keşif Modalı Butonları
   const btnRuinsSafe = document.getElementById("btn-ruins-safe");
   if (btnRuinsSafe) btnRuinsSafe.addEventListener("click", exploreRuinsSafe);
@@ -5928,9 +6112,9 @@ function setupModalHandlers() {
   const btnRuinsGamble = document.getElementById("btn-ruins-gamble");
   if (btnRuinsGamble) btnRuinsGamble.addEventListener("click", exploreRuinsGamble);
 
-  // Büyük Bozkır Göçü (Prestige 2.0) & Töre Ağacı Butonları
+  // Büyük Bozkır Göçü & Töre Ağacı Butonları
   const btnMigration = document.getElementById("btn-migration");
-  if (btnMigration) btnMigration.addEventListener("click", openMigrationModal);
+  if (btnMigration) btnMigration.addEventListener("click", () => openOtagModal("migration"));
 
   const btnCloseMigration = document.getElementById("btn-close-migration");
   if (btnCloseMigration) btnCloseMigration.addEventListener("click", closeModals);
@@ -5961,20 +6145,58 @@ function setupModalHandlers() {
   if (btnLayer) btnLayer.addEventListener("click", toggleActiveLayer);
 }
 
-function openMigrationModal() {
+window.openOtagModal = function(tabName = "migration") {
+  audio.playClick();
   updateMigrationUI();
+  updateQuestsUI();
+  updateRelicsUI();
+  updateTitlesUI();
+
+  const layerLbl = document.getElementById("lbl-active-layer-status");
+  if (layerLbl) {
+    layerLbl.textContent = (game.activeLayer === "SURFACE") ? "🌍 Yeryüzü Krallığı" : "🌋 Ergenekon Yeraltı Dünyası";
+  }
+
   modalBackdrop.classList.remove("hidden");
-  const migModal = document.getElementById("migration-modal");
-  if (migModal) migModal.classList.remove("hidden");
+  const otag = document.getElementById("otag-modal");
+  if (otag) otag.classList.remove("hidden");
+
+  switchOtagTab(tabName);
+};
+
+window.switchOtagTab = function(tabName) {
+  audio.playClick();
+  const tabs = ["migration", "quests", "relics", "market", "layer", "titles"];
+  tabs.forEach(tName => {
+    const btn = document.getElementById(`tab-btn-${tName}`);
+    const pane = document.getElementById(`pane-${tName}`);
+    if (btn) btn.classList.toggle("active", tName === tabName);
+    if (pane) pane.classList.toggle("hidden", tName !== tabName);
+  });
+};
+
+function openMigrationModal() {
+  openOtagModal("migration");
+}
+
+function openQuestsModal() {
+  openOtagModal("quests");
+}
+
+function openRelicsModal() {
+  openOtagModal("relics");
 }
 
 function updateMigrationUI() {
   const earned = game.calculateEarnedTamgas();
-  const tamgaValEl = document.getElementById("migration-tamga-val");
-  if (tamgaValEl) tamgaValEl.textContent = `+${earned} 𐰋 Tamga`;
+  const tamgaValEl = document.getElementById("val-earn-tamgas");
+  if (tamgaValEl) tamgaValEl.textContent = `+${earned} 𐰋`;
 
-  const currTamgaChip = document.getElementById("chip-tamga");
-  if (currTamgaChip) currTamgaChip.textContent = `𐰋 ${game.tamgas || 0}`;
+  const currTamgaEl = document.getElementById("val-curr-tamgas");
+  if (currTamgaEl) currTamgaEl.textContent = `${game.tamgas || 0} 𐰋`;
+
+  const currTamgaChip = document.getElementById("tamga-label");
+  if (currTamgaChip) currTamgaChip.textContent = `${game.tamgas || 0}`;
 
   if (!game.toreTalents) {
     game.toreTalents = {
@@ -5987,21 +6209,13 @@ function updateMigrationUI() {
   const branches = ["gokTengri", "kulTigin", "tonyukuk"];
   branches.forEach(br => {
     Object.keys(game.toreTalents[br] || {}).forEach(k => {
-      const lvl = game.toreTalents[br][k] || 0;
+      const lvl = (game.toreTalents[br] && game.toreTalents[br][k]) ? game.toreTalents[br][k] : 0;
       const cost = Math.round(1 + lvl * 2);
-      const lvlEl = document.getElementById(`tore-${k}-lvl`);
-      if (lvlEl) lvlEl.textContent = `${lvl}/5`;
+      const lvlEl = document.getElementById(`lvl-tore-${k}`);
+      if (lvlEl) lvlEl.textContent = `${lvl}`;
 
-      const btnEl = document.getElementById(`btn-tore-${k}`);
-      if (btnEl) {
-        if (lvl >= 5) {
-          btnEl.textContent = t("max_level") || "Maksimum";
-          btnEl.disabled = true;
-        } else {
-          btnEl.textContent = `${cost} 𐰋`;
-          btnEl.disabled = ((game.tamgas || 0) < cost);
-        }
-      }
+      const costEl = document.getElementById(`cost-tore-${k}`);
+      if (costEl) costEl.textContent = `${cost}`;
     });
   });
 }
@@ -6040,8 +6254,8 @@ function executeMigration() {
   game.totalMigrations = (game.totalMigrations || 0) + 1;
 
   // Sıfırlama ve Bozkır Göçü
-  game.food = 1.0;
-  game.wood = 1.0;
+  game.food = (game.titles && game.titles.nomad) ? 50.0 : 1.0;
+  game.wood = (game.titles && game.titles.nomad) ? 50.0 : 1.0;
   game.flour = 0.0;
   game.plank = 0.0;
   game.bread = 0.0;
@@ -6056,6 +6270,7 @@ function executeMigration() {
   closeModals();
   audio.playPrestige();
   triggerScreenShake(12.0, 0.4);
+  checkTitlesAndAchievements();
   saveGame();
   showToast(`🐎 BÜYÜK BOZKIR GÖÇÜ TAMAMLANDI! (+${earned} 𐰋 Damga Kazanıldı)`);
 }
@@ -6066,6 +6281,10 @@ function toggleActiveLayer() {
   const btn = document.getElementById("btn-layer");
   if (btn) {
     btn.textContent = (game.activeLayer === "SURFACE") ? "🌍" : "🌋";
+  }
+  const layerLbl = document.getElementById("lbl-active-layer-status");
+  if (layerLbl) {
+    layerLbl.textContent = (game.activeLayer === "SURFACE") ? "🌍 Yeryüzü Krallığı" : "🌋 Ergenekon Yeraltı Dünyası";
   }
   showToast((game.activeLayer === "SURFACE") ? "☀️ Bozkır Dünyasına Geçildi" : "🌋 Ergenekon Yeraltı Mağarasına İnildi");
 }
@@ -6086,6 +6305,9 @@ function closeModals() {
   settingsModal.classList.add("hidden");
   prestigeConfirmModal.classList.add("hidden");
   offlineModal.classList.add("hidden");
+
+  const otagModal = document.getElementById("otag-modal");
+  if (otagModal) otagModal.classList.add("hidden");
 
   const qModal = document.getElementById("quest-modal");
   if (qModal) qModal.classList.add("hidden");
@@ -6378,6 +6600,9 @@ function saveGame() {
     activeLayer: game.activeLayer || "SURFACE",
     undergroundUnlocked: !!game.undergroundUnlocked,
     talents: game.talents || {},
+    titles: game.titles || {},
+    marketTradesCount: game.marketTradesCount || 0,
+    warmedTilesCount: game.warmedTilesCount || 0,
     crowns: game.crowns,
     totalRebirths: game.totalRebirths,
     ownedCount: game.ownedCount,
@@ -6410,6 +6635,8 @@ function saveGame() {
       state: t.state,
       biomeId: (t.biome && t.biome.id !== undefined) ? t.biome.id : 1,
       hasRuins: !!t.hasRuins,
+      isWarmed: !!t.isWarmed,
+      warmTimer: t.warmTimer || 0,
       building: t.building ? {
         type: t.building.type,
         level: t.building.level,
@@ -6422,6 +6649,8 @@ function saveGame() {
       state: t.state,
       biomeId: (t.biome && t.biome.id !== undefined) ? t.biome.id : 10,
       hasRuins: !!t.hasRuins,
+      isWarmed: !!t.isWarmed,
+      warmTimer: t.warmTimer || 0,
       building: t.building ? {
         type: t.building.type,
         level: t.building.level,
@@ -6477,6 +6706,9 @@ function loadGame() {
     game.activeLayer = data.activeLayer || "SURFACE";
     game.undergroundUnlocked = !!data.undergroundUnlocked;
     game.talents = data.talents || { workerSpeed: 0, boostAll: 0, treasureHunter: 0, conquestMaster: 0 };
+    game.titles = data.titles || {};
+    game.marketTradesCount = data.marketTradesCount || 0;
+    game.warmedTilesCount = data.warmedTilesCount || 0;
     game.crowns = data.crowns || 0;
     game.totalRebirths = data.totalRebirths || 0;
     game.ownedCount = data.ownedCount || 1;

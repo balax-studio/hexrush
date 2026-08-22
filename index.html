@@ -53,11 +53,8 @@
           <span class="chip-icon">🏰</span>
           <span class="chip-label" id="land-label">1</span>
         </div>
-        <button id="btn-layer" class="icon-btn layer-btn" title="🌍 Yeryüzü / 🌋 Ergenekon Yeraltı">🌍</button>
-        <button id="btn-migration" class="icon-btn migration-btn" title="🐎 Büyük Bozkır Göçü & Töre Ağacı">🐎<span id="migration-badge" class="badge hidden">!</span></button>
-        <button id="btn-quests" class="icon-btn quest-btn" title="📜 Kraliyet Fermanları">📜<span id="quest-badge" class="badge hidden">!</span></button>
-        <button id="btn-relics" class="icon-btn relic-btn" title="🏺 Kadim Eserler">🏺</button>
-        <button id="btn-frenzy" class="icon-btn frenzy-btn" title="10x Çılgınlık & 10 Dk Hediye">⚡</button>
+        <button id="btn-otag" class="icon-btn otag-btn" title="⛺ Hakan Otağı (Göç, Fermanlar, Eserler, Pazar, Unvanlar)">⛺<span id="otag-badge" class="badge hidden">!</span></button>
+        <button id="btn-frenzy" class="icon-btn frenzy-btn" title="⚡ 10x Çılgınlık & 10 Dk Hediye">⚡</button>
         <button id="btn-toggle-drawer" class="icon-btn" title="Envanter Çekmecesi">▼</button>
         <button id="btn-settings" class="icon-btn" title="Ayarlar & İstatistikler">⚙️</button>
       </div>
@@ -253,72 +250,237 @@
         </div>
       </div>
 
-      <!-- 3-Tier Quests & Decrees Modal -->
-      <div id="quest-modal" class="modal-card hidden">
+      <!-- ======================================================= -->
+      <!-- HAKAN OTAĞI & KRALLIK YÖNETİM MERKEZİ (UNIFIED OTAĞ MODAL) -->
+      <!-- ======================================================= -->
+      <div id="otag-modal" class="modal-card hidden">
         <div class="modal-header">
-          <h2 id="quest-title">📜 Kraliyet Fermanları & Görevler</h2>
-          <button id="btn-close-quests" class="close-btn">✕</button>
+          <h2 id="otag-title">⛺ Hakan Otağı & Krallık Divanı</h2>
+          <button id="btn-close-otag" class="close-btn">✕</button>
         </div>
-        <div class="quests-container">
-          <!-- Fast Quest (Tier 1) -->
-          <div class="quest-card quest-fast" id="card-quest-fast">
-            <div class="quest-header">
-              <span class="quest-tag tag-fast">⚡ Hızlı Ferman</span>
-              <span class="quest-reward" id="reward-quest-fast">+20 🪵 Odun</span>
-            </div>
-            <p class="quest-desc" id="desc-quest-fast">20 Odun Topla</p>
-            <div class="quest-progress-bg">
-              <div class="quest-progress-bar" id="bar-quest-fast" style="width: 0%"></div>
-            </div>
-            <div class="quest-action-row">
-              <span class="quest-count" id="count-quest-fast">0 / 20</span>
-              <button class="btn-primary btn-claim-quest" id="btn-claim-fast" disabled>Ödülü Al</button>
-            </div>
+
+        <!-- Sekmeler -->
+        <div class="tab-buttons-row otag-tabs">
+          <button id="tab-btn-migration" class="tab-btn active">🐎 Göç & Töre</button>
+          <button id="tab-btn-quests" class="tab-btn">📜 Fermanlar<span id="tab-quest-badge" class="badge hidden">!</span></button>
+          <button id="tab-btn-relics" class="tab-btn">🏺 Kadim Eserler</button>
+          <button id="tab-btn-market" class="tab-btn">⚖️ Pazar Yeri</button>
+          <button id="tab-btn-layer" class="tab-btn">🌋 Ergenekon</button>
+          <button id="tab-btn-titles" class="tab-btn">👑 Unvanlar</button>
+        </div>
+
+        <!-- Sekme 1: Büyük Bozkır Göçü & Töre Ağacı -->
+        <div id="pane-migration" class="tab-pane active">
+          <p class="modal-desc">
+            Bozkır toprakları tükendiğinde Kağan kavmini toplar ve daha verimli yeni topraklara göç eder. Tüm binalar sıfırlanır, karşılığında <b>Göktürk Damgası (𐰋)</b> kazanılır.
+          </p>
+          <div class="migration-summary-box">
+            <div class="migration-stat"><span class="text-muted">Ata Ruhları (Damga):</span> <b id="val-curr-tamgas" class="text-cyan">0 𐰋</b></div>
+            <div class="migration-stat"><span class="text-muted">Göç Edilirse Kazanılacak:</span> <b id="val-earn-tamgas" class="text-gold">+0 𐰋</b></div>
+            <button id="btn-execute-migration" class="btn-primary migration-action-btn">📯 Kutlu Göç Borusunu Çal & Göç Et</button>
           </div>
 
-          <!-- Strategic Quest (Tier 2) -->
-          <div class="quest-card quest-strategic" id="card-quest-strat">
-            <div class="quest-header">
-              <span class="quest-tag tag-strat">🏰 Krallık Fermanı</span>
-              <span class="quest-reward" id="reward-quest-strat">+15 🪨 Taş + 1 👑</span>
+          <div class="tore-branches-container">
+            <!-- 1. Gök Tengri Kolu -->
+            <div class="tore-branch branch-tengri">
+              <h4 class="branch-title">🌌 Gök Tengri Kolu (Kutsama & Doğa)</h4>
+              <div class="tore-skills-grid">
+                <div class="tore-card" id="tore-rain">
+                  <div class="tore-card-info">
+                    <b>🌧️ Kutlu Yağmur (<span id="lvl-tore-rain">0</span>/5)</b>
+                    <p>Mevsim & hava olaylarında üretim hızı +%30/sv.</p>
+                  </div>
+                  <button class="btn-tore-up" onclick="buyToreTalent('gokTengri', 'rainBlessing')">⬆️ <span id="cost-tore-rain">1</span> 𐰋</button>
+                </div>
+                <div class="tore-card" id="tore-shaman">
+                  <div class="tore-card-info">
+                    <b>🔮 Şaman Aurası (<span id="lvl-tore-shaman">0</span>/5)</b>
+                    <p>Şaman kutsama süresi +%40, etkisi +%25/sv.</p>
+                  </div>
+                  <button class="btn-tore-up" onclick="buyToreTalent('gokTengri', 'shamanAura')">⬆️ <span id="cost-tore-shaman">2</span> 𐰋</button>
+                </div>
+              </div>
             </div>
-            <p class="quest-desc" id="desc-quest-strat">Bir Taş Ocağını 2. Seviyeye Yükselt</p>
-            <div class="quest-progress-bg">
-              <div class="quest-progress-bar" id="bar-quest-strat" style="width: 0%"></div>
-            </div>
-            <div class="quest-action-row">
-              <span class="quest-count" id="count-quest-strat">0 / 1</span>
-              <button class="btn-primary btn-claim-quest" id="btn-claim-strat" disabled>Ödülü Al</button>
-            </div>
-          </div>
 
-          <!-- Epic Quest (Tier 3) -->
-          <div class="quest-card quest-epic" id="card-quest-epic">
-            <div class="quest-header">
-              <span class="quest-tag tag-epic">👑 Epik Hükümdar Fermanı</span>
-              <span class="quest-reward" id="reward-quest-epic">+3 👑 Taç + Kadim Eser</span>
+            <!-- 2. Kül Tigin Kolu -->
+            <div class="tore-branch branch-kultigin">
+              <h4 class="branch-title">⚔️ Kül Tigin Kolu (Savaş & Savunma)</h4>
+              <div class="tore-skills-grid">
+                <div class="tore-card" id="tore-conquest">
+                  <div class="tore-card-info">
+                    <b>🚩 Alp Yüreği (<span id="lvl-tore-conquest">0</span>/5)</b>
+                    <p>Karo fetih maliyeti ve süresi -%15/sv.</p>
+                  </div>
+                  <button class="btn-tore-up" onclick="buyToreTalent('kulTigin', 'braveHeart')">⬆️ <span id="cost-tore-conquest">1</span> 𐰋</button>
+                </div>
+                <div class="tore-card" id="tore-defense">
+                  <div class="tore-card-info">
+                    <b>🛡️ Çelik Korgan (<span id="lvl-tore-defense">0</span>/5)</b>
+                    <p>Gece baskını savuşturma şansı +%20/sv.</p>
+                  </div>
+                  <button class="btn-tore-up" onclick="buyToreTalent('kulTigin', 'steelKorgan')">⬆️ <span id="cost-tore-defense">2</span> 𐰋</button>
+                </div>
+              </div>
             </div>
-            <p class="quest-desc" id="desc-quest-epic">Şatoyu 3. Seviyeye Yükselt ve 8 Toprak Fethet</p>
-            <div class="quest-progress-bg">
-              <div class="quest-progress-bar" id="bar-quest-epic" style="width: 0%"></div>
-            </div>
-            <div class="quest-action-row">
-              <span class="quest-count" id="count-quest-epic">0 / 8</span>
-              <button class="btn-primary btn-claim-quest" id="btn-claim-epic" disabled>Ödülü Al</button>
+
+            <!-- 3. Tonyukuk Kolu -->
+            <div class="tore-branch branch-tonyukuk">
+              <h4 class="branch-title">📜 Tonyukuk Kolu (İdare & Ticaret)</h4>
+              <div class="tore-skills-grid">
+                <div class="tore-card" id="tore-silk">
+                  <div class="tore-card-info">
+                    <b>🐫 İpek Yolu Ağı (<span id="lvl-tore-silk">0</span>/5)</b>
+                    <p>Kervan takas ödülleri +%40/sv.</p>
+                  </div>
+                  <button class="btn-tore-up" onclick="buyToreTalent('tonyukuk', 'silkNetwork')">⬆️ <span id="cost-tore-silk">1</span> 𐰋</button>
+                </div>
+                <div class="tore-card" id="tore-roads">
+                  <div class="tore-card-info">
+                    <b>🛤️ Taş Kervan Yolu (<span id="lvl-tore-roads">0</span>/5)</b>
+                    <p>Binalar arası yol sinerji bonusu +%10/sv.</p>
+                  </div>
+                  <button class="btn-tore-up" onclick="buyToreTalent('tonyukuk', 'pavedRoads')">⬆️ <span id="cost-tore-roads">2</span> 𐰋</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Kadim Eserler (Relics) Modal -->
-      <div id="relics-modal" class="modal-card hidden">
-        <div class="modal-header">
-          <h2>🏺 Kadim Bozkır & Göktürk Eserleri</h2>
-          <button id="btn-close-relics" class="close-btn">✕</button>
+        <!-- Sekme 2: Kraliyet Fermanları & Görevler -->
+        <div id="pane-quests" class="tab-pane hidden">
+          <div class="quests-container">
+            <!-- Fast Quest (Tier 1) -->
+            <div class="quest-card quest-fast" id="card-quest-fast">
+              <div class="quest-header">
+                <span class="quest-tag tag-fast">⚡ Hızlı Ferman</span>
+                <span class="quest-reward" id="reward-quest-fast">+20 🪵 Odun</span>
+              </div>
+              <p class="quest-desc" id="desc-quest-fast">20 Odun Topla</p>
+              <div class="quest-progress-bg">
+                <div class="quest-progress-bar" id="bar-quest-fast" style="width: 0%"></div>
+              </div>
+              <div class="quest-action-row">
+                <span class="quest-count" id="count-quest-fast">0 / 20</span>
+                <button class="btn-primary btn-claim-quest" id="btn-claim-fast" disabled>Ödülü Al</button>
+              </div>
+            </div>
+
+            <!-- Strategic Quest (Tier 2) -->
+            <div class="quest-card quest-strategic" id="card-quest-strat">
+              <div class="quest-header">
+                <span class="quest-tag tag-strat">🏰 Krallık Fermanı</span>
+                <span class="quest-reward" id="reward-quest-strat">+15 🪨 Taş + 1 👑</span>
+              </div>
+              <p class="quest-desc" id="desc-quest-strat">Bir Taş Ocağını 2. Seviyeye Yükselt</p>
+              <div class="quest-progress-bg">
+                <div class="quest-progress-bar" id="bar-quest-strat" style="width: 0%"></div>
+              </div>
+              <div class="quest-action-row">
+                <span class="quest-count" id="count-quest-strat">0 / 1</span>
+                <button class="btn-primary btn-claim-quest" id="btn-claim-strat" disabled>Ödülü Al</button>
+              </div>
+            </div>
+
+            <!-- Epic Quest (Tier 3) -->
+            <div class="quest-card quest-epic" id="card-quest-epic">
+              <div class="quest-header">
+                <span class="quest-tag tag-epic">👑 Epik Hükümdar Fermanı</span>
+                <span class="quest-reward" id="reward-quest-epic">+3 👑 Taç + Kadim Eser</span>
+              </div>
+              <p class="quest-desc" id="desc-quest-epic">Şatoyu 3. Seviyeye Yükselt ve 8 Toprak Fethet</p>
+              <div class="quest-progress-bg">
+                <div class="quest-progress-bar" id="bar-quest-epic" style="width: 0%"></div>
+              </div>
+              <div class="quest-action-row">
+                <span class="quest-count" id="count-quest-epic">0 / 8</span>
+                <button class="btn-primary btn-claim-quest" id="btn-claim-epic" disabled>Ödülü Al</button>
+              </div>
+            </div>
+          </div>
         </div>
-        <p class="modal-desc">Zindan ve keşiflerden kazanılan kalıcı krallık eserleri:</p>
-        <div class="relics-grid" id="relics-grid">
-          <!-- Populated dynamically via JS -->
+
+        <!-- Sekme 3: Kadim Eserler -->
+        <div id="pane-relics" class="tab-pane hidden">
+          <p class="modal-desc">Zindan ve keşiflerden kazanılan kalıcı krallık eserleri:</p>
+          <div class="relics-grid" id="relics-grid">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </div>
+
+        <!-- Sekme 4: İpek Yolu Pazar Yeri -->
+        <div id="pane-market" class="tab-pane hidden">
+          <p class="modal-desc">Fazla kaynaklarınızı İpek Yolu tüccarları ile ihtiyacınız olan hammaddelere veya Kraliyet Taçlarına dönüştürün:</p>
+          <div class="market-grid">
+            <div class="market-card">
+              <div class="market-info">
+                <h4>🌾 Un ➔ 🪨 Taş Takası</h4>
+                <p class="text-muted">15 Un ver, 8 Taş al.</p>
+              </div>
+              <button class="btn-primary" onclick="tradeMarket('flour_to_stone')">Takas Et</button>
+            </div>
+            <div class="market-card">
+              <div class="market-info">
+                <h4>🍞 Ekmek ➔ ⛏️ Demir Takası</h4>
+                <p class="text-muted">10 Ekmek ver, 5 Demir al.</p>
+              </div>
+              <button class="btn-primary" onclick="tradeMarket('bread_to_iron')">Takas Et</button>
+            </div>
+            <div class="market-card">
+              <div class="market-info">
+                <h4>🪑 Mobilya ➔ 🪨 Taş Yığını</h4>
+                <p class="text-muted">10 Mobilya ver, 15 Taş al.</p>
+              </div>
+              <button class="btn-primary" onclick="tradeMarket('furniture_to_stone')">Takas Et</button>
+            </div>
+            <div class="market-card">
+              <div class="market-info">
+                <h4>⛏️ Demir & Taş ➔ 👑 Taç Satışı</h4>
+                <p class="text-muted">25 Demir + 25 Taş ver, 1 👑 Taç al.</p>
+              </div>
+              <button class="btn-primary text-gold" onclick="tradeMarket('iron_stone_to_crown')">👑 Taç Al</button>
+            </div>
+            <div class="market-card">
+              <div class="market-info">
+                <h4>🔮 Obsidiyen ➔ 𐰋 Damga</h4>
+                <p class="text-muted">15 Obsidiyen ver, 1 𐰋 Göktürk Damgası al.</p>
+              </div>
+              <button class="btn-primary text-cyan" onclick="tradeMarket('obsidian_to_tamga')">𐰋 Damga Al</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sekme 5: Ergenekon Yeraltı Katmanı -->
+        <div id="pane-layer" class="tab-pane hidden">
+          <p class="modal-desc">
+            Ergenekon, dağların derinliklerinde lav nehirleri ve parlayan kristal damarlarla dolu kadim bir yeraltı dünyasıdır.
+          </p>
+          <div class="layer-control-box">
+            <div class="layer-status-row">
+              <span>Mevcut Katman:</span>
+              <b id="lbl-active-layer-status" class="text-gold">🌍 Yeryüzü Krallığı</b>
+            </div>
+            <button id="btn-toggle-layer-action" class="btn-primary layer-switch-btn" onclick="toggleActiveLayer()">
+              🌋 Ergenekon Yeraltı Dünyasına İn
+            </button>
+          </div>
+          <div class="underground-info-grid">
+            <div class="underground-card">
+              <h4>🔮 Obsidiyen Dökümhanesi</h4>
+              <p>Lav karolarında eriyik obsidiyen külçeleri üretir.</p>
+            </div>
+            <div class="underground-card">
+              <h4>💠 Mithril Kristal Madeni</h4>
+              <p>Kristal mağaralarında efsanevi parlak mithril cevheri kazar.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sekme 6: Unvanlar & Başarımlar -->
+        <div id="pane-titles" class="tab-pane hidden">
+          <p class="modal-desc">Krallığınızın ulaştığı efsanevi mertebeler ve sağladığı kalıcı pasif bonuslar:</p>
+          <div class="titles-grid" id="titles-grid">
+            <!-- Populated dynamically via JS -->
+          </div>
         </div>
       </div>
 
@@ -363,90 +525,6 @@
             <b>🎲 Kraliyet Keşfi Yap (Riskli Zar)</b>
             <span>%70 Şans: 👑 Taç + Kadim Eser | %30 Şans: Sis Fırtınası</span>
           </button>
-        </div>
-      </div>
-
-      <!-- Büyük Bozkır Göçü & Töre Ağacı Modalı -->
-      <div id="migration-modal" class="modal-card hidden">
-        <div class="modal-header">
-          <h2 id="migration-title">🐎 Büyük Bozkır Göçü & Töre Ağacı</h2>
-          <button id="btn-close-migration" class="close-btn">✕</button>
-        </div>
-        <p class="modal-desc">
-          Bozkır toprakları tükendiğinde Kağan kavmini toplar ve daha verimli yeni topraklara göç eder. Tüm binalar sıfırlanır, karşılığında <b>Göktürk Damgası (𐰋)</b> kazanılır.
-        </p>
-
-        <!-- Göç Bilgi Kutusu -->
-        <div class="migration-summary-box">
-          <div class="migration-stat"><span class="text-muted">Ata Ruhları (Damga):</span> <b id="val-curr-tamgas" class="text-cyan">0 𐰋</b></div>
-          <div class="migration-stat"><span class="text-muted">Göç Edilirse Kazanılacak:</span> <b id="val-earn-tamgas" class="text-gold">+0 𐰋</b></div>
-          <button id="btn-execute-migration" class="btn-primary migration-action-btn">📯 Kutlu Göç Borusunu Çal & Göç Et</button>
-        </div>
-
-        <!-- Töre & Bilgelik Ağacı Dalları -->
-        <div class="tore-branches-container">
-          <!-- 1. Gök Tengri Kolu -->
-          <div class="tore-branch branch-tengri">
-            <h4 class="branch-title">🌌 Gök Tengri Kolu (Kutsama & Doğa)</h4>
-            <div class="tore-skills-grid">
-              <div class="tore-card" id="tore-rain">
-                <div class="tore-card-info">
-                  <b>🌧️ Kutlu Yağmur (<span id="lvl-tore-rain">0</span>/5)</b>
-                  <p>Mevsim & hava olaylarında üretim hızı +%30/sv.</p>
-                </div>
-                <button class="btn-tore-up" onclick="buyToreTalent('gokTengri', 'rainBlessing')">⬆️ <span id="cost-tore-rain">1</span> 𐰋</button>
-              </div>
-              <div class="tore-card" id="tore-shaman">
-                <div class="tore-card-info">
-                  <b>🔮 Şaman Aurası (<span id="lvl-tore-shaman">0</span>/5)</b>
-                  <p>Şaman kutsama süresi +%40, etkisi +%25/sv.</p>
-                </div>
-                <button class="btn-tore-up" onclick="buyToreTalent('gokTengri', 'shamanAura')">⬆️ <span id="cost-tore-shaman">2</span> 𐰋</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- 2. Kül Tigin Kolu -->
-          <div class="tore-branch branch-kultigin">
-            <h4 class="branch-title">⚔️ Kül Tigin Kolu (Savaş & Savunma)</h4>
-            <div class="tore-skills-grid">
-              <div class="tore-card" id="tore-conquest">
-                <div class="tore-card-info">
-                  <b>🚩 Alp Yüreği (<span id="lvl-tore-conquest">0</span>/5)</b>
-                  <p>Karo fetih maliyeti ve süresi -%15/sv.</p>
-                </div>
-                <button class="btn-tore-up" onclick="buyToreTalent('kulTigin', 'braveHeart')">⬆️ <span id="cost-tore-conquest">1</span> 𐰋</button>
-              </div>
-              <div class="tore-card" id="tore-defense">
-                <div class="tore-card-info">
-                  <b>🛡️ Çelik Korgan (<span id="lvl-tore-defense">0</span>/5)</b>
-                  <p>Gece baskını savuşturma şansı +%20/sv.</p>
-                </div>
-                <button class="btn-tore-up" onclick="buyToreTalent('kulTigin', 'steelKorgan')">⬆️ <span id="cost-tore-defense">2</span> 𐰋</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- 3. Tonyukuk Kolu -->
-          <div class="tore-branch branch-tonyukuk">
-            <h4 class="branch-title">📜 Tonyukuk Kolu (İdare & Ticaret)</h4>
-            <div class="tore-skills-grid">
-              <div class="tore-card" id="tore-silk">
-                <div class="tore-card-info">
-                  <b>🐫 İpek Yolu Ağı (<span id="lvl-tore-silk">0</span>/5)</b>
-                  <p>Kervan takas ödülleri +%40/sv.</p>
-                </div>
-                <button class="btn-tore-up" onclick="buyToreTalent('tonyukuk', 'silkNetwork')">⬆️ <span id="cost-tore-silk">1</span> 𐰋</button>
-              </div>
-              <div class="tore-card" id="tore-roads">
-                <div class="tore-card-info">
-                  <b>🛤️ Taş Kervan Yolu (<span id="lvl-tore-roads">0</span>/5)</b>
-                  <p>Binalar arası yol sinerji bonusu +%10/sv.</p>
-                </div>
-                <button class="btn-tore-up" onclick="buyToreTalent('tonyukuk', 'pavedRoads')">⬆️ <span id="cost-tore-roads">2</span> 𐰋</button>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
