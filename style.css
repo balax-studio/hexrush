@@ -1,20 +1,24 @@
 /* ==========================================================================
-   Hex Idle — Arkeolojik Neo-Brutalizm & Bozkır Destanı UI
+   Idle Kingdom Clicker — Arkeolojik / Bozkır Neo-Brutalizmi UI Standardı
    ========================================================================== */
 
 :root {
+  /* Renk Paleti (Steppe & Obsidian Palette) */
   --bg-dark: #060913;
-  --panel-bg: rgba(13, 19, 33, 0.96);
-  --chip-bg: rgba(22, 32, 52, 0.95);
+  --panel-bg: #0f172a;
+  --chip-bg: #1e293b;
   --chip-border: #334155;
   
   --neo-border: 2px solid #334155;
   --neo-border-gold: 2px solid #d97706;
   --neo-border-rune: 2px solid #0891b2;
+  --neo-border-war: 2px solid #dc2626;
+  
   --neo-shadow: 3px 3px 0px #020617;
   --neo-shadow-lg: 5px 5px 0px #020617;
   --neo-shadow-gold: 3px 3px 0px #78350f;
   --neo-shadow-rune: 3px 3px 0px #0e7490;
+  --neo-shadow-war: 3px 3px 0px #450a0a;
   
   --primary-accent: #0d9488;
   --primary-hover: #14b8a6;
@@ -82,60 +86,6 @@ html, body {
 }
 
 /* ==========================================================================
-   Top Header & Resource Chips (Arkeolojik Neo-Brutalist Tablet)
-   ========================================================================== */
-
-#top-bar {
-  position: absolute;
-  top: 8px;
-  left: 10px;
-  right: 10px;
-  max-width: 900px;
-  margin: 0 auto;
-  background: var(--panel-bg);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: var(--neo-border);
-  border-radius: 14px;
-  padding: 8px 12px;
-  box-shadow: var(--neo-shadow-lg);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 100;
-}
-
-.top-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-}
-
-.chip {
-  flex: 1;
-  background: var(--chip-bg);
-  border: 1.5px solid var(--chip-border);
-  border-radius: 8px;
-  padding: 6px 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  font-family: var(--font-body);
-  white-space: nowrap;
-  box-shadow: var(--neo-shadow);
-  transition: transform 0.1s, box-shadow 0.1s;
-}
-
-.chip .chip-label {
-  font-family: var(--font-mono);
-  letter-spacing: -0.3px;
-}
-
-/* ==========================================================================
    Vektörel SVG İkon Standardı (Zero-Emoji Standard)
    ========================================================================== */
 .svg-icon {
@@ -168,11 +118,66 @@ html, body {
 .svg-icon-fire { color: #f97316; fill: #f97316; }
 .svg-icon-red { color: #ef4444; fill: #ef4444; }
 .svg-icon-blue { color: #60a5fa; fill: #60a5fa; }
+.svg-icon-lg { width: 1.5em; height: 1.5em; }
+
+/* ==========================================================================
+   Top Header & Resource Chips (Arkeolojik Neo-Brutalist Tablet)
+   ========================================================================== */
+
+#top-bar {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  right: 10px;
+  max-width: 920px;
+  margin: 0 auto;
+  background: var(--panel-bg);
+  border: var(--neo-border);
+  border-radius: 4px;
+  padding: 8px 12px;
+  box-shadow: var(--neo-shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 100;
+}
+
+.top-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.chip {
+  flex: 1;
+  background: var(--chip-bg);
+  border: 2px solid var(--chip-border);
+  border-radius: 4px;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  white-space: nowrap;
+  box-shadow: var(--neo-shadow);
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+
+.chip .chip-label {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.3px;
+}
 
 .food-chip .chip-label { color: #fde047; }
 .wood-chip .chip-label { color: var(--wood-color); }
 .crown-chip .chip-label { color: var(--gold); }
 .land-chip .chip-label { color: var(--blue); }
+.tamga-chip .chip-label { color: #22d3ee; }
 .flour-chip .chip-label { color: var(--flour-color); }
 .plank-chip .chip-label { color: #fbcfe8; }
 .bread-chip .chip-label { color: #fdba74; }
@@ -186,27 +191,29 @@ html, body {
   background: linear-gradient(135deg, #f59e0b, #ef4444) !important;
   color: #fff !important;
   font-weight: 800;
-  border: 1.5px solid #fde047 !important;
+  border: 2px solid #fde047 !important;
   box-shadow: var(--neo-shadow-gold) !important;
   animation: pulseGlow 1.8s infinite alternate;
 }
 
 @keyframes pulseGlow {
-  from { transform: scale(1); box-shadow: 0 0 6px rgba(245, 158, 11, 0.4); }
-  to { transform: scale(1.05); box-shadow: 0 0 16px rgba(239, 68, 68, 0.8); }
+  from { transform: scale(1); }
+  to { transform: scale(1.05); }
 }
 
 .drawer-row {
   display: flex;
-  gap: 8px;
-  animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  gap: 6px;
+  animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-x: auto;
+  padding-bottom: 2px;
 }
 
 .icon-btn {
   background: var(--chip-bg);
-  border: 1.5px solid var(--chip-border);
+  border: 2px solid var(--chip-border);
   color: var(--text-main);
-  border-radius: 8px;
+  border-radius: 4px;
   width: 36px;
   height: 34px;
   font-size: 0.95rem;
@@ -221,22 +228,45 @@ html, body {
 }
 
 .icon-btn:hover {
-  background: #1e293b;
-  border-color: #475569;
+  background: #334155;
+  border-color: #64748b;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #020617;
 }
 
 .icon-btn:active {
   transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px #020617;
+  box-shadow: 0px 0px 0px #020617;
+}
+
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ef4444;
+  color: #fff;
+  border: 1.5px solid #fff;
+  border-radius: 50%;
+  width: 15px;
+  height: 15px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: bounce 0.6s infinite alternate;
 }
 
 #hint-bar {
   text-align: center;
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
   font-weight: 600;
   font-family: var(--font-body);
-  padding: 2px 4px;
+  padding: 4px 8px;
+  background: #090d16;
+  border: 1px solid #1e293b;
+  border-radius: 3px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -248,29 +278,30 @@ html, body {
 
 #toast-container {
   position: absolute;
-  top: 145px;
+  top: 140px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(15, 23, 42, 0.96);
+  background: #0f172a;
   border: var(--neo-border);
-  border-radius: 10px;
+  border-radius: 4px;
   padding: 10px 18px;
   box-shadow: var(--neo-shadow-lg);
-  backdrop-filter: blur(12px);
   z-index: 200;
   pointer-events: none;
-  transition: opacity 0.25s, transform 0.25s;
+  transition: opacity 0.2s, transform 0.2s;
   max-width: 90%;
   text-align: center;
   font-size: 0.88rem;
   font-weight: 700;
-  font-family: var(--font-body);
+  font-family: var(--font-title);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
 }
 
 #toast-container.toast-warning {
   border-color: #ef4444;
   color: #fca5a5;
-  box-shadow: 4px 4px 0px #7f1d1d;
+  box-shadow: 4px 4px 0px #450a0a;
 }
 
 /* ==========================================================================
@@ -282,27 +313,25 @@ html, body {
   bottom: 16px;
   left: 14px;
   right: 14px;
-  max-width: 580px;
+  max-width: 600px;
   margin: 0 auto;
   background: var(--panel-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: var(--neo-border);
-  border-radius: 16px;
+  border-radius: 4px;
   padding: 16px;
   box-shadow: var(--neo-shadow-lg);
   z-index: 100;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .menu-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1.5px solid #334155;
+  border-bottom: 2px solid #334155;
   padding-bottom: 8px;
 }
 
@@ -311,28 +340,34 @@ html, body {
   font-weight: 700;
   font-family: var(--font-title);
   color: var(--gold);
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
 }
 
 .close-btn {
   background: #1e293b;
-  border: 1.5px solid #334155;
+  border: 2px solid #334155;
   box-shadow: 2px 2px 0px #020617;
   color: var(--text-muted);
   font-size: 1rem;
   cursor: pointer;
   padding: 3px 8px;
-  border-radius: 6px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-weight: 800;
   transition: transform 0.08s, box-shadow 0.08s;
 }
 
-.close-btn:active {
-  transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0px #020617;
+.close-btn:hover {
+  background: #334155;
+  color: #fff;
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px #020617;
 }
 
 .close-btn:active {
-  background: rgba(255, 255, 255, 0.1);
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px #020617;
 }
 
 .menu-content {
@@ -344,19 +379,19 @@ html, body {
 /* Building Card in Build Menu (Neo-Brutalist Stone Plaque) */
 .build-card {
   background: var(--chip-bg);
-  border: 1.5px solid var(--chip-border);
-  border-radius: 10px;
+  border: 2px solid var(--chip-border);
+  border-radius: 4px;
   padding: 10px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   box-shadow: var(--neo-shadow);
-  transition: transform 0.1s, box-shadow 0.1s;
+  transition: transform 0.08s, box-shadow 0.08s;
 }
 
 .build-card:hover {
-  border-color: #475569;
+  border-color: #64748b;
 }
 
 .build-card-info {
@@ -367,7 +402,10 @@ html, body {
 }
 
 .build-card-icon {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .build-card-text h4 {
@@ -375,7 +413,8 @@ html, body {
   font-weight: 700;
   font-family: var(--font-title);
   color: var(--text-main);
-  letter-spacing: 0.3px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
 }
 
 .build-card-text p {
@@ -391,9 +430,10 @@ html, body {
 }
 
 .cost-tag {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   color: var(--green);
 }
 
@@ -412,8 +452,8 @@ html, body {
   width: 54px;
   height: 58px;
   background: var(--chip-bg);
-  border: 1.5px solid var(--gold);
-  border-radius: 10px;
+  border: 2px solid var(--gold);
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -428,6 +468,7 @@ html, body {
   align-items: center;
   font-size: 0.75rem;
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   color: var(--green);
   font-weight: 700;
   width: 85px;
@@ -439,88 +480,132 @@ html, body {
   color: var(--gold);
 }
 
+/* ==========================================================================
+   Buttons (Brutalist Tactile Press Mechanics)
+   ========================================================================== */
+
+.btn-primary {
+  background: linear-gradient(135deg, #0d9488, #14b8a6);
+  border: 2px solid #2dd4bf;
+  color: #fff;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-weight: 800;
+  font-size: 0.88rem;
+  cursor: pointer;
+  font-family: var(--font-title);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 3px 3px 0px #134e4a;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+
+.btn-primary:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #134e4a;
+}
+
+.btn-primary:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px #134e4a;
+}
+
+.btn-primary:disabled {
+  background: #1e293b;
+  border-color: #334155;
+  color: #64748b;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.btn-secondary {
+  background: var(--secondary-bg);
+  border: 2px solid #475569;
+  color: var(--text-main);
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  font-family: var(--font-title);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 3px 3px 0px #0f172a;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+
+.btn-secondary:hover {
+  background: #334155;
+  border-color: #64748b;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #0f172a;
+}
+
+.btn-secondary:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px #0f172a;
+}
+
 .btn-collect {
   flex: 1;
   background: linear-gradient(135deg, #15803d, #16a34a);
-  border: 1.5px solid #4ade80;
+  border: 2px solid #4ade80;
   color: #fff;
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-family: var(--font-body);
+  font-family: var(--font-title);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
   font-weight: 800;
   box-shadow: 3px 3px 0px #14532d;
   transition: transform 0.08s, box-shadow 0.08s;
 }
 
+.btn-collect:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #14532d;
+}
+
 .btn-collect:active {
   transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px #14532d;
+  box-shadow: 0px 0px 0px #14532d;
 }
 
 .btn-upgrade {
   flex: 1;
   background: linear-gradient(135deg, #1e293b, #334155);
-  border: 1.5px solid #64748b;
+  border: 2px solid #64748b;
   color: #fff;
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-family: var(--font-body);
+  font-family: var(--font-title);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
   font-weight: 800;
   box-shadow: 3px 3px 0px #0f172a;
   transition: transform 0.08s, box-shadow 0.08s;
+}
+
+.btn-upgrade:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #0f172a;
+  border-color: #94a3b8;
 }
 
 .btn-upgrade:active {
   transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px #0f172a;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #0d9488, #14b8a6);
-  border: 1.5px solid #2dd4bf;
-  color: #fff;
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-weight: 800;
-  font-size: 0.88rem;
-  cursor: pointer;
-  font-family: var(--font-body);
-  box-shadow: 3px 3px 0px #134e4a;
-  transition: transform 0.08s, box-shadow 0.08s;
-}
-
-.btn-primary:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px #134e4a;
-}
-
-.btn-secondary {
-  background: var(--secondary-bg);
-  border: 1.5px solid #475569;
-  color: var(--text-main);
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-weight: 700;
-  font-size: 0.88rem;
-  cursor: pointer;
-  font-family: var(--font-body);
-  box-shadow: 3px 3px 0px #0f172a;
-  transition: transform 0.08s, box-shadow 0.08s;
-}
-
-.btn-secondary:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px #0f172a;
+  box-shadow: 0px 0px 0px #0f172a;
 }
 
 /* ==========================================================================
@@ -533,9 +618,7 @@ html, body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(3, 7, 18, 0.82);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(3, 7, 18, 0.88);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -546,19 +629,19 @@ html, body {
 .modal-card {
   background: var(--panel-bg);
   border: var(--neo-border);
-  border-radius: 16px;
+  border-radius: 4px;
   padding: 20px;
   width: 100%;
-  max-width: 480px;
+  max-width: 500px;
   box-shadow: var(--neo-shadow-lg);
   display: flex;
   flex-direction: column;
   gap: 14px;
-  animation: zoomIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: zoomIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .modal-small {
-  max-width: 380px;
+  max-width: 400px;
   text-align: center;
 }
 
@@ -566,7 +649,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1.5px solid #334155;
+  border-bottom: 2px solid #334155;
   padding-bottom: 8px;
 }
 
@@ -575,15 +658,16 @@ html, body {
   font-weight: 700;
   font-family: var(--font-title);
   color: var(--gold);
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
 }
 
 .tab-buttons-row {
   display: flex;
-  gap: 6px;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1.5px solid #334155;
-  border-radius: 10px;
+  gap: 4px;
+  background: #090d16;
+  border: 2px solid #334155;
+  border-radius: 4px;
   padding: 4px;
 }
 
@@ -595,15 +679,17 @@ html, body {
   padding: 8px 4px;
   font-size: 0.8rem;
   font-weight: 700;
-  border-radius: 6px;
+  border-radius: 3px;
   cursor: pointer;
-  font-family: var(--font-body);
-  transition: all 0.15s ease;
+  font-family: var(--font-title);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  transition: all 0.12s ease;
 }
 
 .tab-btn.active {
   background: var(--chip-bg);
-  border: 1px solid #475569;
+  border: 1.5px solid #64748b;
   color: var(--gold);
   box-shadow: 2px 2px 0px #020617;
 }
@@ -619,7 +705,8 @@ html, body {
   font-weight: 700;
   font-family: var(--font-title);
   color: var(--text-muted);
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .lang-grid {
@@ -630,15 +717,27 @@ html, body {
 
 .btn-lang {
   background: var(--chip-bg);
-  border: 1.5px solid var(--chip-border);
+  border: 2px solid var(--chip-border);
   color: var(--text-main);
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 8px 4px;
-  font-weight: 700;
-  font-size: 0.82rem;
+  font-weight: 800;
+  font-size: 0.85rem;
+  font-family: var(--font-mono);
   cursor: pointer;
-  font-family: var(--font-body);
   box-shadow: var(--neo-shadow);
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+
+.btn-lang:hover {
+  border-color: #64748b;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #020617;
+}
+
+.btn-lang:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px #020617;
 }
 
 .btn-lang.active {
@@ -673,22 +772,23 @@ html, body {
   font-family: var(--font-body);
 }
 
-.stat-row span:last-child {
+.stat-row b {
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   font-weight: 700;
   color: var(--gold);
 }
 
 .prestige-desc {
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   color: var(--text-muted);
   line-height: 1.4;
 }
 
 .prestige-box {
-  background: rgba(0, 0, 0, 0.4);
-  border: 1.5px solid var(--chip-border);
-  border-radius: 10px;
+  background: #090d16;
+  border: 2px solid var(--chip-border);
+  border-radius: 4px;
   padding: 12px;
   display: flex;
   flex-direction: column;
@@ -697,11 +797,25 @@ html, body {
   box-shadow: var(--neo-shadow);
 }
 
+.prestige-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.prestige-row b {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
 .prestige-btn {
   padding: 12px;
   font-size: 0.95rem;
   font-family: var(--font-title);
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  border: 2px solid #fbbf24;
+  color: #0f172a;
+  box-shadow: 3px 3px 0px #78350f;
 }
 
 .modal-desc {
@@ -724,9 +838,9 @@ html, body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1.5px solid #334155;
-  border-radius: 10px;
+  background: #090d16;
+  border: 2px solid #334155;
+  border-radius: 4px;
   padding: 12px;
   margin: 6px 0;
   box-shadow: var(--neo-shadow);
@@ -736,11 +850,12 @@ html, body {
   font-weight: 700;
   font-size: 0.88rem;
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
 .modal-divider {
   border: none;
-  border-top: 1.5px solid #334155;
+  border-top: 2px solid #334155;
 }
 
 /* Helpers */
@@ -755,17 +870,16 @@ html, body {
 .text-furniture { color: #93c5fd; }
 .text-stone { color: #cbd5e1; }
 .text-iron { color: #38bdf8; }
-
-.stone-chip { border-color: #475569; background: rgba(71, 85, 105, 0.3); }
-.iron-chip { border-color: #0284c7; background: rgba(2, 132, 199, 0.2); }
+.text-cyan { color: #22d3ee; }
+.text-muted { color: var(--text-muted); }
 
 /* Talent Tree UI (Arkeolojik Bilgelik Tableti) */
-.talent-crown-header {
-  background: rgba(245, 158, 11, 0.12);
-  border: 1.5px solid var(--gold);
+.talents-header {
+  background: #090d16;
+  border: 2px solid var(--gold);
   padding: 8px 12px;
-  border-radius: 8px;
-  margin-bottom: 10px;
+  border-radius: 4px;
+  margin-bottom: 8px;
   text-align: center;
   font-family: var(--font-title);
   box-shadow: var(--neo-shadow-gold);
@@ -775,15 +889,15 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 260px;
+  max-height: 280px;
   overflow-y: auto;
   padding-right: 4px;
 }
 
 .talent-card {
   background: var(--chip-bg);
-  border: 1.5px solid var(--chip-border);
-  border-radius: 10px;
+  border: 2px solid var(--chip-border);
+  border-radius: 4px;
   padding: 10px 14px;
   display: flex;
   align-items: center;
@@ -793,52 +907,66 @@ html, body {
 }
 
 .talent-info h4 {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 700;
   font-family: var(--font-title);
+  text-transform: uppercase;
   margin-bottom: 2px;
   color: var(--text-main);
+  letter-spacing: 0.3px;
 }
 
 .talent-info p {
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   color: var(--text-muted);
 }
 
 .btn-talent-up {
   background: linear-gradient(135deg, #d97706, #f59e0b);
-  border: 1.5px solid #fde047;
-  color: #1e1b4b;
+  border: 2px solid #fde047;
+  color: #0f172a;
   font-weight: 800;
   font-size: 0.82rem;
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: 3px;
   cursor: pointer;
   white-space: nowrap;
-  font-family: var(--font-body);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   box-shadow: 2px 2px 0px #78350f;
-  transition: transform 0.08s;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+
+.btn-talent-up:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px #78350f;
 }
 
 .btn-talent-up:active {
   transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0px #78350f;
+  box-shadow: 0px 0px 0px #78350f;
 }
 
 /* ==========================================================================
    Quests & Decrees (Kraliyet Fermanları UI)
    ========================================================================== */
 
+.quests-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .quest-card {
   background: var(--chip-bg);
-  border: 1.5px solid var(--chip-border);
-  border-radius: 10px;
+  border: 2px solid var(--chip-border);
+  border-radius: 4px;
   padding: 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   box-shadow: var(--neo-shadow);
-  transition: all 0.15s ease;
+  transition: all 0.12s ease;
 }
 
 .quest-card.ready-to-claim {
@@ -860,17 +988,18 @@ html, body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   padding: 3px 8px;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
-.tag-fast { background: rgba(6, 182, 212, 0.2); color: #38bdf8; border: 1px solid #0891b2; }
-.tag-strat { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid #9333ea; }
-.tag-epic { background: rgba(245, 158, 11, 0.2); color: #fde047; border: 1px solid #d97706; }
+.tag-fast { background: rgba(6, 182, 212, 0.2); color: #38bdf8; border: 1.5px solid #0891b2; }
+.tag-strat { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1.5px solid #9333ea; }
+.tag-epic { background: rgba(245, 158, 11, 0.2); color: #fde047; border: 1.5px solid #d97706; }
 
 .quest-reward {
   font-size: 0.82rem;
   font-weight: 700;
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   color: #facc15;
 }
 
@@ -884,15 +1013,15 @@ html, body {
   width: 100%;
   height: 8px;
   background: #090d16;
-  border-radius: 4px;
+  border-radius: 3px;
   overflow: hidden;
-  border: 1px solid #334155;
+  border: 1.5px solid #334155;
 }
 
 .quest-progress-bar {
   height: 100%;
   background: linear-gradient(90deg, #06b6d4, #10b981);
-  border-radius: 4px;
+  border-radius: 2px;
   transition: width 0.2s ease;
 }
 
@@ -906,6 +1035,7 @@ html, body {
   font-size: 0.78rem;
   color: var(--text-muted);
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   font-weight: 700;
 }
 
@@ -913,19 +1043,26 @@ html, body {
   padding: 6px 14px;
   font-size: 0.78rem;
   font-weight: 800;
-  font-family: var(--font-body);
-  border-radius: 6px;
+  font-family: var(--font-title);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border-radius: 3px;
   background: linear-gradient(135deg, #d97706, #f59e0b);
-  border: 1.5px solid #fde047;
+  border: 2px solid #fde047;
   color: #0f172a;
   box-shadow: 2px 2px 0px #78350f;
   cursor: pointer;
-  transition: transform 0.08s;
+  transition: transform 0.08s, box-shadow 0.08s;
 }
 
-.btn-claim-quest:active {
+.btn-claim-quest:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px #78350f;
+}
+
+.btn-claim-quest:active:not(:disabled) {
   transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0px #78350f;
+  box-shadow: 0px 0px 0px #78350f;
 }
 
 .btn-claim-quest:disabled {
@@ -946,20 +1083,21 @@ html, body {
   gap: 10px;
   max-height: 360px;
   overflow-y: auto;
+  padding-right: 4px;
 }
 
 .relic-card {
   background: var(--chip-bg);
-  border: 1.5px solid var(--chip-border);
-  border-radius: 10px;
+  border: 2px solid var(--chip-border);
+  border-radius: 4px;
   padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  opacity: 0.35;
+  opacity: 0.4;
   filter: grayscale(90%);
   box-shadow: var(--neo-shadow);
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .relic-card.unlocked {
@@ -978,17 +1116,18 @@ html, body {
   font-family: var(--font-title);
   font-size: 0.85rem;
   color: var(--text-main);
+  text-transform: uppercase;
 }
 
 .relic-perk {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   color: #38bdf8;
   font-weight: 700;
   font-family: var(--font-mono);
 }
 
 .relic-flavor {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
   font-style: italic;
 }
@@ -1010,8 +1149,8 @@ html, body {
 
 .encounter-offer-box {
   background: #090d16;
-  border: 1.5px solid var(--chip-border);
-  border-radius: 8px;
+  border: 2px solid var(--chip-border);
+  border-radius: 4px;
   padding: 10px 14px;
   display: flex;
   align-items: center;
@@ -1026,7 +1165,7 @@ html, body {
   height: 6px;
   background: #090d16;
   border: 1px solid #334155;
-  border-radius: 4px;
+  border-radius: 3px;
   overflow: hidden;
   margin-bottom: 12px;
 }
@@ -1050,237 +1189,77 @@ html, body {
   align-items: flex-start;
   gap: 3px;
   padding: 10px 14px;
-  border-radius: 8px;
+  border-radius: 4px;
   text-align: left;
-  border: 1.5px solid var(--chip-border);
+  border: 2px solid var(--chip-border);
   background: var(--chip-bg);
   box-shadow: var(--neo-shadow);
   cursor: pointer;
-  transition: transform 0.08s;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+
+.ruins-choice-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #020617;
+  border-color: #64748b;
 }
 
 .ruins-choice-btn:active {
   transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px #020617;
+  box-shadow: 0px 0px 0px #020617;
 }
 
-.ruins-choice-btn span {
-  font-size: 0.75rem;
-color: #facc15;
-}
-
-.quest-desc {
+.ruins-choice-btn b {
+  font-family: var(--font-title);
   font-size: 0.84rem;
-  color: var(--text-main);
-  font-weight: 600;
-}
-
-.quest-progress-bg {
-  width: 100%;
-  height: 8px;
-  background: #090d16;
-  border-radius: 4px;
-  overflow: hidden;
-  border: 1px solid #334155;
-}
-
-.quest-progress-bar {
-  height: 100%;
-  background: linear-gradient(90deg, #06b6d4, #10b981);
-  border-radius: 4px;
-  transition: width 0.2s ease;
-}
-
-.quest-action-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.quest-count {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-weight: 700;
-}
-
-.btn-claim-quest {
-  padding: 6px 14px;
-  font-size: 0.78rem;
-  font-weight: 800;
-  font-family: var(--font-body);
-  border-radius: 6px;
-  background: linear-gradient(135deg, #d97706, #f59e0b);
-  border: 1.5px solid #fde047;
-  color: #0f172a;
-  box-shadow: 2px 2px 0px #78350f;
-  cursor: pointer;
-  transition: transform 0.08s;
-}
-
-.btn-claim-quest:active {
-  transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0px #78350f;
-}
-
-.btn-claim-quest:disabled {
-  background: #1e293b;
-  color: #64748b;
-  border-color: #334155;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-/* ==========================================================================
-   Relics Grid (Kadim Eserler Vitrini)
-   ========================================================================== */
-
-.relics-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  max-height: 360px;
-  overflow-y: auto;
-}
-
-.relic-card {
-  background: var(--chip-bg);
-  border: 1.5px solid var(--chip-border);
-  border-radius: 10px;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  opacity: 0.35;
-  filter: grayscale(90%);
-  box-shadow: var(--neo-shadow);
-  transition: all 0.2s ease;
-}
-
-.relic-card.unlocked {
-  opacity: 1.0;
-  filter: none;
-  border-color: #06b6d4;
-  background: rgba(6, 182, 212, 0.08);
-  box-shadow: var(--neo-shadow-rune);
-}
-
-.relic-icon-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 700;
-  font-family: var(--font-title);
-  font-size: 0.85rem;
-  color: var(--text-main);
-}
-
-.relic-perk {
-  font-size: 0.72rem;
-  color: #38bdf8;
-  font-weight: 700;
-  font-family: var(--font-mono);
-}
-
-.relic-flavor {
-  font-size: 0.68rem;
-  color: var(--text-muted);
-  font-style: italic;
-}
-
-/* ==========================================================================
-   Encounter & Ruins Modal (Bozkır Olayları & Zindan)
-   ========================================================================== */
-
-.encounter-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 6px;
-}
-
-.encounter-icon {
-  font-size: 1.8rem;
-}
-
-.encounter-offer-box {
-  background: #090d16;
-  border: 1.5px solid var(--chip-border);
-  border-radius: 8px;
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 10px 0;
-  font-size: 0.85rem;
-  box-shadow: var(--neo-shadow);
-}
-
-.encounter-timer-bar {
-  width: 100%;
-  height: 6px;
-  background: #090d16;
-  border: 1px solid #334155;
-  border-radius: 4px;
-  overflow: hidden;
-  margin-bottom: 12px;
-}
-
-#encounter-timer-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #f59e0b, #ef4444);
-  transition: width 0.1s linear;
-}
-
-.ruins-choices {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.ruins-choice-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 3px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  text-align: left;
-  border: 1.5px solid var(--chip-border);
-  background: var(--chip-bg);
-  box-shadow: var(--neo-shadow);
-  cursor: pointer;
-  transition: transform 0.08s;
-}
-
-.ruins-choice-btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px #020617;
+  text-transform: uppercase;
 }
 
 .ruins-choice-btn span {
-  font-size: 0.75rem;
-  opacity: 0.85;
+  font-size: 0.74rem;
+  color: var(--text-muted);
 }
 
 /* ==========================================================================
-   Night Raid Banner (Gece Baskını Savaş Borusu Uyarısı)
+   Banners (Zud & Gece Baskını Uyarısı)
    ========================================================================== */
+
+.season-banner {
+  position: absolute;
+  top: 75px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0369a1;
+  border: 2px solid #38bdf8;
+  color: #f8fafc;
+  font-weight: 800;
+  font-family: var(--font-title);
+  font-size: 0.82rem;
+  padding: 8px 18px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 4px 4px 0px #0c4a6e;
+  z-index: 100;
+  animation: raidPulse 1.2s infinite alternate;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
 
 .raid-banner {
   position: absolute;
   top: 75px;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, #b91c1c, #7f1d1d);
+  background: #991b1b;
   border: 2px solid #ef4444;
   color: white;
   font-weight: 800;
   font-family: var(--font-title);
   font-size: 0.82rem;
   padding: 8px 18px;
-  border-radius: 8px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1288,6 +1267,7 @@ color: #facc15;
   z-index: 100;
   animation: raidPulse 1s infinite alternate;
   letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 @keyframes raidPulse {
@@ -1296,97 +1276,13 @@ color: #facc15;
 }
 
 /* ==========================================================================
-   Animations
-   ========================================================================== */
-
-@keyframes slideUp {
-  from { transform: translateY(30px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes slideDown {
-  from { transform: translateY(-10px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes zoomIn {
-  from { transform: scale(0.92); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-/* ==========================================================================
-   Season Chip & Zud Banner
-   ========================================================================== */
-
-.season-chip {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
-  border: 1.5px solid #0ea5e9;
-  box-shadow: 2px 2px 0px #020617;
-  color: #38bdf8;
-  font-weight: 700;
-}
-
-.season-banner {
-  position: absolute;
-  top: 75px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(135deg, #1e3a8a, #0369a1);
-  border: 2px solid #38bdf8;
-  color: #f8fafc;
-  font-weight: 800;
-  font-family: var(--font-title);
-  font-size: 0.82rem;
-  padding: 8px 18px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 4px 4px 0px #0c4a6e;
-  z-index: 100;
-  animation: raidPulse 1.2s infinite alternate;
-  letter-spacing: 0.5px;
-}
-
-.season-banner-icon {
-  font-size: 1.2rem;
-}
-
-.tamga-chip {
-  background: rgba(14, 165, 233, 0.12);
-  border: 1.5px solid #06b6d4;
-  color: #22d3ee;
-  font-weight: 700;
-}
-
-.layer-btn {
-  background: linear-gradient(135deg, #0f172a, #1e1b4b);
-  border-color: #818cf8;
-}
-
-.migration-btn {
-  background: linear-gradient(135deg, #1c1917, #451a03);
-  border-color: #f59e0b;
-}
-
-.obsidian-chip {
-  border-color: #a855f7;
-  color: #c084fc;
-}
-
-.mithril-chip {
-  border-color: #38bdf8;
-  color: #7dd3fc;
-}
-
-/* ==========================================================================
    Büyük Bozkır Göçü & Töre Ağacı UI
    ========================================================================== */
 
 .migration-summary-box {
   background: #090d16;
-  border: 1.5px solid var(--chip-border);
-  border-radius: 8px;
+  border: 2px solid var(--chip-border);
+  border-radius: 4px;
   padding: 12px 14px;
   display: flex;
   flex-direction: column;
@@ -1401,15 +1297,35 @@ color: #facc15;
   font-size: 0.85rem;
 }
 
+.migration-stat b {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
 .migration-action-btn {
   width: 100%;
   padding: 10px;
   font-size: 0.88rem;
   font-weight: 800;
+  font-family: var(--font-title);
+  text-transform: uppercase;
   letter-spacing: 0.5px;
   background: linear-gradient(135deg, #f59e0b, #d97706);
   border: 2px solid #fbbf24;
+  color: #0f172a;
   box-shadow: 3px 3px 0px #78350f;
+  cursor: pointer;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+
+.migration-action-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #78350f;
+}
+
+.migration-action-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px #78350f;
 }
 
 .tore-branches-container {
@@ -1422,29 +1338,18 @@ color: #facc15;
 }
 
 .tore-branch {
-  background: rgba(15, 23, 42, 0.7);
-  border: 1.5px solid var(--chip-border);
-  border-radius: 10px;
+  background: #090d16;
+  border: 2px solid var(--chip-border);
+  border-radius: 4px;
   padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.branch-tengri {
-  border-color: #0284c7;
-  background: rgba(2, 132, 199, 0.06);
-}
-
-.branch-kultigin {
-  border-color: #dc2626;
-  background: rgba(220, 38, 38, 0.06);
-}
-
-.branch-tonyukuk {
-  border-color: #d97706;
-  background: rgba(217, 119, 6, 0.06);
-}
+.branch-tengri { border-color: #0284c7; }
+.branch-kultigin { border-color: #dc2626; }
+.branch-tonyukuk { border-color: #d97706; }
 
 .branch-title {
   font-family: var(--font-title);
@@ -1452,6 +1357,7 @@ color: #facc15;
   margin: 0;
   color: var(--text-main);
   letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .tore-skills-grid {
@@ -1462,8 +1368,8 @@ color: #facc15;
 
 .tore-card {
   background: var(--chip-bg);
-  border: 1.5px solid var(--chip-border);
-  border-radius: 8px;
+  border: 2px solid var(--chip-border);
+  border-radius: 4px;
   padding: 8px 10px;
   display: flex;
   align-items: center;
@@ -1480,12 +1386,14 @@ color: #facc15;
 }
 
 .tore-card-info b {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
+  font-family: var(--font-title);
+  text-transform: uppercase;
   color: var(--text-main);
 }
 
 .tore-card-info p {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
   margin: 0;
   line-height: 1.3;
@@ -1493,22 +1401,28 @@ color: #facc15;
 
 .btn-tore-up {
   background: linear-gradient(135deg, #0284c7, #0369a1);
-  border: 1.5px solid #38bdf8;
+  border: 2px solid #38bdf8;
   color: white;
-  border-radius: 6px;
+  border-radius: 3px;
   padding: 6px 10px;
   font-weight: 700;
   font-size: 0.78rem;
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   cursor: pointer;
   box-shadow: 2px 2px 0px #082f49;
   white-space: nowrap;
-  transition: transform 0.08s ease;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
 
-.btn-tore-up:active {
+.btn-tore-up:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px #082f49;
+}
+
+.btn-tore-up:active:not(:disabled) {
   transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0px #082f49;
+  box-shadow: 0px 0px 0px #082f49;
 }
 
 .btn-tore-up:disabled {
@@ -1518,7 +1432,7 @@ color: #facc15;
 }
 
 /* ==========================================================================
-   Hakan Otağı & Yeni Sistem Stilleri
+   Hakan Otağı & Sekmeler
    ========================================================================== */
 
 .otag-btn {
@@ -1532,7 +1446,6 @@ color: #facc15;
   gap: 4px;
   padding-bottom: 6px;
   margin-bottom: 12px;
-  scrollbar-width: thin;
 }
 
 .otag-tabs .tab-btn {
@@ -1554,8 +1467,8 @@ color: #facc15;
 
 .market-card {
   background: var(--chip-bg);
-  border: 1.5px solid var(--chip-border);
-  border-radius: 8px;
+  border: 2px solid var(--chip-border);
+  border-radius: 4px;
   padding: 10px 12px;
   display: flex;
   justify-content: space-between;
@@ -1567,6 +1480,7 @@ color: #facc15;
 .market-info h4 {
   font-family: var(--font-title);
   font-size: 0.84rem;
+  text-transform: uppercase;
   margin: 0 0 2px 0;
   color: var(--text-main);
 }
@@ -1589,16 +1503,16 @@ color: #facc15;
 
 .title-card {
   background: var(--chip-bg);
-  border: 1.5px solid var(--chip-border);
-  border-radius: 8px;
+  border: 2px solid var(--chip-border);
+  border-radius: 4px;
   padding: 8px 12px;
   display: flex;
   align-items: center;
   gap: 10px;
   box-shadow: var(--neo-shadow);
-  opacity: 0.5;
+  opacity: 0.45;
   filter: grayscale(70%);
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .title-card.unlocked {
@@ -1609,7 +1523,9 @@ color: #facc15;
 }
 
 .title-icon {
-  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .title-info {
@@ -1620,7 +1536,31 @@ color: #facc15;
   font-family: var(--font-title);
   font-size: 0.84rem;
   font-weight: 700;
+  text-transform: uppercase;
   color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title-status-tag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+.title-status-tag.unlocked {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid #059669;
+}
+
+.title-status-tag.locked {
+  background: rgba(100, 116, 139, 0.2);
+  color: #94a3b8;
+  border: 1px solid #475569;
 }
 
 .title-desc {
@@ -1630,7 +1570,7 @@ color: #facc15;
 }
 
 .title-perk {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   color: #10b981;
   font-weight: 700;
   font-family: var(--font-mono);
@@ -1639,8 +1579,8 @@ color: #facc15;
 /* Ergenekon Katman Kontrolü */
 .layer-control-box {
   background: #090d16;
-  border: 1.5px solid var(--chip-border);
-  border-radius: 8px;
+  border: 2px solid var(--chip-border);
+  border-radius: 4px;
   padding: 12px;
   display: flex;
   flex-direction: column;
@@ -1659,7 +1599,8 @@ color: #facc15;
   padding: 10px;
   font-size: 0.88rem;
   background: linear-gradient(135deg, #ea580c, #c2410c);
-  border-color: #f97316;
+  border: 2px solid #f97316;
+  box-shadow: 3px 3px 0px #7c2d12;
 }
 
 .underground-info-grid {
@@ -1669,30 +1610,33 @@ color: #facc15;
 }
 
 .underground-card {
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid #334155;
-  border-radius: 6px;
-  padding: 8px;
+  background: #090d16;
+  border: 2px solid #334155;
+  border-radius: 4px;
+  padding: 10px;
 }
 
 .underground-card h4 {
+  font-family: var(--font-title);
   font-size: 0.78rem;
+  text-transform: uppercase;
   color: #38bdf8;
   margin: 0 0 4px 0;
 }
 
 .underground-card p {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
   margin: 0;
 }
 
-/* Zud Isınma & Kritik Hasat Efektleri */
+/* Zud Isınma & Kritik Hasat */
 .btn-warm-tile {
   background: linear-gradient(135deg, #ef4444, #f97316) !important;
-  border-color: #fde047 !important;
+  border: 2px solid #fde047 !important;
   color: #ffffff !important;
   font-weight: 800 !important;
+  box-shadow: 3px 3px 0px #7c2d12 !important;
 }
 
 @keyframes critGoldPulse {
@@ -1705,3 +1649,41 @@ color: #facc15;
   animation: critGoldPulse 0.4s ease-out;
 }
 
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes zoomIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes bounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-4px); }
+}
+
+/* ==========================================================================
+   Neo-Brutalist Stone Scrollbar Standard
+   ========================================================================== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #090d16;
+  border-left: 1.5px solid #334155;
+}
+::-webkit-scrollbar-thumb {
+  background: #d97706;
+  border-radius: 0px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #f59e0b;
+}
