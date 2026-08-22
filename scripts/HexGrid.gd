@@ -175,6 +175,8 @@ func load_from_saved_tiles(tiles_data: Array, scenes_dict: Dictionary) -> Dictio
 		"castle": null,
 		"windmills": [] as Array[Node2D],
 		"sawmills": [] as Array[Node2D],
+		"bakeries": [] as Array[Node2D],
+		"furniture_makers": [] as Array[Node2D],
 		"worker_huts": [] as Array[Node2D],
 		"corn_fields": [] as Array[Node2D]
 	}
@@ -200,6 +202,8 @@ func load_from_saved_tiles(tiles_data: Array, scenes_dict: Dictionary) -> Dictio
 			elif "accumulated_wood" in b_inst: b_inst.accumulated_wood = accum
 			elif "accumulated_flour" in b_inst: b_inst.accumulated_flour = accum
 			elif "accumulated_plank" in b_inst: b_inst.accumulated_plank = accum
+			elif "accumulated_bread" in b_inst: b_inst.accumulated_bread = accum
+			elif "accumulated_furniture" in b_inst: b_inst.accumulated_furniture = accum
 			elif "total_gathered" in b_inst: b_inst.total_gathered = accum
 			
 			tile.set_building(b_inst)
@@ -207,6 +211,8 @@ func load_from_saved_tiles(tiles_data: Array, scenes_dict: Dictionary) -> Dictio
 			if b_type == "castle": building_refs["castle"] = b_inst
 			elif b_type == "windmill": building_refs["windmills"].append(b_inst)
 			elif b_type == "sawmill": building_refs["sawmills"].append(b_inst)
+			elif b_type == "bakery": building_refs["bakeries"].append(b_inst)
+			elif b_type == "furniture": building_refs["furniture_makers"].append(b_inst)
 			elif b_type == "worker": building_refs["worker_huts"].append(b_inst)
 			elif b_type == "corn": building_refs["corn_fields"].append(b_inst)
 			

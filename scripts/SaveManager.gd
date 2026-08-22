@@ -41,6 +41,10 @@ static func save_game(main_node: Node) -> bool:
 				b_type = "windmill"
 				b_lvl = b.get("level") if "level" in b else 1
 				b_accum = b.get("accumulated_flour") if "accumulated_flour" in b else 0.0
+			elif b is Bakery or "accumulated_bread" in b:
+				b_type = "bakery"
+				b_lvl = b.get("level") if "level" in b else 1
+				b_accum = b.get("accumulated_bread") if "accumulated_bread" in b else 0.0
 			elif b is LumberjackHut or "accumulated_wood" in b:
 				b_type = "lumberjack"
 				b_lvl = b.get("level") if "level" in b else 1
@@ -49,10 +53,18 @@ static func save_game(main_node: Node) -> bool:
 				b_type = "sawmill"
 				b_lvl = b.get("level") if "level" in b else 1
 				b_accum = b.get("accumulated_plank") if "accumulated_plank" in b else 0.0
+			elif b is FurnitureMaker or "accumulated_furniture" in b:
+				b_type = "furniture"
+				b_lvl = b.get("level") if "level" in b else 1
+				b_accum = b.get("accumulated_furniture") if "accumulated_furniture" in b else 0.0
 			elif b is WorkerHut or "carry_rate" in b:
 				b_type = "worker"
 				b_lvl = b.get("level") if "level" in b else 1
 				b_accum = b.get("total_gathered") if "total_gathered" in b else 0.0
+			elif "bridge" in b.name.to_lower() or (b.get_script() != null and "bridge" in b.get_script().resource_path.to_lower()):
+				b_type = "bridge"
+				b_lvl = 1
+				b_accum = 0.0
 			else:
 				b_type = "castle"
 				b_lvl = main_node.get("castle_level")
@@ -78,11 +90,16 @@ static func save_game(main_node: Node) -> bool:
 			"food": main_node.get("food"),
 			"wood": main_node.get("wood"),
 			"flour": main_node.get("flour"),
-			"plank": main_node.get("plank")
+			"plank": main_node.get("plank"),
+			"bread": main_node.get("bread"),
+			"furniture": main_node.get("furniture")
 		},
 		"progression": {
 			"owned_count": main_node.get("owned_count"),
-			"purchased_tiles_count": main_node.get("purchased_tiles_count"),
+			"purchased_meadow_count": main_node.get("purchased_meadow_count"),
+			"purchased_forest_count": main_node.get("purchased_forest_count"),
+			"purchased_sea_count": main_node.get("purchased_sea_count"),
+			"purchased_mountain_count": main_node.get("purchased_mountain_count"),
 			"castle_level": main_node.get("castle_level")
 		},
 		"prestige": {
@@ -94,6 +111,8 @@ static func save_game(main_node: Node) -> bool:
 			"total_wood_produced": main_node.get("stat_total_wood"),
 			"total_flour_produced": main_node.get("stat_total_flour"),
 			"total_plank_produced": main_node.get("stat_total_plank"),
+			"total_bread_produced": main_node.get("stat_total_bread"),
+			"total_furniture_produced": main_node.get("stat_total_furniture"),
 			"total_tiles_conquered": main_node.get("stat_total_conquered"),
 			"playtime_seconds": main_node.get("stat_playtime")
 		},

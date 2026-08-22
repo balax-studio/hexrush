@@ -242,10 +242,16 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 13
 text = "⚙️"
 
+[node name="FrenzyButton" type="Button" parent="UI/TopBar/MarginContainer/VBoxContainer/TopRow"]
+custom_minimum_size = Vector2(36, 30)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "⚡"
+
 [node name="DrawerRow" type="HBoxContainer" parent="UI/TopBar/MarginContainer/VBoxContainer"]
 visible = false
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
 [node name="FlourChip" type="PanelContainer" parent="UI/TopBar/MarginContainer/VBoxContainer/DrawerRow"]
 layout_mode = 2
@@ -254,21 +260,21 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_chip")
 
 [node name="HBox" type="HBoxContainer" parent="UI/TopBar/MarginContainer/VBoxContainer/DrawerRow/FlourChip"]
 layout_mode = 2
-theme_override_constants/margin_left = 6
+theme_override_constants/margin_left = 4
 theme_override_constants/margin_top = 4
-theme_override_constants/margin_right = 6
+theme_override_constants/margin_right = 4
 theme_override_constants/margin_bottom = 4
 alignment = 1
 
 [node name="IconLabel" type="Label" parent="UI/TopBar/MarginContainer/VBoxContainer/DrawerRow/FlourChip/HBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 text = "🌾"
 
 [node name="FlourLabel" type="Label" parent="UI/TopBar/MarginContainer/VBoxContainer/DrawerRow/FlourChip/HBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.95, 0.8, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 11
 text = "Un: 0"
 vertical_alignment = 1
 
@@ -279,22 +285,72 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_chip")
 
 [node name="HBox" type="HBoxContainer" parent="UI/TopBar/MarginContainer/VBoxContainer/DrawerRow/PlankChip"]
 layout_mode = 2
-theme_override_constants/margin_left = 6
+theme_override_constants/margin_left = 4
 theme_override_constants/margin_top = 4
-theme_override_constants/margin_right = 6
+theme_override_constants/margin_right = 4
 theme_override_constants/margin_bottom = 4
 alignment = 1
 
 [node name="IconLabel" type="Label" parent="UI/TopBar/MarginContainer/VBoxContainer/DrawerRow/PlankChip/HBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 text = "🪵"
 
 [node name="PlankLabel" type="Label" parent="UI/TopBar/MarginContainer/VBoxContainer/DrawerRow/PlankChip/HBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.8, 0.6, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 11
 text = "Kereste: 0"
+vertical_alignment = 1
+
+[node name="BreadChip" type="PanelContainer" parent="UI/TopBar/MarginContainer/VBoxContainer/DrawerRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_chip")
+
+[node name="HBox" type="HBoxContainer" parent="UI/TopBar/MarginContainer/VBoxContainer/DrawerRow/BreadChip"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+alignment = 1
+
+[node name="IconLabel" type="Label" parent="UI/TopBar/MarginContainer/VBoxContainer/DrawerRow/BreadChip/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "🍞"
+
+[node name="BreadLabel" type="Label" parent="UI/TopBar/MarginContainer/VBoxContainer/DrawerRow/BreadChip/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.6, 1)
+theme_override_font_sizes/font_size = 11
+text = "Ekmek: 0"
+vertical_alignment = 1
+
+[node name="FurnitureChip" type="PanelContainer" parent="UI/TopBar/MarginContainer/VBoxContainer/DrawerRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_chip")
+
+[node name="HBox" type="HBoxContainer" parent="UI/TopBar/MarginContainer/VBoxContainer/DrawerRow/FurnitureChip"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+alignment = 1
+
+[node name="IconLabel" type="Label" parent="UI/TopBar/MarginContainer/VBoxContainer/DrawerRow/FurnitureChip/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "🪑"
+
+[node name="FurnitureLabel" type="Label" parent="UI/TopBar/MarginContainer/VBoxContainer/DrawerRow/FurnitureChip/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 11
+text = "Mobilya: 0"
 vertical_alignment = 1
 
 [node name="HintLabel" type="Label" parent="UI/TopBar/MarginContainer/VBoxContainer"]
@@ -475,6 +531,56 @@ size_flags_vertical = 4
 theme_override_font_sizes/font_size = 13
 text = "İnşa Et"
 
+[node name="BakeryCard" type="PanelContainer" parent="UI/BuildMenu/MarginContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/BuildMenu/MarginContainer/VBoxContainer/BakeryCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+theme_override_constants/separation = 8
+
+[node name="IconLabel" type="Label" parent="UI/BuildMenu/MarginContainer/VBoxContainer/BakeryCard/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "🍞"
+vertical_alignment = 1
+
+[node name="InfoVBox" type="VBoxContainer" parent="UI/BuildMenu/MarginContainer/VBoxContainer/BakeryCard/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 1
+
+[node name="NameLabel" type="Label" parent="UI/BuildMenu/MarginContainer/VBoxContainer/BakeryCard/HBoxContainer/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.6, 1)
+theme_override_font_sizes/font_size = 14
+text = "Taş Fırın (Tier 3)"
+
+[node name="DescLabel" type="Label" parent="UI/BuildMenu/MarginContainer/VBoxContainer/BakeryCard/HBoxContainer/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.8, 0.88, 0.8)
+theme_override_font_sizes/font_size = 11
+text = "Un ve Gıdadan Ekmek üretir."
+
+[node name="CostBadge" type="Label" parent="UI/BuildMenu/MarginContainer/VBoxContainer/BakeryCard/HBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.95, 0.45, 1)
+theme_override_font_sizes/font_size = 13
+text = "10 🥡 + 8 🌾"
+vertical_alignment = 1
+
+[node name="BuildButton" type="Button" parent="UI/BuildMenu/MarginContainer/VBoxContainer/BakeryCard/HBoxContainer"]
+custom_minimum_size = Vector2(80, 36)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 13
+text = "İnşa Et"
+
 [node name="LumberjackCard" type="PanelContainer" parent="UI/BuildMenu/MarginContainer/VBoxContainer"]
 visible = false
 layout_mode = 2
@@ -569,6 +675,56 @@ text = "4 🥡 + 5 🪵"
 vertical_alignment = 1
 
 [node name="BuildButton" type="Button" parent="UI/BuildMenu/MarginContainer/VBoxContainer/SawmillCard/HBoxContainer"]
+custom_minimum_size = Vector2(80, 36)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 13
+text = "İnşa Et"
+
+[node name="FurnitureCard" type="PanelContainer" parent="UI/BuildMenu/MarginContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/BuildMenu/MarginContainer/VBoxContainer/FurnitureCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+theme_override_constants/separation = 8
+
+[node name="IconLabel" type="Label" parent="UI/BuildMenu/MarginContainer/VBoxContainer/FurnitureCard/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "🪑"
+vertical_alignment = 1
+
+[node name="InfoVBox" type="VBoxContainer" parent="UI/BuildMenu/MarginContainer/VBoxContainer/FurnitureCard/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 1
+
+[node name="NameLabel" type="Label" parent="UI/BuildMenu/MarginContainer/VBoxContainer/FurnitureCard/HBoxContainer/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "Mobilyacı (Tier 3)"
+
+[node name="DescLabel" type="Label" parent="UI/BuildMenu/MarginContainer/VBoxContainer/FurnitureCard/HBoxContainer/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.8, 0.88, 0.8)
+theme_override_font_sizes/font_size = 11
+text = "Kalas ve Odundan Mobilya üretir."
+
+[node name="CostBadge" type="Label" parent="UI/BuildMenu/MarginContainer/VBoxContainer/FurnitureCard/HBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.95, 0.45, 1)
+theme_override_font_sizes/font_size = 13
+text = "12 🪵 + 8 🪵"
+vertical_alignment = 1
+
+[node name="BuildButton" type="Button" parent="UI/BuildMenu/MarginContainer/VBoxContainer/FurnitureCard/HBoxContainer"]
 custom_minimum_size = Vector2(80, 36)
 layout_mode = 2
 size_flags_vertical = 4

@@ -634,18 +634,27 @@ class GameState {
     this.wood = 0.0;
     this.flour = 0.0;
     this.plank = 0.0;
+    this.bread = 0.0;
+    this.furniture = 0.0;
 
     this.crowns = 0;
     this.totalRebirths = 0;
     this.ownedCount = 1;
-    this.purchasedTilesCount = 0;
+    this.purchasedMeadowCount = 0;
+    this.purchasedForestCount = 0;
+    this.purchasedSeaCount = 0;
+    this.purchasedMountainCount = 0;
     this.castleLevel = 1;
+
+    this.frenzyTimer = 0.0;
 
     // Kariyer İstatistikleri
     this.statTotalFood = 0.0;
     this.statTotalWood = 0.0;
     this.statTotalFlour = 0.0;
     this.statTotalPlank = 0.0;
+    this.statTotalBread = 0.0;
+    this.statTotalFurniture = 0.0;
     this.statTotalConquered = 1;
     this.statPlaytime = 0.0;
 
@@ -664,17 +673,50 @@ class GameState {
     return 1.0 + this.crowns * 0.05;
   }
 
-  getGlobalMultiplier() {
-    return this.getCastleMultiplier() * this.getPrestigeMultiplier();
+  getFrenzyMultiplier() {
+    return this.frenzyTimer > 0.0 ? 10.0 : 1.0;
   }
 
-  getLandExpansionCost() {
-    if (this.purchasedTilesCount === 0) return 0;
-    return Math.max(1, Math.floor(1.0 * Math.pow(1.18, this.purchasedTilesCount - 1)));
+  getGlobalMultiplier() {
+    return this.getCastleMultiplier() * this.getPrestigeMultiplier() * this.getFrenzyMultiplier();
+  }
+
+  getLandExpansionCost(q, r, biome) {
+    const dist = (Math.abs(q) + Math.abs(q + r) + Math.abs(r)) / 2;
+    let n = 0;
+    if (biome === BIOMES.MEADOW) n = this.purchasedMeadowCount;
+    else if (biome === BIOMES.FOREST) n = this.purchasedForestCount;
+    else if (biome === BIOMES.SEA) n = this.purchasedSeaCount;
+    else if (biome === BIOMES.MOUNTAIN) n = this.purchasedMountainCount;
+    
+    const baseCost = Math.max(1, Math.floor(1.0 * Math.pow(1.15, n) * (1.0 + 0.15 * Math.max(0, dist - 1))));
+    
+    // Bölge 1: 1 - 6 hex
+    if (dist <= 6) {
+      if (biome === BIOMES.MEADOW) return { zone: 1, food: baseCost, wood: 0, flour: 0, plank: 0, bread: 0, furniture: 0 };
+      if (biome === BIOMES.FOREST) return { zone: 1, food: 0, wood: baseCost, flour: 0, plank: 0, bread: 0, furniture: 0 };
+      if (biome === BIOMES.SEA) return { zone: 1, food: 0, wood: baseCost, flour: 0, plank: 0, bread: 0, furniture: 0 };
+      return { zone: 1, food: baseCost, wood: baseCost, flour: 0, plank: 0, bread: 0, furniture: 0 };
+    }
+    // Bölge 2: 7 - 12 hex (Temel + Tier 2)
+    else if (dist <= 12) {
+      const tier2Cost = Math.max(1, Math.floor(2.0 * Math.pow(1.12, Math.max(0, n - 6))));
+      if (biome === BIOMES.MEADOW) return { zone: 2, food: baseCost, wood: 0, flour: tier2Cost, plank: 0, bread: 0, furniture: 0 };
+      if (biome === BIOMES.FOREST) return { zone: 2, food: 0, wood: baseCost, flour: 0, plank: tier2Cost, bread: 0, furniture: 0 };
+      if (biome === BIOMES.SEA) return { zone: 2, food: 0, wood: baseCost, flour: 0, plank: tier2Cost, bread: 0, furniture: 0 };
+      return { zone: 2, food: baseCost, wood: baseCost, flour: tier2Cost, plank: tier2Cost, bread: 0, furniture: 0 };
+    }
+    // Bölge 3: 13+ hex (Tier 3)
+    else {
+      const tier3Cost = Math.max(1, Math.floor(2.0 * Math.pow(1.10, Math.max(0, n - 12))));
+      if (biome === BIOMES.MEADOW) return { zone: 3, food: baseCost, wood: 0, flour: 6, plank: 0, bread: tier3Cost, furniture: 0 };
+      if (biome === BIOMES.FOREST) return { zone: 3, food: 0, wood: baseCost, flour: 0, plank: 6, bread: 0, furniture: tier3Cost };
+      return { zone: 3, food: baseCost, wood: baseCost, flour: 6, plank: 6, bread: tier3Cost, furniture: tier3Cost };
+    }
   }
 
   getCareerTotalResources() {
-    return this.statTotalFood + this.statTotalWood + this.statTotalFlour + this.statTotalPlank;
+    return this.statTotalFood + this.statTotalWood + this.statTotalFlour + this.statTotalPlank + this.statTotalBread + this.statTotalFurniture;
   }
 
   calculateEarnedCrowns() {

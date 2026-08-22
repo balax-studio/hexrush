@@ -14,6 +14,8 @@ const STRINGS = {
 		"wood": "Odun",
 		"flour": "Un",
 		"plank": "Kereste",
+		"bread": "Ekmek",
+		"furniture": "Mobilya",
 		"land": "Toprak",
 		"crowns": "Kraliyet Tacı",
 		
@@ -26,7 +28,7 @@ const STRINGS = {
 		# İpuçları
 		"hint_castle_1": "Şatoyu Seviye 2'ye yükselterek Odunculuğun kilidini aç! (Gerekli: 6 🥡)",
 		"hint_castle_2": "Şatoyu Seviye 3'e yükselterek Değirmen & Kereste Fabrikasını aç! (18 🥡 + 10 🪵)",
-		"hint_expand": "Yeni altıgen fethet: Üstel maliyet | Fabrikalarla katma değerli ürün üret!",
+		"hint_expand": "Yeni altıgen fethet: Biyom sayaçlı üstel maliyet & Mesafe Bölgeleri (1-6, 7-12, 13+)!",
 		"hint_no_food": "Gıda tükendi! Mısır tarlalarını hasat et veya işçi kulübesi kur.",
 		
 		# İnşaat Menüsü
@@ -39,15 +41,21 @@ const STRINGS = {
 		"corn_desc": "Temel gıda üretimi (Geliştirildikçe hızlanır).",
 		"windmill_name": "Değirmen (Tier 2)",
 		"windmill_desc": "Gıdayı Un'a çevirir (Komşu tarladan %100 hız).",
+		"bakery_name": "Taş Fırın (Tier 3)",
+		"bakery_desc": "Un ve Gıdadan Ekmek üretir (Yüksek kâr marjı).",
 		"lumberjack_name": "Oduncu Kulübesi",
 		"lumberjack_desc": "Temel odun üretimi (Geliştirildikçe hızlanır).",
 		"sawmill_name": "Kereste Fabrikası (Tier 2)",
 		"sawmill_desc": "Odunu Kalas'a çevirir (Komşu oduncudan %100 hız).",
+		"furniture_name": "Mobilyacı (Tier 3)",
+		"furniture_desc": "Kalas ve Odundan Mobilya üretir (Yüksek kâr marjı).",
 		"worker_name": "İşçi Kulübesi",
 		"worker_desc": "Komşulardan otomatik hammadde taşır.",
 		"bridge_name": "Ahşap Köprü",
 		"bridge_desc": "Açık deniz geçişini sağlar ve komşu karalara ulaşım açar.",
 		"locked_castle_3": "🔒 ŞATO SEVİYE 3",
+		"locked_castle_4": "🔒 ŞATO SEVİYE 4",
+		"frenzy_boost_btn": "📺 10x Çılgınlık & 10 Dk Hediye!",
 		
 		# Üretim Menüleri
 		"level": "Seviye",
