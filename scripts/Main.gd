@@ -377,7 +377,27 @@ func _ready() -> void:
 		var deforest_btn = Button.new()
 		deforest_btn.name = "DeforestButton"
 		deforest_btn.text = "🌿 Ağaçları Kurut (Orman → Çayır)"
-		deforest_btn.add_theme_color_override("font_color", Color(0.3, 0.85, 0.45))
+		deforest_btn.add_theme_color_override("font_color", Color(0.2, 0.95, 0.5))
+		
+		# Bozkır Neo-Brutalist Stil
+		var deforest_style = StyleBoxFlat.new()
+		deforest_style.bg_color = Color(0.06, 0.22, 0.12, 1.0)
+		deforest_style.corner_radius_top_left = 4
+		deforest_style.corner_radius_top_right = 4
+		deforest_style.corner_radius_bottom_right = 4
+		deforest_style.corner_radius_bottom_left = 4
+		deforest_style.border_width_left = 2
+		deforest_style.border_width_top = 2
+		deforest_style.border_width_right = 2
+		deforest_style.border_width_bottom = 2
+		deforest_style.border_color = Color(0.08, 0.65, 0.32, 1.0)
+		deforest_style.shadow_color = Color(0.008, 0.024, 0.09, 1.0)
+		deforest_style.shadow_size = 0
+		deforest_style.shadow_offset = Vector2(3, 3)
+		deforest_btn.add_theme_stylebox_override("normal", deforest_style)
+		deforest_btn.add_theme_stylebox_override("hover", deforest_style)
+		deforest_btn.add_theme_stylebox_override("pressed", deforest_style)
+		
 		deforest_btn.visible = false  # Sadece FOREST hexlerde göster
 		deforest_btn.pressed.connect(_deforest_tile)
 		bm_vbox.add_child(deforest_btn)
@@ -1355,7 +1375,27 @@ func _add_demolish_button_to_menu(menu: PanelContainer, vbox_path: String, callb
 	var btn = Button.new()
 	btn.name = "DemolishButton_" + callback_name
 	btn.text = "🔨 Yapıyı Yık (%50 Kaynak İade)"
-	btn.add_theme_color_override("font_color", Color(1.0, 0.4, 0.35))
+	btn.add_theme_color_override("font_color", Color(1.0, 0.45, 0.4))
+	
+	# Bozkır Neo-Brutalist Yıkım Buton Stili (Kurt Kanı / Savaş Ateşi Kırmızısı)
+	var demo_style = StyleBoxFlat.new()
+	demo_style.bg_color = Color(0.18, 0.05, 0.05, 1.0)
+	demo_style.corner_radius_top_left = 4
+	demo_style.corner_radius_top_right = 4
+	demo_style.corner_radius_bottom_right = 4
+	demo_style.corner_radius_bottom_left = 4
+	demo_style.border_width_left = 2
+	demo_style.border_width_top = 2
+	demo_style.border_width_right = 2
+	demo_style.border_width_bottom = 2
+	demo_style.border_color = Color(0.86, 0.15, 0.15, 1.0)  # #dc2626
+	demo_style.shadow_color = Color(0.27, 0.04, 0.04, 1.0)  # #450a0a
+	demo_style.shadow_size = 0
+	demo_style.shadow_offset = Vector2(3, 3)
+	btn.add_theme_stylebox_override("normal", demo_style)
+	btn.add_theme_stylebox_override("hover", demo_style)
+	btn.add_theme_stylebox_override("pressed", demo_style)
+	
 	btn.pressed.connect(Callable(self, callback_name))
 	vbox.add_child(btn)
 
