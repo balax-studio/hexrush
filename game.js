@@ -76,6 +76,7 @@ const STRINGS = {
     toast_mountain_conquered: "🏔️ Dağ Fethedildi! Arkasındaki 1 birim sınırındaki tüm araziler açığa çıkarıldı.",
     toast_mountain_info: "🏔️ Fethedilmiş Dağ Zirvesi. Çevredeki tüm topraklar görüş alanında.",
     toast_no_food_tile: "⚠️ Yetersiz Gıda! Yeni altıgen açmak için {0} 🥡 Gıda gerekli.",
+    toast_adjacent_required: "⚠️ Yalnızca sınır komşunuz olan arazileri fethedebilirsiniz!",
     toast_need_bridge: "⚠️ Açık Deniz Engeli! Denizden geçiş için önce bu deniz karosuna köprü inşa etmelisin.",
     toast_bridge_need_land: "⚠️ Köprü inşa etmek için en az 1 komşu kara parçası gereklidir.",
     toast_forest_locked: "🔒 Orman Kilitli! Odunculuk için Şatoyu Seviye 2'ye yükselt.",
@@ -1940,7 +1941,11 @@ function handleTileClick(tile) {
 
     if (!hasValidAccess) {
       audio.playError();
-      showToast(t("toast_need_bridge"), true);
+      if (blockedByUnbridgedSea) {
+        showToast(t("toast_need_bridge"), true);
+      } else {
+        showToast(t("toast_adjacent_required") || "⚠️ Yalnızca sınır komşunuz olan arazileri fethedebilirsiniz!", true);
+      }
       return;
     }
 

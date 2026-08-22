@@ -703,7 +703,7 @@ func _on_tile_clicked_discovered(coord: Vector2i, tile: HexTile) -> void:
 		if blocked_by_unbridged_sea:
 			show_toast(Localization.tr_t("toast_need_bridge"), true)
 		else:
-			show_toast(Localization.tr_t("toast_need_bridge"), true)
+			show_toast(Localization.tr_t("toast_adjacent_required"), true)
 		return
 		
 	var cost: int = get_land_expansion_cost()
