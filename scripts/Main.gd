@@ -1968,8 +1968,9 @@ func _update_prestige_tab_live() -> void:
 
 func _on_prestige_button_pressed() -> void:
 	var earned = calculate_earned_crowns()
+	var next_bonus_pct = int(((1.0 + (crowns + earned) * 0.05) - 1.0) * 100)
 	prestige_confirm_title.text = Localization.tr_t("prestige_confirm_title")
-	prestige_confirm_desc.text = Localization.tr_t("prestige_confirm_desc", [earned])
+	prestige_confirm_desc.text = Localization.tr_t("prestige_confirm_desc", [earned, next_bonus_pct])
 	btn_confirm_prestige.text = Localization.tr_t("prestige_confirm_yes")
 	btn_cancel_prestige.text = Localization.tr_t("prestige_confirm_no")
 	
