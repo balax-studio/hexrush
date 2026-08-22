@@ -17,7 +17,9 @@ extends Node2D
 @onready var plank_label: Label = $UI/TopBar/MarginContainer/VBoxContainer/DrawerRow/PlankChip/HBox/PlankLabel
 @onready var bread_label: Label = $UI/TopBar/MarginContainer/VBoxContainer/DrawerRow/BreadChip/HBox/BreadLabel
 @onready var furniture_label: Label = $UI/TopBar/MarginContainer/VBoxContainer/DrawerRow/FurnitureChip/HBox/FurnitureLabel
+@onready var stone_label: Label = $UI/TopBar/MarginContainer/VBoxContainer/DrawerRow/StoneChip/HBox/StoneLabel
 @onready var hint_label: Label = $UI/TopBar/MarginContainer/VBoxContainer/HintLabel
+@onready var canvas_modulate: CanvasModulate = $CanvasModulate
 
 # Dinamik İnşaat Menüsü (Build Menu)
 @onready var build_menu: PanelContainer = $UI/BuildMenu
@@ -65,6 +67,15 @@ extends Node2D
 @onready var worker_desc_label: Label = $UI/BuildMenu/MarginContainer/VBoxContainer/WorkerCard/HBoxContainer/InfoVBox/DescLabel
 @onready var worker_cost_badge: Label = $UI/BuildMenu/MarginContainer/VBoxContainer/WorkerCard/HBoxContainer/CostBadge
 @onready var btn_build_worker: Button = $UI/BuildMenu/MarginContainer/VBoxContainer/WorkerCard/HBoxContainer/BuildButton
+
+# Gözcü Kulesi & Dağ Madeni Kartları
+@onready var watchtower_card: PanelContainer = $UI/BuildMenu/MarginContainer/VBoxContainer/WatchtowerCard
+@onready var watchtower_cost_badge: Label = $UI/BuildMenu/MarginContainer/VBoxContainer/WatchtowerCard/HBoxContainer/CostBadge
+@onready var btn_build_watchtower: Button = $UI/BuildMenu/MarginContainer/VBoxContainer/WatchtowerCard/HBoxContainer/BuildButton
+
+@onready var mine_card: PanelContainer = $UI/BuildMenu/MarginContainer/VBoxContainer/MineCard
+@onready var mine_cost_badge: Label = $UI/BuildMenu/MarginContainer/VBoxContainer/MineCard/HBoxContainer/CostBadge
+@onready var btn_build_mine: Button = $UI/BuildMenu/MarginContainer/VBoxContainer/MineCard/HBoxContainer/BuildButton
 
 # Köprü İnşaat Kartı
 @onready var bridge_card: PanelContainer = $UI/BuildMenu/MarginContainer/VBoxContainer/BridgeCard
@@ -204,6 +215,8 @@ extends Node2D
 @export var sawmill_scene: PackedScene = preload("res://scenes/Sawmill.tscn")
 @export var furniture_maker_scene: PackedScene = preload("res://scenes/FurnitureMaker.tscn")
 @export var worker_hut_scene: PackedScene = preload("res://scenes/WorkerHut.tscn")
+@export var watchtower_scene: PackedScene = preload("res://scenes/Watchtower.tscn")
+@export var mountain_mine_scene: PackedScene = preload("res://scenes/MountainMine.tscn")
 @export var castle_scene: PackedScene = preload("res://scenes/Castle.tscn")
 @export var bridge_scene: PackedScene = preload("res://scenes/Bridge.tscn")
 
@@ -230,6 +243,8 @@ var flour: float = 0.0
 var plank: float = 0.0
 var bread: float = 0.0
 var furniture: float = 0.0
+var stone: float = 0.0
+var iron: float = 0.0
 
 var crowns: int = 0
 var total_rebirths: int = 0
@@ -248,12 +263,31 @@ var lumberjack_huts_count: int = 0
 var sawmills_count: int = 0
 var furniture_makers_count: int = 0
 var worker_huts_count: int = 0
+var watchtowers_count: int = 0
+var mountain_mines_count: int = 0
 
 var castle_level: int = 1
 var center_castle: Node2D = null
 
 # Mega Boost (Frenzy 10x)
 var _frenzy_timer: float = 0.0
+
+# Gece-Gündüz Döngüsü & Gece Baskını
+var day_night_timer: float = 0.0
+const DAY_CYCLE_LENGTH: float = 90.0 # 45s Gündüz, 45s Gece
+var is_night: bool = false
+var night_raid_triggered: bool = false
+var total_raids_defended: int = 0
+
+# Mevsimler & Zud Döngüsü
+var season_timer: float = 0.0
+const SEASON_DURATION: float = 120.0
+var current_season: int = 0 # 0: Bahar, 1: Yaz, 2: Güz, 3: Kış
+const SEASON_NAMES = ["🌱 Bahar", "☀️ Yaz", "🍂 Güz", "❄️ Kış"]
+
+# Görevler ve Kadim Eserler
+var active_quests: Dictionary = {}
+var unlocked_relics: Dictionary = {}
 
 # Kariyer İstatistikleri
 var stat_total_food: float = 0.0
@@ -262,11 +296,12 @@ var stat_total_flour: float = 0.0
 var stat_total_plank: float = 0.0
 var stat_total_bread: float = 0.0
 var stat_total_furniture: float = 0.0
+var stat_total_stone: float = 0.0
 var stat_total_conquered: int = 1
 var stat_playtime: float = 0.0
 
 # Çevrimdışı Gelir Geçici Değişkenleri
-var _pending_offline_gains = {"food": 0.0, "wood": 0.0, "flour": 0.0, "plank": 0.0, "bread": 0.0, "furniture": 0.0}
+var _pending_offline_gains = {"food": 0.0, "wood": 0.0, "flour": 0.0, "plank": 0.0, "bread": 0.0, "furniture": 0.0, "stone": 0.0}
 
 var selected_tile: HexTile = null
 var active_corn_field: Node2D = null
@@ -276,12 +311,16 @@ var active_lumberjack_hut: Node2D = null
 var active_sawmill: Node2D = null
 var active_furniture_maker: Node2D = null
 var active_worker_hut: Node2D = null
+var active_watchtower: Node2D = null
+var active_mountain_mine: Node2D = null
 
 var worker_huts: Array[Node2D] = []
 var windmills: Array[Node2D] = []
 var sawmills: Array[Node2D] = []
 var bakeries: Array[Node2D] = []
 var furniture_makers: Array[Node2D] = []
+var watchtowers: Array[Node2D] = []
+var mountain_mines: Array[Node2D] = []
 
 var _drawer_open: bool = false
 var _toast_tween: Tween = null
@@ -303,6 +342,7 @@ func _ready() -> void:
 	if btn_frenzy: btn_frenzy.pressed.connect(trigger_mega_ad_boost)
 	
 	btn_close_build_menu.pressed.connect(close_build_menu)
+	btn_close_build_menu.pressed.connect(close_build_menu)
 	btn_build_corn.pressed.connect(_on_build_corn_pressed)
 	btn_build_windmill.pressed.connect(_on_build_windmill_pressed)
 	if btn_build_bakery: btn_build_bakery.pressed.connect(_on_build_bakery_pressed)
@@ -310,6 +350,8 @@ func _ready() -> void:
 	btn_build_sawmill.pressed.connect(_on_build_sawmill_pressed)
 	if btn_build_furniture: btn_build_furniture.pressed.connect(_on_build_furniture_pressed)
 	btn_build_worker.pressed.connect(_on_build_worker_pressed)
+	if btn_build_watchtower: btn_build_watchtower.pressed.connect(_on_build_watchtower_pressed)
+	if btn_build_mine: btn_build_mine.pressed.connect(_on_build_mine_pressed)
 	btn_build_bridge.pressed.connect(_on_build_bridge_pressed)
 	
 	btn_close_castle_menu.pressed.connect(close_castle_menu)
@@ -411,6 +453,12 @@ func _ready() -> void:
 	toast_panel.visible = false
 	drawer_row.visible = false
 	
+	# Fermanları Başlat
+	if active_quests.is_empty():
+		active_quests["fast"] = QuestSystem.generate_quest("fast", castle_level)
+		active_quests["strat"] = QuestSystem.generate_quest("strat", castle_level)
+		active_quests["epic"] = QuestSystem.generate_quest("epic", castle_level)
+	
 	# Kayıtlı oyun kontrolü
 	_initialize_game_state()
 
@@ -465,6 +513,8 @@ func _load_from_dict(d: Dictionary) -> void:
 		plank = float(r.get("plank", 0.0))
 		bread = float(r.get("bread", 0.0))
 		furniture = float(r.get("furniture", 0.0))
+		stone = float(r.get("stone", 0.0))
+		iron = float(r.get("iron", 0.0))
 		
 	if d.has("progression"):
 		var p = d["progression"]
@@ -488,6 +538,7 @@ func _load_from_dict(d: Dictionary) -> void:
 		stat_total_plank = float(st.get("total_plank_produced", 0.0))
 		stat_total_bread = float(st.get("total_bread_produced", 0.0))
 		stat_total_furniture = float(st.get("total_furniture_produced", 0.0))
+		stat_total_stone = float(st.get("total_stone_produced", 0.0))
 		stat_total_conquered = int(st.get("total_tiles_conquered", 1))
 		stat_playtime = float(st.get("playtime_seconds", 0.0))
 		
@@ -508,6 +559,9 @@ func _load_from_dict(d: Dictionary) -> void:
 		"sawmill": sawmill_scene,
 		"furniture": furniture_maker_scene,
 		"worker": worker_hut_scene,
+		"watchtower": watchtower_scene,
+		"mine": mountain_mine_scene,
+		"quarry": mountain_mine_scene,
 		"bridge": bridge_scene
 	}
 	
@@ -526,6 +580,12 @@ func _load_from_dict(d: Dictionary) -> void:
 			for fm in refs["furniture_makers"]: furniture_makers.append(fm)
 		worker_huts.clear()
 		for wh in refs["worker_huts"]: worker_huts.append(wh)
+		watchtowers.clear()
+		if refs.has("watchtowers"):
+			for wt in refs["watchtowers"]: watchtowers.append(wt)
+		mountain_mines.clear()
+		if refs.has("mountain_mines"):
+			for mm in refs["mountain_mines"]: mountain_mines.append(mm)
 		
 		corn_fields_count = refs["corn_fields"].size()
 		windmills_count = windmills.size()
@@ -533,6 +593,8 @@ func _load_from_dict(d: Dictionary) -> void:
 		bakeries_count = bakeries.size()
 		furniture_makers_count = furniture_makers.size()
 		worker_huts_count = worker_huts.size()
+		watchtowers_count = watchtowers.size()
+		mountain_mines_count = mountain_mines.size()
 
 # =============================================================================
 # ÇARPANLAR & MATEMATİK
@@ -551,7 +613,7 @@ func get_global_multiplier() -> float:
 	return get_castle_multiplier() * get_prestige_multiplier() * get_frenzy_multiplier()
 
 func get_career_total_resources() -> float:
-	return stat_total_food + stat_total_wood + stat_total_flour + stat_total_plank + stat_total_bread + stat_total_furniture
+	return stat_total_food + stat_total_wood + stat_total_flour + stat_total_plank + stat_total_bread + stat_total_furniture + stat_total_stone
 
 func calculate_earned_crowns() -> int:
 	var total_res = get_career_total_resources()
@@ -579,11 +641,16 @@ func _process(delta: float) -> void:
 		elif int(_frenzy_timer) % 5 == 0:
 			update_ui()
 		
-	# 1. Tier 2 & Tier 3 Fabrikalarının Üretimi
+	# 1. Tier 2, Tier 3 & Dağ Madenlerinin Üretimi
 	_process_tier2_factories(delta)
 	_process_tier3_factories(delta)
+	_process_mountain_mines(delta)
 
-	# 2. İşçi Kulübelerinin Taşıması
+	# 2. Gece-Gündüz & Mevsimler
+	_process_day_night(delta)
+	_process_seasons(delta)
+
+	# 3. İşçi Kulübelerinin Taşıması
 	_process_worker_auto_gather(delta)
 
 	# 3. Açık olan menülerin canlı bilgi güncellemesi
@@ -750,7 +817,8 @@ func _process_worker_auto_gather(delta: float) -> void:
 			   ("accumulated_flour" in n and n.accumulated_flour > 0.001) or \
 			   ("accumulated_plank" in n and n.accumulated_plank > 0.001) or \
 			   ("accumulated_bread" in n and n.accumulated_bread > 0.001) or \
-			   ("accumulated_furniture" in n and n.accumulated_furniture > 0.001):
+			   ("accumulated_furniture" in n and n.accumulated_furniture > 0.001) or \
+			   ("accumulated_resource" in n and n.accumulated_resource > 0.001):
 				valid_targets.append(n)
 				
 		if valid_targets.size() > 0:
@@ -794,6 +862,12 @@ func _process_worker_auto_gather(delta: float) -> void:
 					furniture += take
 					stat_total_furniture += take
 					if "total_gathered" in hut: hut.total_gathered += take
+				elif "accumulated_resource" in target:
+					var take = min(target.accumulated_resource, transfer_per_target)
+					target.accumulated_resource -= take
+					stone += take
+					stat_total_stone += take
+					if "total_gathered" in hut: hut.total_gathered += take
 			
 			update_ui()
 
@@ -805,8 +879,12 @@ func update_ui() -> void:
 	if plank_label: plank_label.text = "%s: %d" % [Localization.tr_t("plank"), int(plank)]
 	if bread_label: bread_label.text = "%s: %d" % [Localization.tr_t("bread"), int(bread)]
 	if furniture_label: furniture_label.text = "%s: %d" % [Localization.tr_t("furniture"), int(furniture)]
+	if stone_label: stone_label.text = "Taş: %d" % int(stone)
 	if crown_label: crown_label.text = "%d" % crowns
 	if tile_count_label: tile_count_label.text = "%d" % owned_count
+	
+	var cycle_str = "🌙 Gece" if is_night else "☀️ Gündüz"
+	var season_str = SEASON_NAMES[current_season]
 	
 	if btn_frenzy:
 		if _frenzy_timer > 0.0:
@@ -816,15 +894,15 @@ func update_ui() -> void:
 		
 	if hint_label:
 		if _frenzy_timer > 0.0:
-			hint_label.text = "⚡ 10x MEGA ÇILGINLIK AKTİF! (%d sn kaldı)" % int(_frenzy_timer)
+			hint_label.text = "[%s | %s] ⚡ 10x MEGA ÇILGINLIK AKTİF! (%d sn kaldı)" % [cycle_str, season_str, int(_frenzy_timer)]
 		elif castle_level == 1:
-			hint_label.text = Localization.tr_t("hint_castle_1")
+			hint_label.text = "[%s | %s] %s" % [cycle_str, season_str, Localization.tr_t("hint_castle_1")]
 		elif castle_level == 2:
-			hint_label.text = Localization.tr_t("hint_castle_2")
+			hint_label.text = "[%s | %s] %s" % [cycle_str, season_str, Localization.tr_t("hint_castle_2")]
 		elif food < 1.0:
-			hint_label.text = Localization.tr_t("hint_no_food")
+			hint_label.text = "[%s | %s] %s" % [cycle_str, season_str, Localization.tr_t("hint_no_food")]
 		else:
-			hint_label.text = Localization.tr_t("hint_expand")
+			hint_label.text = "[%s | %s] %s" % [cycle_str, season_str, Localization.tr_t("hint_expand")]
 
 func _toggle_inventory_drawer() -> void:
 	sound_manager.play_click()
@@ -987,7 +1065,9 @@ func _on_tile_clicked_owned(_coord: Vector2i, tile: HexTile) -> void:
 				sound_manager.play_error()
 				show_toast(Localization.tr_t("toast_bridge_need_land"), true)
 		elif tile.tile_type == HexTile.TileType.MOUNTAIN:
-			show_toast(Localization.tr_t("toast_mountain_info"))
+			close_all_menus()
+			selected_tile = tile
+			open_build_menu()
 		else:
 			show_toast(Localization.tr_t("toast_no_build_biome"))
 	else:
@@ -1017,6 +1097,19 @@ func _on_tile_clicked_owned(_coord: Vector2i, tile: HexTile) -> void:
 			selected_tile = tile
 			active_worker_hut = b
 			open_worker_menu()
+		elif b and ("defense_power" in b):
+			show_toast("🏹 Gözcü Kulesi (Sv. %d - Savunma: %d). Gece akıncılarına karşı nöbette!" % [b.level, b.defense_power * b.level])
+		elif b and ("accumulated_resource" in b):
+			var collected = b.collect_resource()
+			if collected > 0.01:
+				stone += collected
+				stat_total_stone += collected
+				sound_manager.play_harvest()
+				_check_quests("collect_stone", int(collected))
+				show_toast("⛏️ +%d Taş çıkarıldı!" % int(collected))
+				update_ui()
+			else:
+				show_toast("⛏️ Taş Ocağı (Sv. %d). Çıkarılan Taş: %d/%d" % [b.level, int(b.accumulated_resource), int(b.max_capacity)])
 		elif b and ("bridge" in b.name.to_lower() or (b.get_script() != null and "bridge" in b.get_script().resource_path.to_lower())):
 			show_toast("🌉 Ahşap Köprü. Açık deniz geçişi ve kara bağlantısı aktif.")
 		else:
@@ -1043,6 +1136,8 @@ func close_all_menus() -> void:
 	active_sawmill = null
 	active_furniture_maker = null
 	active_worker_hut = null
+	active_watchtower = null
+	active_mountain_mine = null
 
 # =============================================================================
 # DİNAMİK İNŞAAT MENÜSÜ
@@ -1055,6 +1150,7 @@ func open_build_menu() -> void:
 		
 	var is_meadow = (selected_tile.tile_type == HexTile.TileType.MEADOW)
 	var is_forest = (selected_tile.tile_type == HexTile.TileType.FOREST)
+	var is_mountain = (selected_tile.tile_type == HexTile.TileType.MOUNTAIN)
 	
 	if is_meadow:
 		build_menu_title.text = Localization.tr_t("build_title_meadow")
@@ -1066,6 +1162,7 @@ func open_build_menu() -> void:
 		if furniture_card: furniture_card.visible = false
 		bridge_card.visible = false
 		worker_card.visible = true
+		if mine_card: mine_card.visible = false
 		
 		corn_name_label.text = Localization.tr_t("corn_name")
 		corn_desc_label.text = Localization.tr_t("corn_desc")
@@ -1110,6 +1207,7 @@ func open_build_menu() -> void:
 		if furniture_card: furniture_card.visible = true
 		bridge_card.visible = false
 		worker_card.visible = true
+		if mine_card: mine_card.visible = false
 		
 		lumberjack_name_label.text = Localization.tr_t("lumberjack_name")
 		lumberjack_desc_label.text = Localization.tr_t("lumberjack_desc")
@@ -1144,6 +1242,23 @@ func open_build_menu() -> void:
 				furniture_cost_badge.add_theme_color_override("font_color", Color(0.4, 0.95, 0.45) if can_afford_fm else Color(1.0, 0.45, 0.45))
 				btn_build_furniture.disabled = false
 				
+	elif is_mountain:
+		build_menu_title.text = "İnşaat: Dağ Karosu"
+		corn_card.visible = false
+		windmill_card.visible = false
+		if bakery_card: bakery_card.visible = false
+		lumberjack_card.visible = false
+		sawmill_card.visible = false
+		if furniture_card: furniture_card.visible = false
+		bridge_card.visible = false
+		worker_card.visible = true
+		if mine_card:
+			mine_card.visible = true
+			var can_afford_mine = (food >= 10 and wood >= 15)
+			mine_cost_badge.text = "10 🥡 + 15 🪵"
+			mine_cost_badge.add_theme_color_override("font_color", Color(0.4, 0.95, 0.45) if can_afford_mine else Color(1.0, 0.45, 0.45))
+			btn_build_mine.disabled = !can_afford_mine
+			
 	elif selected_tile.tile_type == HexTile.TileType.SEA:
 		build_menu_title.text = Localization.tr_t("build_title_sea")
 		corn_card.visible = false
@@ -1152,6 +1267,7 @@ func open_build_menu() -> void:
 		lumberjack_card.visible = false
 		sawmill_card.visible = false
 		if furniture_card: furniture_card.visible = false
+		if mine_card: mine_card.visible = false
 		worker_card.visible = false
 		bridge_card.visible = true
 		
@@ -1161,6 +1277,18 @@ func open_build_menu() -> void:
 		bridge_cost_badge.text = "4 🪵"
 		var can_afford_br = (wood >= 4)
 		bridge_cost_badge.add_theme_color_override("font_color", Color(0.4, 0.95, 0.45) if can_afford_br else Color(1.0, 0.45, 0.45))
+	else:
+		return
+		
+	# Gözcü Kulesi Kartı (Deniz hariç tüm karolarda göster)
+	if watchtower_card:
+		watchtower_card.visible = (selected_tile.tile_type != HexTile.TileType.SEA)
+		var wt_wood = 10 + watchtowers_count * 5
+		var wt_stone = 5 + watchtowers_count * 3
+		watchtower_cost_badge.text = "%d 🪵 + %d 🪨" % [wt_wood, wt_stone]
+		var can_afford_wt = (wood >= wt_wood and stone >= wt_stone)
+		watchtower_cost_badge.add_theme_color_override("font_color", Color(0.4, 0.95, 0.45) if can_afford_wt else Color(1.0, 0.45, 0.45))
+		btn_build_watchtower.disabled = !can_afford_wt
 	else:
 		return
 		
@@ -1357,8 +1485,169 @@ func _on_build_worker_pressed() -> void:
 	sound_manager.play_build()
 	close_build_menu()
 	update_ui()
+	_check_quests("build_worker", 1)
 	SaveManager.save_game(self)
 	show_toast(Localization.tr_t("toast_built_worker"))
+
+func _on_build_watchtower_pressed() -> void:
+	if not selected_tile or not is_instance_valid(selected_tile): return
+	var wt_wood = 10 + watchtowers_count * 5
+	var wt_stone = 5 + watchtowers_count * 3
+	if wood < wt_wood or stone < wt_stone:
+		sound_manager.play_error()
+		show_toast(Localization.tr_t("toast_insufficient_res"), true)
+		return
+	wood -= wt_wood
+	stone -= wt_stone
+	var instance = watchtower_scene.instantiate()
+	if instance and "y_scale" in instance: instance.y_scale = hex_grid.y_scale
+	if instance and "grid_coord" in instance: instance.grid_coord = selected_tile.grid_coord
+	selected_tile.set_building(instance)
+	watchtowers.append(instance)
+	watchtowers_count += 1
+	sound_manager.play_build()
+	close_build_menu()
+	update_ui()
+	_check_quests("build_watchtower", 1)
+	SaveManager.save_game(self)
+	show_toast("🏹 Gözcü Kulesi kuruldu! Gece baskınlarına karşı savunma gücü sağlandı.")
+
+func _on_build_mine_pressed() -> void:
+	if not selected_tile or not is_instance_valid(selected_tile): return
+	if selected_tile.tile_type != HexTile.TileType.MOUNTAIN:
+		sound_manager.play_error()
+		show_toast("⛏️ Maden Ocağı yalnızca Dağ karolarına kurulabilir!", true)
+		return
+	if food < 10 or wood < 15:
+		sound_manager.play_error()
+		show_toast(Localization.tr_t("toast_insufficient_res"), true)
+		return
+	food -= 10
+	wood -= 15
+	var instance = mountain_mine_scene.instantiate()
+	if instance and "y_scale" in instance: instance.y_scale = hex_grid.y_scale
+	if instance and "grid_coord" in instance: instance.grid_coord = selected_tile.grid_coord
+	selected_tile.set_building(instance)
+	mountain_mines.append(instance)
+	mountain_mines_count += 1
+	sound_manager.play_build()
+	close_build_menu()
+	update_ui()
+	_check_quests("upgrade_quarry", 1)
+	SaveManager.save_game(self)
+	show_toast("⛏️ Dağ Madeni kuruldu! Taş ve Demir üretimi başladı.")
+
+# =============================================================================
+# BOZKIR GENİŞLEME SİSTEMLERİ: GECE-GÜNDÜZ, BASKINLAR, MEVSİMLER, FERMANLAR
+# =============================================================================
+
+## Dağ Madenlerinin Üretim Döngüsü (Taş & Demir)
+func _process_mountain_mines(delta: float) -> void:
+	var global_mult = get_global_multiplier() * RelicManager.get_mine_multiplier(unlocked_relics)
+	for mm in mountain_mines:
+		if not is_instance_valid(mm): continue
+		var rate = mm.get("base_rate") * global_mult
+		var max_cap = mm.get("max_capacity")
+		var gain = rate * delta
+		mm.accumulated_resource = min(max_cap, mm.accumulated_resource + gain)
+
+## Gece-Gündüz Döngüsü & Gökyüzü Işıklandırması
+func _process_day_night(delta: float) -> void:
+	day_night_timer += delta
+	var cycle_pos = fmod(day_night_timer, DAY_CYCLE_LENGTH) / DAY_CYCLE_LENGTH
+	var night_state = (cycle_pos >= 0.5)
+	
+	if night_state != is_night:
+		is_night = night_state
+		if is_night:
+			night_raid_triggered = false
+			show_toast("🌙 Gece Çöktü! Bozkırda akıncı gölgeleri belirdi...")
+			if canvas_modulate:
+				var tw = create_tween()
+				tw.tween_property(canvas_modulate, "color", Color(0.28, 0.32, 0.52), 3.0)
+		else:
+			show_toast("☀️ Şafak Söktü! Gün aydınlandı, tehlike geçti.")
+			if canvas_modulate:
+				var tw = create_tween()
+				tw.tween_property(canvas_modulate, "color", Color(0.95, 0.95, 0.95), 3.0)
+				
+	# Gece Baskını Tetikleyicisi (Gecenin %70'ine ulaşıldığında)
+	if is_night and not night_raid_triggered and cycle_pos >= 0.70:
+		night_raid_triggered = true
+		_trigger_night_raid()
+
+## Gece Baskını Olayı (Night Raid)
+func _trigger_night_raid() -> void:
+	var total_defense = 0
+	for wt in watchtowers:
+		if is_instance_valid(wt):
+			total_defense += wt.defense_power * wt.level
+			
+	if total_defense >= 20:
+		total_raids_defended += 1
+		var loot_food = 15.0 + watchtowers_count * 10.0
+		var loot_wood = 10.0 + watchtowers_count * 8.0
+		var loot_stone = 8.0 + watchtowers_count * 5.0
+		food += loot_food
+		wood += loot_wood
+		stone += loot_stone
+		stat_total_food += loot_food
+		stat_total_wood += loot_wood
+		stat_total_stone += loot_stone
+		sound_manager.play_tile_unlock()
+		show_toast("🏹 Gözcü Kuleleri Gece Baskınını Savuşturdu! Ganimet: +%d 🥡 +%d 🪵 +%d 🪨" % [int(loot_food), int(loot_wood), int(loot_stone)])
+		_check_quests("defend_raids", 1)
+	else:
+		var lost_food = min(food * 0.15, 30.0)
+		var lost_wood = min(wood * 0.15, 25.0)
+		food = max(0.0, food - lost_food)
+		wood = max(0.0, wood - lost_wood)
+		sound_manager.play_error()
+		show_toast("⚠️ Gece Baskını! Savunmasız ambarlardan -%d 🥡 ve -%d 🪵 yağmalandı!" % [int(lost_food), int(lost_wood)], true)
+	update_ui()
+
+## Mevsim & Zud Döngüsü
+func _process_seasons(delta: float) -> void:
+	season_timer += delta
+	if season_timer >= SEASON_DURATION:
+		season_timer = 0.0
+		current_season = (current_season + 1) % 4
+		var s_name = SEASON_NAMES[current_season]
+		if current_season == 3:
+			show_toast("❄️ Sert Kış Geldi! Isınmak için odun ambarlarını dolu tutun!")
+		else:
+			show_toast("%s Mevsimi Başladı!" % s_name)
+		update_ui()
+
+## Görev ve Ferman Kontrolü
+func _check_quests(quest_type: String, amount: int = 1) -> void:
+	for tier in ["fast", "strat", "epic"]:
+		if active_quests.has(tier) and active_quests[tier].get("type") == quest_type:
+			var q = active_quests[tier]
+			q["current"] = q.get("current", 0) + amount
+			if q["current"] >= q["target"]:
+				var rew = q.get("reward", {})
+				if rew.has("food"): food += rew["food"]
+				if rew.has("wood"): wood += rew["wood"]
+				if rew.has("stone"): stone += rew["stone"]
+				if rew.has("crowns"): crowns += rew["crowns"]
+				if rew.has("relic"):
+					_unlock_random_relic()
+				sound_manager.play_tile_unlock()
+				show_toast("📜 Ferman Tamamlandı: %s! Ödüller Alındı!" % q.get("desc", ""))
+				active_quests[tier] = QuestSystem.generate_quest(tier, castle_level)
+				update_ui()
+
+func _unlock_random_relic() -> void:
+	var available = []
+	for r_id in RelicManager.RELIC_DEFINITIONS.keys():
+		if not unlocked_relics.get(r_id, false):
+			available.append(r_id)
+	if available.size() > 0:
+		var r = available[randi() % available.size()]
+		unlocked_relics[r] = true
+		var r_data = RelicManager.RELIC_DEFINITIONS[r]
+		show_toast("🏺 Kadim Eser Bulundu: %s %s! (%s)" % [r_data.icon, r_data.name, r_data.perk])
 
 # =============================================================================
 # YAPI YIKMA & ORMAN DÖNÜŞÜM SİSTEMİ

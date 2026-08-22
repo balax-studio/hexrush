@@ -201,7 +201,9 @@ func load_from_saved_tiles(tiles_data: Array, scenes_dict: Dictionary) -> Dictio
 		"bakeries": [] as Array[Node2D],
 		"furniture_makers": [] as Array[Node2D],
 		"worker_huts": [] as Array[Node2D],
-		"corn_fields": [] as Array[Node2D]
+		"corn_fields": [] as Array[Node2D],
+		"watchtowers": [] as Array[Node2D],
+		"mountain_mines": [] as Array[Node2D]
 	}
 	
 	for td in tiles_data:
@@ -227,6 +229,7 @@ func load_from_saved_tiles(tiles_data: Array, scenes_dict: Dictionary) -> Dictio
 			elif "accumulated_plank" in b_inst: b_inst.accumulated_plank = accum
 			elif "accumulated_bread" in b_inst: b_inst.accumulated_bread = accum
 			elif "accumulated_furniture" in b_inst: b_inst.accumulated_furniture = accum
+			elif "accumulated_resource" in b_inst: b_inst.accumulated_resource = accum
 			elif "total_gathered" in b_inst: b_inst.total_gathered = accum
 			
 			tile.set_building(b_inst)
@@ -238,6 +241,8 @@ func load_from_saved_tiles(tiles_data: Array, scenes_dict: Dictionary) -> Dictio
 			elif b_type == "furniture": building_refs["furniture_makers"].append(b_inst)
 			elif b_type == "worker": building_refs["worker_huts"].append(b_inst)
 			elif b_type == "corn": building_refs["corn_fields"].append(b_inst)
+			elif b_type == "watchtower": building_refs["watchtowers"].append(b_inst)
+			elif b_type == "mine" or b_type == "quarry": building_refs["mountain_mines"].append(b_inst)
 			
 	recalculate_visibility(false)
 	return building_refs

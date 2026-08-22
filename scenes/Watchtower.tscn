@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dm00watchtowerscene1"]
+
+[ext_resource type="Script" path="res://scripts/Watchtower.gd" id="1_watchtower"]
+
+[node name="Watchtower" type="Node2D"]
+script = ExtResource("1_watchtower")

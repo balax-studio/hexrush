@@ -375,6 +375,31 @@ theme_override_font_sizes/font_size = 11
 text = "Mobilya: 0"
 vertical_alignment = 1
 
+[node name="StoneChip" type="PanelContainer" parent="UI/TopBar/MarginContainer/VBoxContainer/DrawerRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_chip")
+
+[node name="HBox" type="HBoxContainer" parent="UI/TopBar/MarginContainer/VBoxContainer/DrawerRow/StoneChip"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+alignment = 1
+
+[node name="IconLabel" type="Label" parent="UI/TopBar/MarginContainer/VBoxContainer/DrawerRow/StoneChip/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "🪨"
+
+[node name="StoneLabel" type="Label" parent="UI/TopBar/MarginContainer/VBoxContainer/DrawerRow/StoneChip/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.82, 0.92, 1)
+theme_override_font_sizes/font_size = 11
+text = "Taş: 0"
+vertical_alignment = 1
+
 [node name="HintLabel" type="Label" parent="UI/TopBar/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 0.75)
@@ -795,7 +820,98 @@ theme_override_font_sizes/font_size = 13
 text = "ÜCRETSİZ"
 vertical_alignment = 1
 
-[node name="BuildButton" type="Button" parent="UI/BuildMenu/MarginContainer/VBoxContainer/WorkerCard/HBoxContainer"]
+[node name="WatchtowerCard" type="PanelContainer" parent="UI/BuildMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/BuildMenu/MarginContainer/VBoxContainer/WatchtowerCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+theme_override_constants/separation = 8
+
+[node name="IconLabel" type="Label" parent="UI/BuildMenu/MarginContainer/VBoxContainer/WatchtowerCard/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "🏹"
+vertical_alignment = 1
+
+[node name="InfoVBox" type="VBoxContainer" parent="UI/BuildMenu/MarginContainer/VBoxContainer/WatchtowerCard/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 1
+
+[node name="NameLabel" type="Label" parent="UI/BuildMenu/MarginContainer/VBoxContainer/WatchtowerCard/HBoxContainer/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.45, 0.45, 1)
+theme_override_font_sizes/font_size = 14
+text = "Gözcü Kulesi"
+
+[node name="DescLabel" type="Label" parent="UI/BuildMenu/MarginContainer/VBoxContainer/WatchtowerCard/HBoxContainer/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.8, 0.88, 0.8)
+theme_override_font_sizes/font_size = 11
+text = "Gece baskınlarını savuşturur ve ganimet kazandırır."
+
+[node name="CostBadge" type="Label" parent="UI/BuildMenu/MarginContainer/VBoxContainer/WatchtowerCard/HBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.95, 0.45, 1)
+theme_override_font_sizes/font_size = 13
+text = "10 🪵 5 🪨"
+vertical_alignment = 1
+
+[node name="BuildButton" type="Button" parent="UI/BuildMenu/MarginContainer/VBoxContainer/WatchtowerCard/HBoxContainer"]
+custom_minimum_size = Vector2(80, 36)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 13
+text = "İnşa Et"
+
+[node name="MineCard" type="PanelContainer" parent="UI/BuildMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/BuildMenu/MarginContainer/VBoxContainer/MineCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+theme_override_constants/separation = 8
+
+[node name="IconLabel" type="Label" parent="UI/BuildMenu/MarginContainer/VBoxContainer/MineCard/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "⛏️"
+vertical_alignment = 1
+
+[node name="InfoVBox" type="VBoxContainer" parent="UI/BuildMenu/MarginContainer/VBoxContainer/MineCard/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 1
+
+[node name="NameLabel" type="Label" parent="UI/BuildMenu/MarginContainer/VBoxContainer/MineCard/HBoxContainer/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.85, 0.95, 1)
+theme_override_font_sizes/font_size = 14
+text = "Dağ Madeni / Taş Ocağı"
+
+[node name="DescLabel" type="Label" parent="UI/BuildMenu/MarginContainer/VBoxContainer/MineCard/HBoxContainer/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.8, 0.88, 0.8)
+theme_override_font_sizes/font_size = 11
+text = "Dağ karosundan Taş ve Demir üretir."
+
+[node name="CostBadge" type="Label" parent="UI/BuildMenu/MarginContainer/VBoxContainer/MineCard/HBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.95, 0.45, 1)
+theme_override_font_sizes/font_size = 13
+text = "10 🥡 15 🪵"
+vertical_alignment = 1
+
+[node name="BuildButton" type="Button" parent="UI/BuildMenu/MarginContainer/VBoxContainer/MineCard/HBoxContainer"]
 custom_minimum_size = Vector2(80, 36)
 layout_mode = 2
 size_flags_vertical = 4

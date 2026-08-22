@@ -61,6 +61,14 @@ static func save_game(main_node: Node) -> bool:
 				b_type = "worker"
 				b_lvl = b.get("level") if "level" in b else 1
 				b_accum = b.get("total_gathered") if "total_gathered" in b else 0.0
+			elif b is Watchtower or "defense_power" in b:
+				b_type = "watchtower"
+				b_lvl = b.get("level") if "level" in b else 1
+				b_accum = 0.0
+			elif b is MountainMine or "accumulated_resource" in b:
+				b_type = "mine"
+				b_lvl = b.get("level") if "level" in b else 1
+				b_accum = b.get("accumulated_resource") if "accumulated_resource" in b else 0.0
 			elif "bridge" in b.name.to_lower() or (b.get_script() != null and "bridge" in b.get_script().resource_path.to_lower()):
 				b_type = "bridge"
 				b_lvl = 1
