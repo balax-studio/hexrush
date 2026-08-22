@@ -85,6 +85,9 @@ func play_click() -> void:
 func play_tile_unlock() -> void:
 	_push_tone_sequence([523.25, 659.25, 783.99], 0.16, "triangle")
 
+func play_unlock() -> void:
+	play_tile_unlock()
+
 ## 3. Bina İnşa Etme (Çekiç / Tok Ses)
 func play_build() -> void:
 	_push_tone_sequence([220.0, 160.0, 110.0], 0.14, "square")

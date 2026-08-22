@@ -907,7 +907,7 @@ func _on_tile_clicked_discovered(coord: Vector2i, tile: HexTile) -> void:
 	stat_total_conquered += 1
 	
 	hex_grid.unlock_tile(tile)
-	sound_manager.play_unlock()
+	sound_manager.play_tile_unlock()
 	update_ui()
 	SaveManager.save_game(self)
 	
@@ -1555,7 +1555,6 @@ func _update_wood_menu_live() -> void:
 	if wood_collect_label:
 		wood_collect_label.text = "%.2f 🪵 [%s]" % [accum, Localization.tr_t("full")] if is_cap_full else "%.2f 🪵 %s %s" % [accum, Localization.tr_t("wood"), Localization.tr_t("collect")]
 	if wood_upgrade_cost_label:
-		upgrade_cost_label.text = "⬆️ %s (%d 🥡)" % [Localization.tr_t("upgrade"), up_cost]
 		wood_upgrade_cost_label.text = "⬆️ %s (%d 🥡)" % [Localization.tr_t("upgrade"), up_cost]
 		wood_upgrade_cost_label.add_theme_color_override("font_color", Color(0.4, 0.95, 0.45) if food >= up_cost else Color(1.0, 0.45, 0.45))
 	if wood_upgrade_info_label:
