@@ -29,6 +29,25 @@ func initialize_map() -> void:
 
 	# 1. 3 birim yarıçapındaki (toplam 37 karo) tüm altıgenleri başlat
 	var radius = 3
+	
+	# Şato etrafındaki 6 komşu için garantili biyom listesi (0 deniz, en az 3 çayır, en az 1 orman)
+	var immediate_types: Array[HexTile.TileType] = [
+		HexTile.TileType.MEADOW,
+		HexTile.TileType.MEADOW,
+		HexTile.TileType.MEADOW,
+		HexTile.TileType.FOREST
+	]
+	var non_sea_pool: Array[HexTile.TileType] = [HexTile.TileType.MEADOW, HexTile.TileType.FOREST, HexTile.TileType.MOUNTAIN]
+	immediate_types.append(non_sea_pool[randi() % non_sea_pool.size()])
+	immediate_types.append(non_sea_pool[randi() % non_sea_pool.size()])
+	immediate_types.shuffle()
+	
+	var immediate_neighbors = [
+		Vector2i(1, 0), Vector2i(1, -1), Vector2i(0, -1),
+		Vector2i(-1, 0), Vector2i(-1, 1), Vector2i(0, 1)
+	]
+	var neighbor_idx = 0
+
 	for q in range(-radius, radius + 1):
 		var r1 = max(-radius, -q - radius)
 		var r2 = min(radius, -q + radius)
@@ -38,6 +57,10 @@ func initialize_map() -> void:
 			if coord == Vector2i.ZERO:
 				tile.set_tile_type(HexTile.TileType.MEADOW)
 				tile.set_state(HexTile.TileState.OWNED, false)
+			elif coord in immediate_neighbors:
+				tile.set_tile_type(immediate_types[neighbor_idx])
+				neighbor_idx += 1
+				tile.set_state(HexTile.TileState.HIDDEN, false)
 			else:
 				var random_type: HexTile.TileType = randi() % HexTile.TileType.size() as HexTile.TileType
 				tile.set_tile_type(random_type)

@@ -733,6 +733,16 @@ class GameState {
     const radius = 3;
     const biomeKeys = Object.keys(BIOMES);
 
+    // Şato etrafındaki 6 komşu için garantili biyom listesi (0 deniz, en az 3 çayır, en az 1 orman)
+    const immediateBiomes = [BIOMES.MEADOW, BIOMES.MEADOW, BIOMES.MEADOW, BIOMES.FOREST];
+    const nonSeaPool = [BIOMES.MEADOW, BIOMES.FOREST, BIOMES.MOUNTAIN];
+    immediateBiomes.push(nonSeaPool[Math.floor(Math.random() * nonSeaPool.length)]);
+    immediateBiomes.push(nonSeaPool[Math.floor(Math.random() * nonSeaPool.length)]);
+    immediateBiomes.sort(() => Math.random() - 0.5);
+
+    const immediateNeighbors = ["1,0", "1,-1", "0,-1", "-1,0", "-1,1", "0,1"];
+    let neighborIdx = 0;
+
     for (let q = -radius; q <= radius; q++) {
       const r1 = Math.max(-radius, -q - radius);
       const r2 = Math.min(radius, -q + radius);
@@ -744,6 +754,13 @@ class GameState {
             state: "OWNED",
             biome: BIOMES.MEADOW,
             building: { type: "castle", level: this.castleLevel }
+          };
+        } else if (immediateNeighbors.includes(key)) {
+          this.tiles[key] = {
+            q, r,
+            state: "HIDDEN",
+            biome: immediateBiomes[neighborIdx++],
+            building: null
           };
         } else {
           const randB = BIOMES[biomeKeys[Math.floor(Math.random() * biomeKeys.length)]];

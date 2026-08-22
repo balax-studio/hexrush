@@ -1,5 +1,5 @@
 // Idle Kingdom Clicker — Service Worker for Offline PWA
-const CACHE_NAME = 'kingdom-pwa-v3-wood';
+const CACHE_NAME = 'kingdom-pwa-v4-maprules';
 const ASSETS = [
   './',
   './index.html',
