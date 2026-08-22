@@ -135,6 +135,40 @@ html, body {
   letter-spacing: -0.3px;
 }
 
+/* ==========================================================================
+   Vektörel SVG İkon Standardı (Zero-Emoji Standard)
+   ========================================================================== */
+.svg-icon {
+  display: inline-block;
+  width: 1.15em;
+  height: 1.15em;
+  fill: currentColor;
+  vertical-align: -0.15em;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.chip .chip-icon .svg-icon {
+  width: 1.25em;
+  height: 1.25em;
+}
+
+.icon-btn .svg-icon {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+.svg-icon-gold { color: #f59e0b; fill: #f59e0b; }
+.svg-icon-yellow { color: #facc15; fill: #facc15; }
+.svg-icon-wood { color: #d97706; fill: #d97706; }
+.svg-icon-cyan { color: #38bdf8; fill: #38bdf8; }
+.svg-icon-green { color: #10b981; fill: #10b981; }
+.svg-icon-purple { color: #c084fc; fill: #c084fc; }
+.svg-icon-silver { color: #cbd5e1; fill: #cbd5e1; }
+.svg-icon-fire { color: #f97316; fill: #f97316; }
+.svg-icon-red { color: #ef4444; fill: #ef4444; }
+.svg-icon-blue { color: #60a5fa; fill: #60a5fa; }
+
 .food-chip .chip-label { color: #fde047; }
 .wood-chip .chip-label { color: var(--wood-color); }
 .crown-chip .chip-label { color: var(--gold); }
@@ -145,6 +179,8 @@ html, body {
 .furniture-chip .chip-label { color: #93c5fd; }
 .stone-chip .chip-label { color: var(--stone-color); }
 .iron-chip .chip-label { color: var(--iron-color); }
+.obsidian-chip .chip-label { color: #c084fc; }
+.mithril-chip .chip-label { color: #38bdf8; }
 
 .frenzy-btn {
   background: linear-gradient(135deg, #f59e0b, #ef4444) !important;

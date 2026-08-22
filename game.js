@@ -1,3 +1,8 @@
+// SVG Icon Helper (Zero-Emoji Standard)
+function getIconSvg(name, extraClass = "") {
+  return `<svg class="svg-icon ${extraClass}"><use href="#icon-${name}"/></svg>`;
+}
+
 /**
  * Idle Kingdom Clicker — Mobile-First Web Edition
  * 100% Pure HTML5 Canvas + Web Audio + Vanilla JS
@@ -30,12 +35,12 @@ const STRINGS = {
     auto_carry: "Otomatik Taşıma",
     connected_facilities: "Bağlı Tesisler",
     total_transferred: "Taşındı",
-    supply_neighbor: "🟢 Komşu Tarladan (%100)",
-    supply_neighbor_wood: "🟢 Komşu Oduncudan (%100)",
-    supply_neighbor_flour: "🟢 Komşu Değirmenden (%100)",
-    supply_neighbor_plank: "🟢 Komşu Kereste Fabrikasından (%100)",
-    supply_neighbor_stone: "🟢 Komşu Taş Ocağından (%100)",
-    supply_global: "🟡 Ana Ambardan (%50)",
+    supply_neighbor: "Komşu Tarladan (%100)",
+    supply_neighbor_wood: "Komşu Oduncudan (%100)",
+    supply_neighbor_flour: "Komşu Değirmenden (%100)",
+    supply_neighbor_plank: "Komşu Kereste Fabrikasından (%100)",
+    supply_neighbor_stone: "Komşu Taş Ocağından (%100)",
+    supply_global: "Ana Ambardan (%50)",
     
     // Biyomlar & Yapılar
     corn_name: "Mısır Tarlası",
@@ -58,32 +63,32 @@ const STRINGS = {
     worker_desc: "Komşulardan otomatik hammadde taşır.",
     watchtower_name: "Gözcü Kulesi",
     watchtower_desc: "Gece akıncılarına karşı krallığı korur ve ganimet toplar.",
-    castle_title: "🏰 Krallık Şatosu",
+    castle_title: "Krallık Şatosu",
     global_bonus: "Küresel Üretim & Taşıma Bonusu",
     next_unlock: "Sonraki Kilit",
     max_level: "MAKSİMUM SEVİYE",
-    max_power_active: "👑 Krallık Maksimum Gücüne Ulaştı!",
-    locked_castle_3: "🔒 ŞATO SV. 3",
-    locked_castle_4: "🔒 ŞATO SV. 4",
+    max_power_active: "Krallık Maksimum Gücüne Ulaştı!",
+    locked_castle_3: "ŞATO SV. 3",
+    locked_castle_4: "ŞATO SV. 4",
     
     // Menü Başlıkları
-    build_title_meadow: "🌾 Çayır İnşaat Menüsü",
-    build_title_forest: "🌲 Orman İnşaat Menüsü",
-    build_title_sea: "🌊 Deniz İnşaat Menüsü",
-    build_title_mountain: "🏔️ Dağ & Madencilik Menüsü",
-    settings_title: "⚙️ Ayarlar & Krallık Yönetimi",
-    tab_general: "🌐 Genel & Ses",
-    tab_stats: "📊 İstatistikler",
-    tab_prestige: "👑 Prestij",
-    tab_talents: "⚡ Yetenekler",
+    build_title_meadow: "Çayır İnşaat Menüsü",
+    build_title_forest: "Orman İnşaat Menüsü",
+    build_title_sea: "Deniz İnşaat Menüsü",
+    build_title_mountain: "Dağ & Madencilik Menüsü",
+    settings_title: "Ayarlar & Krallık Yönetimi",
+    tab_general: "Genel & Ses",
+    tab_stats: "İstatistikler",
+    tab_prestige: "Prestij",
+    tab_talents: "Yetenekler",
     language_select: "Dil Seçimi / Language:",
     sfx_volume: "Ses Efektleri (SFX):",
     mute: "Sessiz",
     unmute: "Ses Açık",
     
     // İpuçları
-    hint_castle_1: "Şatoyu Seviye 2'ye yükselterek Odunculuğun kilidini aç! (Gerekli: 6 🥡)",
-    hint_castle_2: "Şatoyu Seviye 3'e yükselterek Değirmen & Kereste Fabrikasını aç! (18 🥡 + 10 🪵)",
+    hint_castle_1: "Şatoyu Seviye 2'ye yükselterek Odunculuğun kilidini aç! (Gerekli: 6  Gıda)",
+    hint_castle_2: "Şatoyu Seviye 3'e yükselterek Değirmen & Kereste Fabrikasını aç! (18 + 10  Odun)",
     hint_expand: "Yeni altıgen fethet: Üstel maliyet | Fabrikalarla katma değerli ürün üret!",
     hint_no_food: "Gıda tükendi! Mısır tarlalarını hasat et veya işçi kulübesi kur.",
     
@@ -92,47 +97,47 @@ const STRINGS = {
     bridge_desc: "Açık deniz geçişini sağlar ve komşu karalara ulaşım açar.",
 
     // Toastlar
-    toast_free_tile: "✨ İlk arsanı ÜCRETSİZ fethettin! (+1 Toprak)",
-    toast_buy_tile: "🏰 {0} 🥡 Gıda karşılığında yeni arsa fethedildi! (+1 Toprak)",
-    toast_mountain_conquered: "🏔️ Dağ Fethedildi! Taş & Demir Madenciliği için hazır.",
-    toast_mountain_info: "🏔️ Fethedilmiş Dağ Zirvesi. Taş Ocağı ve Demir Madeni inşa edebilirsiniz.",
-    toast_no_food_tile: "⚠️ Yetersiz Gıda! Yeni altıgen açmak için {0} 🥡 Gıda gerekli.",
-    toast_adjacent_required: "⚠️ Yalnızca sınır komşunuz olan arazileri fethedebilirsiniz!",
-    toast_need_bridge: "⚠️ Açık Deniz Engeli! Denizden geçiş için önce bu deniz karosuna köprü inşa etmelisin.",
-    toast_bridge_need_land: "⚠️ Köprü inşa etmek için en az 1 komşu kara parçası gereklidir.",
-    toast_forest_locked: "🔒 Orman Kilitli! Odunculuk için Şatoyu Seviye 2'ye yükselt.",
-    toast_no_build_biome: "ℹ️ Bu biyomda henüz inşa edilebilir yapı bulunmuyor.",
-    toast_built_corn: "🌽 Mısır Tarlası inşa edildi!",
-    toast_built_windmill: "🌾 Değirmen kuruldu! Un üretimi başladı.",
-    toast_built_bakery: "🍞 Taş Fırın kuruldu! Ekmek üretimi başladı.",
-    toast_built_lumberjack: "🪓 Oduncu Kulübesi kuruldu! Odun üretimi başladı.",
-    toast_built_sawmill: "🪵 Kereste Fabrikası kuruldu! Kalas üretimi başladı.",
-    toast_built_furniture: "🪑 Mobilya Atölyesi kuruldu! Mobilya üretimi başladı.",
-    toast_built_quarry: "🪨 Taş Ocağı kuruldu! Taş üretimi başladı.",
-    toast_built_mine: "⛏️ Demir Madeni kuruldu! Demir üretimi başladı.",
-    toast_built_worker: "🛖 İşçi Kulübesi kuruldu! Otomatik taşıma başladı.",
-    toast_built_watchtower: "🏹 Gözcü Kulesi kuruldu! Gece savunması aktif.",
-    toast_built_bridge: "🌉 Köprü inşa edildi! Deniz ötesi kara fethine açıldı.",
-    toast_collected_food: "🥡 +{0} Gıda ambarına eklendi!",
-    toast_collected_wood: "🪵 +{0} Odun kereste ambarına eklendi!",
-    toast_collected_flour: "🌾 +{0} Un ambarına eklendi!",
-    toast_collected_plank: "🪵 +{0} Kereste/Kalas ambarına eklendi!",
-    toast_collected_bread: "🍞 +{0} Ekmek ambarına eklendi!",
-    toast_collected_furniture: "🪑 +{0} Mobilya ambarına eklendi!",
-    toast_collected_stone: "🪨 +{0} Taş ambarına eklendi!",
-    toast_collected_iron: "⛏️ +{0} Demir ambarına eklendi!",
-    toast_chest_found: "🎁 Gizemli Hazine Sandığı Açıldı! Bolca kaynak kazanıldı!",
-    toast_talent_bought: "⚡ Yetenek Geliştirildi!",
-    toast_upgraded: "✨ {0} Seviye {1}'e yükseltildi!",
-    toast_castle_upgraded: "👑 Krallık {0} kademesine yükseltildi! (+%25 Küresel Hız)",
-    toast_insufficient_res: "⚠️ Yetersiz Kaynak!",
-    toast_prestige_success: "👑 Krallık Yeniden Doğdu! +{0} Taç ve kalıcı +%{1} Üretim Bonusu kazanıldı!",
+    toast_free_tile: "İlk arsanı ÜCRETSİZ fethettin! (+1 Toprak)",
+    toast_buy_tile: "{0} Gıda karşılığında yeni arsa fethedildi! (+1 Toprak)",
+    toast_mountain_conquered: "Dağ Fethedildi! Taş & Demir Madenciliği için hazır.",
+    toast_mountain_info: "Fethedilmiş Dağ Zirvesi. Taş Ocağı ve Demir Madeni inşa edebilirsiniz.",
+    toast_no_food_tile: "Yetersiz Gıda! Yeni altıgen açmak için {0} Gıda gerekli.",
+    toast_adjacent_required: "Yalnızca sınır komşunuz olan arazileri fethedebilirsiniz!",
+    toast_need_bridge: "Açık Deniz Engeli! Denizden geçiş için önce bu deniz karosuna köprü inşa etmelisin.",
+    toast_bridge_need_land: "Köprü inşa etmek için en az 1 komşu kara parçası gereklidir.",
+    toast_forest_locked: "Orman Kilitli! Odunculuk için Şatoyu Seviye 2'ye yükselt.",
+    toast_no_build_biome: "Bu biyomda henüz inşa edilebilir yapı bulunmuyor.",
+    toast_built_corn: "Mısır Tarlası inşa edildi!",
+    toast_built_windmill: "Değirmen kuruldu! Un üretimi başladı.",
+    toast_built_bakery: "Taş Fırın kuruldu! Ekmek üretimi başladı.",
+    toast_built_lumberjack: "Oduncu Kulübesi kuruldu! Odun üretimi başladı.",
+    toast_built_sawmill: "Kereste Fabrikası kuruldu! Kalas üretimi başladı.",
+    toast_built_furniture: "Mobilya Atölyesi kuruldu! Mobilya üretimi başladı.",
+    toast_built_quarry: "Taş Ocağı kuruldu! Taş üretimi başladı.",
+    toast_built_mine: "Demir Madeni kuruldu! Demir üretimi başladı.",
+    toast_built_worker: "İşçi Kulübesi kuruldu! Otomatik taşıma başladı.",
+    toast_built_watchtower: "Gözcü Kulesi kuruldu! Gece savunması aktif.",
+    toast_built_bridge: "Köprü inşa edildi! Deniz ötesi kara fethine açıldı.",
+    toast_collected_food: "+{0} Gıda ambarına eklendi!",
+    toast_collected_wood: "+{0} Odun kereste ambarına eklendi!",
+    toast_collected_flour: "+{0} Un ambarına eklendi!",
+    toast_collected_plank: "+{0} Kereste/Kalas ambarına eklendi!",
+    toast_collected_bread: "+{0} Ekmek ambarına eklendi!",
+    toast_collected_furniture: "+{0} Mobilya ambarına eklendi!",
+    toast_collected_stone: "+{0} Taş ambarına eklendi!",
+    toast_collected_iron: "+{0} Demir ambarına eklendi!",
+    toast_chest_found: "Gizemli Hazine Sandığı Açıldı! Bolca kaynak kazanıldı!",
+    toast_talent_bought: "Yetenek Geliştirildi!",
+    toast_upgraded: "{0} Seviye {1}'e yükseltildi!",
+    toast_castle_upgraded: "Krallık {0} kademesine yükseltildi! (+%25 Küresel Hız)",
+    toast_insufficient_res: "Yetersiz Kaynak!",
+    toast_prestige_success: "Krallık Yeniden Doğdu! +{0} Taç ve kalıcı +%{1} Üretim Bonusu kazanıldı!",
     
     // Çevrimdışı & Prestij
-    offline_welcome: "👑 Krallığına Hoş Geldin!",
+    offline_welcome: "Krallığına Hoş Geldin!",
     offline_desc: "Sen yokken krallığın çalışmaya devam etti ({0} boyunca):",
     offline_claim: "Tümünü Al",
-    offline_claim_3x: "📺 3x Al (Bonus)",
+    offline_claim_3x: "3x Al (Bonus)",
     stat_playtime: "Toplam Oynama Süresi",
     stat_conquered: "Fethedilen Toprak",
     stat_total_food: "Toplam Üretilen Gıda",
@@ -147,9 +152,9 @@ const STRINGS = {
     prestige_desc: "Krallığını sıfırlayarak kalıcı Kraliyet Taçları kazan. Her taç üretimi ve taşımayı kalıcı olarak %5 hızlandırır!",
     current_crowns: "Mevcut Taçlar",
     earned_crowns: "Sıfırlanınca Kazanılacak Taç",
-    rebirth_btn: "👑 Krallığı Sıfırla & Yeniden Doğur",
-    rebirth_need_more: "⚠️ Taç kazanmak için daha fazla kaynak üretmelisin!",
-    prestige_confirm_title: "⚠️ Krallığı Sıfırlamak İstediğinden Emin Misin?",
+    rebirth_btn: "Krallığı Sıfırla & Yeniden Doğur",
+    rebirth_need_more: "Taç kazanmak için daha fazla kaynak üretmelisin!",
+    prestige_confirm_title: "Krallığı Sıfırlamak İstediğinden Emin Misin?",
     prestige_confirm_desc: "Harita, binalar ve mevcut kaynakların sıfırlanacak. Karşılığında +{0} Taç kazanacaksın (+%{1} Kalıcı Bonus)!",
     confirm: "Evet, Yeniden Doğur!",
     cancel: "İptal"
@@ -177,12 +182,12 @@ const STRINGS = {
     auto_carry: "Auto Transfer",
     connected_facilities: "Connected Facilities",
     total_transferred: "Transferred",
-    supply_neighbor: "🟢 Neighbor Farm (100%)",
-    supply_neighbor_wood: "🟢 Neighbor Lumberjack (100%)",
-    supply_neighbor_flour: "🟢 Neighbor Windmill (100%)",
-    supply_neighbor_plank: "🟢 Neighbor Sawmill (100%)",
-    supply_neighbor_stone: "🟢 Neighbor Quarry (100%)",
-    supply_global: "🟡 Global Silo (50%)",
+    supply_neighbor: "Neighbor Farm (100%)",
+    supply_neighbor_wood: "Neighbor Lumberjack (100%)",
+    supply_neighbor_flour: "Neighbor Windmill (100%)",
+    supply_neighbor_plank: "Neighbor Sawmill (100%)",
+    supply_neighbor_stone: "Neighbor Quarry (100%)",
+    supply_global: "Global Silo (50%)",
     
     corn_name: "Corn Field",
     corn_desc: "Basic food production.",
@@ -204,76 +209,76 @@ const STRINGS = {
     worker_desc: "Auto-gathers resources from neighbors.",
     watchtower_name: "Watchtower",
     watchtower_desc: "Defends the realm against night raiders and claims loot.",
-    castle_title: "🏰 Kingdom Castle",
+    castle_title: "Kingdom Castle",
     global_bonus: "Global Production & Transport Bonus",
     next_unlock: "Next Unlock",
     max_level: "MAX LEVEL",
-    max_power_active: "👑 Kingdom Reached Max Power!",
-    locked_castle_3: "🔒 CASTLE LV. 3",
-    locked_castle_4: "🔒 CASTLE LV. 4",
+    max_power_active: "Kingdom Reached Max Power!",
+    locked_castle_3: "CASTLE LV. 3",
+    locked_castle_4: "CASTLE LV. 4",
     
-    build_title_meadow: "🌾 Meadow Build Menu",
-    build_title_forest: "🌲 Forest Build Menu",
-    build_title_sea: "🌊 Sea Build Menu",
-    build_title_mountain: "🏔️ Mountain & Mining Menu",
-    settings_title: "⚙️ Settings & Kingdom Management",
-    tab_general: "🌐 General & Audio",
-    tab_stats: "📊 Statistics",
-    tab_prestige: "👑 Prestige",
-    tab_talents: "⚡ Talents",
+    build_title_meadow: "Meadow Build Menu",
+    build_title_forest: "Forest Build Menu",
+    build_title_sea: "Sea Build Menu",
+    build_title_mountain: "Mountain & Mining Menu",
+    settings_title: "Settings & Kingdom Management",
+    tab_general: "General & Audio",
+    tab_stats: "Statistics",
+    tab_prestige: "Prestige",
+    tab_talents: "Talents",
     language_select: "Language Selection:",
     sfx_volume: "Sound Effects (SFX):",
     mute: "Muted",
     unmute: "Sound On",
     
-    hint_castle_1: "Upgrade Castle to Level 2 to unlock Lumberjack! (Cost: 6 🥡)",
-    hint_castle_2: "Upgrade Castle to Level 3 to unlock Windmill & Sawmill! (18 🥡 + 10 🪵)",
+    hint_castle_1: "Upgrade Castle to Level 2 to unlock Lumberjack! (Cost: 6  Gıda)",
+    hint_castle_2: "Upgrade Castle to Level 3 to unlock Windmill & Sawmill! (18 + 10  Odun)",
     hint_expand: "Conquer new lands: Scaled cost | Refine goods with factories!",
     hint_no_food: "Out of food! Harvest corn fields or build a worker hut.",
     
     bridge_name: "Wooden Bridge",
     bridge_desc: "Crosses open sea and unlocks neighbor land.",
 
-    toast_free_tile: "✨ First land conquered for FREE! (+1 Land)",
-    toast_buy_tile: "🏰 Land conquered for {0} 🥡 Food! (+1 Land)",
-    toast_mountain_conquered: "🏔️ Mountain Conquered! Ready for Quarry and Iron Mine.",
-    toast_mountain_info: "🏔️ Conquered Mountain Peak. You can build Quarries and Mines.",
-    toast_no_food_tile: "⚠️ Not enough food! {0} 🥡 Food required.",
-    toast_adjacent_required: "⚠️ You can only conquer lands adjacent to your owned territory!",
-    toast_need_bridge: "⚠️ Open Sea Barrier! Build a bridge across this sea tile first.",
-    toast_bridge_need_land: "⚠️ Bridge requires connection to at least 1 adjacent land tile.",
-    toast_forest_locked: "🔒 Forest Locked! Upgrade Castle to Level 2 first.",
-    toast_no_build_biome: "ℹ️ No constructible buildings for this biome yet.",
-    toast_built_corn: "🌽 Corn Field constructed!",
-    toast_built_windmill: "🌾 Windmill built! Flour production started.",
-    toast_built_bakery: "🍞 Bakery built! Bread production started.",
-    toast_built_lumberjack: "🪓 Lumberjack Hut built! Wood production started.",
-    toast_built_sawmill: "🪵 Sawmill built! Plank production started.",
-    toast_built_furniture: "🪑 Furniture Maker built! Furniture production started.",
-    toast_built_quarry: "🪨 Stone Quarry built! Stone extraction started.",
-    toast_built_mine: "⛏️ Iron Mine built! Iron smelting started.",
-    toast_built_worker: "🛖 Worker Hut built! Auto-transport active.",
-    toast_built_watchtower: "🏹 Watchtower built! Night defense active.",
-    toast_built_bridge: "🌉 Bridge built! Oversea lands unlocked for conquest.",
-    toast_collected_food: "🥡 +{0} Food added to storage!",
-    toast_collected_wood: "🪵 +{0} Wood added to storage!",
-    toast_collected_flour: "🌾 +{0} Flour added to storage!",
-    toast_collected_plank: "🪵 +{0} Planks added to storage!",
-    toast_collected_bread: "🍞 +{0} Bread added to storage!",
-    toast_collected_furniture: "🪑 +{0} Furniture added to storage!",
-    toast_collected_stone: "🪨 +{0} Stone added to storage!",
-    toast_collected_iron: "⛏️ +{0} Iron added to storage!",
-    toast_chest_found: "🎁 Mysterious Treasure Chest Opened! Wealth acquired!",
-    toast_talent_bought: "⚡ Talent Upgraded!",
-    toast_upgraded: "✨ {0} upgraded to Level {1}!",
-    toast_castle_upgraded: "👑 Kingdom promoted to {0}! (+25% Global Speed)",
-    toast_insufficient_res: "⚠️ Insufficient Resources!",
-    toast_prestige_success: "👑 Kingdom Reborn! +{0} Crowns and permanent +%{1} bonus earned!",
+    toast_free_tile: "First land conquered for FREE! (+1 Land)",
+    toast_buy_tile: "Land conquered for {0} Food! (+1 Land)",
+    toast_mountain_conquered: "Mountain Conquered! Ready for Quarry and Iron Mine.",
+    toast_mountain_info: "Conquered Mountain Peak. You can build Quarries and Mines.",
+    toast_no_food_tile: "Not enough food! {0} Food required.",
+    toast_adjacent_required: "You can only conquer lands adjacent to your owned territory!",
+    toast_need_bridge: "Open Sea Barrier! Build a bridge across this sea tile first.",
+    toast_bridge_need_land: "Bridge requires connection to at least 1 adjacent land tile.",
+    toast_forest_locked: "Forest Locked! Upgrade Castle to Level 2 first.",
+    toast_no_build_biome: "No constructible buildings for this biome yet.",
+    toast_built_corn: "Corn Field constructed!",
+    toast_built_windmill: "Windmill built! Flour production started.",
+    toast_built_bakery: "Bakery built! Bread production started.",
+    toast_built_lumberjack: "Lumberjack Hut built! Wood production started.",
+    toast_built_sawmill: "Sawmill built! Plank production started.",
+    toast_built_furniture: "Furniture Maker built! Furniture production started.",
+    toast_built_quarry: "Stone Quarry built! Stone extraction started.",
+    toast_built_mine: "Iron Mine built! Iron smelting started.",
+    toast_built_worker: "Worker Hut built! Auto-transport active.",
+    toast_built_watchtower: "Watchtower built! Night defense active.",
+    toast_built_bridge: "Bridge built! Oversea lands unlocked for conquest.",
+    toast_collected_food: "+{0} Food added to storage!",
+    toast_collected_wood: "+{0} Wood added to storage!",
+    toast_collected_flour: "+{0} Flour added to storage!",
+    toast_collected_plank: "+{0} Planks added to storage!",
+    toast_collected_bread: "+{0} Bread added to storage!",
+    toast_collected_furniture: "+{0} Furniture added to storage!",
+    toast_collected_stone: "+{0} Stone added to storage!",
+    toast_collected_iron: "+{0} Iron added to storage!",
+    toast_chest_found: "Mysterious Treasure Chest Opened! Wealth acquired!",
+    toast_talent_bought: "Talent Upgraded!",
+    toast_upgraded: "{0} upgraded to Level {1}!",
+    toast_castle_upgraded: "Kingdom promoted to {0}! (+25% Global Speed)",
+    toast_insufficient_res: "Insufficient Resources!",
+    toast_prestige_success: "Kingdom Reborn! +{0} Crowns and permanent +%{1} bonus earned!",
     
-    offline_welcome: "👑 Welcome Back, Sovereign!",
+    offline_welcome: "Welcome Back, Sovereign!",
     offline_desc: "Your kingdom worked diligently while you were away ({0}):",
     offline_claim: "Claim All",
-    offline_claim_3x: "📺 Claim 3x (Bonus)",
+    offline_claim_3x: "Claim 3x (Bonus)",
     stat_playtime: "Total Playtime",
     stat_conquered: "Total Conquered Lands",
     stat_total_food: "Total Food Produced",
@@ -288,9 +293,9 @@ const STRINGS = {
     prestige_desc: "Reset your kingdom to gain Royal Crowns. Each crown permanently boosts all production speeds by +5%!",
     current_crowns: "Current Crowns",
     earned_crowns: "Crowns on Reset",
-    rebirth_btn: "👑 Reset & Rebirth Kingdom",
-    rebirth_need_more: "⚠️ Produce more resources to earn crowns!",
-    prestige_confirm_title: "⚠️ Are You Sure You Want to Rebirth?",
+    rebirth_btn: "Reset & Rebirth Kingdom",
+    rebirth_need_more: "Produce more resources to earn crowns!",
+    prestige_confirm_title: "Are You Sure You Want to Rebirth?",
     prestige_confirm_desc: "Map, buildings and resources will reset. In return, you will gain +{0} Crowns (+%{1} Permanent Bonus)!",
     confirm: "Yes, Rebirth!",
     cancel: "Cancel"
@@ -318,12 +323,12 @@ const STRINGS = {
     auto_carry: "Transporte Auto",
     connected_facilities: "Instalaciones",
     total_transferred: "Trasladado",
-    supply_neighbor: "🟢 Granja Vecina (100%)",
-    supply_neighbor_wood: "🟢 Leñador Vecino (100%)",
-    supply_neighbor_flour: "🟢 Molino Vecino (100%)",
-    supply_neighbor_plank: "🟢 Aserradero Vecino (100%)",
-    supply_neighbor_stone: "🟢 Cantera Vecina (100%)",
-    supply_global: "🟡 Almacén Global (50%)",
+    supply_neighbor: "Granja Vecina (100%)",
+    supply_neighbor_wood: "Leñador Vecino (100%)",
+    supply_neighbor_flour: "Molino Vecino (100%)",
+    supply_neighbor_plank: "Aserradero Vecino (100%)",
+    supply_neighbor_stone: "Cantera Vecina (100%)",
+    supply_global: "Almacén Global (50%)",
     
     corn_name: "Campo de Maíz",
     corn_desc: "Producción básica de comida.",
@@ -345,76 +350,76 @@ const STRINGS = {
     worker_desc: "Transporta recursos de vecinos.",
     watchtower_name: "Torre de Vigilancia",
     watchtower_desc: "Defiende el reino contra asaltos nocturnos y recoge botín.",
-    castle_title: "🏰 Castillo del Reino",
+    castle_title: "Castillo del Reino",
     global_bonus: "Bono Global de Producción",
     next_unlock: "Próximo Desbloqueo",
     max_level: "NIVEL MÁXIMO",
-    max_power_active: "👑 ¡Poder Legendario Alcanzado!",
-    locked_castle_3: "🔒 CASTILLO NV. 3",
-    locked_castle_4: "🔒 CASTILLO NV. 4",
+    max_power_active: "¡Poder Legendario Alcanzado!",
+    locked_castle_3: "CASTILLO NV. 3",
+    locked_castle_4: "CASTILLO NV. 4",
     
-    build_title_meadow: "🌾 Menú de Pradera",
-    build_title_forest: "🌲 Menú de Bosque",
-    build_title_sea: "🌊 Menú de Mar",
-    build_title_mountain: "🏔️ Menú de Montaña y Minería",
-    settings_title: "⚙️ Ajustes y Gestión del Reino",
-    tab_general: "🌐 General y Sonido",
-    tab_stats: "📊 Estadísticas",
-    tab_prestige: "👑 Prestigio",
-    tab_talents: "⚡ Talentos",
+    build_title_meadow: "Menú de Pradera",
+    build_title_forest: "Menú de Bosque",
+    build_title_sea: "Menú de Mar",
+    build_title_mountain: "Menú de Montaña y Minería",
+    settings_title: "Ajustes y Gestión del Reino",
+    tab_general: "General y Sonido",
+    tab_stats: "Estadísticas",
+    tab_prestige: "Prestigio",
+    tab_talents: "Talentos",
     language_select: "Seleccionar Idioma:",
     sfx_volume: "Efectos de Sonido (SFX):",
     mute: "Silenciado",
     unmute: "Sonido Activo",
     
-    hint_castle_1: "¡Mejora el castillo a Nivel 2 para desbloquear Leñador! (Costo: 6 🥡)",
-    hint_castle_2: "¡Mejora a Nivel 3 para Molino y Aserradero! (18 🥡 + 10 🪵)",
-    hint_expand: "Conquista tierras: 1 🥡 Comida | ¡Procesa materias primas!",
+    hint_castle_1: "¡Mejora el castillo a Nivel 2 para desbloquear Leñador! (Costo: 6  Gıda)",
+    hint_castle_2: "¡Mejora a Nivel 3 para Molino y Aserradero! (18 + 10  Odun)",
+    hint_expand: "Conquista tierras: 1 Comida | ¡Procesa materias primas!",
     hint_no_food: "¡Sin comida! Cosecha maíz o construye una cabaña de obreros.",
     
     bridge_name: "Puente de Madera",
     bridge_desc: "Cruza el mar y abre tierras vecinas.",
 
-    toast_free_tile: "✨ ¡Primera tierra conquistada GRATIS! (+1 Tierra)",
-    toast_buy_tile: "🏰 ¡Tierra conquistada por {0} 🥡 Comida! (+1 Tierra)",
-    toast_mountain_conquered: "🏔️ ¡Montaña Conquistada! Cantera y Mina listas.",
-    toast_mountain_info: "🏔️ Pico Conquistado. Puedes construir Canteras y Minas.",
-    toast_no_food_tile: "⚠️ ¡Comida insuficiente! {0} 🥡 requerida.",
-    toast_adjacent_required: "⚠️ ¡Solo puedes conquistar tierras adyacentes a tu territorio!",
-    toast_need_bridge: "⚠️ ¡Barrera de Mar! Construye un puente sobre este mar primero.",
-    toast_bridge_need_land: "⚠️ El puente requiere conexión con al menos 1 tierra adyacente.",
-    toast_forest_locked: "🔒 ¡Bosque bloqueado! Mejora el castillo a Nivel 2 primero.",
-    toast_no_build_biome: "ℹ️ Sin edificios para este bioma.",
-    toast_built_corn: "🌽 ¡Campo de Maíz construido!",
-    toast_built_windmill: "🌾 ¡Molino construido!",
-    toast_built_bakery: "🍞 ¡Panadería construida!",
-    toast_built_lumberjack: "🪓 ¡Cabaña de Leñador construida!",
-    toast_built_sawmill: "🪵 ¡Aserradero construido!",
-    toast_built_furniture: "🪑 ¡Mueblería construida!",
-    toast_built_quarry: "🪨 ¡Cantera de Piedra construida!",
-    toast_built_mine: "⛏️ ¡Mina de Hierro construida!",
-    toast_built_worker: "🛖 ¡Cabaña de Obreros construida!",
-    toast_built_watchtower: "🏹 ¡Torre de Vigilancia construida! Defensa nocturna activa.",
-    toast_built_bridge: "🌉 ¡Puente construido!",
-    toast_collected_food: "🥡 ¡+{0} Comida recolectada!",
-    toast_collected_wood: "🪵 ¡+{0} Madera recolectada!",
-    toast_collected_flour: "🌾 ¡+{0} Harina recolectada!",
-    toast_collected_plank: "🪵 ¡+{0} Tablones recolectados!",
-    toast_collected_bread: "🍞 ¡+{0} Pan recolectado!",
-    toast_collected_furniture: "🪑 ¡+{0} Muebles recolectados!",
-    toast_collected_stone: "🪨 ¡+{0} Piedra recolectada!",
-    toast_collected_iron: "⛏️ ¡+{0} Hierro recolectado!",
-    toast_chest_found: "🎁 ¡Cofre del Tesoro Abierto!",
-    toast_talent_bought: "⚡ ¡Talento Mejorado!",
-    toast_upgraded: "✨ ¡{0} mejorado a Nivel {1}!",
-    toast_castle_upgraded: "👑 ¡Reino ascendido a {0}! (+25% Velocidad)",
-    toast_insufficient_res: "⚠️ ¡Recursos Insuficientes!",
-    toast_prestige_success: "👑 ¡Reino Renacido! +{0} Coronas y +%{1} bono permanente.",
+    toast_free_tile: "¡Primera tierra conquistada GRATIS! (+1 Tierra)",
+    toast_buy_tile: "¡Tierra conquistada por {0} Comida! (+1 Tierra)",
+    toast_mountain_conquered: "¡Montaña Conquistada! Cantera y Mina listas.",
+    toast_mountain_info: "Pico Conquistado. Puedes construir Canteras y Minas.",
+    toast_no_food_tile: "¡Comida insuficiente! {0} requerida.",
+    toast_adjacent_required: "¡Solo puedes conquistar tierras adyacentes a tu territorio!",
+    toast_need_bridge: "¡Barrera de Mar! Construye un puente sobre este mar primero.",
+    toast_bridge_need_land: "El puente requiere conexión con al menos 1 tierra adyacente.",
+    toast_forest_locked: "¡Bosque bloqueado! Mejora el castillo a Nivel 2 primero.",
+    toast_no_build_biome: "Sin edificios para este bioma.",
+    toast_built_corn: "¡Campo de Maíz construido!",
+    toast_built_windmill: "¡Molino construido!",
+    toast_built_bakery: "¡Panadería construida!",
+    toast_built_lumberjack: "¡Cabaña de Leñador construida!",
+    toast_built_sawmill: "¡Aserradero construido!",
+    toast_built_furniture: "¡Mueblería construida!",
+    toast_built_quarry: "¡Cantera de Piedra construida!",
+    toast_built_mine: "¡Mina de Hierro construida!",
+    toast_built_worker: "¡Cabaña de Obreros construida!",
+    toast_built_watchtower: "¡Torre de Vigilancia construida! Defensa nocturna activa.",
+    toast_built_bridge: "¡Puente construido!",
+    toast_collected_food: "¡+{0} Comida recolectada!",
+    toast_collected_wood: "¡+{0} Madera recolectada!",
+    toast_collected_flour: "¡+{0} Harina recolectada!",
+    toast_collected_plank: "¡+{0} Tablones recolectados!",
+    toast_collected_bread: "¡+{0} Pan recolectado!",
+    toast_collected_furniture: "¡+{0} Muebles recolectados!",
+    toast_collected_stone: "¡+{0} Piedra recolectada!",
+    toast_collected_iron: "¡+{0} Hierro recolectado!",
+    toast_chest_found: "¡Cofre del Tesoro Abierto!",
+    toast_talent_bought: "¡Talento Mejorado!",
+    toast_upgraded: "¡{0} mejorado a Nivel {1}!",
+    toast_castle_upgraded: "¡Reino ascendido a {0}! (+25% Velocidad)",
+    toast_insufficient_res: "¡Recursos Insuficientes!",
+    toast_prestige_success: "¡Reino Renacido! +{0} Coronas y +%{1} bono permanente.",
     
-    offline_welcome: "👑 ¡Bienvenido de vuelta, Soberano!",
+    offline_welcome: "¡Bienvenido de vuelta, Soberano!",
     offline_desc: "Tu reino continuó trabajando ({0}):",
     offline_claim: "Reclamar Todo",
-    offline_claim_3x: "📺 Reclamar 3x (Bono)",
+    offline_claim_3x: "Reclamar 3x (Bono)",
     stat_playtime: "Tiempo Total de Juego",
     stat_conquered: "Total de Tierras Conquistadas",
     stat_total_food: "Total de Comida Producida",
@@ -429,9 +434,9 @@ const STRINGS = {
     prestige_desc: "Reinicia tu reino para ganar Coronas Reales. ¡Cada corona aumenta la velocidad en +5%!",
     current_crowns: "Coronas Actuales",
     earned_crowns: "Coronas al Reiniciar",
-    rebirth_btn: "👑 Reiniciar y Renacer Reino",
-    rebirth_need_more: "⚠️ ¡Produce más recursos para ganar coronas!",
-    prestige_confirm_title: "⚠️ ¿Seguro que quieres Renacer?",
+    rebirth_btn: "Reiniciar y Renacer Reino",
+    rebirth_need_more: "¡Produce más recursos para ganar coronas!",
+    prestige_confirm_title: "¿Seguro que quieres Renacer?",
     prestige_confirm_desc: "El mapa y recursos se reiniciarán. ¡Ganarás +{0} Coronas (+%{1} Bono Permanente)!",
     confirm: "¡Sí, Renacer!",
     cancel: "Cancelar"
@@ -459,12 +464,12 @@ const STRINGS = {
     auto_carry: "Auto-Transport",
     connected_facilities: "Verbundene Betriebe",
     total_transferred: "Transportiert",
-    supply_neighbor: "🟢 Nachbarfeld (100%)",
-    supply_neighbor_wood: "🟢 Nachbarholzfäller (100%)",
-    supply_neighbor_flour: "🟢 Nachbarmühle (100%)",
-    supply_neighbor_plank: "🟢 Nachbarsägewerk (100%)",
-    supply_neighbor_stone: "🟢 Nachbarsteinbruch (100%)",
-    supply_global: "🟡 Hauptlager (50%)",
+    supply_neighbor: "Nachbarfeld (100%)",
+    supply_neighbor_wood: "Nachbarholzfäller (100%)",
+    supply_neighbor_flour: "Nachbarmühle (100%)",
+    supply_neighbor_plank: "Nachbarsägewerk (100%)",
+    supply_neighbor_stone: "Nachbarsteinbruch (100%)",
+    supply_global: "Hauptlager (50%)",
     
     corn_name: "Maisfeld",
     corn_desc: "Grundlegende Nahrungsproduktion.",
@@ -486,76 +491,76 @@ const STRINGS = {
     worker_desc: "Transportiert Waren von Nachbarn.",
     watchtower_name: "Wachturm",
     watchtower_desc: "Verteidigt das Reich gegen nächtliche Überfälle und sammelt Beute.",
-    castle_title: "🏰 Königsburg",
+    castle_title: "Königsburg",
     global_bonus: "Globaler Produktionsbonus",
     next_unlock: "Nächste Freischaltung",
     max_level: "MAXIMALE STUFE",
-    max_power_active: "👑 Maximale Macht erreicht!",
-    locked_castle_3: "🔒 BURG STUFE 3",
-    locked_castle_4: "🔒 BURG STUFE 4",
+    max_power_active: "Maximale Macht erreicht!",
+    locked_castle_3: "BURG STUFE 3",
+    locked_castle_4: "BURG STUFE 4",
     
-    build_title_meadow: "🌾 Wiesen-Baumenü",
-    build_title_forest: "🌲 Wald-Baumenü",
-    build_title_sea: "🌊 See-Baumenü",
-    build_title_mountain: "🏔️ Berg- & Bergbaumenü",
-    settings_title: "⚙️ Einstellungen & Verwaltung",
-    tab_general: "🌐 Allgemein & Audio",
-    tab_stats: "📊 Statistiken",
-    tab_prestige: "👑 Prestige",
-    tab_talents: "⚡ Talente",
+    build_title_meadow: "Wiesen-Baumenü",
+    build_title_forest: "Wald-Baumenü",
+    build_title_sea: "See-Baumenü",
+    build_title_mountain: "Berg- & Bergbaumenü",
+    settings_title: "Einstellungen & Verwaltung",
+    tab_general: "Allgemein & Audio",
+    tab_stats: "Statistiken",
+    tab_prestige: "Prestige",
+    tab_talents: "Talente",
     language_select: "Sprachauswahl:",
     sfx_volume: "Soundeffekte (SFX):",
     mute: "Stumm",
     unmute: "Ton Ein",
     
-    hint_castle_1: "Burg auf Stufe 2 für Holzfäller verbessern! (6 🥡)",
-    hint_castle_2: "Burg auf Stufe 3 für Mühle & Sägewerk! (18 🥡 + 10 🪵)",
+    hint_castle_1: "Burg auf Stufe 2 für Holzfäller verbessern! (6  Gıda)",
+    hint_castle_2: "Burg auf Stufe 3 für Mühle & Sägewerk! (18 + 10  Odun)",
     hint_expand: "Land erobern: Skalierte Kosten | Fabriken bauen!",
     hint_no_food: "Keine Nahrung! Mais ernten oder Arbeiter bauen.",
     
     bridge_name: "Holzbrücke",
     bridge_desc: "Überquert offenes Meer und erschließt Nachbarländer.",
 
-    toast_free_tile: "✨ Erstes Land KOSTENLOS erobert! (+1 Land)",
-    toast_buy_tile: "🏰 Land für {0} 🥡 Nahrung erobert! (+1 Land)",
-    toast_mountain_conquered: "🏔️ Berg erobert! Bereit für Steinbruch & Mine.",
-    toast_mountain_info: "🏔️ Eroberter Berggipfel. Du kannst Steinbrüche und Minen bauen.",
-    toast_no_food_tile: "⚠️ Zu wenig Nahrung! {0} 🥡 erforderlich.",
-    toast_adjacent_required: "⚠️ Du kannst nur an dein Territorium angrenzende Gebiete erobern!",
-    toast_need_bridge: "⚠️ Offenes Meer! Baue zuerst eine Brücke über dieses Wasser.",
-    toast_bridge_need_land: "⚠️ Brücke benötigt Verbindung zu mindestens 1 Landfeld.",
-    toast_forest_locked: "🔒 Wald gesperrt! Burg zuerst auf Stufe 2 bringen.",
-    toast_no_build_biome: "ℹ️ Keine Gebäude für dieses Biom verfügbar.",
-    toast_built_corn: "🌽 Maisfeld errichtet!",
-    toast_built_windmill: "🌾 Windmühle errichtet!",
-    toast_built_bakery: "🍞 Bäckerei errichtet!",
-    toast_built_lumberjack: "🪓 Holzfällerhütte errichtet!",
-    toast_built_sawmill: "🪵 Sägewerk errichtet!",
-    toast_built_furniture: "🪑 Möbeltischlerei errichtet!",
-    toast_built_quarry: "🪨 Steinbruch errichtet!",
-    toast_built_mine: "⛏️ Eisenmine errichtet!",
-    toast_built_worker: "🛖 Arbeiterhütte errichtet!",
-    toast_built_watchtower: "🏹 Wachturm errichtet! Nachtverteidigung aktiv.",
-    toast_built_bridge: "🌉 Brücke errichtet!",
-    toast_collected_food: "🥡 +{0} Nahrung gesammelt!",
-    toast_collected_wood: "🪵 +{0} Holz gesammelt!",
-    toast_collected_flour: "🌾 +{0} Mehl gesammelt!",
-    toast_collected_plank: "🪵 +{0} Bretter gesammelt!",
-    toast_collected_bread: "🍞 +{0} Brot gesammelt!",
-    toast_collected_furniture: "🪑 +{0} Möbel gesammelt!",
-    toast_collected_stone: "🪨 +{0} Stein gesammelt!",
-    toast_collected_iron: "⛏️ +{0} Eisen gesammelt!",
-    toast_chest_found: "🎁 Schatztruhe geöffnet! Reichtum erlangt!",
-    toast_talent_bought: "⚡ Talent aufgewertet!",
-    toast_upgraded: "✨ {0} auf Stufe {1} verbessert!",
-    toast_castle_upgraded: "👑 Königreich zu {0} erhoben! (+25% Tempo)",
-    toast_insufficient_res: "⚠️ Unzureichende Ressourcen!",
-    toast_prestige_success: "👑 Königreich wiedergeboren! +{0} Kronen und +%{1} Dauerbonus.",
+    toast_free_tile: "Erstes Land KOSTENLOS erobert! (+1 Land)",
+    toast_buy_tile: "Land für {0} Nahrung erobert! (+1 Land)",
+    toast_mountain_conquered: "Berg erobert! Bereit für Steinbruch & Mine.",
+    toast_mountain_info: "Eroberter Berggipfel. Du kannst Steinbrüche und Minen bauen.",
+    toast_no_food_tile: "Zu wenig Nahrung! {0} erforderlich.",
+    toast_adjacent_required: "Du kannst nur an dein Territorium angrenzende Gebiete erobern!",
+    toast_need_bridge: "Offenes Meer! Baue zuerst eine Brücke über dieses Wasser.",
+    toast_bridge_need_land: "Brücke benötigt Verbindung zu mindestens 1 Landfeld.",
+    toast_forest_locked: "Wald gesperrt! Burg zuerst auf Stufe 2 bringen.",
+    toast_no_build_biome: "Keine Gebäude für dieses Biom verfügbar.",
+    toast_built_corn: "Maisfeld errichtet!",
+    toast_built_windmill: "Windmühle errichtet!",
+    toast_built_bakery: "Bäckerei errichtet!",
+    toast_built_lumberjack: "Holzfällerhütte errichtet!",
+    toast_built_sawmill: "Sägewerk errichtet!",
+    toast_built_furniture: "Möbeltischlerei errichtet!",
+    toast_built_quarry: "Steinbruch errichtet!",
+    toast_built_mine: "Eisenmine errichtet!",
+    toast_built_worker: "Arbeiterhütte errichtet!",
+    toast_built_watchtower: "Wachturm errichtet! Nachtverteidigung aktiv.",
+    toast_built_bridge: "Brücke errichtet!",
+    toast_collected_food: "+{0} Nahrung gesammelt!",
+    toast_collected_wood: "+{0} Holz gesammelt!",
+    toast_collected_flour: "+{0} Mehl gesammelt!",
+    toast_collected_plank: "+{0} Bretter gesammelt!",
+    toast_collected_bread: "+{0} Brot gesammelt!",
+    toast_collected_furniture: "+{0} Möbel gesammelt!",
+    toast_collected_stone: "+{0} Stein gesammelt!",
+    toast_collected_iron: "+{0} Eisen gesammelt!",
+    toast_chest_found: "Schatztruhe geöffnet! Reichtum erlangt!",
+    toast_talent_bought: "Talent aufgewertet!",
+    toast_upgraded: "{0} auf Stufe {1} verbessert!",
+    toast_castle_upgraded: "Königreich zu {0} erhoben! (+25% Tempo)",
+    toast_insufficient_res: "Unzureichende Ressourcen!",
+    toast_prestige_success: "Königreich wiedergeboren! +{0} Kronen und +%{1} Dauerbonus.",
     
-    offline_welcome: "👑 Willkommen zurück, Herrscher!",
+    offline_welcome: "Willkommen zurück, Herrscher!",
     offline_desc: "Dein Königreich arbeitete weiter ({0} lang):",
     offline_claim: "Alles beanspruchen",
-    offline_claim_3x: "📺 3x beanspruchen (Bonus)",
+    offline_claim_3x: "3x beanspruchen (Bonus)",
     stat_playtime: "Gesamte Spielzeit",
     stat_conquered: "Erobertes Land",
     stat_total_food: "Gesamte Nahrung",
@@ -570,9 +575,9 @@ const STRINGS = {
     prestige_desc: "Setze das Reich zurück für Königskronen. Jede Krone bringt permanent +5% Tempo!",
     current_crowns: "Aktuelle Kronen",
     earned_crowns: "Kronen bei Reset",
-    rebirth_btn: "👑 Reich zurücksetzen & wiedergebären",
-    rebirth_need_more: "⚠️ Produziere mehr für Kronen!",
-    prestige_confirm_title: "⚠️ Wirklich wiedergebären?",
+    rebirth_btn: "Reich zurücksetzen & wiedergebären",
+    rebirth_need_more: "Produziere mehr für Kronen!",
+    prestige_confirm_title: "Wirklich wiedergebären?",
     prestige_confirm_desc: "Karte und Waren werden zurückgesetzt. Du erhältst +{0} Kronen (+%{1} Dauerbonus)!",
     confirm: "Ja, Wiedergeburt!",
     cancel: "Abbrechen"
@@ -780,15 +785,15 @@ const CASTLE_TITLES = [
 ];
 
 const CASTLE_UPGRADES = {
-  1: { costFood: 6, costWood: 0, nextTitle: "🛡️ Derebeylik (Sv. 2)", unlock: "🪓 Odunculuk & Orman Yapıları" },
-  2: { costFood: 18, costWood: 10, nextTitle: "🏰 Kontluk (Sv. 3)", unlock: "🌾 Değirmen & 🪵 Kereste Fabrikası" },
-  3: { costFood: 35, costWood: 25, nextTitle: "⚔️ Düklük (Sv. 4)", unlock: "🪙 Pazar Yeri (+%75 Hız)" },
-  4: { costFood: 65, costWood: 45, nextTitle: "👑 Büyük Düklük (Sv. 5)", unlock: "✨ 2x Kat Küresel Üretim Hızı" },
-  5: { costFood: 110, costWood: 80, nextTitle: "🦅 Prens Emareti (Sv. 6)", unlock: "🦅 Lojistik Ağı (+%125 Hız)" },
-  6: { costFood: 180, costWood: 130, nextTitle: "⚜️ Krallık (Sv. 7)", unlock: "⚜️ Vergi Dairesi (+%150 Hız)" },
-  7: { costFood: 290, costWood: 210, nextTitle: "🦁 Büyük Krallık (Sv. 8)", unlock: "🦁 Başkent Savunması (+%175 Hız)" },
-  8: { costFood: 450, costWood: 330, nextTitle: "🌟 Baş İmparatorluk (Sv. 9)", unlock: "🌟 3x Kat Küresel Üretim Hızı" },
-  9: { costFood: 700, costWood: 500, nextTitle: "⚡ Efsanevi Hükümdarlık (Sv. 10)", unlock: "⚡ Efsanevi Zirve (+%225 Hız)" }
+  1: { costFood: 6, costWood: 0, nextTitle: "Derebeylik (Sv. 2)", unlock: "Odunculuk & Orman Yapıları" },
+  2: { costFood: 18, costWood: 10, nextTitle: "Kontluk (Sv. 3)", unlock: "Değirmen & Kereste Fabrikası" },
+  3: { costFood: 35, costWood: 25, nextTitle: "Düklük (Sv. 4)", unlock: "Pazar Yeri (+%75 Hız)" },
+  4: { costFood: 65, costWood: 45, nextTitle: "Büyük Düklük (Sv. 5)", unlock: "2x Kat Küresel Üretim Hızı" },
+  5: { costFood: 110, costWood: 80, nextTitle: "Prens Emareti (Sv. 6)", unlock: "Lojistik Ağı (+%125 Hız)" },
+  6: { costFood: 180, costWood: 130, nextTitle: "Krallık (Sv. 7)", unlock: "Vergi Dairesi (+%150 Hız)" },
+  7: { costFood: 290, costWood: 210, nextTitle: "Büyük Krallık (Sv. 8)", unlock: "Başkent Savunması (+%175 Hız)" },
+  8: { costFood: 450, costWood: 330, nextTitle: "Baş İmparatorluk (Sv. 9)", unlock: "3x Kat Küresel Üretim Hızı" },
+  9: { costFood: 700, costWood: 500, nextTitle: "Efsanevi Hükümdarlık (Sv. 10)", unlock: "Efsanevi Zirve (+%225 Hız)" }
 };
 
 // =============================================================================
@@ -1318,7 +1323,7 @@ let screenShakeDuration = 0.0;
 let shockwaves = [];
 let floatingTexts = [];
 
-// 🌾 MİKRO YAŞAM PARÇACIKLARI & POST-PROCESSING SİSTEMİ
+// MİKRO YAŞAM PARÇACIKLARI & POST-PROCESSING SİSTEMİ
 let roamingHerds = [];       // Koyun ve Yılkı Atları Sürüsü
 let chimneyPuffs = [];       // Bacalardan Kıvrılarak Çıkan Duman
 let flyingResourceGems = []; // Parabolik Uçan Kaynak Taşları
@@ -1347,7 +1352,7 @@ function triggerTileBounce(q, r) {
   tileBounceMap[`${q},${r}`] = { timer: 0.22, maxTime: 0.22 };
 }
 
-function triggerFlyingResource(fromX, fromY, icon = "🥡", color = "#4ade80") {
+function triggerFlyingResource(fromX, fromY, icon = " Gıda", color = "#4ade80") {
   flyingResourceGems.push({
     x: fromX,
     y: fromY,
@@ -1542,7 +1547,7 @@ function updateWeatherStreaks(delta) {
   }
 }
 
-// 🌸 Dinamik Mevsim Parçacıkları (İlkbahar Çiçeği, Yaz Parıltısı, Sonbahar Yaprağı, Zud Kar Fırtınası)
+// Dinamik Mevsim Parçacıkları (İlkbahar Çiçeği, Yaz Parıltısı, Sonbahar Yaprağı, Zud Kar Fırtınası)
 const seasonalParticles = [];
 
 function updateSeasonalParticles(delta) {
@@ -1611,7 +1616,7 @@ function drawSeasonalParticles() {
   ctx.restore();
 }
 
-// 🛤️ Taş Kervan Yolu Bağlantıları (Paved Trade Roads)
+// Taş Kervan Yolu Bağlantıları (Paved Trade Roads)
 function drawPavedRoads() {
   const tiles = (game.activeLayer === "UNDERGROUND") ? game.undergroundTiles : game.tiles;
   if (!tiles) return;
@@ -1656,7 +1661,7 @@ function drawPavedRoads() {
   ctx.restore();
 }
 
-// 🐎 Kervan Katırları Hareketi
+// Kervan Katırları Hareketi
 function updatePackMules(delta) {
   if (!game.packMules) game.packMules = [];
 
@@ -1827,12 +1832,15 @@ function draw() {
   // 11. Parabolik Uçan Kaynak Parçacıkları (Flying Gems)
   flyingResourceGems.forEach(gem => {
     ctx.save();
-    ctx.font = "bold 14px 'Outfit', sans-serif";
-    ctx.textAlign = "center";
     ctx.fillStyle = gem.color;
-    ctx.shadowColor = "rgba(0,0,0,0.8)";
-    ctx.shadowBlur = 4;
-    ctx.fillText(gem.icon, gem.x, gem.y);
+  ctx.shadowColor = "rgba(0,0,0,0.8)";
+  ctx.shadowBlur = 4;
+  ctx.beginPath();
+  ctx.arc(gem.x, gem.y, 4.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
     ctx.restore();
   });
 
@@ -1952,13 +1960,14 @@ function drawHarvestBadge(x, y, icon, amount, time) {
   ctx.lineWidth = 1.6;
   ctx.strokeRect(-15, -10 * Y_SCALE, 30, 18 * Y_SCALE);
 
-  // 4. İkon
-  ctx.font = "12px Outfit, sans-serif";
+  // 4. Miktar Metni
+  ctx.fillStyle = "#fef08a";
+  ctx.font = "bold 9px 'JetBrains Mono', monospace";
   ctx.textAlign = "center";
-  ctx.fillText(icon, 0, 3.5 * Y_SCALE);
+  ctx.fillText("+" + Math.floor(amount), 0, 2.5 * Y_SCALE);
 
   // 5. Altın Işıltı Köşesi
-  ctx.fillStyle = "#fef08a";
+  ctx.fillStyle = "#f59e0b";
   ctx.fillRect(-13, -8 * Y_SCALE, 2.5, 2.5);
 
   ctx.restore();
@@ -2161,46 +2170,22 @@ function drawHexTile(tile) {
     ctx.arc(0, -18 * Y_SCALE + bounce, 18, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.font = "20px Outfit, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("🎁", 0, -10 * Y_SCALE + bounce);
-    ctx.restore();
-  }
-
-  // 8. Keşif Bekleyen Statik Zemin İşareti / Tamga (Sakin & Sabit)
-  if (isDiscovered) {
-    ctx.save();
-
-    // Dış İnce Pusula / Zemin Halkası (Statik)
-    ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
-    ctx.lineWidth = 1.2;
+    // 3D Vektörel Hazine Sandığı
+    ctx.fillStyle = "#b45309";
+    ctx.fillRect(-9, -16 * Y_SCALE + bounce, 18, 10 * Y_SCALE);
+    ctx.fillStyle = "#f59e0b";
+    ctx.fillRect(-10, -18 * Y_SCALE + bounce, 20, 4 * Y_SCALE);
+    ctx.fillStyle = "#fde047";
     ctx.beginPath();
-    ctx.ellipse(0, 0, 13, 8 * Y_SCALE, 0, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Altın Göktürk Artı Tamgası (Statik, Göz Yormayan)
-    ctx.strokeStyle = "rgba(254, 240, 138, 0.75)";
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.moveTo(-5, 0);
-    ctx.lineTo(5, 0);
-    ctx.moveTo(0, -5 * Y_SCALE);
-    ctx.lineTo(0, 5 * Y_SCALE);
-    ctx.stroke();
-
-    // Merkez Noktası
-    ctx.fillStyle = "#38bdf8";
-    ctx.beginPath();
-    ctx.arc(0, 0, 1.6, 0, Math.PI * 2);
+    ctx.arc(0, -12 * Y_SCALE + bounce, 2.5, 0, Math.PI * 2);
     ctx.fill();
-
     ctx.restore();
   }
 
   ctx.restore();
 }
 
-// ❄️ 3D Yontma Karlı Altay Zirvesi (Snow Peak Biome)
+// 3D Yontma Karlı Altay Zirvesi (Snow Peak Biome)
 function drawIsometricSnowPeak(time) {
   const peaks = [
     { x: -16, y: 10 * Y_SCALE,  w: 36, h: 42 * Y_SCALE },
@@ -2261,7 +2246,7 @@ function drawIsometricSnowPeak(time) {
   });
 }
 
-// 🏜️ Taklamakan & Gobi Çöl Vahası (Desert Oasis Biome)
+// Taklamakan & Gobi Çöl Vahası (Desert Oasis Biome)
 function drawIsometricDesertOasis(time) {
   // 1. Kum Tepesi Kıvrımları
   ctx.fillStyle = "#b45309";
@@ -2327,7 +2312,7 @@ function drawIsometricDesertOasis(time) {
   ctx.fill();
 }
 
-// 🏛️ Orhun Kitabeleri & Kutlu Kurt Doğa Harikası (World Wonder)
+// Orhun Kitabeleri & Kutlu Kurt Doğa Harikası (World Wonder)
 function drawIsometricWonder(time) {
   // 1. Kutsal Aura (Point-Light Glow)
   const auraPulse = Math.sin(time * 2.5) * 0.15 + 0.35;
@@ -2388,7 +2373,7 @@ function drawIsometricWonder(time) {
   });
 }
 
-// 🌋 Ergenekon Yeraltı Mağarası & Dökümhane (Underground Cavern Renderer)
+// Ergenekon Yeraltı Mağarası & Dökümhane (Underground Cavern Renderer)
 function drawIsometricUndergroundCavern(tile, time) {
   if (tile.biome === BIOMES.MAGMA) {
     // Akan Lav Nehri
@@ -2443,7 +2428,7 @@ function drawIsometricUndergroundCavern(tile, time) {
   }
 }
 
-// 🌋 Ergenekon Kadim Döküm Ocağı (Underground Master Blast Forge)
+// Ergenekon Kadim Döküm Ocağı (Underground Master Blast Forge)
 function drawIsometricUndergroundForge(b, time) {
   // 1. Zemin Döküm Ateşi Aurası
   const forgeGlow = Math.sin(time * 6.0) * 0.15 + 0.55;
@@ -2485,7 +2470,7 @@ function drawIsometricUndergroundForge(b, time) {
   ctx.fillRect(-6, 2 * Y_SCALE, 12, 5 * Y_SCALE);
 }
 
-// 💠 Obsidiyen & Kristal Madeni (Underground Crystal Extractor)
+// Obsidiyen & Kristal Madeni (Underground Crystal Extractor)
 function drawIsometricCrystalMine(b, time) {
   // 1. Zemin Kristal Parıltısı
   const aura = Math.sin(time * 4.0) * 0.2 + 0.4;
@@ -2513,7 +2498,7 @@ function drawIsometricCrystalMine(b, time) {
   ctx.fill();
 }
 
-// 🐎 Yollarda Yürüyen Yüklü Kervan Katırları (Pack Mules on Trade Roads)
+// Yollarda Yürüyen Yüklü Kervan Katırları (Pack Mules on Trade Roads)
 function drawPackMules(time) {
   if (!game.packMules || game.packMules.length === 0) return;
 
@@ -2564,7 +2549,7 @@ function drawRoamingHerds(time) {
     ctx.scale(h.facing, 1);
 
     if (h.type === "sheep") {
-      // 🐑 Bozkır Ak Koyunu (Steppe Sheep)
+      // Bozkır Ak Koyunu (Steppe Sheep)
       const bob = h.isMoving ? Math.sin(h.animTime * 8.0) * 1.5 : Math.sin(h.animTime * 2.0) * 0.5;
       // Gölge
       ctx.fillStyle = "rgba(0,0,0,0.25)";
@@ -2593,7 +2578,7 @@ function drawRoamingHerds(time) {
       ctx.moveTo(2, -2 * Y_SCALE + bob);  ctx.lineTo(2 - legWalk, 0);
       ctx.stroke();
     } else {
-      // 🐎 Yılkı Atı (Wild Steppe Horse)
+      // Yılkı Atı (Wild Steppe Horse)
       const gallop = h.isMoving ? Math.sin(h.animTime * 10.0) * 2.5 : Math.sin(h.animTime * 1.5) * 0.8;
       // Gölge
       ctx.fillStyle = "rgba(0,0,0,0.3)";
@@ -2643,7 +2628,7 @@ function drawRoamingHerds(time) {
   });
 }
 
-// 🌲 3D İzometrik Ötüken Çam & Huş Korusu
+// 3D İzometrik Ötüken Çam & Huş Korusu
 function drawIsometricForest(time) {
   const trees = [
     { x: -24, y: -16 * Y_SCALE, sc: 0.90, type: "pine" },
@@ -2720,7 +2705,7 @@ function drawIsometricForest(time) {
   });
 }
 
-// 🏔️ 3D Yontma Karlı Altay Dağ Zirveleri
+// 3D Yontma Karlı Altay Dağ Zirveleri
 function drawIsometricMountain() {
   const peaks = [
     { x: -14, y: 8 * Y_SCALE,   w: 34, h: 36 * Y_SCALE },
@@ -2784,7 +2769,7 @@ function drawIsometricMountain() {
   });
 }
 
-// 🌸 Bozkır Çayırı (Rüzgarda Salınan Çimenler ve Taşlar)
+// Bozkır Çayırı (Rüzgarda Salınan Çimenler ve Taşlar)
 function drawIsometricMeadow(time) {
   const spots = [
     { x: -20, y: -12 * Y_SCALE },
@@ -2817,7 +2802,7 @@ function drawIsometricMeadow(time) {
   ctx.fill();
 }
 
-// 🌊 Orhun / Baykal Suları (Saydam Dalgalar & Kıyı Köpüğü)
+// Orhun / Baykal Suları (Saydam Dalgalar & Kıyı Köpüğü)
 function drawIsometricSea(time) {
   const offset = Math.sin(time * 2.0) * 3.5;
   ctx.strokeStyle = "rgba(186, 230, 253, 0.65)";
@@ -2873,7 +2858,7 @@ function drawBuilding(b, time) {
   }
 }
 
-// 🌉 3D Ahşap Kazıklı ve Korkuluklu Köprü
+// 3D Ahşap Kazıklı ve Korkuluklu Köprü
 function drawIsometricBridge(b, time) {
   ctx.fillStyle = "rgba(8, 28, 44, 0.45)";
   ctx.beginPath();
@@ -2922,7 +2907,7 @@ function drawIsometricBridge(b, time) {
   ctx.stroke();
 }
 
-// 🏰 3D Kağan Otağı (İmparatorluk Beyaz Keçe Çadırı, Altın Alem, At Yelesi Tuğ, Taş Kaide ve Meşaleler)
+// 3D Kağan Otağı (İmparatorluk Beyaz Keçe Çadırı, Altın Alem, At Yelesi Tuğ, Taş Kaide ve Meşaleler)
 function drawIsometricCastle(level, time) {
   // 1. Zemin 45° Düşen Gölgesi
   ctx.fillStyle = "rgba(0, 0, 0, 0.42)";
@@ -3046,11 +3031,11 @@ function drawIsometricCastle(level, time) {
     ctx.fillStyle = "#f59e0b";
     ctx.font = "bold 14px Outfit, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("👑", 0, -yh - domeH - 12 * Y_SCALE);
+    ctx.fillText(" Taç", 0, -yh - domeH - 12 * Y_SCALE);
   }
 }
 
-// 🌽 3D Bozkır Bostanı (Rüzgarda Salınan Mısırlar, Ahşap Çit & Minik Çiftçi)
+// 3D Bozkır Bostanı (Rüzgarda Salınan Mısırlar, Ahşap Çit & Minik Çiftçi)
 function drawIsometricCornField(b, time) {
   // 1. Zemin Düşen Gölgesi
   ctx.fillStyle = "rgba(0, 0, 0, 0.28)";
@@ -3142,7 +3127,7 @@ function drawIsometricCornField(b, time) {
     ctx.fill();
   });
 
-  // 5. 🧑‍🌾 MİKRO YAŞAM: Tarlada Çalışan Minik Çiftçi Figürü
+  // 5. MİKRO YAŞAM: Tarlada Çalışan Minik Çiftçi Figürü
   const farmerWalk = Math.sin(time * 1.8) * 10.0;
   const farmerX = -4 + farmerWalk;
   const farmerY = 2 * Y_SCALE;
@@ -3187,11 +3172,11 @@ function drawIsometricCornField(b, time) {
   // 6. Entegre Neo-Brutalist Taş Rozet
   const accum = b.accumulated || 0;
   if (accum > 0.5) {
-    drawHarvestBadge(0, -34 * Y_SCALE, "🌽", accum, time);
+    drawHarvestBadge(0, -34 * Y_SCALE, "food", accum, time);
   }
 }
 
-// 🌾 3D Dönen Rüzgar Değirmeni (Yontma Taş Gövde & Ahşap Kanatlar)
+// 3D Dönen Rüzgar Değirmeni (Yontma Taş Gövde & Ahşap Kanatlar)
 function drawIsometricWindmill(b, time) {
   // 1. Zemin 45° Düşen Gölgesi
   ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
@@ -3272,11 +3257,11 @@ function drawIsometricWindmill(b, time) {
   // 4. Entegre Neo-Brutalist Taş Rozet
   const accum = b.accumulated || 0;
   if (accum > 0.5) {
-    drawHarvestBadge(0, -towerH - 20 * Y_SCALE, "🌾", accum, time);
+    drawHarvestBadge(0, -towerH - 20 * Y_SCALE, " Un", accum, time);
   }
 }
 
-// 🪓 3D Ötüken Ormancı Kampı (Kütük Kulübe, Odun Yığınları & İşçi)
+// 3D Ötüken Ormancı Kampı (Kütük Kulübe, Odun Yığınları & İşçi)
 function drawIsometricLumberjack(b, time) {
   // 1. Zemin Düşen Gölgesi
   ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
@@ -3345,11 +3330,11 @@ function drawIsometricLumberjack(b, time) {
   // 4. Entegre Neo-Brutalist Taş Rozet
   const accum = b.accumulated || 0;
   if (accum > 0.5) {
-    drawHarvestBadge(0, -36 * Y_SCALE, "🪵", accum, time);
+    drawHarvestBadge(0, -36 * Y_SCALE, " Odun", accum, time);
   }
 }
 
-// 🪵 3D Kereste Fabrikası (Hızar Testeresi & Kalas Yığınları)
+// 3D Kereste Fabrikası (Hızar Testeresi & Kalas Yığınları)
 function drawIsometricSawmill(b, time) {
   // 1. Zemin Düşen Gölgesi
   ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
@@ -3390,11 +3375,11 @@ function drawIsometricSawmill(b, time) {
   // 3. Entegre Neo-Brutalist Taş Rozet
   const accum = b.accumulated || 0;
   if (accum > 0.5) {
-    drawHarvestBadge(0, -32 * Y_SCALE, "🪵", accum, time);
+    drawHarvestBadge(0, -32 * Y_SCALE, " Odun", accum, time);
   }
 }
 
-// 🛖 3D İşçi Kulübesi (Taş Temel, Saman Çatı & Fener)
+// 3D İşçi Kulübesi (Taş Temel, Saman Çatı & Fener)
 function drawIsometricWorkerHut(b, time) {
   ctx.fillStyle = "rgba(0, 0, 0, 0.32)";
   ctx.beginPath();
@@ -3418,7 +3403,7 @@ function drawIsometricWorkerHut(b, time) {
   ctx.fillRect(8, -12 * Y_SCALE, 4, 4 * Y_SCALE);
 }
 
-// 🍞 3D Taş Ekmek Fırını (Bozkır Tandırı, Sıcak Kor Ateş & Duman)
+// 3D Taş Ekmek Fırını (Bozkır Tandırı, Sıcak Kor Ateş & Duman)
 function drawIsometricBakery(b, time) {
   // 1. Zemin Düşen Gölgesi
   ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
@@ -3478,11 +3463,11 @@ function drawIsometricBakery(b, time) {
   // 3. Entegre Neo-Brutalist Taş Rozet
   const accum = b.accumulated || 0;
   if (accum > 0.5) {
-    drawHarvestBadge(0, -36 * Y_SCALE, "🍞", accum, time);
+    drawHarvestBadge(0, -36 * Y_SCALE, " Ekmek", accum, time);
   }
 }
 
-// 🪑 3D Marangoz Atölyesi (Mavi Çatı, Tezgah & Kalaslar)
+// 3D Marangoz Atölyesi (Mavi Çatı, Tezgah & Kalaslar)
 function drawIsometricFurnitureMaker(b, time) {
   ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
   ctx.beginPath();
@@ -3517,11 +3502,11 @@ function drawIsometricFurnitureMaker(b, time) {
   // Entegre Neo-Brutalist Taş Rozet
   const accum = b.accumulated || 0;
   if (accum > 0.5) {
-    drawHarvestBadge(0, -34 * Y_SCALE, "🪑", accum, time);
+    drawHarvestBadge(0, -34 * Y_SCALE, "food", accum, time);
   }
 }
 
-// 🪨 3D Taş Ocağı (Basamaklı Ocak, Ahşap Vinç & Taş Yığınları)
+// 3D Taş Ocağı (Basamaklı Ocak, Ahşap Vinç & Taş Yığınları)
 function drawIsometricQuarry(b, time) {
   ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
   ctx.beginPath();
@@ -3566,11 +3551,11 @@ function drawIsometricQuarry(b, time) {
   // Entegre Neo-Brutalist Taş Rozet
   const accum = b.accumulated || 0;
   if (accum > 0.5) {
-    drawHarvestBadge(0, -36 * Y_SCALE, "🪨", accum, time);
+    drawHarvestBadge(0, -36 * Y_SCALE, " Taş", accum, time);
   }
 }
 
-// ⛏️ 3D Ergenekon Demir Madeni & Döküm Ocağı
+// 3D Ergenekon Demir Madeni & Döküm Ocağı
 function drawIsometricMine(b, time) {
   ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
   ctx.beginPath();
@@ -3616,11 +3601,11 @@ function drawIsometricMine(b, time) {
   // Entegre Neo-Brutalist Taş Rozet
   const accum = b.accumulated || 0;
   if (accum > 0.5) {
-    drawHarvestBadge(0, -36 * Y_SCALE, "⛏️", accum, time);
+    drawHarvestBadge(0, -36 * Y_SCALE, " Demir", accum, time);
   }
 }
 
-// 🏛️ 3D Kadim Kurgan / Balbal Taşları & Göktürk Rünleri
+// 3D Kadim Kurgan / Balbal Taşları & Göktürk Rünleri
 function drawIsometricRuins(time) {
   ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
   ctx.beginPath();
@@ -3645,10 +3630,10 @@ function drawIsometricRuins(time) {
   ctx.textAlign = "center";
   ctx.fillText("𐰋", -10, -15 * Y_SCALE);
   ctx.fillText("𐰏", 10, -15 * Y_SCALE);
-  ctx.fillText("🏛️", 0, -8 * Y_SCALE);
+  // Kadim Taş Dikilitaş
 }
 
-// 🏹 3D Gözcü Kulesi / Korgan
+// 3D Gözcü Kulesi / Korgan
 function drawIsometricWatchtower(b, time) {
   ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
   ctx.beginPath();
@@ -3716,7 +3701,7 @@ function drawIsometricWatchtower(b, time) {
   }
 }
 
-// 🐫 3D İpek Yolu Kervanı (Gezgin Tüccar)
+// 3D İpek Yolu Kervanı (Gezgin Tüccar)
 function drawIsometricCaravan(time) {
   const bob = Math.sin(time * 3.0) * 2.0;
   ctx.save();
@@ -3725,17 +3710,26 @@ function drawIsometricCaravan(time) {
   ctx.ellipse(0, 0, 28, 16 * Y_SCALE, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.font = "24px Outfit, sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText("🐫", 0, -10 * Y_SCALE + bob);
+  // 3D Vektörel İpek Yolu Kervan Arabası
+  ctx.fillStyle = "#d97706";
+  ctx.fillRect(-12, -18 * Y_SCALE + bob, 24, 12 * Y_SCALE);
+  ctx.fillStyle = "#92400e";
+  ctx.beginPath();
+  ctx.arc(-8, -4 * Y_SCALE + bob, 4, 0, Math.PI * 2);
+  ctx.arc(8, -4 * Y_SCALE + bob, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#fef08a";
+  ctx.beginPath();
+  ctx.arc(0, -12 * Y_SCALE + bob, 3, 0, Math.PI * 2);
+  ctx.fill();
 
   ctx.fillStyle = "#fde047";
   ctx.font = "bold 10px Outfit, sans-serif";
-  ctx.fillText("💰 TÜCCAR", 0, -26 * Y_SCALE + bob);
+  ctx.fillText("TÜCCAR", 0, -26 * Y_SCALE + bob);
   ctx.restore();
 }
 
-// 🔮 3D Bozkır Şamanı (Gizemli Şaman Ritüeli)
+// 3D Bozkır Şamanı (Gizemli Şaman Ritüeli)
 function drawIsometricShaman(time) {
   const pulse = Math.sin(time * 4.0) * 3.0;
   ctx.save();
@@ -3744,13 +3738,22 @@ function drawIsometricShaman(time) {
   ctx.ellipse(0, 0, 30 + pulse, (16 + pulse * 0.5) * Y_SCALE, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.font = "24px Outfit, sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText("🧙‍♂️", 0, -10 * Y_SCALE);
+  // 3D Vektörel Şaman Silüeti & Kristal Asa
+  ctx.fillStyle = "#7e22ce";
+  ctx.beginPath();
+  ctx.moveTo(0, -22 * Y_SCALE);
+  ctx.lineTo(8, -4 * Y_SCALE);
+  ctx.lineTo(-8, -4 * Y_SCALE);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "#38bdf8";
+  ctx.beginPath();
+  ctx.arc(0, -16 * Y_SCALE, 3.5, 0, Math.PI * 2);
+  ctx.fill();
 
   ctx.fillStyle = "#c084fc";
   ctx.font = "bold 10px Outfit, sans-serif";
-  ctx.fillText("✨ ŞAMAN", 0, -26 * Y_SCALE);
+  ctx.fillText("ŞAMAN", 0, -26 * Y_SCALE);
   ctx.restore();
 }
 
@@ -3850,36 +3853,36 @@ function updateSeasons(delta) {
     game.seasonTimer = 0.0;
     if (game.season === "SPRING") {
       game.season = "SUMMER";
-      showToast("☀️ Yaz Mevsimi Geldi! (Tarlalar ve Değirmenler %130 Hızlandı)");
+      showToast("Yaz Mevsimi Geldi! (Tarlalar ve Değirmenler %130 Hızlandı)");
     } else if (game.season === "SUMMER") {
       game.season = "AUTUMN";
-      showToast("🍂 Sonbahar Geldi! (Odunculuk ve Madencilik %120 Hızlandı)");
+      showToast("Sonbahar Geldi! (Odunculuk ve Madencilik %120 Hızlandı)");
     } else if (game.season === "AUTUMN") {
       game.season = "WINTER";
       game.isZud = (game.seasonYear % 2 === 0);
       if (game.isZud) {
-        showToast("❄️ ZUD (Kış Felaketi) Başladı! Isıtmasız Tarlalar Dondu!", true);
+        showToast("ZUD (Kış Felaketi) Başladı! Isıtmasız Tarlalar Dondu!", true);
         const banner = document.getElementById("season-banner");
         if (banner) {
           banner.classList.remove("hidden");
           setTimeout(() => banner.classList.add("hidden"), 6000);
         }
       } else {
-        showToast("❄️ Kış Mevsimi Başladı! (Taş ve Madencilik Üretimi Öncelikli)");
+        showToast("Kış Mevsimi Başladı! (Taş ve Madencilik Üretimi Öncelikli)");
       }
     } else {
       game.season = "SPRING";
       game.isZud = false;
       game.seasonYear = (game.seasonYear || 1) + 1;
-      showToast(`🌸 ${game.seasonYear}. Yıl İlkbaharı Başladı! Topraklar Yeşerdi.`);
+      showToast(`${game.seasonYear}. Yıl İlkbaharı Başladı! Topraklar Yeşerdi.`);
     }
   }
 
   // Sezon gösterge butonunu güncelle
   const seasonBtn = document.getElementById("chip-season");
   if (seasonBtn) {
-    const sIcons = { SPRING: "🌸 İlkbahar", SUMMER: "☀️ Yaz", AUTUMN: "🍂 Sonbahar", WINTER: game.isZud ? "❄️ Zud Felaketi" : "❄️ Kış" };
-    seasonBtn.textContent = sIcons[game.season] || "🌸 İlkbahar";
+    const sIcons = { SPRING: "İlkbahar", SUMMER: "Yaz", AUTUMN: "Sonbahar", WINTER: game.isZud ? "Zud Felaketi" : "Kış" };
+    seasonBtn.textContent = sIcons[game.season] || "İlkbahar";
     if (game.isZud && game.season === "WINTER") {
       seasonBtn.style.color = "#ef4444";
       seasonBtn.style.borderColor = "#ef4444";
@@ -4151,21 +4154,21 @@ function processProduction(delta) {
 
 const QUEST_TYPES = {
   fast: [
-    { key: "collect_wood", desc: "{0} Odun Topla", target: [20, 35, 50], reward: { wood: 30, food: 20 }, rewardText: "+30 🪵 +20 🥡", tag: "⚡ Hızlı Ferman" },
-    { key: "collect_food", desc: "{0} Gıda Hasat Et", target: [25, 40, 60], reward: { food: 40, wood: 20 }, rewardText: "+40 🥡 +20 🪵", tag: "⚡ Hızlı Ferman" },
-    { key: "collect_stone", desc: "{0} Taş Çıkar", target: [10, 20, 30], reward: { stone: 20, iron: 10 }, rewardText: "+20 🪨 +10 ⛏️", tag: "⚡ Hızlı Ferman" },
-    { key: "conquer_tile", desc: "{0} Yeni Karo Fethet", target: [1, 2, 3], reward: { food: 30, wood: 30 }, rewardText: "+30 🥡 +30 🪵", tag: "⚡ Hızlı Ferman" }
+    { key: "collect_wood", desc: "{0} Odun Topla", target: [20, 35, 50], reward: { wood: 30, food: 20 }, rewardText: "+30 +20  Gıda", tag: "Hızlı Ferman" },
+    { key: "collect_food", desc: "{0} Gıda Hasat Et", target: [25, 40, 60], reward: { food: 40, wood: 20 }, rewardText: "+40 +20  Odun", tag: "Hızlı Ferman" },
+    { key: "collect_stone", desc: "{0} Taş Çıkar", target: [10, 20, 30], reward: { stone: 20, iron: 10 }, rewardText: "+20 +10  Demir", tag: "Hızlı Ferman" },
+    { key: "conquer_tile", desc: "{0} Yeni Karo Fethet", target: [1, 2, 3], reward: { food: 30, wood: 30 }, rewardText: "+30 +30  Odun", tag: "Hızlı Ferman" }
   ],
   strat: [
-    { key: "build_worker", desc: "{0} İşçi Kulübesi Kur", target: [1, 2], reward: { crowns: 1, food: 50 }, rewardText: "+1 👑 +50 🥡", tag: "🏰 Krallık Fermanı" },
-    { key: "upgrade_building", desc: "{0} Bina Seviyesini Yükselt", target: [1, 2], reward: { crowns: 1, stone: 30 }, rewardText: "+1 👑 +30 🪨", tag: "🏰 Krallık Fermanı" },
-    { key: "build_watchtower", desc: "{0} Gözcü Kulesi İnşa Et", target: [1, 2], reward: { crowns: 1, wood: 40, stone: 25 }, rewardText: "+1 👑 +40 🪵 +25 🪨", tag: "🏰 Krallık Fermanı" },
-    { key: "conquer_forest", desc: "{0} Orman Karosu Fethet", target: [2, 3], reward: { crowns: 1, wood: 60 }, rewardText: "+1 👑 +60 🪵", tag: "🏰 Krallık Fermanı" }
+    { key: "build_worker", desc: "{0} İşçi Kulübesi Kur", target: [1, 2], reward: { crowns: 1, food: 50 }, rewardText: "+1 +50  Gıda", tag: "Krallık Fermanı" },
+    { key: "upgrade_building", desc: "{0} Bina Seviyesini Yükselt", target: [1, 2], reward: { crowns: 1, stone: 30 }, rewardText: "+1 +30  Taş", tag: "Krallık Fermanı" },
+    { key: "build_watchtower", desc: "{0} Gözcü Kulesi İnşa Et", target: [1, 2], reward: { crowns: 1, wood: 40, stone: 25 }, rewardText: "+1 +40 +25  Taş", tag: "Krallık Fermanı" },
+    { key: "conquer_forest", desc: "{0} Orman Karosu Fethet", target: [2, 3], reward: { crowns: 1, wood: 60 }, rewardText: "+1 +60  Odun", tag: "Krallık Fermanı" }
   ],
   epic: [
-    { key: "castle_level", desc: "Şatoyu {0}. Seviyeye Yükselt", target: [2, 3, 4], reward: { crowns: 3, relic: true }, rewardText: "+3 👑 + Kadim Eser", tag: "👑 Epik Hükümdar Fermanı" },
-    { key: "conquer_total", desc: "Toplam {0} Toprak Fethet", target: [6, 12, 18], reward: { crowns: 4, relic: true }, rewardText: "+4 👑 + Kadim Eser", tag: "👑 Epik Hükümdar Fermanı" },
-    { key: "defend_raid", desc: "{0} Gece Baskınını Savuştur", target: [1, 2, 3], reward: { crowns: 3, relic: true }, rewardText: "+3 👑 + Kadim Eser", tag: "👑 Epik Hükümdar Fermanı" }
+    { key: "castle_level", desc: "Şatoyu {0}. Seviyeye Yükselt", target: [2, 3, 4], reward: { crowns: 3, relic: true }, rewardText: "+3 + Kadim Eser", tag: "Epik Hükümdar Fermanı" },
+    { key: "conquer_total", desc: "Toplam {0} Toprak Fethet", target: [6, 12, 18], reward: { crowns: 4, relic: true }, rewardText: "+4 + Kadim Eser", tag: "Epik Hükümdar Fermanı" },
+    { key: "defend_raid", desc: "{0} Gece Baskınını Savuştur", target: [1, 2, 3], reward: { crowns: 3, relic: true }, rewardText: "+3 + Kadim Eser", tag: "Epik Hükümdar Fermanı" }
   ]
 };
 
@@ -4247,7 +4250,7 @@ function claimQuest(tier) {
   else audio.playCollect();
 
   triggerShockwave(0, 0, "#fde047");
-  showToast(`📜 Ferman Tamamlandı! ${q.rewardText} Ambarlara Eklendi!`);
+  showToast(`Ferman Tamamlandı! ${q.rewardText} Ambarlara Eklendi!`);
   
   game.quests[tier] = generateQuest(tier);
   saveGame();
@@ -4300,10 +4303,10 @@ function openQuestsModal() {
 // =============================================================================
 
 const RELIC_DATA = [
-  { key: "axe", name: "Göktürk Baltası", icon: "🪓", perk: "Odun ve Kereste üretimine +%25 verim.", flavor: "Bozkırın kadim demircileri tarafından dövülmüş kutsal savaş baltası." },
-  { key: "cornucopia", name: "Bereket Boynuzu", icon: "🏺", perk: "Mısır ve Fırınlara +%25 üretim hızı.", flavor: "Toprağın sonsuz bereketini çağıran efsanevi tören kadehi." },
-  { key: "standard", name: "Kurt Başlı Tuğ", icon: "⚔️", perk: "Toprak fetih maliyetlerinde %15 kalıcı indirim.", flavor: "Orduların önünde dalgalanan dokuz kollu kutsal sancak." },
-  { key: "shield", name: "Demir Dağ Kalkanı", icon: "🛡️", perk: "Taş ve Demir madenlerine +%30 hız & Gece Savunması.", flavor: "Ergenekon Dağı'nın ilk cevheriyle dövülmüş aşılmaz kalkan." }
+  { key: "axe", name: "Göktürk Baltası", icon: "axe", iconColor: "svg-icon-wood", perk: "Odun ve Kereste üretimine +%25 verim.", flavor: "Bozkırın kadim demircileri tarafından dövülmüş kutsal savaş baltası." },
+  { key: "cornucopia", name: "Bereket Boynuzu", icon: "food", iconColor: "svg-icon-yellow", perk: "Mısır ve Fırınlara +%25 üretim hızı.", flavor: "Toprağın sonsuz bereketini çağıran efsanevi tören kadehi." },
+  { key: "standard", name: "Kurt Başlı Tuğ", icon: "sword", iconColor: "svg-icon-red", perk: "Toprak fetih maliyetlerinde %15 kalıcı indirim.", flavor: "Orduların önünde dalgalanan dokuz kollu kutsal sancak." },
+  { key: "shield", name: "Demir Dağ Kalkanı", icon: "shield", iconColor: "svg-icon-cyan", perk: "Taş ve Demir madenlerine +%30 hız & Gece Savunması.", flavor: "Ergenekon Dağı'nın ilk cevheriyle dövülmüş aşılmaz kalkan." }
 ];
 
 function unlockRandomRelic() {
@@ -4312,10 +4315,10 @@ function unlockRandomRelic() {
   if (locked.length > 0) {
     const picked = locked[Math.floor(Math.random() * locked.length)];
     game.relics[picked.key] = true;
-    showToast(`🏺 Kadim Eser Bulundu: ${picked.name}! (${picked.perk})`);
+    showToast(`Kadim Eser Bulundu: ${picked.name}! (${picked.perk})`);
   } else {
     game.crowns = (game.crowns || 0) + 3;
-    showToast(`👑 Tüm Eserler Zaten Açık! +3 Ek Kraliyet Tacı Kazanıldı!`);
+    showToast(`Tüm Eserler Zaten Açık! +3 Ek Kraliyet Tacı Kazanıldı!`);
   }
 }
 
@@ -4337,7 +4340,7 @@ function updateRelicsUI() {
     return `
       <div class="relic-card ${unlocked ? 'unlocked' : ''}">
         <div class="relic-icon-title">
-          <span style="font-size:1.6rem">${r.icon}</span>
+          <svg class="svg-icon svg-icon-lg ${unlocked ? r.iconColor : 'text-muted'}"><use href="#icon-${r.icon}"/></svg>
           <span style="font-weight:700;color:${unlocked ? '#fde047' : 'var(--text-muted)'}">${r.name}</span>
         </div>
         <div class="relic-perk" style="color:${unlocked ? '#38bdf8' : 'var(--text-muted)'}">${r.perk}</div>
@@ -4378,7 +4381,7 @@ function processEncounters(delta) {
         timeRemaining: 45.0
       };
       audio.playCollect();
-      showToast(type === "trader" ? "🐫 İpek Yolu Kervanı Haritada Belirdi! Tıkla ve Takas Yap!" : "🔮 Bozkır Şamanı Haritada Belirdi! Tıkla ve Kutsama Al!");
+      showToast(type === "trader" ? "İpek Yolu Kervanı Haritada Belirdi! Tıkla ve Takas Yap!" : "Bozkır Şamanı Haritada Belirdi! Tıkla ve Kutsama Al!");
     }
   }
 }
@@ -4404,16 +4407,16 @@ function openEncounterModal() {
   const get = document.getElementById("encounter-get");
 
   if (enc.type === "trader") {
-    if (icon) icon.textContent = "🐫";
+    if (icon) icon.innerHTML = getIconSvg("market", "svg-icon-gold");
     if (title) title.textContent = "Gezgin İpek Yolu Kervanı";
     if (desc) desc.textContent = '"Uzak diyarlardan geldik hakanım! Değerli taş ve odunlarını bize sat, taç ve çılgınlık modu kazan!"';
-    if (give) give.textContent = "40 🪨 Taş + 30 🪵 Odun";
-    if (get) get.textContent = "2 Kraliyet Tacı (👑) + 30 sn 10x Hız";
+    if (give) give.textContent = "40 Taş + 30 Odun";
+    if (get) get.textContent = "2 Kraliyet Tacı ( Taç) + 30 sn 10x Hız";
   } else {
-    if (icon) icon.textContent = "🔮";
+    if (icon) icon.textContent = " Obsidiyen";
     if (title) title.textContent = "Göktürk Şamanı Ayini";
     if (desc) desc.textContent = '"Gök Tengri adına bereket ayini yapalım! Gıda kurban et, 1 dakika boyunca tüm krallık 5 kat hızlı üretsin!"';
-    if (give) give.textContent = "30 🥡 Gıda";
+    if (give) give.textContent = "30 Gıda";
     if (get) get.textContent = "60 sn 5x Kutsal Üretim Bonusu";
   }
 
@@ -4427,7 +4430,7 @@ function acceptEncounter() {
   if (enc.type === "trader") {
     if ((game.stone || 0) < 40 || game.wood < 30) {
       audio.playError();
-      showToast("⚠️ Kervan için yeterli Taş veya Odun yok!", true);
+      showToast("Kervan için yeterli Taş veya Odun yok!", true);
       return;
     }
     game.stone -= 40;
@@ -4435,17 +4438,17 @@ function acceptEncounter() {
     game.crowns = (game.crowns || 0) + 2;
     game.frenzyTimer = (game.frenzyTimer || 0) + 30;
     audio.playPrestige();
-    showToast("🌟 Kervan Takası Yapıldı! +2 👑 Taç & 30 sn 10x Çılgınlık Modu!");
+    showToast("Kervan Takası Yapıldı! +2 Taç & 30 sn 10x Çılgınlık Modu!");
   } else {
     if (game.food < 30) {
       audio.playError();
-      showToast("⚠️ Şaman ayini için en az 30 Gıda gerekli!", true);
+      showToast("Şaman ayini için en az 30 Gıda gerekli!", true);
       return;
     }
     game.food -= 30;
     game.shamanBoostTimer = (game.shamanBoostTimer || 0) + 60;
     audio.playPrestige();
-    showToast("🔥 Şaman Ayini Kabul Edildi! 60 sn Boyunca 5x Üretim Aktif!");
+    showToast("Şaman Ayini Kabul Edildi! 60 sn Boyunca 5x Üretim Aktif!");
   }
 
   game.activeEncounter = null;
@@ -4479,7 +4482,7 @@ function exploreRuinsSafe() {
   game.food += 50;
   game.stone = (game.stone || 0) + 30;
   audio.playCollect();
-  showToast("👷 İşçiler Harabeyi Temizledi: +50 🥡 Gıda & +30 🪨 Taş!");
+  showToast("İşçiler Harabeyi Temizledi: +50 Gıda & +30 Taş!");
   closeModals();
   saveGame();
   updateUI();
@@ -4497,11 +4500,11 @@ function exploreRuinsGamble() {
     unlockRandomRelic();
     audio.playPrestige();
     triggerShockwave(0, 0, "#fde047");
-    showToast("🌟 Zafer! Mezarın Derinliklerinde Kadim Eser ve +2 👑 Taç Bulundu!");
+    showToast("Zafer! Mezarın Derinliklerinde Kadim Eser ve +2 Taç Bulundu!");
   } else {
     audio.playError();
     triggerScreenShake(8.0, 0.4);
-    showToast("⚠️ Sis Fırtınası! Mezar boş çıktı.", true);
+    showToast("Sis Fırtınası! Mezar boş çıktı.", true);
   }
 
   closeModals();
@@ -4542,7 +4545,7 @@ function processNightRaids(delta) {
         game.stone = (game.stone || 0) + bonusLootStone;
         
         triggerScreenShake(5.0, 0.2);
-        showToast(`🛡️ Gözcü Kuleleri Gece Baskınını Savuşturdu! Ganimet: +${bonusLootFood} 🥡 +${bonusLootWood} 🪵 +${bonusLootStone} 🪨`);
+        showToast(`Gözcü Kuleleri Gece Baskınını Savuşturdu! Ganimet: +${bonusLootFood} +${bonusLootWood} +${bonusLootStone}  Taş`);
         updateQuestProgress("defend_raid", 1);
       } else {
         const lostFood = Math.min(game.food, 15);
@@ -4550,7 +4553,7 @@ function processNightRaids(delta) {
         game.food -= lostFood;
         game.wood -= lostWood;
         triggerScreenShake(10.0, 0.5);
-        showToast(`⚠️ Gece Baskını! Savunmasız ambarlardan -${lostFood.toFixed(0)} 🥡 ve -${lostWood.toFixed(0)} 🪵 yağmalandı!`, true);
+        showToast(`Gece Baskını! Savunmasız ambarlardan -${lostFood.toFixed(0)} ve -${lostWood.toFixed(0)} yağmalandı!`, true);
       }
       saveGame();
       updateUI();
@@ -4645,6 +4648,7 @@ function setupInputHandlers() {
 }
 
 function handleTileClick(tile) {
+  game.selectedTile = tile;
   triggerTileBounce(tile.q, tile.r);
 
   // 0. Aktif Rastgele Olay (Kervan veya Şaman) Tıklaması
@@ -4672,10 +4676,10 @@ function handleTileClick(tile) {
 
     const pos = hexToPixel(tile.q, tile.r);
     triggerShockwave(pos.x, pos.y, "#eab308");
-    triggerFloatingText(pos.x, pos.y - 25, `+${bonusCrowns} 👑 +${bonusFood} 🥡 +${bonusStone} 🪨`, "#fde047");
+    triggerFloatingText(pos.x, pos.y - 25, `+${bonusCrowns} +${bonusFood} +${bonusStone}  Taş`, "#fde047");
     triggerScreenShake(8.0, 0.3);
     audio.playCoin();
-    showToast(t("toast_chest_opened", [bonusCrowns, bonusFood, bonusStone, bonusIron]) || `🎁 Sandık Açıldı! +${bonusCrowns} 👑 +${bonusFood} 🥡 +${bonusStone} 🪨 +${bonusIron} ⛏️`);
+    showToast(t("toast_chest_opened", [bonusCrowns, bonusFood, bonusStone, bonusIron]) || `Sandık Açıldı! +${bonusCrowns} +${bonusFood} +${bonusStone} +${bonusIron}  Demir`);
     saveGame();
     updateUI();
     return;
@@ -4710,7 +4714,7 @@ function handleTileClick(tile) {
       if (blockedByUnbridgedSea) {
         showToast(t("toast_need_bridge"), true);
       } else {
-        showToast(t("toast_adjacent_required") || "⚠️ Yalnızca sınır komşunuz olan arazileri fethedebilirsiniz!", true);
+        showToast(t("toast_adjacent_required") || "Yalnızca sınır komşunuz olan arazileri fethedebilirsiniz!", true);
       }
       return;
     }
@@ -4752,10 +4756,10 @@ function handleTileClick(tile) {
       updateQuestProgress("own_tiles", game.ownedCount);
       saveGame();
       updateUI();
-      showToast(`🚩 Yeni Karo Fethedildi! (+1 Toprak, Toplam: ${game.ownedCount})`);
+      showToast(`Yeni Karo Fethedildi! (+1 Toprak, Toplam: ${game.ownedCount})`);
     } else {
       audio.playError();
-      showToast("⚠️ Yetersiz Kaynak! Bu karoyu fethetmek için gereken malzemeler ambarlarda yok.", true);
+      showToast("Yetersiz Kaynak! Bu karoyu fethetmek için gereken malzemeler ambarlarda yok.", true);
     }
   } else if (tile.state === "OWNED") {
     if (tile.hasRuins) {
@@ -4824,11 +4828,11 @@ function updateUI() {
   if (landLabel) landLabel.textContent = `${formatCompact(game.ownedCount)}`;
 
   if (btnFrenzy) {
-    btnFrenzy.textContent = game.frenzyTimer > 0 ? `⚡ 10x (${Math.ceil(game.frenzyTimer)}s)` : "⚡";
+    btnFrenzy.textContent = game.frenzyTimer > 0 ? `10x (${Math.ceil(game.frenzyTimer)}s)` : "";
   }
 
   if (hintLabel) {
-    if (game.frenzyTimer > 0) hintLabel.textContent = `⚡ 10x MEGA ÇILGINLIK AKTİF! (${Math.ceil(game.frenzyTimer)}s kaldı)`;
+    if (game.frenzyTimer > 0) hintLabel.textContent = `10x MEGA ÇILGINLIK AKTİF! (${Math.ceil(game.frenzyTimer)}s kaldı)`;
     else if (game.castleLevel === 1) hintLabel.textContent = t("hint_castle_1");
     else if (game.castleLevel === 2) hintLabel.textContent = t("hint_castle_2");
     else if (game.food < 1.0) hintLabel.textContent = t("hint_no_food");
@@ -4837,6 +4841,7 @@ function updateUI() {
 }
 
 function openBuildMenu(tile) {
+  game.selectedTile = tile;
   audio.playClick();
   const isMeadow = (tile.biome === BIOMES.MEADOW);
   const isForest = (tile.biome === BIOMES.FOREST);
@@ -4846,7 +4851,7 @@ function openBuildMenu(tile) {
   if (isMeadow) menuTitle.textContent = t("build_title_meadow");
   else if (isForest) menuTitle.textContent = t("build_title_forest");
   else if (isSea) menuTitle.textContent = t("build_title_sea");
-  else if (isMountain) menuTitle.textContent = t("build_title_mountain") || "⛰️ Dağ İnşaat Menüsü";
+  else if (isMountain) menuTitle.textContent = t("build_title_mountain") || "Dağ İnşaat Menüsü";
 
   let html = "";
   if (isMeadow) {
@@ -4857,14 +4862,14 @@ function openBuildMenu(tile) {
     html += `
       <div class="build-card">
         <div class="build-card-info">
-          <span class="build-card-icon">🌽</span>
+          <span class="build-card-icon">${getIconSvg("food", "svg-icon-yellow")}</span>
           <div class="build-card-text">
             <h4>${t("corn_name")}</h4>
             <p>${t("corn_desc")}</p>
           </div>
         </div>
         <div class="build-card-action">
-          <span class="cost-tag ${canCorn ? '' : 'cant-afford'}">${cornCost === 0 ? t("free") : cornCost + " 🥡"}</span>
+          <span class="cost-tag ${canCorn ? '' : 'cant-afford'}">${cornCost === 0 ? t("free") : cornCost + "  Gıda"}</span>
           <button class="btn-primary" onclick="buildOnSelected('corn', ${cornCost})">${t("build_btn")}</button>
         </div>
       </div>
@@ -4876,14 +4881,14 @@ function openBuildMenu(tile) {
     html += `
       <div class="build-card">
         <div class="build-card-info">
-          <span class="build-card-icon">🌾</span>
+          <span class="build-card-icon">${getIconSvg("flour", "svg-icon-yellow")}</span>
           <div class="build-card-text">
             <h4>${t("windmill_name")}</h4>
             <p>${t("windmill_desc")}</p>
           </div>
         </div>
         <div class="build-card-action">
-          <span class="cost-tag ${canMill ? '' : 'cant-afford'}">${isLvl3 ? '5 🥡 + 3 🪵' : t('locked_castle_3')}</span>
+          <span class="cost-tag ${canMill ? '' : 'cant-afford'}">${isLvl3 ? '5 Gıda + 3 Odun' : t('locked_castle_3')}</span>
           <button class="btn-primary" ${isLvl3 ? '' : 'disabled'} onclick="buildOnSelected('windmill', 5, 3)">${t("build_btn")}</button>
         </div>
       </div>
@@ -4895,14 +4900,14 @@ function openBuildMenu(tile) {
     html += `
       <div class="build-card">
         <div class="build-card-info">
-          <span class="build-card-icon">🍞</span>
+          <span class="build-card-icon">${getIconSvg("bread", "svg-icon-yellow")}</span>
           <div class="build-card-text">
             <h4>${t("bakery_name")}</h4>
             <p>${t("bakery_desc")}</p>
           </div>
         </div>
         <div class="build-card-action">
-          <span class="cost-tag ${canBakery ? '' : 'cant-afford'}">${isLvl4 ? '10 🥡 + 8 🌾' : t('locked_castle_4')}</span>
+          <span class="cost-tag ${canBakery ? '' : 'cant-afford'}">${isLvl4 ? '10 Gıda + 8 Un' : t('locked_castle_4')}</span>
           <button class="btn-primary" ${isLvl4 ? '' : 'disabled'} onclick="buildOnSelected('bakery', 10, 0, 8, 0)">${t("build_btn")}</button>
         </div>
       </div>
@@ -4913,14 +4918,14 @@ function openBuildMenu(tile) {
     html += `
       <div class="build-card">
         <div class="build-card-info">
-          <span class="build-card-icon">🏹</span>
+          <span class="build-card-icon">${getIconSvg("sword", "svg-icon-red")}</span>
           <div class="build-card-text">
             <h4>${t("watchtower_name")}</h4>
             <p>${t("watchtower_desc")}</p>
           </div>
         </div>
         <div class="build-card-action">
-          <span class="cost-tag ${canTower ? '' : 'cant-afford'}">20 🪵 + 15 🪨</span>
+          <span class="cost-tag ${canTower ? '' : 'cant-afford'}">20 Odun + 15 Taş</span>
           <button class="btn-primary" onclick="buildOnSelected('watchtower', 0, 20, 0, 0, 0, 0, 15, 0)">${t("build_btn")}</button>
         </div>
       </div>
@@ -4933,14 +4938,14 @@ function openBuildMenu(tile) {
     html += `
       <div class="build-card">
         <div class="build-card-info">
-          <span class="build-card-icon">🪓</span>
+          <span class="build-card-icon">${getIconSvg("axe", "svg-icon-wood")}</span>
           <div class="build-card-text">
             <h4>${t("lumberjack_name")}</h4>
             <p>${t("lumberjack_desc")}</p>
           </div>
         </div>
         <div class="build-card-action">
-          <span class="cost-tag ${canLumber ? '' : 'cant-afford'}">${lumberCost} 🥡</span>
+          <span class="cost-tag ${canLumber ? '' : 'cant-afford'}">${lumberCost} Gıda</span>
           <button class="btn-primary" onclick="buildOnSelected('lumberjack', ${lumberCost})">${t("build_btn")}</button>
         </div>
       </div>
@@ -4952,14 +4957,14 @@ function openBuildMenu(tile) {
     html += `
       <div class="build-card">
         <div class="build-card-info">
-          <span class="build-card-icon">🪵</span>
+          <span class="build-card-icon">${getIconSvg("plank", "svg-icon-wood")}</span>
           <div class="build-card-text">
             <h4>${t("sawmill_name")}</h4>
             <p>${t("sawmill_desc")}</p>
           </div>
         </div>
         <div class="build-card-action">
-          <span class="cost-tag ${canSaw ? '' : 'cant-afford'}">${isLvl3 ? '4 🥡 + 5 🪵' : t('locked_castle_3')}</span>
+          <span class="cost-tag ${canSaw ? '' : 'cant-afford'}">${isLvl3 ? '4 Gıda + 5 Odun' : t('locked_castle_3')}</span>
           <button class="btn-primary" ${isLvl3 ? '' : 'disabled'} onclick="buildOnSelected('sawmill', 4, 5)">${t("build_btn")}</button>
         </div>
       </div>
@@ -4971,14 +4976,14 @@ function openBuildMenu(tile) {
     html += `
       <div class="build-card">
         <div class="build-card-info">
-          <span class="build-card-icon">🪑</span>
+          <span class="build-card-icon">${getIconSvg("furniture", "svg-icon-cyan")}</span>
           <div class="build-card-text">
             <h4>${t("furniture_name")}</h4>
             <p>${t("furniture_desc")}</p>
           </div>
         </div>
         <div class="build-card-action">
-          <span class="cost-tag ${canFurn ? '' : 'cant-afford'}">${isLvl4 ? '12 🪵 + 6 🪵 Kereste' : t('locked_castle_4')}</span>
+          <span class="cost-tag ${canFurn ? '' : 'cant-afford'}">${isLvl4 ? '12 Odun + 6 Kereste' : t('locked_castle_4')}</span>
           <button class="btn-primary" ${isLvl4 ? '' : 'disabled'} onclick="buildOnSelected('furniture', 0, 12, 0, 6)">${t("build_btn")}</button>
         </div>
       </div>
@@ -4989,14 +4994,14 @@ function openBuildMenu(tile) {
     html += `
       <div class="build-card">
         <div class="build-card-info">
-          <span class="build-card-icon">🪨</span>
+          <span class="build-card-icon"> Taş</span>
           <div class="build-card-text">
             <h4>${t("quarry_name")}</h4>
             <p>${t("quarry_desc")}</p>
           </div>
         </div>
         <div class="build-card-action">
-          <span class="cost-tag ${canQuarry ? '' : 'cant-afford'}">40 🪵 + 20 🪵 Kereste</span>
+          <span class="cost-tag ${canQuarry ? '' : 'cant-afford'}">40 + 20 Kereste</span>
           <button class="btn-primary" onclick="buildOnSelected('quarry', 0, 40, 0, 20)">${t("build_btn")}</button>
         </div>
       </div>
@@ -5008,14 +5013,14 @@ function openBuildMenu(tile) {
     html += `
       <div class="build-card">
         <div class="build-card-info">
-          <span class="build-card-icon">⛏️</span>
+          <span class="build-card-icon"> Demir</span>
           <div class="build-card-text">
             <h4>${t("mine_name")}</h4>
             <p>${t("mine_desc")}</p>
           </div>
         </div>
         <div class="build-card-action">
-          <span class="cost-tag ${canMine ? '' : 'cant-afford'}">${isLvl4 ? '60 🪵 + 30 🪨' : t('locked_castle_4')}</span>
+          <span class="cost-tag ${canMine ? '' : 'cant-afford'}">${isLvl4 ? '60 + 30  Taş' : t('locked_castle_4')}</span>
           <button class="btn-primary" ${isLvl4 ? '' : 'disabled'} onclick="buildOnSelected('mine', 0, 60, 0, 0, 0, 0, 30)">${t("build_btn")}</button>
         </div>
       </div>
@@ -5026,14 +5031,14 @@ function openBuildMenu(tile) {
     html += `
       <div class="build-card">
         <div class="build-card-info">
-          <span class="build-card-icon">🏹</span>
+          <span class="build-card-icon">${getIconSvg("sword", "svg-icon-red")}</span>
           <div class="build-card-text">
             <h4>${t("watchtower_name")}</h4>
             <p>${t("watchtower_desc")}</p>
           </div>
         </div>
         <div class="build-card-action">
-          <span class="cost-tag ${canTowerMtn ? '' : 'cant-afford'}">20 🪵 + 15 🪨</span>
+          <span class="cost-tag ${canTowerMtn ? '' : 'cant-afford'}">20 + 15  Taş</span>
           <button class="btn-primary" onclick="buildOnSelected('watchtower', 0, 20, 0, 0, 0, 0, 15, 0)">${t("build_btn")}</button>
         </div>
       </div>
@@ -5044,14 +5049,14 @@ function openBuildMenu(tile) {
     html += `
       <div class="build-card">
         <div class="build-card-info">
-          <span class="build-card-icon">🌉</span>
+          <span class="build-card-icon">${getIconSvg("road", "svg-icon-wood")}</span>
           <div class="build-card-text">
             <h4>${t("bridge_name")}</h4>
             <p>${t("bridge_desc")}</p>
           </div>
         </div>
         <div class="build-card-action">
-          <span class="cost-tag ${canBridge ? '' : 'cant-afford'}">4 🪵</span>
+          <span class="cost-tag ${canBridge ? '' : 'cant-afford'}">4  Odun</span>
           <button class="btn-primary" onclick="buildOnSelected('bridge', 0, 4)">${t("build_btn")}</button>
         </div>
       </div>
@@ -5066,14 +5071,14 @@ function openBuildMenu(tile) {
     html += `
       <div class="build-card">
         <div class="build-card-info">
-          <span class="build-card-icon">🛖</span>
+          <span class="build-card-icon">${getIconSvg("worker", "svg-icon-yellow")}</span>
           <div class="build-card-text">
             <h4>${t("worker_name")}</h4>
             <p>${t("worker_desc")}</p>
           </div>
         </div>
         <div class="build-card-action">
-          <span class="cost-tag ${canWorker ? '' : 'cant-afford'}">${workerCost === 0 ? t("free") : workerCost + " 🥡"}</span>
+          <span class="cost-tag ${canWorker ? '' : 'cant-afford'}">${workerCost === 0 ? t("free") : workerCost + "  Gıda"}</span>
           <button class="btn-primary" onclick="buildOnSelected('worker', ${workerCost})">${t("build_btn")}</button>
         </div>
       </div>
@@ -5087,7 +5092,7 @@ function openBuildMenu(tile) {
     menuContent.innerHTML += `
       <hr style="border-color:rgba(80,200,100,0.3);margin:6px 0">
       <button class="btn-upgrade" style="background:rgba(40,160,80,0.18);color:#55dd88;width:100%;border:1px solid rgba(80,200,100,0.35)" onclick="deforestTile()">
-        🌿 Ağaçları Kurut (Orman → Çayır) &nbsp;<small>(Ücretsiz)</small>
+        Ağaçları Kurut (Orman → Çayır) &nbsp;<small>(Ücretsiz)</small>
       </button>
     `;
   }
@@ -5134,14 +5139,15 @@ window.buildOnSelected = function(bType, foodCost = 0, woodCost = 0, flourCost =
   else if (bType === 'lumberjack') showToast(t("toast_built_lumberjack"));
   else if (bType === 'sawmill') showToast(t("toast_built_sawmill"));
   else if (bType === 'furniture') showToast(t("toast_built_furniture"));
-  else if (bType === 'quarry') showToast(t("toast_built_quarry") || "🪨 Taş Ocağı kuruldu!");
-  else if (bType === 'mine') showToast(t("toast_built_mine") || "⛏️ Demir Madeni açıldı!");
+  else if (bType === 'quarry') showToast(t("toast_built_quarry") || "Taş Ocağı kuruldu!");
+  else if (bType === 'mine') showToast(t("toast_built_mine") || "Demir Madeni açıldı!");
   else if (bType === 'worker') showToast(t("toast_built_worker"));
-  else if (bType === 'watchtower') showToast(t("toast_built_watchtower") || "🏹 Gözcü Kulesi kuruldu! Gece savunması aktif.");
+  else if (bType === 'watchtower') showToast(t("toast_built_watchtower") || "Gözcü Kulesi kuruldu! Gece savunması aktif.");
   else if (bType === 'bridge') showToast(t("toast_built_bridge"));
 };
 
 function openBuildingMenu(tile) {
+  game.selectedTile = tile;
   audio.playClick();
   const b = tile.building;
 
@@ -5154,7 +5160,7 @@ function openBuildingMenu(tile) {
     if (game.castleLevel >= 10) {
       btnHtml = `<button class="btn-upgrade" disabled>${t("max_level")}</button>`;
     } else {
-      const costStr = upData.costWood === 0 ? `${upData.costFood} 🥡` : `${upData.costFood} 🥡 + ${upData.costWood} 🪵`;
+      const costStr = upData.costWood === 0 ? `${upData.costFood}  Gıda` : `${upData.costFood} + ${upData.costWood}  Odun`;
       const canAfford = game.food >= upData.costFood && game.wood >= upData.costWood;
       btnHtml = `
         <button class="btn-upgrade" onclick="upgradeCastle()" ${canAfford ? '' : 'style="opacity:0.6"'}>
@@ -5166,7 +5172,7 @@ function openBuildingMenu(tile) {
 
     menuContent.innerHTML = `
       <div class="prod-flow-row">
-        <div class="prod-icon-box">👑</div>
+        <div class="prod-icon-box"> Taç</div>
         <div style="flex:1">
           <p style="color:var(--green);font-weight:700;font-size:0.9rem">${t("global_bonus")}: +%${bonusPct}</p>
           <p style="color:var(--gold);font-size:0.76rem">${upData ? t("next_unlock") + ': ' + upData.unlock : t("max_power_active")}</p>
@@ -5175,7 +5181,7 @@ function openBuildingMenu(tile) {
       </div>
     `;
   } else if (b.type === "corn") {
-    menuTitle.textContent = `🌽 ${t("corn_name")} (${t("level")} ${b.level})`;
+    menuTitle.textContent = `${t("corn_name")} (${t("level")} ${b.level})`;
     const rate = (0.42 * Math.pow(1.5, b.level - 1)) * game.getGlobalMultiplier();
     const upCost = Math.round(2 * Math.pow(1.8, b.level - 1));
     const accum = b.accumulated || 0;
@@ -5183,27 +5189,27 @@ function openBuildingMenu(tile) {
 
     menuContent.innerHTML = `
       <div class="prod-flow-row">
-        <div class="prod-icon-box">🌽</div>
+        <div class="prod-icon-box">${getIconSvg("food", "svg-icon-yellow")}</div>
         <div class="prod-rate-box">
           <span>${rate.toFixed(2)} ${t("per_sec")}</span>
           <span class="arrow">──▶</span>
         </div>
         <button class="btn-collect" onclick="collectCorn()">
-          <span>${accum.toFixed(2)}x1 🌽</span>
-          <small>${accum.toFixed(2)} 🥡 ${t("collect")}</small>
+          <span>${accum.toFixed(2)}x1 ' + getIconSvg("food", "svg-icon-yellow") + '</span>
+          <small>${accum.toFixed(2)} ${t("collect")}</small>
         </button>
         <button class="btn-upgrade" onclick="upgradeBuilding('corn', ${upCost})">
-          <span>⬆️ ${t("upgrade")} (${upCost} 🥡)</span>
+          <span>${getIconSvg("chevron-up")} ${t("upgrade")} (${upCost}  Gıda)</span>
           <small>+${(rate * 0.5).toFixed(2)} ${t("per_sec")}</small>
         </button>
       </div>
       <hr style="border-color:rgba(255,100,80,0.3);margin:6px 0">
       <button class="btn-upgrade" style="background:rgba(200,60,50,0.18);color:#ff6655;width:100%;border:1px solid rgba(200,60,50,0.35)" onclick="demolishBuilding('corn', ${cornRefund}, 0)">
-        🔨 Yapıyı Yık &nbsp;<small>(%50 iade: ${cornRefund} 🥡)</small>
+        ${getIconSvg("hammer", "svg-icon-red")} Yapıyı Yık &nbsp;<small>(%50 iade: ${cornRefund}  Gıda)</small>
       </button>
     `;
   } else if (b.type === "windmill") {
-    menuTitle.textContent = `🌾 ${t("windmill_name")} (${t("level")} ${b.level})`;
+    menuTitle.textContent = `${t("windmill_name")} (${t("level")} ${b.level})`;
     const rate = (0.25 * Math.pow(1.5, b.level - 1)) * game.getGlobalMultiplier();
     const upFood = Math.round(5 * Math.pow(1.6, b.level - 1));
     const upWood = Math.round(4 * Math.pow(1.6, b.level - 1));
@@ -5211,27 +5217,27 @@ function openBuildingMenu(tile) {
 
     menuContent.innerHTML = `
       <div class="prod-flow-row">
-        <div class="prod-icon-box">🌾</div>
+        <div class="prod-icon-box"> Un</div>
         <div class="prod-rate-box">
           <span>${rate.toFixed(2)} ${t("flour")}${t("per_sec")}</span>
           <small style="font-size:0.65rem">${b.isAdjacent ? t("supply_neighbor") : t("supply_global")}</small>
         </div>
         <button class="btn-collect" onclick="collectFlour()">
-          <span>${accum.toFixed(2)} 🌾</span>
+          <span>${accum.toFixed(2)}  Un</span>
           <small>${t("collect")}</small>
         </button>
         <button class="btn-upgrade" onclick="upgradeBuildingMulti('windmill', ${upFood}, ${upWood})">
-          <span>⬆️ (${upFood} 🥡+${upWood} 🪵)</span>
+          <span>${getIconSvg("chevron-up")} (${upFood}  Gıda+${upWood}  Odun)</span>
           <small>+${(rate * 0.5).toFixed(2)}/sn</small>
         </button>
       </div>
       <hr style="border-color:rgba(255,100,80,0.3);margin:6px 0">
       <button class="btn-upgrade" style="background:rgba(200,60,50,0.18);color:#ff6655;width:100%;border:1px solid rgba(200,60,50,0.35)" onclick="demolishBuilding('windmill', 2.5, 1.5)">
-        🔨 Yapıyı Yık &nbsp;<small>(%50 iade: 2.5 🥡 + 1.5 🪵)</small>
+        ${getIconSvg("hammer", "svg-icon-red")} Yapıyı Yık &nbsp;<small>(%50 iade: 2.5 + 1.5  Odun)</small>
       </button>
     `;
   } else if (b.type === "bakery") {
-    menuTitle.textContent = `🍞 ${t("bakery_name")} (${t("level")} ${b.level})`;
+    menuTitle.textContent = `${t("bakery_name")} (${t("level")} ${b.level})`;
     const rate = (0.25 * Math.pow(1.5, b.level - 1)) * game.getGlobalMultiplier();
     const upFood = Math.round(10 * Math.pow(1.35, b.level - 1));
     const upFlour = Math.round(8 * Math.pow(1.35, b.level - 1));
@@ -5239,50 +5245,50 @@ function openBuildingMenu(tile) {
 
     menuContent.innerHTML = `
       <div class="prod-flow-row">
-        <div class="prod-icon-box">🍞</div>
+        <div class="prod-icon-box"> Ekmek</div>
         <div class="prod-rate-box">
           <span>${rate.toFixed(2)} ${t("bread")}${t("per_sec")}</span>
           <small style="font-size:0.65rem">${b.isAdjacent ? t("supply_neighbor_flour") : t("supply_global")}</small>
         </div>
         <button class="btn-collect" onclick="collectBread()">
-          <span>${accum.toFixed(2)} 🍞</span>
+          <span>${accum.toFixed(2)}  Ekmek</span>
           <small>${t("collect")}</small>
         </button>
         <button class="btn-upgrade" onclick="upgradeBuildingMulti('bakery', ${upFood}, 0, ${upFlour}, 0)">
-          <span>⬆️ (${upFood} 🥡+${upFlour} 🌾)</span>
+          <span>${getIconSvg("chevron-up")} (${upFood}  Gıda+${upFlour}  Un)</span>
           <small>+${(rate * 0.5).toFixed(2)}/sn</small>
         </button>
       </div>
     `;
   } else if (b.type === "lumberjack") {
-    menuTitle.textContent = `🪓 ${t("lumberjack_name")} (${t("level")} ${b.level})`;
+    menuTitle.textContent = `${t("lumberjack_name")} (${t("level")} ${b.level})`;
     const rate = (0.35 * Math.pow(1.5, b.level - 1)) * game.getGlobalMultiplier();
     const upCost = Math.round(2 * Math.pow(1.8, b.level - 1));
     const accum = b.accumulated || 0;
 
     menuContent.innerHTML = `
       <div class="prod-flow-row">
-        <div class="prod-icon-box">🪓</div>
+        <div class="prod-icon-box">${getIconSvg("axe", "svg-icon-wood")}</div>
         <div class="prod-rate-box">
           <span>${rate.toFixed(2)} ${t("per_sec")}</span>
           <span class="arrow">──▶</span>
         </div>
         <button class="btn-collect" onclick="collectWood()">
-          <span>${accum.toFixed(2)}x1 🪵</span>
-          <small>${accum.toFixed(2)} 🪵 ${t("collect")}</small>
+          <span>${accum.toFixed(2)}x1  Odun</span>
+          <small>${accum.toFixed(2)} ${t("collect")}</small>
         </button>
         <button class="btn-upgrade" onclick="upgradeBuilding('lumberjack', ${upCost})">
-          <span>⬆️ ${t("upgrade")} (${upCost} 🥡)</span>
+          <span>${getIconSvg("chevron-up")} ${t("upgrade")} (${upCost}  Gıda)</span>
           <small>+${(rate * 0.5).toFixed(2)} ${t("per_sec")}</small>
         </button>
       </div>
       <hr style="border-color:rgba(255,100,80,0.3);margin:6px 0">
       <button class="btn-upgrade" style="background:rgba(200,60,50,0.18);color:#ff6655;width:100%;border:1px solid rgba(200,60,50,0.35)" onclick="demolishBuilding('lumberjack', ${Math.floor(upCost * 0.5)}, 0)">
-        🔨 Yapıyı Yık &nbsp;<small>(%50 iade: ${Math.floor(upCost * 0.5)} 🥡)</small>
+        ${getIconSvg("hammer", "svg-icon-red")} Yapıyı Yık &nbsp;<small>(%50 iade: ${Math.floor(upCost * 0.5)}  Gıda)</small>
       </button>
     `;
   } else if (b.type === "sawmill") {
-    menuTitle.textContent = `🪵 ${t("sawmill_name")} (${t("level")} ${b.level})`;
+    menuTitle.textContent = `${t("sawmill_name")} (${t("level")} ${b.level})`;
     const rate = (0.20 * Math.pow(1.5, b.level - 1)) * game.getGlobalMultiplier();
     const upFood = Math.round(4 * Math.pow(1.6, b.level - 1));
     const upWood = Math.round(6 * Math.pow(1.6, b.level - 1));
@@ -5290,23 +5296,23 @@ function openBuildingMenu(tile) {
 
     menuContent.innerHTML = `
       <div class="prod-flow-row">
-        <div class="prod-icon-box">🪵</div>
+        <div class="prod-icon-box"> Odun</div>
         <div class="prod-rate-box">
           <span>${rate.toFixed(2)} ${t("plank")}${t("per_sec")}</span>
           <small style="font-size:0.65rem">${b.isAdjacent ? t("supply_neighbor_wood") : t("supply_global")}</small>
         </div>
         <button class="btn-collect" onclick="collectPlank()">
-          <span>${accum.toFixed(2)} 🪵</span>
+          <span>${accum.toFixed(2)}  Odun</span>
           <small>${t("collect")}</small>
         </button>
         <button class="btn-upgrade" onclick="upgradeBuildingMulti('sawmill', ${upFood}, ${upWood})">
-          <span>⬆️ (${upFood} 🥡+${upWood} 🪵)</span>
+          <span>${getIconSvg("chevron-up")} (${upFood}  Gıda+${upWood}  Odun)</span>
           <small>+${(rate * 0.5).toFixed(2)}/sn</small>
         </button>
       </div>
     `;
   } else if (b.type === "furniture") {
-    menuTitle.textContent = `🪑 ${t("furniture_name")} (${t("level")} ${b.level})`;
+    menuTitle.textContent = `${t("furniture_name")} (${t("level")} ${b.level})`;
     const rate = (0.20 * Math.pow(1.5, b.level - 1)) * game.getGlobalMultiplier();
     const upWood = Math.round(12 * Math.pow(1.35, b.level - 1));
     const upPlank = Math.round(8 * Math.pow(1.35, b.level - 1));
@@ -5314,42 +5320,42 @@ function openBuildingMenu(tile) {
 
     menuContent.innerHTML = `
       <div class="prod-flow-row">
-        <div class="prod-icon-box">🪑</div>
+        <div class="prod-icon-box"> Mobilya</div>
         <div class="prod-rate-box">
           <span>${rate.toFixed(2)} ${t("furniture")}${t("per_sec")}</span>
           <small style="font-size:0.65rem">${b.isAdjacent ? t("supply_neighbor_plank") : t("supply_global")}</small>
         </div>
         <button class="btn-collect" onclick="collectFurniture()">
-          <span>${accum.toFixed(2)} 🪑</span>
+          <span>${accum.toFixed(2)}  Mobilya</span>
           <small>${t("collect")}</small>
         </button>
         <button class="btn-upgrade" onclick="upgradeBuildingMulti('furniture', 0, ${upWood}, 0, ${upPlank})">
-          <span>⬆️ (${upWood} 🪵+${upPlank} 🪵 Kereste)</span>
+          <span>${getIconSvg("chevron-up")} (${upWood}  Odun+${upPlank} Kereste)</span>
           <small>+${(rate * 0.5).toFixed(2)}/sn</small>
         </button>
       </div>
     `;
   } else if (b.type === "worker") {
-    menuTitle.textContent = `🛖 ${t("worker_name")} (${t("level")} ${b.level})`;
+    menuTitle.textContent = `${t("worker_name")} (${t("level")} ${b.level})`;
     const rate = (0.80 * Math.pow(1.5, b.level - 1)) * game.getGlobalMultiplier();
     const upCost = Math.round(3 * Math.pow(1.7, b.level - 1));
     const gathered = b.totalGathered || 0;
 
     menuContent.innerHTML = `
       <div class="prod-flow-row">
-        <div class="prod-icon-box">🛖</div>
+        <div class="prod-icon-box">${getIconSvg("worker", "svg-icon-yellow")}</div>
         <div style="flex:1">
           <p style="color:var(--green);font-weight:700;font-size:0.85rem">${t("auto_carry")}: ${rate.toFixed(2)} ${t("per_sec")}</p>
           <p style="color:var(--text-muted);font-size:0.75rem">${t("total_transferred")}: ${gathered.toFixed(1)}</p>
         </div>
         <button class="btn-upgrade" onclick="upgradeBuilding('worker', ${upCost})">
-          <span>⬆️ ${t("upgrade")} (${upCost} 🥡)</span>
+          <span>${getIconSvg("chevron-up")} ${t("upgrade")} (${upCost}  Gıda)</span>
           <small>+${(rate * 0.5).toFixed(2)} ${t("per_sec")}</small>
         </button>
       </div>
     `;
   } else if (b.type === "quarry") {
-    menuTitle.textContent = `🪨 ${t("quarry_name")} (${t("level")} ${b.level})`;
+    menuTitle.textContent = `${t("quarry_name")} (${t("level")} ${b.level})`;
     const rate = (0.35 * Math.pow(1.5, b.level - 1)) * game.getGlobalMultiplier();
     const upWood = Math.round(15 * Math.pow(1.4, b.level - 1));
     const upPlank = Math.round(8 * Math.pow(1.4, b.level - 1));
@@ -5357,23 +5363,23 @@ function openBuildingMenu(tile) {
 
     menuContent.innerHTML = `
       <div class="prod-flow-row">
-        <div class="prod-icon-box">🪨</div>
+        <div class="prod-icon-box"> Taş</div>
         <div class="prod-rate-box">
           <span>${rate.toFixed(2)} ${t("stone")}${t("per_sec")}</span>
           <small style="font-size:0.65rem">${b.isAdjacent ? t("supply_neighbor_plank") : t("supply_global")}</small>
         </div>
         <button class="btn-collect" onclick="collectStone()">
-          <span>${accum.toFixed(2)} 🪨</span>
+          <span>${accum.toFixed(2)}  Taş</span>
           <small>${t("collect")}</small>
         </button>
         <button class="btn-upgrade" onclick="upgradeBuildingMulti('quarry', 0, ${upWood}, 0, ${upPlank})">
-          <span>⬆️ (${upWood} 🪵+${upPlank} 🪵 Kereste)</span>
+          <span>${getIconSvg("chevron-up")} (${upWood}  Odun+${upPlank} Kereste)</span>
           <small>+${(rate * 0.5).toFixed(2)}/sn</small>
         </button>
       </div>
     `;
   } else if (b.type === "mine") {
-    menuTitle.textContent = `⛏️ ${t("mine_name")} (${t("level")} ${b.level})`;
+    menuTitle.textContent = `${t("mine_name")} (${t("level")} ${b.level})`;
     const rate = (0.25 * Math.pow(1.5, b.level - 1)) * game.getGlobalMultiplier();
     const upWood = Math.round(25 * Math.pow(1.4, b.level - 1));
     const upStone = Math.round(15 * Math.pow(1.4, b.level - 1));
@@ -5381,41 +5387,41 @@ function openBuildingMenu(tile) {
 
     menuContent.innerHTML = `
       <div class="prod-flow-row">
-        <div class="prod-icon-box">⛏️</div>
+        <div class="prod-icon-box"> Demir</div>
         <div class="prod-rate-box">
           <span>${rate.toFixed(2)} ${t("iron")}${t("per_sec")}</span>
           <small style="font-size:0.65rem">${b.isAdjacent ? t("supply_neighbor") : t("supply_global")}</small>
         </div>
         <button class="btn-collect" onclick="collectIron()">
-          <span>${accum.toFixed(2)} ⛏️</span>
+          <span>${accum.toFixed(2)}  Demir</span>
           <small>${t("collect")}</small>
         </button>
         <button class="btn-upgrade" onclick="upgradeBuildingMulti('mine', 0, ${upWood}, 0, 0, 0, 0, ${upStone})">
-          <span>⬆️ (${upWood} 🪵+${upStone} 🪨)</span>
+          <span>${getIconSvg("chevron-up")} (${upWood}  Odun+${upStone}  Taş)</span>
           <small>+${(rate * 0.5).toFixed(2)}/sn</small>
         </button>
       </div>
     `;
   } else if (b.type === "watchtower") {
-    menuTitle.textContent = `🏹 ${t("watchtower_name")} (${t("level")} ${b.level})`;
+    menuTitle.textContent = `${t("watchtower_name")} (${t("level")} ${b.level})`;
     const costWood = Math.round(15 * Math.pow(1.4, b.level - 1));
     const costStone = Math.round(10 * Math.pow(1.4, b.level - 1));
 
     menuContent.innerHTML = `
       <div class="prod-flow-row">
-        <div class="prod-icon-box">🛡️</div>
+        <div class="prod-icon-box">${getIconSvg("shield", "svg-icon-cyan")}</div>
         <div style="flex:1;text-align:left">
           <p style="color:#38bdf8;font-weight:700;font-size:0.85rem">Savunma Gücü: ${b.level * 25} Güç</p>
           <small style="color:var(--text-muted);font-size:0.75rem">Gece akıncılarını püskürtür ve ambarları korur.</small>
         </div>
         <button class="btn-upgrade" onclick="upgradeBuildingMulti('watchtower', 0, ${costWood}, 0, 0, 0, 0, ${costStone})">
-          <span>⬆️ (${costWood} 🪵 + ${costStone} 🪨)</span>
+          <span>${getIconSvg("chevron-up")} (${costWood} + ${costStone}  Taş)</span>
           <small>Savunma +25</small>
         </button>
       </div>
       <hr style="border-color:rgba(255,100,80,0.3);margin:6px 0">
       <button class="btn-upgrade" style="background:rgba(200,60,50,0.18);color:#ff6655;width:100%;border:1px solid rgba(200,60,50,0.35)" onclick="demolishBuilding('watchtower', 0, 10, 0, 0, 0, 0, 7.5)">
-        🔨 Yapıyı Yık &nbsp;<small>(%50 iade: 10 🪵 + 7.5 🪨)</small>
+        ${getIconSvg("hammer", "svg-icon-red")} Yapıyı Yık &nbsp;<small>(%50 iade: 10 + 7.5  Taş)</small>
       </button>
     `;
   }
@@ -5424,14 +5430,14 @@ function openBuildingMenu(tile) {
     if (tile.isWarmed) {
       menuContent.innerHTML += `
         <div style="background:rgba(249,115,22,0.15);border:1px solid #f97316;border-radius:8px;padding:6px 10px;margin-top:6px;font-size:0.75rem;color:#fdba74;text-align:center;font-weight:600">
-          🔥 Tarla Isıtıldı! (+%50 Hız & Donma Koruması Aktif)
+          Tarla Isıtıldı! (+%50 Hız & Donma Koruması Aktif)
         </div>
       `;
     } else {
       const canAfford = (game.wood || 0) >= 5;
       menuContent.innerHTML += `
         <button class="btn-warm-tile" style="margin-top:6px;width:100%" onclick="warmTile()" ${canAfford ? '' : 'style="opacity:0.6"'}>
-          🔥 Ateş Yak & Tarlayı Isıt (5 🪵 Odun) <small>— +%50 Hız</small>
+          Ateş Yak & Tarlayı Isıt (5 Odun) <small>— +%50 Hız</small>
         </button>
       `;
     }
@@ -5468,7 +5474,7 @@ window.demolishBuilding = function(type, refundFood, refundWood) {
   game.selectedTile.building = null;
   closeBottomMenu();
   audio.playBuild();
-  showToast('🔨 Yapı yıkıldı! Kaynaklarınız iade edildi.');
+  showToast('Yapı yıkıldı! Kaynaklarınız iade edildi.');
   saveGame();
   renderMap();
   updateUI();
@@ -5488,7 +5494,7 @@ window.deforestTile = function() {
   tile.biome = BIOMES.MEADOW;
   closeBottomMenu();
   audio.playBuild();
-  showToast('🌿 Ağaçlar kurutuldu! Hex çayıra dönüştü.');
+  showToast('Ağaçlar kurutuldu! Hex çayıra dönüştü.');
   saveGame();
   renderMap();
   updateUI();
@@ -5510,7 +5516,7 @@ function processLuckyHarvest(val, icon, resColor, toastKey) {
     if (audio.playCritHarvest) audio.playCritHarvest();
     else audio.playCollect();
     triggerShockwave(p.x, p.y, "#f59e0b");
-    showToast(`✨ BEREKETLİ HASAT! +${formatCompact(finalVal)} ${icon} (3x Kritik)`);
+    showToast(`BEREKETLİ HASAT! +${formatCompact(finalVal)} ${icon} (3x Kritik)`);
   } else {
     audio.playCollect();
     if (toastKey) showToast(t(toastKey, [formatCompact(finalVal)]));
@@ -5526,7 +5532,7 @@ window.collectCorn = function() {
   const val = b.accumulated || 0;
   if (val > 0.001) {
     b.accumulated = 0;
-    const gained = processLuckyHarvest(val, "🌽", "#eab308", "toast_collected_food");
+    const gained = processLuckyHarvest(val, "food", "#eab308", "toast_collected_food");
     game.food += gained;
     game.statTotalFood += gained;
     updateQuestProgress("collect_food", gained);
@@ -5540,7 +5546,7 @@ window.collectWood = function() {
   const val = b.accumulated || 0;
   if (val > 0.001) {
     b.accumulated = 0;
-    const gained = processLuckyHarvest(val, "🪵", "#d4a373", "toast_collected_wood");
+    const gained = processLuckyHarvest(val, " Odun", "#d4a373", "toast_collected_wood");
     game.wood += gained;
     game.statTotalWood += gained;
     updateQuestProgress("collect_wood", gained);
@@ -5554,7 +5560,7 @@ window.collectFlour = function() {
   const val = b.accumulated || 0;
   if (val > 0.001) {
     b.accumulated = 0;
-    const gained = processLuckyHarvest(val, "🌾", "#fef08a", "toast_collected_flour");
+    const gained = processLuckyHarvest(val, " Un", "#fef08a", "toast_collected_flour");
     game.flour += gained;
     game.statTotalFlour += gained;
     openBuildingMenu(game.selectedTile);
@@ -5567,7 +5573,7 @@ window.collectPlank = function() {
   const val = b.accumulated || 0;
   if (val > 0.001) {
     b.accumulated = 0;
-    const gained = processLuckyHarvest(val, "🪵", "#fbcfe8", "toast_collected_plank");
+    const gained = processLuckyHarvest(val, " Odun", "#fbcfe8", "toast_collected_plank");
     game.plank += gained;
     game.statTotalPlank += gained;
     openBuildingMenu(game.selectedTile);
@@ -5580,7 +5586,7 @@ window.collectBread = function() {
   const val = b.accumulated || 0;
   if (val > 0.001) {
     b.accumulated = 0;
-    const gained = processLuckyHarvest(val, "🍞", "#fdba74", "toast_collected_bread");
+    const gained = processLuckyHarvest(val, " Ekmek", "#fdba74", "toast_collected_bread");
     game.bread += gained;
     game.statTotalBread += gained;
     openBuildingMenu(game.selectedTile);
@@ -5593,7 +5599,7 @@ window.collectFurniture = function() {
   const val = b.accumulated || 0;
   if (val > 0.001) {
     b.accumulated = 0;
-    const gained = processLuckyHarvest(val, "🪑", "#93c5fd", "toast_collected_furniture");
+    const gained = processLuckyHarvest(val, " Mobilya", "#93c5fd", "toast_collected_furniture");
     game.furniture += gained;
     game.statTotalFurniture += gained;
     openBuildingMenu(game.selectedTile);
@@ -5606,7 +5612,7 @@ window.collectStone = function() {
   const val = b.accumulated || 0;
   if (val > 0.001) {
     b.accumulated = 0;
-    const gained = processLuckyHarvest(val, "🪨", "#cbd5e1", "toast_collected_stone");
+    const gained = processLuckyHarvest(val, " Taş", "#cbd5e1", "toast_collected_stone");
     game.stone = (game.stone || 0) + gained;
     game.statTotalStone = (game.statTotalStone || 0) + gained;
     updateQuestProgress("collect_stone", gained);
@@ -5620,7 +5626,7 @@ window.collectIron = function() {
   const val = b.accumulated || 0;
   if (val > 0.001) {
     b.accumulated = 0;
-    const gained = processLuckyHarvest(val, "⛏️", "#38bdf8", "toast_collected_iron");
+    const gained = processLuckyHarvest(val, " Demir", "#38bdf8", "toast_collected_iron");
     game.iron = (game.iron || 0) + gained;
     game.statTotalIron = (game.statTotalIron || 0) + gained;
     openBuildingMenu(game.selectedTile);
@@ -5638,7 +5644,7 @@ window.warmTile = function() {
 
   if ((game.wood || 0) < WOOD_COST) {
     audio.playError();
-    showToast("⚠️ Tarlayı ısıtmak için en az 5 🪵 Odun gerekli!", true);
+    showToast("Tarlayı ısıtmak için en az 5 Odun gerekli!", true);
     return;
   }
 
@@ -5652,8 +5658,8 @@ window.warmTile = function() {
 
   const p = hexToPixel(tile.q, tile.r);
   triggerShockwave(p.x, p.y, "#f97316");
-  triggerFloatingText(p.x, p.y - 30, "🔥 +%50 ISINMA!", "#f97316");
-  showToast("🔥 Tarla ısıtıldı! Buzlar eridi ve 60 saniye boyunca +%50 üretim hızı kazandı!");
+  triggerFloatingText(p.x, p.y - 30, "+%50 ISINMA!", "#f97316");
+  showToast("Tarla ısıtıldı! Buzlar eridi ve 60 saniye boyunca +%50 üretim hızı kazandı!");
 
   checkTitlesAndAchievements();
   saveGame();
@@ -5670,7 +5676,7 @@ window.tradeMarket = function(recipeKey) {
   if (recipeKey === "flour_to_stone") {
     if ((game.flour || 0) < 15) {
       audio.playError();
-      showToast("⚠️ Yetersiz Un! (15 🌾 Un gerekli)", true);
+      showToast("Yetersiz Un! (15 Un gerekli)", true);
       return;
     }
     game.flour -= 15;
@@ -5678,11 +5684,11 @@ window.tradeMarket = function(recipeKey) {
     game.stone = (game.stone || 0) + gain;
     game.statTotalStone = (game.statTotalStone || 0) + gain;
     audio.playTradeSuccess();
-    showToast(`⚖️ Takas Başarılı! 15 Un verildi, +${gain} 🪨 Taş alındı.`);
+    showToast(`Takas Başarılı! 15 Un verildi, +${gain} Taş alındı.`);
   } else if (recipeKey === "bread_to_iron") {
     if ((game.bread || 0) < 10) {
       audio.playError();
-      showToast("⚠️ Yetersiz Ekmek! (10 🍞 Ekmek gerekli)", true);
+      showToast("Yetersiz Ekmek! (10 Ekmek gerekli)", true);
       return;
     }
     game.bread -= 10;
@@ -5690,11 +5696,11 @@ window.tradeMarket = function(recipeKey) {
     game.iron = (game.iron || 0) + gain;
     game.statTotalIron = (game.statTotalIron || 0) + gain;
     audio.playTradeSuccess();
-    showToast(`⚖️ Takas Başarılı! 10 Ekmek verildi, +${gain} ⛏️ Demir alındı.`);
+    showToast(`Takas Başarılı! 10 Ekmek verildi, +${gain} Demir alındı.`);
   } else if (recipeKey === "furniture_to_stone") {
     if ((game.furniture || 0) < 10) {
       audio.playError();
-      showToast("⚠️ Yetersiz Mobilya! (10 🪑 Mobilya gerekli)", true);
+      showToast("Yetersiz Mobilya! (10 Mobilya gerekli)", true);
       return;
     }
     game.furniture -= 10;
@@ -5702,22 +5708,22 @@ window.tradeMarket = function(recipeKey) {
     game.stone = (game.stone || 0) + gain;
     game.statTotalStone = (game.statTotalStone || 0) + gain;
     audio.playTradeSuccess();
-    showToast(`⚖️ Takas Başarılı! 10 Mobilya verildi, +${gain} 🪨 Taş alındı.`);
+    showToast(`Takas Başarılı! 10 Mobilya verildi, +${gain} Taş alındı.`);
   } else if (recipeKey === "iron_stone_to_crown") {
     if ((game.iron || 0) < 25 || (game.stone || 0) < 25) {
       audio.playError();
-      showToast("⚠️ Yetersiz Maden! (25 ⛏️ Demir + 25 🪨 Taş gerekli)", true);
+      showToast("Yetersiz Maden! (25 Demir + 25 Taş gerekli)", true);
       return;
     }
     game.iron -= 25;
     game.stone -= 25;
     game.crowns = (game.crowns || 0) + 1;
     audio.playTradeSuccess();
-    showToast(`👑 Kraliyet Satışı Tamamlandı! +1 👑 Kraliyet Tacı kazanıldı!`);
+    showToast(`Kraliyet Satışı Tamamlandı! +1 Kraliyet Tacı kazanıldı!`);
   } else if (recipeKey === "obsidian_to_tamga") {
     if ((game.obsidian || 0) < 15) {
       audio.playError();
-      showToast("⚠️ Yetersiz Obsidiyen! (15 🔮 Obsidiyen gerekli)", true);
+      showToast("Yetersiz Obsidiyen! (15 Obsidiyen gerekli)", true);
       return;
     }
     game.obsidian -= 15;
@@ -5737,14 +5743,14 @@ window.tradeMarket = function(recipeKey) {
 // =============================================================================
 
 const TITLES_CONFIG = [
-  { key: "farmer", name: "🌾 Bozkır Çiftçisi", desc: "Toplam 500 Gıda üret.", perk: "Gıda üretimi kalıcı +%5", check: () => (game.statTotalFood || 0) >= 500 },
-  { key: "lumberjack", name: "🪓 Ulu Oduncu", desc: "Toplam 500 Odun üret.", perk: "Odun üretimi kalıcı +%5", check: () => (game.statTotalWood || 0) >= 500 },
-  { key: "conqueror", name: "🏰 Toprak Fatihi", desc: "En az 10 arsa fethet.", perk: "Arsa maliyetleri -%10", check: () => (game.ownedCount || 1) >= 10 },
-  { key: "khagan", name: "👑 Bozkır Hakanı", desc: "Şatoyu 5. Seviyeye yükselt.", perk: "Küresel hız kalıcı +%15", check: () => (game.castleLevel || 1) >= 5 },
-  { key: "nomad", name: "🐎 Kutlu Göçer", desc: "En az 1 kez Büyük Bozkır Göçü yap.", perk: "Göç başlangıcı +50 Gıda, +50 Odun", check: () => (game.totalMigrations || 0) >= 1 },
-  { key: "zudMaster", name: "❄️ Zud Fatihi", desc: "Zud felaketinde donan en az 3 tarlayı ısıt.", perk: "Kışın felaket kaybı -%50 azalır", check: () => (game.warmedTilesCount || 0) >= 3 },
-  { key: "ergenekonLord", name: "🌋 Ergenekon Efendisi", desc: "Yeraltı dünyasında 50 Obsidiyen üret.", perk: "Yeraltı madenlerine +%20 hız", check: () => (game.statTotalObsidian || 0) >= 50 },
-  { key: "merchant", name: "⚖️ İpek Yolu Taciri", desc: "Pazar yerinde en az 5 takas yap.", perk: "Pazar takaslarında +%20 ek kazanç", check: () => (game.marketTradesCount || 0) >= 5 }
+  { key: "farmer", name: "Bozkır Çiftçisi", icon: "food", desc: "Toplam 500 Gıda üret.", perk: "Gıda üretimi kalıcı +%5", check: () => (game.statTotalFood || 0) >= 500 },
+  { key: "lumberjack", name: "Ulu Oduncu", icon: "axe", desc: "Toplam 500 Odun üret.", perk: "Odun üretimi kalıcı +%5", check: () => (game.statTotalWood || 0) >= 500 },
+  { key: "conqueror", name: "Toprak Fatihi", icon: "castle", desc: "En az 10 arsa fethet.", perk: "Arsa maliyetleri -%10", check: () => (game.ownedCount || 1) >= 10 },
+  { key: "khagan", name: "Bozkır Hakanı", icon: "crown", desc: "Şatoyu 5. Seviyeye yükselt.", perk: "Küresel hız kalıcı +%15", check: () => (game.castleLevel || 1) >= 5 },
+  { key: "nomad", name: "Kutlu Göçer", icon: "tamga", desc: "En az 1 kez Büyük Bozkır Göçü yap.", perk: "Göç başlangıcı +50 Gıda, +50 Odun", check: () => (game.totalMigrations || 0) >= 1 },
+  { key: "zudMaster", name: "Zud Fatihi", icon: "winter", desc: "Zud felaketinde donan en az 3 tarlayı ısıt.", perk: "Kışın felaket kaybı -%50 azalır", check: () => (game.warmedTilesCount || 0) >= 3 },
+  { key: "ergenekonLord", name: "Ergenekon Efendisi", icon: "layer", desc: "Yeraltı dünyasında 50 Obsidiyen üret.", perk: "Yeraltı madenlerine +%20 hız", check: () => (game.statTotalObsidian || 0) >= 50 },
+  { key: "merchant", name: "İpek Yolu Taciri", icon: "market", desc: "Pazar yerinde en az 5 takas yap.", perk: "Pazar takaslarında +%20 ek kazanç", check: () => (game.marketTradesCount || 0) >= 5 }
 ];
 
 function checkTitlesAndAchievements() {
@@ -5753,7 +5759,7 @@ function checkTitlesAndAchievements() {
     if (!game.titles[cfg.key] && cfg.check()) {
       game.titles[cfg.key] = true;
       if (audio.playQuestComplete) audio.playQuestComplete();
-      showToast(`🏆 YENİ UNVAN KAZANILDI: ${cfg.name}! (${cfg.perk})`);
+      showToast(`YENİ UNVAN KAZANILDI: ${cfg.name}! (${cfg.perk})`);
       triggerShockwave(0, 0, "#f59e0b");
       updateTitlesUI();
     }
@@ -5770,11 +5776,11 @@ function updateTitlesUI() {
     const card = document.createElement("div");
     card.className = `title-card ${isUnlocked ? "unlocked" : "locked"}`;
     card.innerHTML = `
-      <div class="title-icon">${cfg.name.split(" ")[0]}</div>
+      <div class="title-icon"><svg class="svg-icon svg-icon-lg ${isUnlocked ? 'svg-icon-gold' : 'text-muted'}"><use href="#icon-${cfg.icon}"/></svg></div>
       <div class="title-info">
-        <div class="title-name">${cfg.name} ${isUnlocked ? "✅" : "🔒"}</div>
+        <div class="title-name">${cfg.name} <span class="title-status-tag ${isUnlocked ? 'unlocked' : 'locked'}">${isUnlocked ? 'Açık' : 'Kilitli'}</span></div>
         <div class="title-desc">${cfg.desc}</div>
-        <div class="title-perk">${cfg.perk}</div>
+        <div class="title-perk text-cyan">${cfg.perk}</div>
       </div>
     `;
     container.appendChild(card);
@@ -5788,7 +5794,7 @@ window.buyTalent = function(key) {
 
   if ((game.crowns || 0) < cost) {
     audio.playError();
-    showToast(t("toast_insufficient_res") || "⚠️ Yetersiz Taç!", true);
+    showToast(t("toast_insufficient_res") || "Yetersiz Taç!", true);
     return;
   }
 
@@ -5800,7 +5806,7 @@ window.buyTalent = function(key) {
   saveGame();
   updateTalentsUI();
   updateUI();
-  showToast(`🌟 Yetenek Yükseltildi! (Seviye ${game.talents[key]})`);
+  showToast(`Yetenek Yükseltildi! (Seviye ${game.talents[key]})`);
 };
 
 window.upgradeBuilding = function(type, cost) {
@@ -5852,7 +5858,7 @@ window.upgradeCastle = function() {
     game.castleLevel += 1;
 
     triggerShockwave(0, 0, "#f8c83e");
-    triggerFloatingText(0, -35, `👑 SV. ${game.castleLevel}`, "#f8c83e");
+    triggerFloatingText(0, -35, `SV. ${game.castleLevel}`, "#f8c83e");
     triggerScreenShake(10.0, 0.35);
 
     audio.playCastleUpgrade();
@@ -5906,7 +5912,7 @@ function setupModalHandlers() {
 
       updateUI();
       saveGame();
-      showToast("⚡ 10x ÇILGINLIK BAŞLADI! (5 Dk 10x Hız + Anında 10 Dk Kaynak Yüklendi!)");
+      showToast("10x ÇILGINLIK BAŞLADI! (5 Dk 10x Hız + Anında 10 Dk Kaynak Yüklendi!)");
     });
   }
 
@@ -5973,7 +5979,7 @@ function setupModalHandlers() {
   if (btnMute) {
     btnMute.addEventListener("click", () => {
       audio.isMuted = !audio.isMuted;
-      btnMute.textContent = audio.isMuted ? "🔇 " + t("mute") : "🔊 " + t("unmute");
+      btnMute.innerHTML = audio.isMuted ? getIconSvg("volume-off") + " " + t("mute") : getIconSvg("volume-on") + " " + t("unmute");
       audio.playClick();
     });
   }
@@ -6150,7 +6156,7 @@ window.openOtagModal = function(tabName = "migration") {
 
   const layerLbl = document.getElementById("lbl-active-layer-status");
   if (layerLbl) {
-    layerLbl.textContent = (game.activeLayer === "SURFACE") ? "🌍 Yeryüzü Krallığı" : "🌋 Ergenekon Yeraltı Dünyası";
+    layerLbl.innerHTML = (game.activeLayer === "SURFACE") ? getIconSvg("globe", "svg-icon-green") + " Yeryüzü Krallığı" : getIconSvg("layer", "svg-icon-fire") + " Ergenekon Yeraltı Dünyası";
   }
 
   modalBackdrop.classList.remove("hidden");
@@ -6229,7 +6235,7 @@ function buyToreTalent(branch, key) {
   const cost = Math.round(1 + currentLvl * 2);
   if ((game.tamgas || 0) < cost) {
     audio.playError();
-    showToast("⚠️ Yetersiz Kutlu Damga (𐰋)!", true);
+    showToast("Yetersiz Kutlu Damga (𐰋)!", true);
     return;
   }
   game.tamgas -= cost;
@@ -6268,7 +6274,7 @@ function executeMigration() {
   triggerScreenShake(12.0, 0.4);
   checkTitlesAndAchievements();
   saveGame();
-  showToast(`🐎 BÜYÜK BOZKIR GÖÇÜ TAMAMLANDI! (+${earned} 𐰋 Damga Kazanıldı)`);
+  showToast(`BÜYÜK BOZKIR GÖÇÜ TAMAMLANDI! (+${earned} 𐰋 Damga Kazanıldı)`);
 }
 
 function toggleActiveLayer() {
@@ -6276,13 +6282,13 @@ function toggleActiveLayer() {
   game.activeLayer = (game.activeLayer === "SURFACE") ? "UNDERGROUND" : "SURFACE";
   const btn = document.getElementById("btn-layer");
   if (btn) {
-    btn.textContent = (game.activeLayer === "SURFACE") ? "🌍" : "🌋";
+    btn.innerHTML = (game.activeLayer === "SURFACE") ? getIconSvg("globe") : getIconSvg("layer");
   }
   const layerLbl = document.getElementById("lbl-active-layer-status");
   if (layerLbl) {
-    layerLbl.textContent = (game.activeLayer === "SURFACE") ? "🌍 Yeryüzü Krallığı" : "🌋 Ergenekon Yeraltı Dünyası";
+    layerLbl.innerHTML = (game.activeLayer === "SURFACE") ? getIconSvg("globe", "svg-icon-green") + " Yeryüzü Krallığı" : getIconSvg("layer", "svg-icon-fire") + " Ergenekon Yeraltı Dünyası";
   }
-  showToast((game.activeLayer === "SURFACE") ? "☀️ Bozkır Dünyasına Geçildi" : "🌋 Ergenekon Yeraltı Mağarasına İnildi");
+  showToast((game.activeLayer === "SURFACE") ? "Bozkır Dünyasına Geçildi" : "Ergenekon Yeraltı Mağarasına İnildi");
 }
 
 function openSettingsModal() {
@@ -6328,7 +6334,7 @@ function buyTalent(key) {
   const cost = Math.round(1 + currentLvl * 2);
   if ((game.crowns || 0) < cost) {
     audio.playError();
-    showToast("⚠️ Yetersiz Kraliyet Tacı!", true);
+    showToast("Yetersiz Kraliyet Tacı!", true);
     return;
   }
   game.crowns -= cost;
@@ -6337,13 +6343,13 @@ function buyTalent(key) {
   saveGame();
   updateTalentsUI();
   updateUI();
-  showToast(`✨ Yetenek Yükseltildi! (${key}: Sv. ${game.talents[key]})`);
+  showToast(`Yetenek Yükseltildi! (${key}: Sv. ${game.talents[key]})`);
 }
 
 function updateTalentsUI() {
   if (!game.talents) game.talents = { workerSpeed: 0, boostAll: 0, treasureHunter: 0, conquestMaster: 0 };
   const crownEl = document.getElementById("talent-crowns-val");
-  if (crownEl) crownEl.textContent = `${game.crowns || 0} 👑`;
+  if (crownEl) crownEl.textContent = `${game.crowns || 0}  Taç`;
 
   const talents = [
     { key: "workerSpeed", max: 10 },
@@ -6364,7 +6370,7 @@ function updateTalentsUI() {
         btnEl.textContent = t("max_level") || "Maksimum";
         btnEl.disabled = true;
       } else {
-        btnEl.textContent = `${cost} 👑`;
+        btnEl.textContent = `${cost}  Taç`;
         btnEl.disabled = ((game.crowns || 0) < cost);
       }
     }
@@ -6385,7 +6391,7 @@ function updateLanguageUI() {
   setEl("tab-btn-general", t("tab_general"));
   setEl("tab-btn-stats", t("tab_stats"));
   setEl("tab-btn-prestige", t("tab_prestige"));
-  setEl("tab-btn-talents", t("tab_talents") || "🌟 Yetenekler");
+  setEl("tab-btn-talents", t("tab_talents") || "Yetenekler");
   setEl("lbl-lang-select", t("language_select"));
   setEl("lbl-audio-sfx", t("sfx_volume"));
   setEl("lbl-prestige-desc", t("prestige_desc"));
@@ -6436,9 +6442,9 @@ function updatePrestigeModal() {
   const bonusPct = Math.round((game.getPrestigeMultiplier() - 1.0) * 100);
   const earned = game.calculateEarnedCrowns();
   const currEl = document.getElementById("val-curr-crowns");
-  if (currEl) currEl.textContent = `${game.crowns} 👑 (+%${bonusPct})`;
+  if (currEl) currEl.textContent = `${game.crowns} (+%${bonusPct})`;
   const earnEl = document.getElementById("val-earn-crowns");
-  if (earnEl) earnEl.textContent = `+${earned} 👑`;
+  if (earnEl) earnEl.textContent = `+${earned}  Taç`;
 }
 
 // Çevrimdışı Gelir
@@ -6498,14 +6504,14 @@ function checkOfflineGains(lastTimestamp) {
 
     setGain("lbl-offline-title", t("offline_welcome"));
     setGain("lbl-offline-desc", t("offline_desc", [timeStr]));
-    setGain("gain-food", `+${f.toFixed(1)} 🥡 ${t("food")}`);
-    setGain("gain-wood", `+${w.toFixed(1)} 🪵 ${t("wood")}`);
-    setGain("gain-flour", `+${fl.toFixed(1)} 🌾 ${t("flour")}`);
-    setGain("gain-plank", `+${p.toFixed(1)} 🪵 ${t("plank")}`);
-    setGain("gain-bread", `+${br.toFixed(1)} 🍞 ${t("bread")}`);
-    setGain("gain-furniture", `+${fu.toFixed(1)} 🪑 ${t("furniture")}`);
-    setGain("gain-stone", `+${st.toFixed(1)} 🪨 ${t("stone")}`);
-    setGain("gain-iron", `+${ir.toFixed(1)} ⛏️ ${t("iron")}`);
+    setGain("gain-food", `+${f.toFixed(1)} ${t("food")}`);
+    setGain("gain-wood", `+${w.toFixed(1)} ${t("wood")}`);
+    setGain("gain-flour", `+${fl.toFixed(1)} ${t("flour")}`);
+    setGain("gain-plank", `+${p.toFixed(1)} ${t("plank")}`);
+    setGain("gain-bread", `+${br.toFixed(1)} ${t("bread")}`);
+    setGain("gain-furniture", `+${fu.toFixed(1)} ${t("furniture")}`);
+    setGain("gain-stone", `+${st.toFixed(1)} ${t("stone")}`);
+    setGain("gain-iron", `+${ir.toFixed(1)} ${t("iron")}`);
 
     const claimBtn = document.getElementById("btn-claim-offline");
     if (claimBtn) claimBtn.textContent = t("offline_claim");
@@ -6541,7 +6547,7 @@ function claimOfflineGains(multiplier = 1) {
   audio.playPrestige();
   saveGame();
   if (multiplier > 1) {
-    showToast("🌟 3x Çevrimdışı Ödülü Ambarlara Eklendi!");
+    showToast("3x Çevrimdışı Ödülü Ambarlara Eklendi!");
   }
 }
 

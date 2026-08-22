@@ -37,6 +37,8 @@ static func get_worker_transfer_multiplier(talents: Dictionary, tore_talents: Di
 static func get_expansion_discount(talents: Dictionary, tore_talents: Dictionary = {}, titles: Dictionary = {}) -> float:
 	var conquest_lvl: int = talents.get("conquestMaster", 0)
 	var discount: float = float(conquest_lvl) * 0.03
+	if tore_talents.has("kulTigin"):
+		discount += float(tore_talents["kulTigin"].get("braveHeart", 0)) * 0.05
 	if titles.get("conqueror", false):
 		discount += 0.10
 	return minf(0.60, discount)
