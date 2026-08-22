@@ -2167,35 +2167,31 @@ function drawHexTile(tile) {
     ctx.restore();
   }
 
-  // 8. Keşif Bekleyen Parlayan Göktürk Pusulası / Tamga
+  // 8. Keşif Bekleyen Statik Zemin İşareti / Tamga (Sakin & Sabit)
   if (isDiscovered) {
-    const floatCompass = Math.sin(animWindTime * 3.5) * 2.0;
-    const pulseGlow = Math.sin(animWindTime * 4.0) * 0.2 + 0.8;
-
     ctx.save();
-    ctx.translate(0, floatCompass);
 
-    // Dış Pusula Halkası
-    ctx.strokeStyle = `rgba(56, 189, 248, ${0.45 * pulseGlow})`;
-    ctx.lineWidth = 1.4;
+    // Dış İnce Pusula / Zemin Halkası (Statik)
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.ellipse(0, 0, 16, 10 * Y_SCALE, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 0, 13, 8 * Y_SCALE, 0, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Altın Göktürk Artı Tamgası
-    ctx.strokeStyle = "#fef08a";
-    ctx.lineWidth = 2.4;
+    // Altın Göktürk Artı Tamgası (Statik, Göz Yormayan)
+    ctx.strokeStyle = "rgba(254, 240, 138, 0.75)";
+    ctx.lineWidth = 1.6;
     ctx.beginPath();
-    ctx.moveTo(-7, 0);
-    ctx.lineTo(7, 0);
-    ctx.moveTo(0, -7 * Y_SCALE);
-    ctx.lineTo(0, 7 * Y_SCALE);
+    ctx.moveTo(-5, 0);
+    ctx.lineTo(5, 0);
+    ctx.moveTo(0, -5 * Y_SCALE);
+    ctx.lineTo(0, 5 * Y_SCALE);
     ctx.stroke();
 
     // Merkez Noktası
     ctx.fillStyle = "#38bdf8";
     ctx.beginPath();
-    ctx.arc(0, 0, 2.0, 0, Math.PI * 2);
+    ctx.arc(0, 0, 1.6, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.restore();
