@@ -718,33 +718,67 @@ class GameState {
   }
 
   recalculateVisibility() {
-    const origin = { q: 0, r: 0 };
+    const ownedTiles = Object.values(this.tiles).filter(t => t.state === "OWNED");
+    const biomeKeys = Object.keys(BIOMES);
+    const sightRadius = 3;
 
+    // 1. Her bir sahipli toprağın 3 birim menzilindeki yeni altıgenleri dinamik olarak üret (Spawn)
+    ownedTiles.forEach(ot => {
+      for (let q = -sightRadius; q <= sightRadius; q++) {
+        const r1 = Math.max(-sightRadius, -q - sightRadius);
+        const r2 = Math.min(sightRadius, -q + sightRadius);
+        for (let r = r1; r <= r2; r++) {
+          const tq = ot.q + q;
+          const tr = ot.r + r;
+          const key = `${tq},${tr}`;
+          if (!this.tiles[key]) {
+            const randB = BIOMES[biomeKeys[Math.floor(Math.random() * biomeKeys.length)]];
+            this.tiles[key] = {
+              q: tq,
+              r: tr,
+              state: "HIDDEN",
+              biome: randB,
+              building: null
+            };
+          }
+        }
+      }
+    });
+
+    // 2. Her bir karo için görüş hattını (Line of Sight) hesapla:
+    // En az 1 sahipli topraktan (<=3 mesafe) dağ engeli olmadan doğrudan ışın geliyorsa -> DISCOVERED
     Object.values(this.tiles).forEach(tile => {
       if (tile.state === "OWNED") return;
 
-      const dist = hexDistance(origin, tile);
-      if (dist > 3) {
-        tile.state = "HIDDEN";
-        return;
-      }
+      let canBeSeen = false;
 
-      const line = hexLine(origin, tile);
-      let isBlocked = false;
+      for (let i = 0; i < ownedTiles.length; i++) {
+        const ot = ownedTiles[i];
+        const dist = hexDistance(ot, tile);
+        if (dist <= sightRadius) {
+          const line = hexLine(ot, tile);
+          let isBlocked = false;
 
-      for (let i = 1; i < line.length - 1; i++) {
-        const midKey = `${line[i].q},${line[i].r}`;
-        const midTile = this.tiles[midKey];
-        if (midTile && midTile.biome === BIOMES.MOUNTAIN && midTile.state !== "OWNED") {
-          isBlocked = true;
-          break;
+          for (let j = 1; j < line.length - 1; j++) {
+            const midKey = `${line[j].q},${line[j].r}`;
+            const midTile = this.tiles[midKey];
+            if (midTile && midTile.biome === BIOMES.MOUNTAIN && midTile.state !== "OWNED") {
+              isBlocked = true;
+              break;
+            }
+          }
+
+          if (!isBlocked) {
+            canBeSeen = true;
+            break;
+          }
         }
       }
 
-      if (isBlocked) {
-        tile.state = "HIDDEN";
-      } else {
+      if (canBeSeen) {
         tile.state = "DISCOVERED";
+      } else {
+        tile.state = "HIDDEN";
       }
     });
   }

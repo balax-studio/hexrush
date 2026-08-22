@@ -52,38 +52,63 @@ func initialize_map() -> void:
 	# 2. Merkezden bakışla görüş hattını ve dağ arkası gölgelerini hesapla
 	recalculate_visibility(false)
 
-## Merkezden (veya fethedilmiş topraklardan) bakarak görüş hattını (Line of Sight) hesaplar.
-## Fethedilmemiş dağların arkasında kalan tüm cepheler gizli (HIDDEN) kalır.
+## Her bir sahipli (OWNED) arsanın 3 birim yarıçapındaki yeni altıgenleri dinamik üretir (sonsuz harita)
+## ve fethedilmemiş dağ gölgelerini hesaplayarak görüş alanını günceller.
 func recalculate_visibility(animate: bool = true) -> void:
+	# 1. Tüm sahipli toprakları topla
+	var owned_coords: Array[Vector2i] = []
+	for coord in tiles:
+		var t: HexTile = tiles[coord]
+		if t.state == HexTile.TileState.OWNED:
+			owned_coords.append(coord)
+
+	# 2. Her bir sahipli arsanın 3 birim menzilindeki tüm karoları dinamik olarak üret (Spawn)
+	var sight_radius = 3
+	for o_coord in owned_coords:
+		for q in range(-sight_radius, sight_radius + 1):
+			var r1 = max(-sight_radius, -q - sight_radius)
+			var r2 = min(sight_radius, -q + sight_radius)
+			for r in range(r1, r2 + 1):
+				var target_coord = o_coord + Vector2i(q, r)
+				if not tiles.has(target_coord):
+					var new_tile = spawn_tile(target_coord)
+					var random_type: HexTile.TileType = randi() % HexTile.TileType.size() as HexTile.TileType
+					new_tile.set_tile_type(random_type)
+					new_tile.set_state(HexTile.TileState.HIDDEN, false)
+
+	# 3. Her bir karo için görüş hattını (Line of Sight) hesapla:
+	# En az 1 sahipli topraktan (<=3 mesafe) dağ engeli olmadan doğrudan ışın geliyorsa -> DISCOVERED
 	for coord in tiles:
 		var tile: HexTile = tiles[coord]
 		if tile.state == HexTile.TileState.OWNED:
-			continue # Sahipli topraklar her zaman tam görünür
-
-		var dist = HexMath.hex_distance(Vector2i.ZERO, coord)
-		if dist > 3:
-			tile.set_state(HexTile.TileState.HIDDEN, animate)
 			continue
 
-		# Merkezden (0,0) bu karoya giden ışını (ray) al
-		var line = HexMath.hex_line(Vector2i.ZERO, coord)
-		var is_blocked = false
+		var can_be_seen = false
 
-		# Merkez ve hedef arasındaki tüm ara karoları kontrol et
-		for i in range(1, line.size() - 1):
-			var mid_coord = line[i]
-			if tiles.has(mid_coord):
-				var mid_tile: HexTile = tiles[mid_coord]
-				# Eğer aradaki karo fethedilmemiş bir DAĞ ise arkasındaki görüşü tamamen keser!
-				if mid_tile.tile_type == HexTile.TileType.MOUNTAIN and mid_tile.state != HexTile.TileState.OWNED:
-					is_blocked = true
+		for o_coord in owned_coords:
+			var dist = HexMath.hex_distance(o_coord, coord)
+			if dist <= 3:
+				var line = HexMath.hex_line(o_coord, coord)
+				var is_blocked = false
+
+				for i in range(1, line.size() - 1):
+					var mid_coord = line[i]
+					if tiles.has(mid_coord):
+						var mid_tile: HexTile = tiles[mid_coord]
+						if mid_tile.tile_type == HexTile.TileType.MOUNTAIN and mid_tile.state != HexTile.TileState.OWNED:
+							is_blocked = true
+							break
+
+				if not is_blocked:
+					can_be_seen = true
 					break
 
-		if is_blocked:
-			tile.set_state(HexTile.TileState.HIDDEN, animate)
-		else:
+		if can_be_seen:
 			if tile.state == HexTile.TileState.HIDDEN:
 				tile.set_state(HexTile.TileState.DISCOVERED, animate)
+		else:
+			if tile.state == HexTile.TileState.DISCOVERED:
+				tile.set_state(HexTile.TileState.HIDDEN, animate)
 
 ## Belirtilen koordinatta bir HexTile oluşturur veya mevcut olanı döndürür
 func spawn_tile(coord: Vector2i) -> HexTile:
