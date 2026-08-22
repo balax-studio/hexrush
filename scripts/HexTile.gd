@@ -84,12 +84,6 @@ func _ready() -> void:
 	_update_biome_colors()
 	queue_redraw()
 
-func _on_area_2d_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
-	if state == TileState.HIDDEN:
-		return
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		tile_clicked.emit(self)
-
 func _process(delta: float) -> void:
 	if state != TileState.HIDDEN:
 		_wind_time += delta * 2.5
@@ -131,10 +125,10 @@ func set_state(new_state: TileState, animate: bool = true) -> void:
 			visible = true
 			if animate:
 				var tween = create_tween().set_parallel(true)
-				tween.tween_property(self, "modulate:a", 0.55, 0.35).set_trans(Tween.TRANS_SINE)
+				tween.tween_property(self, "modulate:a", 0.65, 0.35).set_trans(Tween.TRANS_SINE)
 				tween.tween_property(self, "scale", Vector2.ONE, 0.35).from(Vector2.ONE * 0.85)
 			else:
-				modulate.a = 0.55
+				modulate.a = 0.65
 				scale = Vector2.ONE
 		
 		TileState.OWNED:
@@ -299,33 +293,28 @@ func _draw_isometric_mountains() -> void:
 		var mid_base = b_pos + Vector2(0, w * 0.15 * y_scale)
 		var apex = b_pos + Vector2(0, -h)
 		
-		# Gölge ve Işık Yüzeyleri
-		draw_colored_polygon(PackedVector2Array([left_pt, mid_base, apex]), Color(0.32, 0.24, 0.18))
-		draw_colored_polygon(PackedVector2Array([mid_base, right_pt, apex]), Color(0.55, 0.44, 0.32))
+		# Sol (Koyu) ve Sağ (Açık) Yüzeyler
+		draw_colored_polygon(PackedVector2Array([left_pt, mid_base, apex]), Color(0.38, 0.28, 0.20))
+		draw_colored_polygon(PackedVector2Array([mid_base, right_pt, apex]), Color(0.55, 0.42, 0.30))
 		
-		# Kar Şapkası (Snow Cap)
-		var snow_h = h * 0.35
-		var snow_base = apex + Vector2(0, snow_h)
-		var s_left = apex + Vector2(-w * 0.18, snow_h)
-		var s_right = apex + Vector2(w * 0.18, snow_h)
-		draw_colored_polygon(PackedVector2Array([s_left, snow_base, apex]), Color(0.85, 0.9, 0.98))
-		draw_colored_polygon(PackedVector2Array([snow_base, s_right, apex]), Color(1.0, 1.0, 1.0))
+		# Kar Şapkası (Zirve)
+		var snow_h = h * 0.38
+		var snow_left = apex.lerp(left_pt, 0.38)
+		var snow_right = apex.lerp(right_pt, 0.38)
+		var snow_mid = apex.lerp(mid_base, 0.42)
+		draw_colored_polygon(PackedVector2Array([snow_left, snow_mid, apex]), Color(0.85, 0.90, 0.96))
+		draw_colored_polygon(PackedVector2Array([snow_mid, snow_right, apex]), Color(0.96, 0.98, 1.0))
 
-## 🌸 İzometrik Çayır & Çiçek Detayları
+## 🌾 İzometrik Çayır Detayları
 func _draw_isometric_meadow_details() -> void:
-	var spots = [
-		Vector2(-20, -12 * y_scale),
-		Vector2(18, -14 * y_scale),
-		Vector2(-10, 14 * y_scale),
-		Vector2(22, 10 * y_scale)
+	var tufts = [
+		Vector2(-16, -10 * y_scale),
+		Vector2(14, 8 * y_scale),
+		Vector2(0, -18 * y_scale)
 	]
-	for sp in spots:
-		# Küçük çimen tutamı
-		var sway = sin(_wind_time + sp.x) * 1.5
-		draw_line(sp, sp + Vector2(-2 + sway, -6 * y_scale), Color(0.24, 0.65, 0.22), 1.4)
-		draw_line(sp, sp + Vector2(2 + sway, -7 * y_scale), Color(0.28, 0.72, 0.25), 1.4)
-		# Küçük sarı/beyaz çiçek noktası
-		draw_circle(sp + Vector2(sway, -8 * y_scale), 1.5, Color(1.0, 0.92, 0.35))
+	for t in tufts:
+		draw_line(t, t + Vector2(-3, -6 * y_scale), Color(0.48, 0.88, 0.42), 1.2)
+		draw_line(t, t + Vector2(3, -7 * y_scale), Color(0.52, 0.92, 0.45), 1.2)
 
 ## 🌊 İzometrik Deniz Dalgaları
 func _draw_isometric_sea_ripples() -> void:
@@ -344,7 +333,10 @@ func _draw_isometric_shadow(center: Vector2, width: float, height: float, color:
 		poly.append(Vector2(px, py))
 	draw_colored_polygon(poly, color)
 
+## Alanın (Area2D) fiziksel tıklama ve dokunmatik girişini yakalar
 func _on_area_2d_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
+	if state == TileState.HIDDEN:
+		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		tile_clicked.emit(self)
 	elif event is InputEventScreenTouch and event.pressed:
