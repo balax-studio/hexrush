@@ -464,8 +464,8 @@ func get_career_total_resources() -> float:
 
 func calculate_earned_crowns() -> int:
 	var total_res = get_career_total_resources()
-	var base_crowns = int(floor(sqrt(total_res / 1000.0)))
-	return base_crowns * castle_level
+	var base_crowns = int(floor(sqrt(total_res / 20.0)))
+	return max(1, base_crowns * castle_level)
 
 # =============================================================================
 # ANA DÖNGÜ (PROCESS)
@@ -796,6 +796,8 @@ func _on_tile_clicked_owned(_coord: Vector2i, tile: HexTile) -> void:
 			selected_tile = tile
 			active_worker_hut = b
 			open_worker_menu()
+		elif b and ("bridge" in b.name.to_lower() or (b.get_script() != null and "bridge" in b.get_script().resource_path.to_lower())):
+			show_toast("🌉 Ahşap Köprü. Açık deniz geçişi ve kara bağlantısı aktif.")
 		else:
 			close_all_menus()
 			selected_tile = tile
@@ -1530,23 +1532,6 @@ func _update_stats_tab_live() -> void:
 	if stat_flour_label: stat_flour_label.text = "%s: %.1f" % [Localization.tr_t("stat_total_flour"), stat_total_flour]
 	if stat_plank_label: stat_plank_label.text = "%s: %.1f" % [Localization.tr_t("stat_total_plank"), stat_total_plank]
 	if stat_rebirths_label: stat_rebirths_label.text = "%s: %d" % [Localization.tr_t("stat_rebirths"), total_rebirths]
-
-func get_castle_multiplier() -> float:
-	return 1.0 + float(castle_level - 1) * 0.25
-
-func get_prestige_multiplier() -> float:
-	return 1.0 + float(crowns) * 0.05
-
-func get_global_multiplier() -> float:
-	return get_castle_multiplier() * get_prestige_multiplier()
-
-func get_career_total_resources() -> float:
-	return stat_total_food + stat_total_wood + stat_total_flour + stat_total_plank
-
-func calculate_earned_crowns() -> int:
-	var total_res = get_career_total_resources()
-	var base_crowns = int(floor(sqrt(total_res / 20.0)))
-	return max(1, base_crowns * castle_level)
 
 func _update_prestige_tab_live() -> void:
 	var cur_bonus = int((get_prestige_multiplier() - 1.0) * 100.0)

@@ -84,6 +84,12 @@ func _ready() -> void:
 	_update_biome_colors()
 	queue_redraw()
 
+func _on_area_2d_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
+	if state == TileState.HIDDEN:
+		return
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		tile_clicked.emit(self)
+
 func _process(delta: float) -> void:
 	if state != TileState.HIDDEN:
 		_wind_time += delta * 2.5
