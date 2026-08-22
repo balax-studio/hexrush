@@ -56,6 +56,8 @@ const STRINGS = {
     mine_desc: "Taş ve odundan demir külçeleri eritir.",
     worker_name: "İşçi Kulübesi",
     worker_desc: "Komşulardan otomatik hammadde taşır.",
+    watchtower_name: "Gözcü Kulesi",
+    watchtower_desc: "Gece akıncılarına karşı krallığı korur ve ganimet toplar.",
     castle_title: "🏰 Krallık Şatosu",
     global_bonus: "Küresel Üretim & Taşıma Bonusu",
     next_unlock: "Sonraki Kilit",
@@ -109,6 +111,7 @@ const STRINGS = {
     toast_built_quarry: "🪨 Taş Ocağı kuruldu! Taş üretimi başladı.",
     toast_built_mine: "⛏️ Demir Madeni kuruldu! Demir üretimi başladı.",
     toast_built_worker: "🛖 İşçi Kulübesi kuruldu! Otomatik taşıma başladı.",
+    toast_built_watchtower: "🏹 Gözcü Kulesi kuruldu! Gece savunması aktif.",
     toast_built_bridge: "🌉 Köprü inşa edildi! Deniz ötesi kara fethine açıldı.",
     toast_collected_food: "🥡 +{0} Gıda ambarına eklendi!",
     toast_collected_wood: "🪵 +{0} Odun kereste ambarına eklendi!",
@@ -199,6 +202,8 @@ const STRINGS = {
     mine_desc: "Smelts iron ore from stone and wood.",
     worker_name: "Worker Hut",
     worker_desc: "Auto-gathers resources from neighbors.",
+    watchtower_name: "Watchtower",
+    watchtower_desc: "Defends the realm against night raiders and claims loot.",
     castle_title: "🏰 Kingdom Castle",
     global_bonus: "Global Production & Transport Bonus",
     next_unlock: "Next Unlock",
@@ -248,6 +253,7 @@ const STRINGS = {
     toast_built_quarry: "🪨 Stone Quarry built! Stone extraction started.",
     toast_built_mine: "⛏️ Iron Mine built! Iron smelting started.",
     toast_built_worker: "🛖 Worker Hut built! Auto-transport active.",
+    toast_built_watchtower: "🏹 Watchtower built! Night defense active.",
     toast_built_bridge: "🌉 Bridge built! Oversea lands unlocked for conquest.",
     toast_collected_food: "🥡 +{0} Food added to storage!",
     toast_collected_wood: "🪵 +{0} Wood added to storage!",
@@ -337,6 +343,8 @@ const STRINGS = {
     mine_desc: "Funde hierro con piedra y madera.",
     worker_name: "Cabaña de Obreros",
     worker_desc: "Transporta recursos de vecinos.",
+    watchtower_name: "Torre de Vigilancia",
+    watchtower_desc: "Defiende el reino contra asaltos nocturnos y recoge botín.",
     castle_title: "🏰 Castillo del Reino",
     global_bonus: "Bono Global de Producción",
     next_unlock: "Próximo Desbloqueo",
@@ -386,6 +394,7 @@ const STRINGS = {
     toast_built_quarry: "🪨 ¡Cantera de Piedra construida!",
     toast_built_mine: "⛏️ ¡Mina de Hierro construida!",
     toast_built_worker: "🛖 ¡Cabaña de Obreros construida!",
+    toast_built_watchtower: "🏹 ¡Torre de Vigilancia construida! Defensa nocturna activa.",
     toast_built_bridge: "🌉 ¡Puente construido!",
     toast_collected_food: "🥡 ¡+{0} Comida recolectada!",
     toast_collected_wood: "🪵 ¡+{0} Madera recolectada!",
@@ -475,6 +484,8 @@ const STRINGS = {
     mine_desc: "Schmilzt Eisenerz aus Stein und Holz.",
     worker_name: "Arbeiterhütte",
     worker_desc: "Transportiert Waren von Nachbarn.",
+    watchtower_name: "Wachturm",
+    watchtower_desc: "Verteidigt das Reich gegen nächtliche Überfälle und sammelt Beute.",
     castle_title: "🏰 Königsburg",
     global_bonus: "Globaler Produktionsbonus",
     next_unlock: "Nächste Freischaltung",
@@ -524,6 +535,7 @@ const STRINGS = {
     toast_built_quarry: "🪨 Steinbruch errichtet!",
     toast_built_mine: "⛏️ Eisenmine errichtet!",
     toast_built_worker: "🛖 Arbeiterhütte errichtet!",
+    toast_built_watchtower: "🏹 Wachturm errichtet! Nachtverteidigung aktiv.",
     toast_built_bridge: "🌉 Brücke errichtet!",
     toast_collected_food: "🥡 +{0} Nahrung gesammelt!",
     toast_collected_wood: "🪵 +{0} Holz gesammelt!",
@@ -635,6 +647,9 @@ class SoundSynth {
   playUpgrade() { this.playTones([440, 554.37, 659.25, 880], 0.22, 'triangle'); }
   playCastleUpgrade() { this.playTones([523.25, 659.25, 783.99, 1046.5], 0.35, 'triangle'); }
   playPrestige() { this.playTones([523.25, 659.25, 783.99, 1046.5, 1318.51, 1567.98], 0.55, 'triangle'); }
+  playQuestComplete() { this.playTones([523.25, 659.25, 783.99, 1046.5, 1318.51], 0.35, 'triangle'); }
+  playRaidAlarm() { this.playTones([146.83, 110.0, 146.83, 220.0], 0.45, 'sawtooth'); }
+  playDiceRoll() { this.playTones([330, 440, 550, 660], 0.15, 'sine'); }
   playError() { this.playTones([180, 130], 0.12, 'square'); }
 }
 
@@ -778,11 +793,114 @@ const CASTLE_UPGRADES = {
 // =============================================================================
 
 const BIOMES = {
-  SEA: { id: 0, name: "Sea", baseColor: "#2e82de", borderColor: "#1f5f9e" },
-  MEADOW: { id: 1, name: "Meadow", baseColor: "#61c75c", borderColor: "#3e8c38" },
-  FOREST: { id: 2, name: "Forest", baseColor: "#1e702e", borderColor: "#12471c" },
-  MOUNTAIN: { id: 3, name: "Mountain", baseColor: "#846142", borderColor: "#573b24" }
+  SEA: { 
+    id: 0, 
+    name: "Sea", 
+    baseColor: "#1a5370", 
+    topGrad: ["#236b8e", "#123f56"],
+    borderColor: "#0c2c3d",
+    skirtLeft: "#0f364a",
+    skirtRight: "#081f2b"
+  },
+  MEADOW: { 
+    id: 1, 
+    name: "Meadow", 
+    baseColor: "#498450", 
+    topGrad: ["#56995e", "#3a7040"],
+    borderColor: "#224426",
+    skirtLeft: "#2c5231",
+    skirtRight: "#19331d"
+  },
+  FOREST: { 
+    id: 2, 
+    name: "Forest", 
+    baseColor: "#1d5334", 
+    topGrad: ["#276b44", "#144226"],
+    borderColor: "#0e2c1a",
+    skirtLeft: "#194228",
+    skirtRight: "#0d2617"
+  },
+  MOUNTAIN: { 
+    id: 3, 
+    name: "Mountain", 
+    baseColor: "#5e544a", 
+    topGrad: ["#70655a", "#4a4138"],
+    borderColor: "#2d2720",
+    skirtLeft: "#3c342d",
+    skirtRight: "#231e1a"
+  },
+  SNOW_PEAK: {
+    id: 4,
+    name: "SnowPeak",
+    baseColor: "#94a3b8",
+    topGrad: ["#f1f5f9", "#cbd5e1"],
+    borderColor: "#475569",
+    skirtLeft: "#64748b",
+    skirtRight: "#334155"
+  },
+  DESERT_OASIS: {
+    id: 5,
+    name: "DesertOasis",
+    baseColor: "#d97706",
+    topGrad: ["#f59e0b", "#b45309"],
+    borderColor: "#78350f",
+    skirtLeft: "#92400e",
+    skirtRight: "#78350f"
+  },
+  WONDER: {
+    id: 6,
+    name: "Wonder",
+    baseColor: "#0f172a",
+    topGrad: ["#1e293b", "#0f172a"],
+    borderColor: "#06b6d4",
+    skirtLeft: "#1e1b4b",
+    skirtRight: "#090d16"
+  },
+  CAVERN: {
+    id: 10,
+    name: "Cavern",
+    baseColor: "#18181b",
+    topGrad: ["#27272a", "#09090b"],
+    borderColor: "#3f3f46",
+    skirtLeft: "#27272a",
+    skirtRight: "#09090b"
+  },
+  MAGMA: {
+    id: 11,
+    name: "Magma",
+    baseColor: "#ea580c",
+    topGrad: ["#f97316", "#c2410c"],
+    borderColor: "#7c2d12",
+    skirtLeft: "#9a3412",
+    skirtRight: "#431407"
+  },
+  CRYSTAL: {
+    id: 12,
+    name: "Crystal",
+    baseColor: "#0284c7",
+    topGrad: ["#38bdf8", "#0369a1"],
+    borderColor: "#075985",
+    skirtLeft: "#0369a1",
+    skirtRight: "#0c4a6e"
+  }
 };
+
+function getTieredBiome(q, r) {
+  const dist = (Math.abs(q) + Math.abs(q + r) + Math.abs(r)) / 2;
+  const rand = Math.random();
+
+  if (dist <= 3) {
+    const pool = [BIOMES.MEADOW, BIOMES.MEADOW, BIOMES.FOREST, BIOMES.FOREST, BIOMES.MOUNTAIN, BIOMES.SEA];
+    return pool[Math.floor(rand * pool.length)];
+  } else if (dist <= 6) {
+    const pool = [BIOMES.MEADOW, BIOMES.FOREST, BIOMES.MOUNTAIN, BIOMES.SNOW_PEAK, BIOMES.DESERT_OASIS, BIOMES.SEA];
+    return pool[Math.floor(rand * pool.length)];
+  } else {
+    if (rand < 0.12) return BIOMES.WONDER;
+    const pool = [BIOMES.SNOW_PEAK, BIOMES.DESERT_OASIS, BIOMES.MOUNTAIN, BIOMES.FOREST, BIOMES.MEADOW];
+    return pool[Math.floor(rand * pool.length)];
+  }
+}
 
 class GameState {
   constructor() {
@@ -802,7 +920,54 @@ class GameState {
     this.purchasedForestCount = 0;
     this.purchasedSeaCount = 0;
     this.purchasedMountainCount = 0;
+    this.purchasedSnowPeakCount = 0;
+    this.purchasedDesertCount = 0;
+    this.purchasedWonderCount = 0;
     this.castleLevel = 1;
+
+    // Göktürk Damgası / Büyük Bozkır Göçü (Prestige 2.0)
+    this.tamgas = 0;
+    this.totalMigrations = 0;
+    this.toreTalents = {
+      gokTengri: { rainBlessing: 0, shamanAura: 0 },
+      kulTigin: { braveHeart: 0, steelKorgan: 0 },
+      tonyukuk: { silkNetwork: 0, pavedRoads: 0 }
+    };
+
+    // Dinamik Bozkır Mevsimleri & Zud Afeti
+    this.season = "SPRING"; // SPRING, SUMMER, AUTUMN, WINTER
+    this.seasonTimer = 0.0; // 45 saniye/mevsim
+    this.seasonYear = 1;
+    this.isZud = false;
+    this.pavedRoads = {};
+    this.packMules = [];
+
+    // Ergenekon Yeraltı Dünyası (2. Katman Haritası)
+    this.activeLayer = "SURFACE"; // "SURFACE" veya "UNDERGROUND"
+    this.undergroundUnlocked = false;
+    this.undergroundTiles = {};
+    this.obsidian = 0.0;
+    this.mithril = 0.0;
+    this.statTotalObsidian = 0.0;
+    this.statTotalMithril = 0.0;
+
+    this.relics = {
+      axe: false,
+      cornucopia: false,
+      standard: false,
+      shield: false
+    };
+
+    this.quests = {
+      fast: null,
+      strat: null,
+      epic: null
+    };
+
+    this.activeEncounter = null;
+    this.encounterTimer = 0.0;
+    this.shamanBoostTimer = 0.0;
+    this.lastRaidNight = -1;
 
     this.talents = {
       workerSpeed: 0,
@@ -850,7 +1015,19 @@ class GameState {
   }
 
   getGlobalMultiplier() {
-    return this.getCastleMultiplier() * this.getPrestigeMultiplier() * this.getFrenzyMultiplier();
+    const shamanBoost = (this.shamanBoostTimer > 0.0) ? (5.0 + (this.toreTalents && this.toreTalents.gokTengri ? this.toreTalents.gokTengri.shamanAura * 1.25 : 0)) : 1.0;
+    
+    // Mevsim Çarpanları
+    let seasonBonus = 1.0;
+    if (this.season === "SPRING") seasonBonus = 1.20;
+    else if (this.season === "SUMMER") seasonBonus = 1.15;
+    else if (this.season === "AUTUMN") seasonBonus = 1.25;
+    else if (this.season === "WINTER") seasonBonus = this.isZud ? 0.85 : 1.0;
+
+    // Töre Yağmur Bereketi
+    const rainTalent = (this.toreTalents && this.toreTalents.gokTengri && this.toreTalents.gokTengri.rainBlessing) ? (this.toreTalents.gokTengri.rainBlessing * 0.30) : 0;
+    
+    return this.getCastleMultiplier() * this.getPrestigeMultiplier() * this.getFrenzyMultiplier() * shamanBoost * (seasonBonus + rainTalent);
   }
 
   getLandExpansionCost(q, r, biome) {
@@ -860,9 +1037,14 @@ class GameState {
     else if (biome === BIOMES.FOREST) n = this.purchasedForestCount;
     else if (biome === BIOMES.SEA) n = this.purchasedSeaCount;
     else if (biome === BIOMES.MOUNTAIN) n = this.purchasedMountainCount;
+    else if (biome === BIOMES.SNOW_PEAK) n = this.purchasedSnowPeakCount;
+    else if (biome === BIOMES.DESERT_OASIS) n = this.purchasedDesertCount;
+    else if (biome === BIOMES.WONDER) n = this.purchasedWonderCount;
     
     const conquestLvl = (this.talents && this.talents.conquestMaster) ? this.talents.conquestMaster : 0;
-    const discount = Math.max(0.5, 1.0 - conquestLvl * 0.08);
+    const toreConquestLvl = (this.toreTalents && this.toreTalents.kulTigin && this.toreTalents.kulTigin.braveHeart) ? this.toreTalents.kulTigin.braveHeart : 0;
+    const relicDiscount = (this.relics && this.relics.standard) ? 0.85 : 1.0;
+    const discount = Math.max(0.25, (1.0 - conquestLvl * 0.08 - toreConquestLvl * 0.15) * relicDiscount);
 
     const baseCost = Math.max(1, Math.floor(1.0 * Math.pow(1.15, n) * (1.0 + 0.15 * Math.max(0, dist - 1)) * discount));
     
@@ -872,6 +1054,9 @@ class GameState {
       if (biome === BIOMES.FOREST) return { zone: 1, food: 0, wood: baseCost, flour: 0, plank: 0, bread: 0, furniture: 0, stone: 0, iron: 0 };
       if (biome === BIOMES.SEA) return { zone: 1, food: 0, wood: baseCost, flour: 0, plank: 0, bread: 0, furniture: 0, stone: 0, iron: 0 };
       if (biome === BIOMES.MOUNTAIN) return { zone: 1, food: baseCost, wood: baseCost, flour: 0, plank: 0, bread: 0, furniture: 0, stone: 0, iron: 0 };
+      if (biome === BIOMES.SNOW_PEAK) return { zone: 1, food: baseCost, wood: baseCost * 2, flour: 0, plank: 0, bread: 0, furniture: 0, stone: baseCost, iron: 0 };
+      if (biome === BIOMES.DESERT_OASIS) return { zone: 1, food: baseCost * 2, wood: baseCost, flour: 0, plank: 0, bread: 0, furniture: 0, stone: 0, iron: 0 };
+      if (biome === BIOMES.WONDER) return { zone: 1, food: baseCost * 3, wood: baseCost * 3, flour: 0, plank: 0, bread: 0, furniture: 0, stone: baseCost * 2, iron: baseCost };
       return { zone: 1, food: baseCost, wood: baseCost, flour: 0, plank: 0, bread: 0, furniture: 0, stone: 0, iron: 0 };
     }
     // Bölge 2: 7 - 12 hex (Temel + Tier 2)
@@ -881,6 +1066,9 @@ class GameState {
       if (biome === BIOMES.FOREST) return { zone: 2, food: 0, wood: baseCost, flour: 0, plank: tier2Cost, bread: 0, furniture: 0, stone: 0, iron: 0 };
       if (biome === BIOMES.SEA) return { zone: 2, food: 0, wood: baseCost, flour: 0, plank: tier2Cost, bread: 0, furniture: 0, stone: 0, iron: 0 };
       if (biome === BIOMES.MOUNTAIN) return { zone: 2, food: baseCost, wood: baseCost, flour: 0, plank: tier2Cost, bread: 0, furniture: 0, stone: tier2Cost, iron: 0 };
+      if (biome === BIOMES.SNOW_PEAK) return { zone: 2, food: baseCost, wood: baseCost, flour: 0, plank: tier2Cost, bread: 0, furniture: 0, stone: tier2Cost * 2, iron: tier2Cost };
+      if (biome === BIOMES.DESERT_OASIS) return { zone: 2, food: baseCost * 2, wood: baseCost, flour: tier2Cost * 2, plank: 0, bread: 0, furniture: 0, stone: tier2Cost, iron: 0 };
+      if (biome === BIOMES.WONDER) return { zone: 2, food: baseCost * 2, wood: baseCost * 2, flour: tier2Cost, plank: tier2Cost, bread: 0, furniture: 0, stone: tier2Cost * 2, iron: tier2Cost * 2 };
       return { zone: 2, food: baseCost, wood: baseCost, flour: tier2Cost, plank: tier2Cost, bread: 0, furniture: 0, stone: tier2Cost, iron: 0 };
     }
     // Bölge 3: 13+ hex (Tier 3)
@@ -889,12 +1077,15 @@ class GameState {
       if (biome === BIOMES.MEADOW) return { zone: 3, food: baseCost, wood: 0, flour: 6, plank: 0, bread: tier3Cost, furniture: 0, stone: 0, iron: 0 };
       if (biome === BIOMES.FOREST) return { zone: 3, food: 0, wood: baseCost, flour: 0, plank: 6, bread: 0, furniture: tier3Cost, stone: 0, iron: 0 };
       if (biome === BIOMES.MOUNTAIN) return { zone: 3, food: baseCost, wood: baseCost, flour: 0, plank: 6, bread: 0, furniture: 0, stone: 6, iron: tier3Cost };
+      if (biome === BIOMES.SNOW_PEAK) return { zone: 3, food: baseCost, wood: baseCost, flour: 0, plank: 6, bread: 0, furniture: 0, stone: 10, iron: tier3Cost * 2 };
+      if (biome === BIOMES.DESERT_OASIS) return { zone: 3, food: baseCost * 2, wood: baseCost, flour: 10, plank: 0, bread: tier3Cost * 2, furniture: 0, stone: 6, iron: tier3Cost };
+      if (biome === BIOMES.WONDER) return { zone: 3, food: baseCost * 2, wood: baseCost * 2, flour: 10, plank: 10, bread: tier3Cost * 2, furniture: tier3Cost * 2, stone: 10, iron: tier3Cost * 2 };
       return { zone: 3, food: baseCost, wood: baseCost, flour: 6, plank: 6, bread: tier3Cost, furniture: tier3Cost, stone: 6, iron: tier3Cost };
     }
   }
 
   getCareerTotalResources() {
-    return (this.statTotalFood || 0) + (this.statTotalWood || 0) + (this.statTotalFlour || 0) + (this.statTotalPlank || 0) + (this.statTotalBread || 0) + (this.statTotalFurniture || 0) + (this.statTotalStone || 0) + (this.statTotalIron || 0);
+    return (this.statTotalFood || 0) + (this.statTotalWood || 0) + (this.statTotalFlour || 0) + (this.statTotalPlank || 0) + (this.statTotalBread || 0) + (this.statTotalFurniture || 0) + (this.statTotalStone || 0) + (this.statTotalIron || 0) + (this.statTotalObsidian || 0) + (this.statTotalMithril || 0);
   }
 
   calculateEarnedCrowns() {
@@ -903,13 +1094,18 @@ class GameState {
     return Math.max(1, baseCrowns * this.castleLevel);
   }
 
+  calculateEarnedTamgas() {
+    const totalRes = this.getCareerTotalResources();
+    const baseTamgas = Math.floor(Math.sqrt(totalRes / 25.0) * (1.0 + this.ownedCount / 8.0));
+    return Math.max(1, baseTamgas);
+  }
+
   initFreshMap() {
     this.tiles = {};
     this.ownedCount = 1;
     this.purchasedTilesCount = 0;
 
     const radius = 3;
-    const biomeKeys = Object.keys(BIOMES);
 
     // Şato etrafındaki 6 komşu için garantili biyom listesi (0 deniz, en az 3 çayır, en az 1 orman)
     const immediateBiomes = [BIOMES.MEADOW, BIOMES.MEADOW, BIOMES.MEADOW, BIOMES.FOREST];
@@ -931,33 +1127,74 @@ class GameState {
             q: 0, r: 0,
             state: "OWNED",
             biome: BIOMES.MEADOW,
-            building: { type: "castle", level: this.castleLevel }
+            building: { type: "castle", level: this.castleLevel },
+            hasRuins: false
           };
         } else if (immediateNeighbors.includes(key)) {
+          const b = immediateBiomes[neighborIdx++];
           this.tiles[key] = {
             q, r,
             state: "HIDDEN",
-            biome: immediateBiomes[neighborIdx++],
-            building: null
+            biome: b,
+            building: null,
+            hasRuins: (b !== BIOMES.SEA && Math.random() < 0.18)
           };
         } else {
-          const randB = BIOMES[biomeKeys[Math.floor(Math.random() * biomeKeys.length)]];
+          const b = getTieredBiome(q, r);
           this.tiles[key] = {
             q, r,
             state: "HIDDEN",
-            biome: randB,
-            building: null
+            biome: b,
+            building: null,
+            hasRuins: (b !== BIOMES.SEA && Math.random() < 0.18)
           };
         }
       }
     }
 
+    if (!this.undergroundTiles || Object.keys(this.undergroundTiles).length === 0) {
+      this.initUndergroundMap();
+    }
+
     this.recalculateVisibility();
+    initQuests();
+  }
+
+  initUndergroundMap() {
+    this.undergroundTiles = {};
+    const radius = 3;
+    const underPool = [BIOMES.CAVERN, BIOMES.CAVERN, BIOMES.MAGMA, BIOMES.CRYSTAL];
+
+    for (let q = -radius; q <= radius; q++) {
+      const r1 = Math.max(-radius, -q - radius);
+      const r2 = Math.min(radius, -q + radius);
+      for (let r = r1; r <= r2; r++) {
+        const key = `${q},${r}`;
+        if (q === 0 && r === 0) {
+          this.undergroundTiles[key] = {
+            q: 0, r: 0,
+            state: "OWNED",
+            biome: BIOMES.CAVERN,
+            building: { type: "underground_forge", level: 1 },
+            hasRuins: false
+          };
+        } else {
+          const b = underPool[Math.floor(Math.random() * underPool.length)];
+          const isOwned = (Math.abs(q) <= 1 && Math.abs(r) <= 1 && Math.abs(q + r) <= 1);
+          this.undergroundTiles[key] = {
+            q, r,
+            state: isOwned ? "OWNED" : "DISCOVERED",
+            biome: b,
+            building: isOwned ? (b === BIOMES.CRYSTAL ? { type: "crystal_mine", level: 1 } : null) : null,
+            hasRuins: false
+          };
+        }
+      }
+    }
   }
 
   recalculateVisibility() {
     const ownedTiles = Object.values(this.tiles).filter(t => t.state === "OWNED");
-    const biomeKeys = Object.keys(BIOMES);
     const sightRadius = 3;
 
     // 1. Her bir sahipli toprağın 3 birim menzilindeki yeni altıgenleri dinamik olarak üret (Spawn)
@@ -970,13 +1207,14 @@ class GameState {
           const tr = ot.r + r;
           const key = `${tq},${tr}`;
           if (!this.tiles[key]) {
-            const randB = BIOMES[biomeKeys[Math.floor(Math.random() * biomeKeys.length)]];
+            const randB = getTieredBiome(tq, tr);
             this.tiles[key] = {
               q: tq,
               r: tr,
               state: "HIDDEN",
               biome: randB,
-              building: null
+              building: null,
+              hasRuins: (randB !== BIOMES.SEA && Math.random() < 0.18)
             };
           }
         }
@@ -1059,6 +1297,14 @@ let screenShakeDuration = 0.0;
 let shockwaves = [];
 let floatingTexts = [];
 
+// 🌾 MİKRO YAŞAM PARÇACIKLARI & POST-PROCESSING SİSTEMİ
+let roamingHerds = [];       // Koyun ve Yılkı Atları Sürüsü
+let chimneyPuffs = [];       // Bacalardan Kıvrılarak Çıkan Duman
+let flyingResourceGems = []; // Parabolik Uçan Kaynak Taşları
+let cloudShadows = [];       // Harita Üzerinden Geçen Yumuşak Bulut Gölgeleri
+let weatherStreaks = [];     // Hafif Yağmur & Bozkır Rüzgarı Parçacıkları
+let tileBounceMap = {};      // Karo / Bina Tıklama Squash & Stretch Bouncesi
+
 function triggerScreenShake(intensity = 6.0, duration = 0.2) {
   screenShakeIntensity = intensity;
   screenShakeDuration = duration;
@@ -1076,6 +1322,25 @@ function triggerFloatingText(x, y, text, color = "#f8c83e") {
   floatingTexts.push({ x, y, text, color, alpha: 1.0, life: 1.0 });
 }
 
+function triggerTileBounce(q, r) {
+  tileBounceMap[`${q},${r}`] = { timer: 0.22, maxTime: 0.22 };
+}
+
+function triggerFlyingResource(fromX, fromY, icon = "🥡", color = "#4ade80") {
+  flyingResourceGems.push({
+    x: fromX,
+    y: fromY,
+    startX: fromX,
+    startY: fromY,
+    targetX: fromX + (Math.random() - 0.5) * 50,
+    targetY: fromY - 75,
+    icon,
+    color,
+    progress: 0.0,
+    speed: 2.2
+  });
+}
+
 function resizeCanvas() {
   const dpr = window.devicePixelRatio || 1;
   canvas.width = window.innerWidth * dpr;
@@ -1085,17 +1350,348 @@ function resizeCanvas() {
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 
+// =============================================================================
+// MİKRO DİNAMİK SİSTEM GÜNCELLEYİCİLERİ (MICRO-ECOSYSTEM UPDATE)
+// =============================================================================
+
+function updateCloudShadows(delta) {
+  if (cloudShadows.length === 0) {
+    for (let i = 0; i < 5; i++) {
+      cloudShadows.push({
+        x: (Math.random() - 0.5) * 1400,
+        y: (Math.random() - 0.5) * 900,
+        w: 220 + Math.random() * 140,
+        h: 110 + Math.random() * 70,
+        speed: 14 + Math.random() * 10
+      });
+    }
+  }
+  cloudShadows.forEach(c => {
+    c.x += c.speed * delta;
+    if (c.x > 1200) c.x = -1200;
+  });
+}
+
+function updateRoamingHerds(delta) {
+  const ownedMeadows = Object.values(game.tiles).filter(t => (t.state === "OWNED" || t.state === "DISCOVERED") && (t.biome === BIOMES.MEADOW || t.biome === BIOMES.MOUNTAIN));
+  if (ownedMeadows.length === 0) return;
+
+  const targetCount = Math.min(6, Math.max(2, Math.floor(ownedMeadows.length * 0.45)));
+  while (roamingHerds.length < targetCount) {
+    const t = ownedMeadows[Math.floor(Math.random() * ownedMeadows.length)];
+    const p = hexToPixel(t.q, t.r);
+    const isHorse = Math.random() > 0.45;
+    roamingHerds.push({
+      q: t.q,
+      r: t.r,
+      x: p.x + (Math.random() - 0.5) * 18,
+      y: p.y + (Math.random() - 0.5) * 12 * Y_SCALE,
+      targetX: p.x,
+      targetY: p.y,
+      type: isHorse ? "horse" : "sheep",
+      waitTimer: 2.0 + Math.random() * 4.0,
+      isMoving: false,
+      moveSpeed: isHorse ? 24 : 12,
+      facing: 1,
+      animTime: Math.random() * 10
+    });
+  }
+
+  roamingHerds.forEach(h => {
+    h.animTime += delta;
+    if (h.isMoving) {
+      const dx = h.targetX - h.x;
+      const dy = h.targetY - h.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < 2.0) {
+        h.x = h.targetX;
+        h.y = h.targetY;
+        h.isMoving = false;
+        h.waitTimer = 3.0 + Math.random() * 5.0;
+      } else {
+        const step = h.moveSpeed * delta;
+        h.x += (dx / dist) * step;
+        h.y += (dy / dist) * step;
+        h.facing = dx >= 0 ? 1 : -1;
+      }
+    } else {
+      h.waitTimer -= delta;
+      if (h.waitTimer <= 0) {
+        const currentTile = game.tiles[`${h.q},${h.r}`];
+        if (currentTile) {
+          const neighbors = [];
+          NEIGHBOR_DIRS.forEach(d => {
+            const nb = game.tiles[`${h.q + d.q},${h.r + d.r}`];
+            if (nb && (nb.state === "OWNED" || nb.state === "DISCOVERED") && (nb.biome === BIOMES.MEADOW || nb.biome === BIOMES.MOUNTAIN)) {
+              neighbors.push(nb);
+            }
+          });
+          const nextTile = neighbors.length > 0 ? neighbors[Math.floor(Math.random() * neighbors.length)] : currentTile;
+          const nextPixel = hexToPixel(nextTile.q, nextTile.r);
+          h.q = nextTile.q;
+          h.r = nextTile.r;
+          h.targetX = nextPixel.x + (Math.random() - 0.5) * 20;
+          h.targetY = nextPixel.y + (Math.random() - 0.5) * 14 * Y_SCALE;
+          h.isMoving = true;
+        }
+      }
+    }
+  });
+}
+
+function updateChimneyPuffs(delta) {
+  Object.values(game.tiles).forEach(t => {
+    if (t.state === "OWNED" && t.building) {
+      const b = t.building;
+      if (b.type === "bakery" || b.type === "mine" || b.type === "worker" || b.type === "lumberjack") {
+        if (Math.random() < 0.20) {
+          const p = hexToPixel(t.q, t.r);
+          let chimneyOffset = { x: 9, y: -32 * Y_SCALE };
+          if (b.type === "mine") chimneyOffset = { x: 18, y: -24 * Y_SCALE };
+          if (b.type === "worker") chimneyOffset = { x: -8, y: -32 * Y_SCALE };
+          if (b.type === "lumberjack") chimneyOffset = { x: 10, y: -30 * Y_SCALE };
+          
+          chimneyPuffs.push({
+            x: p.x + chimneyOffset.x,
+            y: p.y + chimneyOffset.y,
+            vx: (Math.random() - 0.5) * 3.5 + 2.5,
+            vy: -11.0 - Math.random() * 7.0,
+            size: 2.5 + Math.random() * 1.8,
+            alpha: 0.60,
+            maxLife: 2.0,
+            life: 2.0
+          });
+        }
+      }
+    }
+  });
+
+  for (let i = chimneyPuffs.length - 1; i >= 0; i--) {
+    const puff = chimneyPuffs[i];
+    puff.x += puff.vx * delta;
+    puff.y += puff.vy * delta;
+    puff.size += 3.2 * delta;
+    puff.life -= delta;
+    puff.alpha = Math.max(0, (puff.life / puff.maxLife) * 0.5);
+    if (puff.life <= 0) {
+      chimneyPuffs.splice(i, 1);
+    }
+  }
+}
+
+function updateFlyingResources(delta) {
+  for (let i = flyingResourceGems.length - 1; i >= 0; i--) {
+    const gem = flyingResourceGems[i];
+    gem.progress += gem.speed * delta;
+    gem.x = gem.startX + (gem.targetX - gem.startX) * gem.progress;
+    gem.y = gem.startY + (gem.targetY - gem.startY) * gem.progress - Math.sin(gem.progress * Math.PI) * 25;
+    if (gem.progress >= 1.0) {
+      flyingResourceGems.splice(i, 1);
+    }
+  }
+}
+
+function updateTileBounces(delta) {
+  Object.keys(tileBounceMap).forEach(k => {
+    tileBounceMap[k].timer -= delta;
+    if (tileBounceMap[k].timer <= 0) {
+      delete tileBounceMap[k];
+    }
+  });
+}
+
+function updateWeatherStreaks(delta) {
+  if (weatherStreaks.length < 40) {
+    weatherStreaks.push({
+      x: (Math.random() - 0.5) * 1600,
+      y: (Math.random() - 0.5) * 1200,
+      len: 14 + Math.random() * 18,
+      speedX: 180 + Math.random() * 90,
+      speedY: 300 + Math.random() * 140,
+      alpha: 0.18 + Math.random() * 0.22
+    });
+  }
+
+  for (let i = 0; i < weatherStreaks.length; i++) {
+    const s = weatherStreaks[i];
+    s.x += s.speedX * delta;
+    s.y += s.speedY * delta;
+    if (s.x > 900) s.x = -900;
+    if (s.y > 700) s.y = -700;
+  }
+}
+
+// 🌸 Dinamik Mevsim Parçacıkları (İlkbahar Çiçeği, Yaz Parıltısı, Sonbahar Yaprağı, Zud Kar Fırtınası)
+const seasonalParticles = [];
+
+function updateSeasonalParticles(delta) {
+  const maxParticles = (game.season === "WINTER" && game.isZud) ? 75 : 30;
+  if (seasonalParticles.length < maxParticles) {
+    let pType = "blossom";
+    let pColor = "#f472b6";
+    if (game.season === "SUMMER") { pType = "sparkle"; pColor = "#fde047"; }
+    else if (game.season === "AUTUMN") { pType = "leaf"; pColor = "#f59e0b"; }
+    else if (game.season === "WINTER") { pType = "snowflake"; pColor = "#e0f2fe"; }
+
+    seasonalParticles.push({
+      x: (Math.random() - 0.5) * 1600,
+      y: (Math.random() - 0.5) * 1200,
+      type: pType,
+      color: pColor,
+      size: 2.0 + Math.random() * 3.5,
+      speedX: (game.season === "WINTER" && game.isZud ? 240 : 40) + Math.random() * 30,
+      speedY: (game.season === "WINTER" && game.isZud ? 180 : 60) + Math.random() * 40,
+      rot: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 4.0,
+      alpha: 0.4 + Math.random() * 0.5
+    });
+  }
+
+  for (let i = seasonalParticles.length - 1; i >= 0; i--) {
+    const p = seasonalParticles[i];
+    p.x += p.speedX * delta;
+    p.y += p.speedY * delta;
+    p.rot += p.rotSpeed * delta;
+    if (p.x > 850 || p.y > 650) {
+      p.x = -850 + Math.random() * 200;
+      p.y = -650 + Math.random() * 200;
+    }
+  }
+}
+
+function drawSeasonalParticles() {
+  if (game.activeLayer === "UNDERGROUND") return;
+
+  ctx.save();
+  seasonalParticles.forEach(p => {
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rot);
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = p.alpha;
+
+    if (p.type === "leaf") {
+      ctx.beginPath();
+      ctx.ellipse(0, 0, p.size * 1.6, p.size * 0.8, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (p.type === "blossom") {
+      ctx.beginPath();
+      ctx.arc(0, 0, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (p.type === "snowflake") {
+      ctx.beginPath();
+      ctx.arc(0, 0, p.size * (game.isZud ? 1.4 : 1.0), 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+    }
+    ctx.restore();
+  });
+  ctx.restore();
+}
+
+// 🛤️ Taş Kervan Yolu Bağlantıları (Paved Trade Roads)
+function drawPavedRoads() {
+  const tiles = (game.activeLayer === "UNDERGROUND") ? game.undergroundTiles : game.tiles;
+  if (!tiles) return;
+
+  const drawnPairs = new Set();
+  const ownedTiles = Object.values(tiles).filter(t => t.state === "OWNED");
+
+  ctx.save();
+  ctx.strokeStyle = "#475569";
+  ctx.lineWidth = 3.5;
+  if (ctx.setLineDash) ctx.setLineDash([4, 4]);
+
+  ownedTiles.forEach(t1 => {
+    const p1 = hexToPixel(t1.q, t1.r);
+    const neighbors = [
+      { q: t1.q + 1, r: t1.r },
+      { q: t1.q + 1, r: t1.r - 1 },
+      { q: t1.q,     r: t1.r - 1 },
+      { q: t1.q - 1, r: t1.r },
+      { q: t1.q - 1, r: t1.r + 1 },
+      { q: t1.q,     r: t1.r + 1 }
+    ];
+
+    neighbors.forEach(n => {
+      const key = `${n.q},${n.r}`;
+      const t2 = tiles[key];
+      if (t2 && t2.state === "OWNED" && (t1.building || t2.building)) {
+        const pairKey = [ `${t1.q},${t1.r}`, `${t2.q},${t2.r}` ].sort().join("--");
+        if (!drawnPairs.has(pairKey)) {
+          drawnPairs.add(pairKey);
+          const p2 = hexToPixel(t2.q, t2.r);
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y + 4 * Y_SCALE);
+          ctx.lineTo(p2.x, p2.y + 4 * Y_SCALE);
+          ctx.stroke();
+        }
+      }
+    });
+  });
+
+  if (ctx.setLineDash) ctx.setLineDash([]);
+  ctx.restore();
+}
+
+// 🐎 Kervan Katırları Hareketi
+function updatePackMules(delta) {
+  if (!game.packMules) game.packMules = [];
+
+  if (game.packMules.length < 3 && game.activeLayer === "SURFACE") {
+    const ownedBuildings = Object.values(game.tiles).filter(t => t.state === "OWNED" && t.building);
+    if (ownedBuildings.length >= 2) {
+      const b1 = ownedBuildings[Math.floor(Math.random() * ownedBuildings.length)];
+      const b2 = ownedBuildings[Math.floor(Math.random() * ownedBuildings.length)];
+      if (b1 !== b2) {
+        const p1 = hexToPixel(b1.q, b1.r);
+        const p2 = hexToPixel(b2.q, b2.r);
+        game.packMules.push({
+          startX: p1.x, startY: p1.y,
+          endX: p2.x, endY: p2.y,
+          x: p1.x, y: p1.y,
+          progress: 0.0,
+          speed: 0.12 + Math.random() * 0.08,
+          facing: (p2.x >= p1.x) ? 1 : -1
+        });
+      }
+    }
+  }
+
+  for (let i = game.packMules.length - 1; i >= 0; i--) {
+    const m = game.packMules[i];
+    m.progress += m.speed * delta;
+    m.x = m.startX + (m.endX - m.startX) * m.progress;
+    m.y = m.startY + (m.endY - m.startY) * m.progress;
+    if (m.progress >= 1.0) {
+      game.packMules.splice(i, 1);
+    }
+  }
+}
+
+// =============================================================================
+// ANA CANVAS ÇİZİM MOTORU (DRAW)
+// =============================================================================
+
 function draw() {
   ctx.save();
   ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
-  // Arka plan koyu gradyanı (Brutalist Sinematik Göktürk Atmosferi)
+  // 1. Arka plan Atmosferi (Yeraltı vs Bozkır)
+  const isUnderground = (game.activeLayer === "UNDERGROUND");
   const bgGrad = ctx.createRadialGradient(
-    window.innerWidth / 2, window.innerHeight / 2, 50,
+    window.innerWidth / 2, window.innerHeight / 2, 60,
     window.innerWidth / 2, window.innerHeight / 2, Math.max(window.innerWidth, window.innerHeight)
   );
-  bgGrad.addColorStop(0, "#0f172a");
-  bgGrad.addColorStop(1, "#020617");
+
+  if (isUnderground) {
+    bgGrad.addColorStop(0, "#2a0800");
+    bgGrad.addColorStop(1, "#09090b");
+  } else {
+    bgGrad.addColorStop(0, "#0b1329");
+    bgGrad.addColorStop(1, "#020617");
+  }
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
@@ -1111,38 +1707,115 @@ function draw() {
   ctx.translate(window.innerWidth / 2 + camera.x + shakeX, window.innerHeight / 2 + camera.y + shakeY);
   ctx.scale(camera.zoom, camera.zoom);
 
-  // Karoları Y-Sort derinliğine göre sırala
-  const tileList = Object.values(game.tiles).filter(t => t.state !== "HIDDEN");
+  // 2. Yeryüzü Bulut Gölgeleri (Yalnızca Surface'da)
+  if (!isUnderground) {
+    ctx.save();
+    ctx.fillStyle = "rgba(0, 0, 0, 0.18)";
+    cloudShadows.forEach(c => {
+      ctx.beginPath();
+      ctx.ellipse(c.x, c.y * Y_SCALE, c.w * 0.5, c.h * 0.5 * Y_SCALE, 0.1, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  // 3. Karoları Y-Sort derinliğine göre sırala
+  const activeTileSource = isUnderground ? (game.undergroundTiles || {}) : (game.tiles || {});
+  const tileList = Object.values(activeTileSource).filter(t => t.state !== "HIDDEN");
   tileList.sort((a, b) => {
     const posA = hexToPixel(a.q, a.r);
     const posB = hexToPixel(b.q, b.r);
     return posA.y - posB.y;
   });
 
-  // 1. Karoları Çiz
+  // 4. Kervan Taş Yolları (Paved Roads)
+  drawPavedRoads();
+
+  // 5. Karoları ve Katmanlı 3D Toprak Kesitlerini Çiz (Stratum Skirts)
   tileList.forEach(tile => {
     drawHexTile(tile);
   });
 
-  // 2. Dinamik Savaş Sisi (Fog of War) - Gizli Alanlar Üzerinde Hareketli Sis Bulutları
-  const hiddenTiles = Object.values(game.tiles).filter(t => t.state === "HIDDEN");
+  // 6. Yollarda Yürüyen Yüklü Kervan Katırları
+  drawPackMules(animWindTime);
+
+  // 7. Haritada Otlayan / Koşan Canlı Hayvan Sürüleri (Yalnızca Bozkır)
+  if (!isUnderground) {
+    drawRoamingHerds(animWindTime);
+  }
+
+  // 8. Bacalardan Yükselen Duman Pufcukları
+  ctx.save();
+  chimneyPuffs.forEach(p => {
+    ctx.fillStyle = `rgba(226, 232, 240, ${p.alpha})`;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.restore();
+
+  // 9. Post-Processing & Işıklandırma (Bloom & Torch Glows)
+  tileList.forEach(tile => {
+    if (tile.state === "OWNED") {
+      const pos = hexToPixel(tile.q, tile.r);
+      if (tile.building && tile.building.type === "watchtower") {
+        const radGrad = ctx.createRadialGradient(pos.x + 10, pos.y - 36 * Y_SCALE, 2, pos.x + 10, pos.y - 36 * Y_SCALE, 45);
+        radGrad.addColorStop(0, "rgba(245, 158, 11, 0.45)");
+        radGrad.addColorStop(1, "rgba(245, 158, 11, 0.0)");
+        ctx.fillStyle = radGrad;
+        ctx.beginPath();
+        ctx.arc(pos.x + 10, pos.y - 36 * Y_SCALE, 45, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (tile.building && tile.building.type === "castle") {
+        const radGrad = ctx.createRadialGradient(pos.x, pos.y - 20 * Y_SCALE, 4, pos.x, pos.y - 20 * Y_SCALE, 55);
+        radGrad.addColorStop(0, "rgba(248, 200, 62, 0.35)");
+        radGrad.addColorStop(1, "rgba(248, 200, 62, 0.0)");
+        ctx.fillStyle = radGrad;
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y - 20 * Y_SCALE, 55, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (tile.hasRuins || tile.biome === BIOMES.WONDER) {
+        const radGrad = ctx.createRadialGradient(pos.x, pos.y - 12 * Y_SCALE, 2, pos.x, pos.y - 12 * Y_SCALE, 45);
+        radGrad.addColorStop(0, "rgba(6, 182, 212, 0.45)");
+        radGrad.addColorStop(1, "rgba(6, 182, 212, 0.0)");
+        ctx.fillStyle = radGrad;
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y - 12 * Y_SCALE, 45, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  });
+
+  // 10. Dinamik Savaş Sisi (Fog of War) - Gizli Alanlar
+  const hiddenTiles = Object.values(activeTileSource).filter(t => t.state === "HIDDEN");
   hiddenTiles.forEach(ht => {
     const pos = hexToPixel(ht.q, ht.r);
-    // Kamera görüş alanı içinde mi?
     const screenX = pos.x + camera.x + window.innerWidth / 2;
     const screenY = pos.y + camera.y + window.innerHeight / 2;
     if (screenX > -100 && screenX < window.innerWidth + 100 && screenY > -100 && screenY < window.innerHeight + 100) {
       const fogSway = Math.sin(animWindTime * 1.5 + ht.q * 1.2) * 8.0;
       ctx.save();
-      ctx.fillStyle = "rgba(15, 23, 42, 0.65)";
+      ctx.fillStyle = isUnderground ? "rgba(9, 9, 11, 0.85)" : "rgba(15, 23, 42, 0.70)";
       ctx.beginPath();
-      ctx.ellipse(pos.x + fogSway, pos.y, 45, 28 * Y_SCALE, 0, 0, Math.PI * 2);
+      ctx.ellipse(pos.x + fogSway, pos.y, 46, 28 * Y_SCALE, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
     }
   });
 
-  // 3. Şok Dalgalarını Çiz (Conquest Shockwaves)
+  // 11. Parabolik Uçan Kaynak Parçacıkları (Flying Gems)
+  flyingResourceGems.forEach(gem => {
+    ctx.save();
+    ctx.font = "bold 14px 'Outfit', sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillStyle = gem.color;
+    ctx.shadowColor = "rgba(0,0,0,0.8)";
+    ctx.shadowBlur = 4;
+    ctx.fillText(gem.icon, gem.x, gem.y);
+    ctx.restore();
+  });
+
+  // 12. Şok Dalgalarını Çiz (Conquest Shockwaves)
   for (let i = shockwaves.length - 1; i >= 0; i--) {
     const sw = shockwaves[i];
     ctx.save();
@@ -1161,11 +1834,11 @@ function draw() {
     }
   }
 
-  // 4. Yükselen Metinleri Çiz (Floating Gain Texts)
+  // 13. Yükselen Metinleri Çiz (Floating Gain Texts)
   for (let i = floatingTexts.length - 1; i >= 0; i--) {
     const ft = floatingTexts[i];
     ctx.save();
-    ctx.font = "bold 13px 'Outfit', sans-serif";
+    ctx.font = "bold 13px 'JetBrains Mono', monospace";
     ctx.textAlign = "center";
     ctx.fillStyle = ft.color;
     ctx.globalAlpha = Math.max(0, ft.alpha);
@@ -1181,62 +1854,207 @@ function draw() {
     }
   }
 
-  // 5. Gündüz / Günbatımı / Gece Sinematik Atmosfer Tonu Overlay
+  // 14. Dinamik Mevsim Parçacıkları (Çiçek, Yaprak, Kar)
+  drawSeasonalParticles();
+
+  // 15. Gündüz / Gece Sinematik Atmosfer Tonu
   const dayCycle = (game.animDayTime || 0) % 1.0;
-  if (dayCycle > 0.35 && dayCycle <= 0.6) {
-    const t = (dayCycle - 0.35) / 0.25;
-    ctx.save();
-    ctx.fillStyle = `rgba(245, 158, 11, ${0.12 * Math.sin(t * Math.PI)})`;
-    ctx.fillRect(-window.innerWidth * 2, -window.innerHeight * 2, window.innerWidth * 4, window.innerHeight * 4);
-    ctx.restore();
-  } else if (dayCycle > 0.6 && dayCycle <= 0.9) {
-    const t = (dayCycle - 0.6) / 0.3;
-    ctx.save();
-    ctx.fillStyle = `rgba(15, 23, 42, ${0.28 * Math.sin(t * Math.PI)})`;
-    ctx.fillRect(-window.innerWidth * 2, -window.innerHeight * 2, window.innerWidth * 4, window.innerHeight * 4);
-    ctx.restore();
+  if (!isUnderground) {
+    if (dayCycle > 0.35 && dayCycle <= 0.6) {
+      const t = (dayCycle - 0.35) / 0.25;
+      ctx.save();
+      ctx.fillStyle = `rgba(245, 158, 11, ${0.12 * Math.sin(t * Math.PI)})`;
+      ctx.fillRect(-window.innerWidth * 2, -window.innerHeight * 2, window.innerWidth * 4, window.innerHeight * 4);
+      ctx.restore();
+    } else if (dayCycle > 0.6 && dayCycle <= 0.9) {
+      const t = (dayCycle - 0.6) / 0.3;
+      ctx.save();
+      ctx.fillStyle = `rgba(15, 23, 42, ${0.32 * Math.sin(t * Math.PI)})`;
+      ctx.fillRect(-window.innerWidth * 2, -window.innerHeight * 2, window.innerWidth * 4, window.innerHeight * 4);
+      ctx.restore();
+    }
+
+    // 16. Yağmur Esintileri
+    if (dayCycle > 0.45 && dayCycle < 0.85) {
+      ctx.save();
+      ctx.strokeStyle = "rgba(186, 230, 253, 0.28)";
+      ctx.lineWidth = 1.2;
+      for (let i = 0; i < weatherStreaks.length; i++) {
+        const s = weatherStreaks[i];
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(s.x + s.len * 0.4, s.y + s.len);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // 17. Zud Kış Kar Fırtınası Don Overlay
+    if (game.season === "WINTER" && game.isZud) {
+      ctx.save();
+      ctx.fillStyle = "rgba(224, 242, 254, 0.15)";
+      ctx.fillRect(-window.innerWidth * 2, -window.innerHeight * 2, window.innerWidth * 4, window.innerHeight * 4);
+      ctx.restore();
+    }
   }
 
   ctx.restore();
 }
 
+// =============================================================================
+// 3D KATMANLI STRATUM HEX BEDROCK (3D TOPRAK KESİTİ)
+// =============================================================================
+
+// =============================================================================
+// ENTEGRE NEO-BRUTALIST TAŞ ROZET (HARVEST BADGE)
+// =============================================================================
+
+function drawHarvestBadge(x, y, icon, amount, time) {
+  const floatOffset = Math.sin(time * 3.5) * 2.5;
+  const pulse = Math.sin(time * 5.0) * 0.05 + 1.0;
+  const by = y + floatOffset;
+
+  ctx.save();
+  ctx.translate(x, by);
+  ctx.scale(pulse, pulse);
+
+  // 1. Sert Ofset Gölge (Neo-Brutalist 2px 2px)
+  ctx.fillStyle = "rgba(2, 6, 23, 0.85)";
+  ctx.fillRect(-15 + 2, -10 * Y_SCALE + 2, 30, 18 * Y_SCALE);
+
+  // 2. Taş Tablet Zemin
+  ctx.fillStyle = "#090d16";
+  ctx.fillRect(-15, -10 * Y_SCALE, 30, 18 * Y_SCALE);
+
+  // 3. Altın Kenarlık
+  ctx.strokeStyle = "#f59e0b";
+  ctx.lineWidth = 1.6;
+  ctx.strokeRect(-15, -10 * Y_SCALE, 30, 18 * Y_SCALE);
+
+  // 4. İkon
+  ctx.font = "12px Outfit, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(icon, 0, 3.5 * Y_SCALE);
+
+  // 5. Altın Işıltı Köşesi
+  ctx.fillStyle = "#fef08a";
+  ctx.fillRect(-13, -8 * Y_SCALE, 2.5, 2.5);
+
+  ctx.restore();
+}
+
+// =============================================================================
+// 3D KATMANLI STRATUM HEX BEDROCK (3D TOPRAK KESİTİ & DİORAMA)
+// =============================================================================
+
 function drawHexTile(tile) {
   const pos = hexToPixel(tile.q, tile.r);
   const corners = getHexCorners(HEX_SIZE, Y_SCALE);
   const isDiscovered = (tile.state === "DISCOVERED");
+  const bounceInfo = tileBounceMap[`${tile.q},${tile.r}`];
 
   ctx.save();
   ctx.translate(pos.x, pos.y);
 
-  if (isDiscovered) {
-    ctx.globalAlpha = 0.52;
+  if (bounceInfo) {
+    const bProgress = bounceInfo.timer / bounceInfo.maxTime;
+    const bScale = 1.0 + Math.sin(bProgress * Math.PI) * 0.12;
+    ctx.scale(bScale, bScale);
   }
 
-  // 1. 3D Taban Kalınlığı (Side Extrusion)
-  const depth = 18.0 * Y_SCALE;
-  const sideColor1 = "#182a1b";
-  const sideColor2 = "#0e1c10";
+  if (isDiscovered) {
+    ctx.globalAlpha = 0.65;
+  }
 
-  ctx.fillStyle = sideColor1;
+  // 1. Üç Kademeli 3D Stratum Etekleri (Organik Çim Pahı -> Tortul Kil -> Bazalt Taban)
+  const l1Depth = 5.0 * Y_SCALE;  // Üst çim/toprak katmanı
+  const l2Depth = 15.0 * Y_SCALE; // Orta kil ve tortul kayaç tabakası
+  const l3Depth = 26.0 * Y_SCALE; // Alt koyu bazalt ana kaya tabakası
+
+  const sLeft = tile.biome.skirtLeft || "#2c5231";
+  const sRight = tile.biome.skirtRight || "#19331d";
+
+  // --- Katman 3: Bazalt Koyu Ana Kaya (En Alt) ---
+  // Sol Etek Yüzü (Hafif Işık Alır)
+  ctx.fillStyle = "#090d16";
+  ctx.beginPath();
+  ctx.moveTo(corners[2].x, corners[2].y + l2Depth);
+  ctx.lineTo(corners[3].x, corners[3].y + l2Depth);
+  ctx.lineTo(corners[3].x, corners[3].y + l3Depth);
+  ctx.lineTo(corners[2].x, corners[2].y + l3Depth);
+  ctx.closePath();
+  ctx.fill();
+
+  // Sağ Etek Yüzü (Derin Gölgede)
+  ctx.fillStyle = "#030712";
+  ctx.beginPath();
+  ctx.moveTo(corners[3].x, corners[3].y + l2Depth);
+  ctx.lineTo(corners[4].x, corners[4].y + l2Depth);
+  ctx.lineTo(corners[4].x, corners[4].y + l3Depth);
+  ctx.lineTo(corners[3].x, corners[3].y + l3Depth);
+  ctx.closePath();
+  ctx.fill();
+
+  // --- Katman 2: Orta Bozkır Kili & Tortul Kayaç (Terracotta / Clay) ---
+  // Sol Etek Yüzü
+  ctx.fillStyle = "#3e271c";
+  ctx.beginPath();
+  ctx.moveTo(corners[2].x, corners[2].y + l1Depth);
+  ctx.lineTo(corners[3].x, corners[3].y + l1Depth);
+  ctx.lineTo(corners[3].x, corners[3].y + l2Depth);
+  ctx.lineTo(corners[2].x, corners[2].y + l2Depth);
+  ctx.closePath();
+  ctx.fill();
+
+  // Tortul Çizgi Detayı (Sol)
+  ctx.strokeStyle = "#4a3023";
+  ctx.lineWidth = 1.0;
+  ctx.beginPath();
+  ctx.moveTo(corners[2].x, corners[2].y + l1Depth + 4 * Y_SCALE);
+  ctx.lineTo(corners[3].x, corners[3].y + l1Depth + 4 * Y_SCALE);
+  ctx.stroke();
+
+  // Sağ Etek Yüzü
+  ctx.fillStyle = "#261710";
+  ctx.beginPath();
+  ctx.moveTo(corners[3].x, corners[3].y + l1Depth);
+  ctx.lineTo(corners[4].x, corners[4].y + l1Depth);
+  ctx.lineTo(corners[4].x, corners[4].y + l2Depth);
+  ctx.lineTo(corners[3].x, corners[3].y + l2Depth);
+  ctx.closePath();
+  ctx.fill();
+
+  // --- Katman 1: Üst Organik Toprak / Biyom Pahı ---
+  // Sol Etek Yüzü
+  ctx.fillStyle = sLeft;
   ctx.beginPath();
   ctx.moveTo(corners[2].x, corners[2].y);
   ctx.lineTo(corners[3].x, corners[3].y);
-  ctx.lineTo(corners[3].x, corners[3].y + depth);
-  ctx.lineTo(corners[2].x, corners[2].y + depth);
+  ctx.lineTo(corners[3].x, corners[3].y + l1Depth);
+  ctx.lineTo(corners[2].x, corners[2].y + l1Depth);
   ctx.closePath();
   ctx.fill();
 
-  ctx.fillStyle = sideColor2;
+  // Sağ Etek Yüzü
+  ctx.fillStyle = sRight;
   ctx.beginPath();
   ctx.moveTo(corners[3].x, corners[3].y);
   ctx.lineTo(corners[4].x, corners[4].y);
-  ctx.lineTo(corners[4].x, corners[4].y + depth);
-  ctx.lineTo(corners[3].x, corners[3].y + depth);
+  ctx.lineTo(corners[4].x, corners[4].y + l1Depth);
+  ctx.lineTo(corners[3].x, corners[3].y + l1Depth);
   ctx.closePath();
   ctx.fill();
 
-  // 2. Üst Yüzey Poligonu
-  ctx.fillStyle = tile.biome.baseColor;
+  // 2. Üst Yüzey Poligonu (135° Güneş Işığı Gradyanı)
+  const topGrad = ctx.createLinearGradient(
+    -HEX_SIZE * 0.6, -HEX_SIZE * 0.7 * Y_SCALE,
+    HEX_SIZE * 0.6, HEX_SIZE * 0.7 * Y_SCALE
+  );
+  const gradColors = tile.biome.topGrad || [tile.biome.baseColor, tile.biome.baseColor];
+  topGrad.addColorStop(0, gradColors[0]);
+  topGrad.addColorStop(1, gradColors[1]);
+
+  ctx.fillStyle = topGrad;
   ctx.beginPath();
   ctx.moveTo(corners[0].x, corners[0].y);
   for (let i = 1; i < 6; i++) {
@@ -1245,14 +2063,43 @@ function drawHexTile(tile) {
   ctx.closePath();
   ctx.fill();
 
-  // 3. Kenarlık Çizgisi
-  ctx.strokeStyle = isDiscovered ? "#7dd3fc" : tile.biome.borderColor;
-  ctx.lineWidth = isDiscovered ? 2.8 : 2.0;
+  // 3. İç Pah (Inner Bevel) Işık ve Gölge Çizgileri
+  // Üst 3 Kenar (Işık Yansıması)
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(corners[5].x, corners[5].y);
+  ctx.lineTo(corners[0].x, corners[0].y);
+  ctx.lineTo(corners[1].x, corners[1].y);
+  ctx.lineTo(corners[2].x, corners[2].y);
   ctx.stroke();
 
-  // 4. Biyom Detayları (Bina yoksa)
+  // Alt 3 Kenar (Gölge Yansıması)
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.25)";
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(corners[2].x, corners[2].y);
+  ctx.lineTo(corners[3].x, corners[3].y);
+  ctx.lineTo(corners[4].x, corners[4].y);
+  ctx.lineTo(corners[5].x, corners[5].y);
+  ctx.stroke();
+
+  // 4. Neo-Brutalist Dış Karo Kenarlık Çizgisi
+  ctx.strokeStyle = isDiscovered ? "#38bdf8" : (tile.biome.borderColor || "#1e293b");
+  ctx.lineWidth = isDiscovered ? 2.6 : 1.8;
+  ctx.beginPath();
+  ctx.moveTo(corners[0].x, corners[0].y);
+  for (let i = 1; i < 6; i++) {
+    ctx.lineTo(corners[i].x, corners[i].y);
+  }
+  ctx.closePath();
+  ctx.stroke();
+
+  // 5. Biyom Detayları (Bina yoksa)
   if (!tile.building) {
-    if (tile.biome === BIOMES.FOREST) {
+    if (tile.hasRuins) {
+      drawIsometricRuins(animWindTime);
+    } else if (tile.biome === BIOMES.FOREST) {
       drawIsometricForest(animWindTime);
     } else if (tile.biome === BIOMES.MOUNTAIN) {
       drawIsometricMountain();
@@ -1260,19 +2107,35 @@ function drawHexTile(tile) {
       drawIsometricMeadow(animWindTime);
     } else if (tile.biome === BIOMES.SEA) {
       drawIsometricSea(animWindTime);
+    } else if (tile.biome === BIOMES.SNOW_PEAK) {
+      drawIsometricSnowPeak(animWindTime);
+    } else if (tile.biome === BIOMES.DESERT_OASIS) {
+      drawIsometricDesertOasis(animWindTime);
+    } else if (tile.biome === BIOMES.WONDER) {
+      drawIsometricWonder(animWindTime);
+    } else if (tile.biome === BIOMES.CAVERN || tile.biome === BIOMES.MAGMA || tile.biome === BIOMES.CRYSTAL) {
+      drawIsometricUndergroundCavern(tile, animWindTime);
     }
   } else {
-    // 5. Bina Görselleri & 3D Animasyonları
+    // 6. 3D Monolitik Bozkır Mimarisi Yapıları
     drawBuilding(tile.building, animWindTime);
   }
 
-  // 6. Aktif Hazine Sandığı (Canlı Bouncing & Parıltılı Altın Aura)
+  // 6b. Aktif Rastgele Olay (Kervan veya Şaman)
+  if (game.activeEncounter && game.activeEncounter.q === tile.q && game.activeEncounter.r === tile.r) {
+    if (game.activeEncounter.type === "trader") {
+      drawIsometricCaravan(animWindTime);
+    } else if (game.activeEncounter.type === "shaman") {
+      drawIsometricShaman(animWindTime);
+    }
+  }
+
+  // 7. Aktif Hazine Sandığı (Canlı Bouncing & Parıltılı Altın Aura)
   const hasChest = (game.activeChests && game.activeChests.some(c => c.q === tile.q && c.r === tile.r));
   if (hasChest) {
     const bounce = Math.sin(animWindTime * 4.5) * 4.5;
     ctx.save();
-    // Altın Işık Halesi
-    ctx.fillStyle = "rgba(234, 179, 8, 0.4)";
+    ctx.fillStyle = "rgba(245, 158, 11, 0.45)";
     ctx.beginPath();
     ctx.arc(0, -18 * Y_SCALE + bounce, 18, 0, Math.PI * 2);
     ctx.fill();
@@ -1283,138 +2146,638 @@ function drawHexTile(tile) {
     ctx.restore();
   }
 
-  // 7. Keşif Bekleyen Artı Sembolü
+  // 8. Keşif Bekleyen Parlayan Göktürk Pusulası / Tamga
   if (isDiscovered) {
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 3.0;
-    const cSize = 9.0;
+    const floatCompass = Math.sin(animWindTime * 3.5) * 2.0;
+    const pulseGlow = Math.sin(animWindTime * 4.0) * 0.2 + 0.8;
+
+    ctx.save();
+    ctx.translate(0, floatCompass);
+
+    // Dış Pusula Halkası
+    ctx.strokeStyle = `rgba(56, 189, 248, ${0.45 * pulseGlow})`;
+    ctx.lineWidth = 1.4;
     ctx.beginPath();
-    ctx.moveTo(-cSize, 0);
-    ctx.lineTo(cSize, 0);
-    ctx.moveTo(0, -cSize * Y_SCALE);
-    ctx.lineTo(0, cSize * Y_SCALE);
+    ctx.ellipse(0, 0, 16, 10 * Y_SCALE, 0, 0, Math.PI * 2);
     ctx.stroke();
+
+    // Altın Göktürk Artı Tamgası
+    ctx.strokeStyle = "#fef08a";
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.moveTo(-7, 0);
+    ctx.lineTo(7, 0);
+    ctx.moveTo(0, -7 * Y_SCALE);
+    ctx.lineTo(0, 7 * Y_SCALE);
+    ctx.stroke();
+
+    // Merkez Noktası
+    ctx.fillStyle = "#38bdf8";
+    ctx.beginPath();
+    ctx.arc(0, 0, 2.0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
   }
 
   ctx.restore();
 }
 
-// 🌲 3D İzometrik Orman ve Çam Ağaçları
+// ❄️ 3D Yontma Karlı Altay Zirvesi (Snow Peak Biome)
+function drawIsometricSnowPeak(time) {
+  const peaks = [
+    { x: -16, y: 10 * Y_SCALE,  w: 36, h: 42 * Y_SCALE },
+    { x: 14,  y: -4 * Y_SCALE,  w: 42, h: 50 * Y_SCALE },
+    { x: -4,  y: -22 * Y_SCALE, w: 30, h: 36 * Y_SCALE }
+  ];
+  peaks.sort((a, b) => a.y - b.y);
+
+  peaks.forEach(p => {
+    // 1. Düşen Buzul Gölgesi
+    ctx.fillStyle = "rgba(0, 0, 0, 0.38)";
+    ctx.beginPath();
+    ctx.ellipse(p.x + 8, p.y + 4, p.w * 0.6, p.w * 0.25 * Y_SCALE, Math.PI / 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 2. Sol Yüz (Işıltılı Karlı Yamaç)
+    ctx.fillStyle = "#cbd5e1";
+    ctx.beginPath();
+    ctx.moveTo(p.x - p.w / 2, p.y);
+    ctx.lineTo(p.x, p.y + p.w * 0.18 * Y_SCALE);
+    ctx.lineTo(p.x, p.y - p.h);
+    ctx.closePath();
+    ctx.fill();
+
+    // 3. Sağ Yüz (Buzul Mavi Gölge)
+    ctx.fillStyle = "#475569";
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y + p.w * 0.18 * Y_SCALE);
+    ctx.lineTo(p.x + p.w / 2, p.y);
+    ctx.lineTo(p.x, p.y - p.h);
+    ctx.closePath();
+    ctx.fill();
+
+    // 4. Saf Kar Zirvesi
+    const sH = p.h * 0.55;
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.moveTo(p.x - p.w * 0.25, p.y - p.h + sH);
+    ctx.lineTo(p.x, p.y - p.h + sH);
+    ctx.lineTo(p.x, p.y - p.h);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = "#93c5fd";
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y - p.h + sH);
+    ctx.lineTo(p.x + p.w * 0.25, p.y - p.h + sH);
+    ctx.lineTo(p.x, p.y - p.h);
+    ctx.closePath();
+    ctx.fill();
+
+    // Buz Kristali Parıltısı
+    const shimmer = Math.sin(time * 3.5 + p.x) * 0.4 + 0.6;
+    ctx.fillStyle = `rgba(224, 242, 254, ${shimmer})`;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y - p.h * 0.8, 1.8, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+// 🏜️ Taklamakan & Gobi Çöl Vahası (Desert Oasis Biome)
+function drawIsometricDesertOasis(time) {
+  // 1. Kum Tepesi Kıvrımları
+  ctx.fillStyle = "#b45309";
+  ctx.beginPath();
+  ctx.ellipse(-12, -8 * Y_SCALE, 20, 9 * Y_SCALE, -Math.PI / 12, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#f59e0b";
+  ctx.beginPath();
+  ctx.ellipse(10, 8 * Y_SCALE, 22, 10 * Y_SCALE, Math.PI / 12, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 2. Turkuaz Vaha Kaynağı (Oasis Spring Water)
+  ctx.fillStyle = "#0284c7";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 16, 8 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#38bdf8";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 11, 5 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 3. Palmiye Ağaçları (Palm Trees)
+  const palms = [
+    { x: -14, y: -2 * Y_SCALE, sc: 1.0, lean: -0.2 },
+    { x: 12,  y: -6 * Y_SCALE, sc: 0.85, lean: 0.25 }
+  ];
+
+  palms.forEach(plm => {
+    // Gövde
+    ctx.strokeStyle = "#78350f";
+    ctx.lineWidth = 3.5 * plm.sc;
+    ctx.beginPath();
+    ctx.moveTo(plm.x, plm.y);
+    ctx.quadraticCurveTo(plm.x + 8 * plm.lean, plm.y - 12 * plm.sc * Y_SCALE, plm.x + 12 * plm.lean, plm.y - 24 * plm.sc * Y_SCALE);
+    ctx.stroke();
+
+    const topX = plm.x + 12 * plm.lean;
+    const topY = plm.y - 24 * plm.sc * Y_SCALE;
+    const sway = Math.sin(time * 2.5 + plm.x) * 1.5;
+
+    // Palmiye Yaprakları
+    for (let a = 0; a < 5; a++) {
+      const angle = (a / 5) * Math.PI * 2;
+      const lx = topX + Math.cos(angle) * (14 * plm.sc) + sway;
+      const ly = topY + Math.sin(angle) * (7 * plm.sc * Y_SCALE);
+      ctx.beginPath();
+      ctx.moveTo(topX, topY);
+      ctx.quadraticCurveTo(topX + Math.cos(angle) * 8, topY - 5, lx, ly);
+      ctx.lineWidth = 2.0;
+      ctx.strokeStyle = "#16a34a";
+      ctx.stroke();
+    }
+  });
+
+  // 4. Kadim Taş Su Kuyusu
+  ctx.fillStyle = "#334155";
+  ctx.fillRect(-4, 6 * Y_SCALE, 8, 6 * Y_SCALE);
+  ctx.fillStyle = "#0f172a";
+  ctx.beginPath();
+  ctx.arc(0, 6 * Y_SCALE, 3, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// 🏛️ Orhun Kitabeleri & Kutlu Kurt Doğa Harikası (World Wonder)
+function drawIsometricWonder(time) {
+  // 1. Kutsal Aura (Point-Light Glow)
+  const auraPulse = Math.sin(time * 2.5) * 0.15 + 0.35;
+  ctx.fillStyle = `rgba(6, 182, 212, ${auraPulse})`;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 32, 18 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 2. Taş Kaide (Stepped Stone Platform)
+  ctx.fillStyle = "#1e293b";
+  ctx.fillRect(-22, -6 * Y_SCALE, 44, 12 * Y_SCALE);
+  ctx.fillStyle = "#334155";
+  ctx.fillRect(-18, -10 * Y_SCALE, 36, 8 * Y_SCALE);
+
+  // 3. Orhun Dikilitaşı (Ancient Göktürk Monolith)
+  const monW = 14;
+  const monH = 38 * Y_SCALE;
+  ctx.fillStyle = "#475569";
+  ctx.fillRect(-monW / 2, -monH, monW, monH);
+
+  // Taşın Ucu (Sivri Üst)
+  ctx.fillStyle = "#64748b";
+  ctx.beginPath();
+  ctx.moveTo(-monW / 2, -monH);
+  ctx.lineTo(0, -monH - 8 * Y_SCALE);
+  ctx.lineTo(monW / 2, -monH);
+  ctx.closePath();
+  ctx.fill();
+
+  // 4. Parlayan Turkuaz Göktürk Runikleri (𐰋 𐰃 𐰠 𐰏 𐰀)
+  ctx.font = "8px 'JetBrains Mono', monospace";
+  ctx.textAlign = "center";
+  const runeGlow = Math.sin(time * 3.0) * 0.3 + 0.7;
+  ctx.fillStyle = `rgba(56, 189, 248, ${runeGlow})`;
+  ctx.fillText("𐰋", 0, -monH * 0.7);
+  ctx.fillText("𐱅", 0, -monH * 0.45);
+  ctx.fillText("𐰼", 0, -monH * 0.2);
+
+  // 5. Muhafız Balbal Heykelleri (2 Yan Balbal)
+  [-14, 14].forEach(bx => {
+    ctx.fillStyle = "#334155";
+    ctx.fillRect(bx - 3, -12 * Y_SCALE, 6, 12 * Y_SCALE);
+    ctx.fillStyle = "#64748b";
+    ctx.beginPath();
+    ctx.arc(bx, -14 * Y_SCALE, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // 6. Kutsal Meşaleler
+  [-20, 20].forEach(fx => {
+    ctx.fillStyle = "#78350f";
+    ctx.fillRect(fx - 1.5, -8 * Y_SCALE, 3, 8 * Y_SCALE);
+    const flame = Math.sin(time * 8.0 + fx) * 1.5;
+    ctx.fillStyle = "#f59e0b";
+    ctx.beginPath();
+    ctx.arc(fx, -10 * Y_SCALE + flame, 3, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+// 🌋 Ergenekon Yeraltı Mağarası & Dökümhane (Underground Cavern Renderer)
+function drawIsometricUndergroundCavern(tile, time) {
+  if (tile.biome === BIOMES.MAGMA) {
+    // Akan Lav Nehri
+    const lavaFlow = Math.sin(time * 2.0) * 2.0;
+    ctx.fillStyle = "#c2410c";
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 26, 14 * Y_SCALE, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#f97316";
+    ctx.beginPath();
+    ctx.ellipse(lavaFlow, 0, 18, 9 * Y_SCALE, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fef08a";
+    ctx.beginPath();
+    ctx.ellipse(-lavaFlow, 0, 10, 4 * Y_SCALE, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (tile.biome === BIOMES.CRYSTAL) {
+    // Parlayan Obsidiyen & Kristal Kümeleri
+    const crystals = [
+      { x: -10, y: -6 * Y_SCALE, h: 22 * Y_SCALE },
+      { x: 4,   y: -10 * Y_SCALE, h: 26 * Y_SCALE },
+      { x: 12,  y: 4 * Y_SCALE,  h: 18 * Y_SCALE }
+    ];
+    crystals.forEach(c => {
+      ctx.fillStyle = "#0284c7";
+      ctx.beginPath();
+      ctx.moveTo(c.x - 4, c.y);
+      ctx.lineTo(c.x, c.y - c.h);
+      ctx.lineTo(c.x + 4, c.y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#38bdf8";
+      ctx.beginPath();
+      ctx.moveTo(c.x, c.y);
+      ctx.lineTo(c.x, c.y - c.h);
+      ctx.lineTo(c.x + 4, c.y);
+      ctx.closePath();
+      ctx.fill();
+    });
+  } else {
+    // Bazalt Dikitleri (Stalagmites)
+    ctx.fillStyle = "#27272a";
+    ctx.beginPath();
+    ctx.moveTo(-12, 6 * Y_SCALE);
+    ctx.lineTo(-8, -14 * Y_SCALE);
+    ctx.lineTo(-4, 6 * Y_SCALE);
+    ctx.fill();
+    ctx.moveTo(6, 4 * Y_SCALE);
+    ctx.lineTo(10, -16 * Y_SCALE);
+    ctx.lineTo(14, 4 * Y_SCALE);
+    ctx.fill();
+  }
+}
+
+// 🌋 Ergenekon Kadim Döküm Ocağı (Underground Master Blast Forge)
+function drawIsometricUndergroundForge(b, time) {
+  // 1. Zemin Döküm Ateşi Aurası
+  const forgeGlow = Math.sin(time * 6.0) * 0.15 + 0.55;
+  ctx.fillStyle = `rgba(234, 88, 12, ${forgeGlow})`;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 32, 18 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 2. Taş Fırın Bloğu (Heavy Basalt Base)
+  ctx.fillStyle = "#18181b";
+  ctx.fillRect(-22, -12 * Y_SCALE, 44, 20 * Y_SCALE);
+  ctx.fillStyle = "#27272a";
+  ctx.fillRect(-18, -16 * Y_SCALE, 36, 10 * Y_SCALE);
+
+  // 3. Kor Ateşli Döküm Haznesi (Molten Crucible Opening)
+  ctx.fillStyle = "#ea580c";
+  ctx.beginPath();
+  ctx.arc(0, -6 * Y_SCALE, 10, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#fef08a";
+  ctx.beginPath();
+  ctx.arc(0, -6 * Y_SCALE, 6, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 4. Çift Döküm Bacası (Twin Chimneys with Lava Smoke)
+  [-12, 12].forEach(cx => {
+    ctx.fillStyle = "#3f3f46";
+    ctx.fillRect(cx - 4, -32 * Y_SCALE, 8, 22 * Y_SCALE);
+    // Kıvılcım Parçacıkları
+    const spark = Math.sin(time * 10.0 + cx) * 2.0;
+    ctx.fillStyle = "#f59e0b";
+    ctx.beginPath();
+    ctx.arc(cx + spark, -34 * Y_SCALE, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // 5. Demir Örs & Balyoz
+  ctx.fillStyle = "#71717a";
+  ctx.fillRect(-6, 2 * Y_SCALE, 12, 5 * Y_SCALE);
+}
+
+// 💠 Obsidiyen & Kristal Madeni (Underground Crystal Extractor)
+function drawIsometricCrystalMine(b, time) {
+  // 1. Zemin Kristal Parıltısı
+  const aura = Math.sin(time * 4.0) * 0.2 + 0.4;
+  ctx.fillStyle = `rgba(56, 189, 248, ${aura})`;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 26, 14 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 2. Maden Giriş Portali
+  ctx.fillStyle = "#0f172a";
+  ctx.fillRect(-14, -12 * Y_SCALE, 28, 18 * Y_SCALE);
+  ctx.strokeStyle = "#0284c7";
+  ctx.lineWidth = 2.0;
+  ctx.strokeRect(-14, -12 * Y_SCALE, 28, 18 * Y_SCALE);
+
+  // 3. Büyük Parlayan Kristal Sütunu
+  const crH = 26 * Y_SCALE;
+  ctx.fillStyle = "#0284c7";
+  ctx.beginPath();
+  ctx.moveTo(-6, 0); ctx.lineTo(0, -crH); ctx.lineTo(6, 0); ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "#7dd3fc";
+  ctx.beginPath();
+  ctx.moveTo(0, 0); ctx.lineTo(0, -crH); ctx.lineTo(6, 0); ctx.closePath();
+  ctx.fill();
+}
+
+// 🐎 Yollarda Yürüyen Yüklü Kervan Katırları (Pack Mules on Trade Roads)
+function drawPackMules(time) {
+  if (!game.packMules || game.packMules.length === 0) return;
+
+  game.packMules.forEach(m => {
+    ctx.save();
+    ctx.translate(m.x, m.y);
+    ctx.scale(m.facing || 1, 1);
+
+    const bob = Math.sin(time * 8.0) * 1.5;
+
+    // Gölge
+    ctx.fillStyle = "rgba(0,0,0,0.25)";
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 8, 4 * Y_SCALE, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Katır Gövdesi
+    ctx.fillStyle = "#57534e";
+    ctx.beginPath();
+    ctx.ellipse(0, -6 * Y_SCALE + bob, 7, 4 * Y_SCALE, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Katır Başı
+    ctx.fillStyle = "#44403c";
+    ctx.beginPath();
+    ctx.arc(6, -8 * Y_SCALE + bob, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Heybeler & Yük Çuvalları
+    ctx.fillStyle = "#d97706";
+    ctx.fillRect(-3, -9 * Y_SCALE + bob, 6, 4 * Y_SCALE);
+    ctx.strokeStyle = "#78350f";
+    ctx.lineWidth = 1.0;
+    ctx.strokeRect(-3, -9 * Y_SCALE + bob, 6, 4 * Y_SCALE);
+
+    ctx.restore();
+  });
+}
+
+// =============================================================================
+// OTLAYAN KOYUN & BOZKIR ATI SÜRÜLERİ (ROAMING HERDS)
+// =============================================================================
+
+function drawRoamingHerds(time) {
+  roamingHerds.forEach(h => {
+    ctx.save();
+    ctx.translate(h.x, h.y);
+    ctx.scale(h.facing, 1);
+
+    if (h.type === "sheep") {
+      // 🐑 Bozkır Ak Koyunu (Steppe Sheep)
+      const bob = h.isMoving ? Math.sin(h.animTime * 8.0) * 1.5 : Math.sin(h.animTime * 2.0) * 0.5;
+      // Gölge
+      ctx.fillStyle = "rgba(0,0,0,0.25)";
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 7, 3.5 * Y_SCALE, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Gövde (Beyaz Yünlü Top)
+      ctx.fillStyle = "#f8fafc";
+      ctx.beginPath();
+      ctx.ellipse(0, -5 * Y_SCALE + bob, 6.5, 4.5 * Y_SCALE, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Baş (Siyah Bozkır Koyunu Yüzü)
+      ctx.fillStyle = "#334155";
+      ctx.beginPath();
+      ctx.arc(5, -6 * Y_SCALE + bob, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Bacaklar
+      ctx.strokeStyle = "#1e293b";
+      ctx.lineWidth = 1.2;
+      const legWalk = h.isMoving ? Math.sin(h.animTime * 8.0) * 2.0 : 0;
+      ctx.beginPath();
+      ctx.moveTo(-3, -2 * Y_SCALE + bob); ctx.lineTo(-3 + legWalk, 0);
+      ctx.moveTo(2, -2 * Y_SCALE + bob);  ctx.lineTo(2 - legWalk, 0);
+      ctx.stroke();
+    } else {
+      // 🐎 Yılkı Atı (Wild Steppe Horse)
+      const gallop = h.isMoving ? Math.sin(h.animTime * 10.0) * 2.5 : Math.sin(h.animTime * 1.5) * 0.8;
+      // Gölge
+      ctx.fillStyle = "rgba(0,0,0,0.3)";
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 11, 5 * Y_SCALE, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Gövde (Kestane Rengi At)
+      ctx.fillStyle = "#78350f";
+      ctx.beginPath();
+      ctx.ellipse(0, -8 * Y_SCALE + gallop, 9, 5 * Y_SCALE, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Boyun ve Baş
+      ctx.fillStyle = "#92400e";
+      ctx.beginPath();
+      ctx.moveTo(4, -9 * Y_SCALE + gallop);
+      ctx.lineTo(9, -15 * Y_SCALE + gallop);
+      ctx.lineTo(13, -13 * Y_SCALE + gallop);
+      ctx.lineTo(7, -6 * Y_SCALE + gallop);
+      ctx.closePath();
+      ctx.fill();
+
+      // Yele
+      ctx.fillStyle = "#1e293b";
+      ctx.fillRect(5, -15 * Y_SCALE + gallop, 3, 7 * Y_SCALE);
+      // Kuyruk
+      const tailSway = Math.sin(time * 5.0) * 2.0;
+      ctx.beginPath();
+      ctx.moveTo(-8, -9 * Y_SCALE + gallop);
+      ctx.quadraticCurveTo(-14, -7 * Y_SCALE + gallop + tailSway, -12, -2 * Y_SCALE);
+      ctx.lineWidth = 1.8;
+      ctx.strokeStyle = "#1e293b";
+      ctx.stroke();
+
+      // Bacaklar
+      ctx.strokeStyle = "#451a03";
+      ctx.lineWidth = 1.6;
+      const legA = h.isMoving ? Math.sin(h.animTime * 10.0) * 4.0 : 0;
+      ctx.beginPath();
+      ctx.moveTo(-5, -4 * Y_SCALE + gallop); ctx.lineTo(-5 + legA, 0);
+      ctx.moveTo(5, -4 * Y_SCALE + gallop);  ctx.lineTo(5 - legA, 0);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  });
+}
+
+// 🌲 3D İzometrik Ötüken Çam & Huş Korusu
 function drawIsometricForest(time) {
   const trees = [
-    { x: -24, y: -16 * Y_SCALE, sc: 0.85 },
-    { x: 20,  y: -22 * Y_SCALE, sc: 0.95 },
-    { x: 0,   y: -30 * Y_SCALE, sc: 0.80 },
-    { x: -10, y: -2 * Y_SCALE,  sc: 1.15 },
-    { x: 22,  y: 6 * Y_SCALE,   sc: 1.05 },
-    { x: -26, y: 14 * Y_SCALE,  sc: 0.88 },
-    { x: 6,   y: 18 * Y_SCALE,  sc: 1.10 }
+    { x: -24, y: -16 * Y_SCALE, sc: 0.90, type: "pine" },
+    { x: 18,  y: -22 * Y_SCALE, sc: 0.95, type: "birch" },
+    { x: -2,  y: -28 * Y_SCALE, sc: 0.85, type: "pine" },
+    { x: -12, y: -2 * Y_SCALE,  sc: 1.18, type: "pine" },
+    { x: 22,  y: 4 * Y_SCALE,   sc: 1.08, type: "pine" },
+    { x: -26, y: 14 * Y_SCALE,  sc: 0.92, type: "birch" },
+    { x: 4,   y: 18 * Y_SCALE,  sc: 1.15, type: "pine" }
   ];
   trees.sort((a, b) => a.y - b.y);
 
   trees.forEach(tr => {
     const sway = Math.sin(time * 2.5 + tr.x * 0.1 + tr.y * 0.2) * (1.8 * tr.sc);
 
-    // Zemin Gölgesi
-    ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+    // 1. Zemin 45° İzometrik Gölgesi
+    ctx.fillStyle = "rgba(0, 0, 0, 0.32)";
     ctx.beginPath();
-    ctx.ellipse(tr.x + 2, tr.y + 2, 10 * tr.sc, 5 * tr.sc * Y_SCALE, 0, 0, Math.PI * 2);
+    ctx.ellipse(tr.x + 4, tr.y + 2, 11 * tr.sc, 5 * tr.sc * Y_SCALE, Math.PI / 10, 0, Math.PI * 2);
     ctx.fill();
 
-    // Ahşap Gövde
-    const tw = 4 * tr.sc;
-    const th = 9 * tr.sc * Y_SCALE;
-    ctx.fillStyle = "#5c3d22";
-    ctx.fillRect(tr.x - tw / 2, tr.y - th, tw, th);
+    if (tr.type === "birch") {
+      // Bozkır Huş Ağacı (Beyaz Gövde)
+      const tw = 3.5 * tr.sc;
+      const th = 12 * tr.sc * Y_SCALE;
+      ctx.fillStyle = "#f1f5f9";
+      ctx.fillRect(tr.x - tw / 2, tr.y - th, tw, th);
+      ctx.fillStyle = "#334155";
+      ctx.fillRect(tr.x - tw / 2, tr.y - th * 0.5, tw, 1.5);
 
-    // 3 Kademeli Hacimli Çam Konileri (Işık/Gölge Yüzeyli)
-    const tiers = [
-      { y: tr.y - 6 * tr.sc * Y_SCALE, w: 16 * tr.sc, h: 14 * tr.sc * Y_SCALE, sw: sway * 0.3 },
-      { y: tr.y - 14 * tr.sc * Y_SCALE, w: 12 * tr.sc, h: 13 * tr.sc * Y_SCALE, sw: sway * 0.6 },
-      { y: tr.y - 22 * tr.sc * Y_SCALE, w: 8 * tr.sc,  h: 12 * tr.sc * Y_SCALE, sw: sway * 1.0 }
-    ];
-
-    tiers.forEach(t => {
-      // Sol Gölge Yüzeyi
-      ctx.fillStyle = "#0c4217";
+      // Yuvarlak Huş Tacı
+      ctx.fillStyle = "#15803d";
       ctx.beginPath();
-      ctx.moveTo(tr.x - t.w / 2, t.y);
-      ctx.lineTo(tr.x, t.y + t.w * 0.15 * Y_SCALE);
-      ctx.lineTo(tr.x + t.sw, t.y - t.h);
-      ctx.closePath();
+      ctx.arc(tr.x + sway, tr.y - th - 6 * tr.sc * Y_SCALE, 11 * tr.sc, 0, Math.PI * 2);
       ctx.fill();
-
-      // Sağ Güneş Yüzeyi
-      ctx.fillStyle = "#228b3b";
+      ctx.fillStyle = "#22c55e";
       ctx.beginPath();
-      ctx.moveTo(tr.x, t.y + t.w * 0.15 * Y_SCALE);
-      ctx.lineTo(tr.x + t.w / 2, t.y);
-      ctx.lineTo(tr.x + t.sw, t.y - t.h);
-      ctx.closePath();
+      ctx.arc(tr.x - 3 + sway, tr.y - th - 8 * tr.sc * Y_SCALE, 7 * tr.sc, 0, Math.PI * 2);
       ctx.fill();
-    });
+    } else {
+      // Ötüken Karaçamı (Ahşap Gövde)
+      const tw = 4.2 * tr.sc;
+      const th = 9 * tr.sc * Y_SCALE;
+      ctx.fillStyle = "#451a03";
+      ctx.fillRect(tr.x - tw / 2, tr.y - th, tw, th);
+
+      // 3 Kademeli Hacimli Çam Konileri (Sol Yüz Işık, Sağ Yüz Gölge)
+      const tiers = [
+        { y: tr.y - 6 * tr.sc * Y_SCALE, w: 18 * tr.sc, h: 14 * tr.sc * Y_SCALE, sw: sway * 0.3 },
+        { y: tr.y - 14 * tr.sc * Y_SCALE, w: 14 * tr.sc, h: 13 * tr.sc * Y_SCALE, sw: sway * 0.6 },
+        { y: tr.y - 22 * tr.sc * Y_SCALE, w: 9 * tr.sc,  h: 12 * tr.sc * Y_SCALE, sw: sway * 1.0 }
+      ];
+
+      tiers.forEach(t => {
+        // Sol Yüz (Işık Alan)
+        ctx.fillStyle = "#16a34a";
+        ctx.beginPath();
+        ctx.moveTo(tr.x - t.w / 2, t.y);
+        ctx.lineTo(tr.x, t.y + t.w * 0.15 * Y_SCALE);
+        ctx.lineTo(tr.x + t.sw, t.y - t.h);
+        ctx.closePath();
+        ctx.fill();
+
+        // Sağ Yüz (Gölgede Kalan)
+        ctx.fillStyle = "#064e3b";
+        ctx.beginPath();
+        ctx.moveTo(tr.x, t.y + t.w * 0.15 * Y_SCALE);
+        ctx.lineTo(tr.x + t.w / 2, t.y);
+        ctx.lineTo(tr.x + t.sw, t.y - t.h);
+        ctx.closePath();
+        ctx.fill();
+      });
+    }
   });
 }
 
-// 🏔️ 3D Karlı Dağ Zirveleri
+// 🏔️ 3D Yontma Karlı Altay Dağ Zirveleri
 function drawIsometricMountain() {
   const peaks = [
-    { x: -14, y: 6 * Y_SCALE,  w: 28, h: 32 * Y_SCALE },
-    { x: 16,  y: -6 * Y_SCALE, w: 32, h: 38 * Y_SCALE },
-    { x: -2,  y: -18 * Y_SCALE,w: 24, h: 26 * Y_SCALE }
+    { x: -14, y: 8 * Y_SCALE,   w: 34, h: 36 * Y_SCALE },
+    { x: 16,  y: -6 * Y_SCALE,  w: 38, h: 44 * Y_SCALE },
+    { x: -2,  y: -20 * Y_SCALE, w: 28, h: 30 * Y_SCALE }
   ];
   peaks.sort((a, b) => a.y - b.y);
 
   peaks.forEach(p => {
-    // Sol Yüzey
-    ctx.fillStyle = "#4a3525";
+    // 1. Zemin Düşen Gölge
+    ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+    ctx.beginPath();
+    ctx.ellipse(p.x + 8, p.y + 4, p.w * 0.6, p.w * 0.25 * Y_SCALE, Math.PI / 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 2. Sol Yüz (Güneş Işığı Alan Sıcak Granit)
+    ctx.fillStyle = "#78716c";
     ctx.beginPath();
     ctx.moveTo(p.x - p.w / 2, p.y);
-    ctx.lineTo(p.x, p.y + p.w * 0.15 * Y_SCALE);
+    ctx.lineTo(p.x, p.y + p.w * 0.18 * Y_SCALE);
     ctx.lineTo(p.x, p.y - p.h);
     ctx.closePath();
     ctx.fill();
 
-    // Sağ Yüzey
-    ctx.fillStyle = "#7a5c43";
+    // 3. Sağ Yüz (Soğuk Bazalt Gölge)
+    ctx.fillStyle = "#292524";
     ctx.beginPath();
-    ctx.moveTo(p.x, p.y + p.w * 0.15 * Y_SCALE);
+    ctx.moveTo(p.x, p.y + p.w * 0.18 * Y_SCALE);
     ctx.lineTo(p.x + p.w / 2, p.y);
     ctx.lineTo(p.x, p.y - p.h);
     ctx.closePath();
     ctx.fill();
 
-    // Karlı Şapka (Snow Cap)
-    const sH = p.h * 0.35;
-    ctx.fillStyle = "#e2e8f0";
+    // Sırt Çizgisi (Arête)
+    ctx.strokeStyle = "#d6d3d1";
+    ctx.lineWidth = 1.0;
     ctx.beginPath();
-    ctx.moveTo(p.x - p.w * 0.18, p.y - p.h + sH);
+    ctx.moveTo(p.x, p.y + p.w * 0.18 * Y_SCALE);
+    ctx.lineTo(p.x, p.y - p.h);
+    ctx.stroke();
+
+    // 4. Karlı Zirve & Buzul Gölgesi
+    const sH = p.h * 0.38;
+    // Sol Kar Yüzü (Saf Kar)
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.moveTo(p.x - p.w * 0.20, p.y - p.h + sH);
     ctx.lineTo(p.x, p.y - p.h + sH);
     ctx.lineTo(p.x, p.y - p.h);
     ctx.closePath();
     ctx.fill();
 
-    ctx.fillStyle = "#ffffff";
+    // Sağ Kar Yüzü (Mavi Buzul Gölgesi)
+    ctx.fillStyle = "#bae6fd";
     ctx.beginPath();
     ctx.moveTo(p.x, p.y - p.h + sH);
-    ctx.lineTo(p.x + p.w * 0.18, p.y - p.h + sH);
+    ctx.lineTo(p.x + p.w * 0.20, p.y - p.h + sH);
     ctx.lineTo(p.x, p.y - p.h);
     ctx.closePath();
     ctx.fill();
   });
 }
 
-// 🌸 Çayır Çiçekleri & Çimen
+// 🌸 Bozkır Çayırı (Rüzgarda Salınan Çimenler ve Taşlar)
 function drawIsometricMeadow(time) {
   const spots = [
-    { x: -18, y: -12 * Y_SCALE },
-    { x: 16,  y: -14 * Y_SCALE },
-    { x: -10, y: 14 * Y_SCALE },
-    { x: 20,  y: 10 * Y_SCALE }
+    { x: -20, y: -12 * Y_SCALE },
+    { x: 18,  y: -14 * Y_SCALE },
+    { x: -12, y: 14 * Y_SCALE },
+    { x: 22,  y: 10 * Y_SCALE }
   ];
   spots.forEach(sp => {
     const sway = Math.sin(time * 2.5 + sp.x) * 1.5;
-    ctx.strokeStyle = "#38a169";
+    ctx.strokeStyle = "#4ade80";
     ctx.lineWidth = 1.6;
     ctx.beginPath();
     ctx.moveTo(sp.x, sp.y);
@@ -1423,27 +2786,43 @@ function drawIsometricMeadow(time) {
     ctx.lineTo(sp.x + 2 + sway, sp.y - 8 * Y_SCALE);
     ctx.stroke();
 
-    ctx.fillStyle = "#fef08a";
+    ctx.fillStyle = "#fde047";
     ctx.beginPath();
     ctx.arc(sp.x + sway, sp.y - 9 * Y_SCALE, 1.8, 0, Math.PI * 2);
     ctx.fill();
   });
+
+  // Küçük Çakıl Taşları
+  ctx.fillStyle = "#64748b";
+  ctx.beginPath();
+  ctx.ellipse(-6, 4 * Y_SCALE, 3, 1.8 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.ellipse(8, -4 * Y_SCALE, 2.5, 1.5 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
 }
 
-// 🌊 Deniz Dalgaları
+// 🌊 Orhun / Baykal Suları (Saydam Dalgalar & Kıyı Köpüğü)
 function drawIsometricSea(time) {
-  const offset = Math.sin(time * 2.0) * 3.0;
-  ctx.strokeStyle = "rgba(147, 197, 253, 0.6)";
-  ctx.lineWidth = 1.8;
+  const offset = Math.sin(time * 2.0) * 3.5;
+  ctx.strokeStyle = "rgba(186, 230, 253, 0.65)";
+  ctx.lineWidth = 2.0;
   ctx.beginPath();
-  ctx.arc(-14 + offset, -8 * Y_SCALE, 8.0, 0.2, 2.8);
+  ctx.arc(-16 + offset, -8 * Y_SCALE, 10.0, 0.2, 2.8);
   ctx.stroke();
   ctx.beginPath();
-  ctx.arc(12 - offset, 6 * Y_SCALE, 10.0, 0.2, 2.8);
+  ctx.arc(14 - offset, 6 * Y_SCALE, 12.0, 0.2, 2.8);
   ctx.stroke();
+
+  // Işıltılı Güneş Parıltısı (Specular Highlight)
+  const shimmer = Math.sin(time * 4.0) * 0.4 + 0.6;
+  ctx.fillStyle = `rgba(255, 255, 255, ${0.4 * shimmer})`;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 8, 3 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
 }
 
-// 🏗️ 3D İZOMETRİK BİNA VE YAPILAR (GODOT İLE %100 BİREBİR DERİNLİK VE ANİMASYON)
+// =============================================================================
+// 3D MONOLİTİK BOZKIR VE GÖKTÜRK MİMARİSİ
+// =============================================================================
 
 function drawBuilding(b, time) {
   if (b.type === "castle") {
@@ -1468,18 +2847,22 @@ function drawBuilding(b, time) {
     drawIsometricWorkerHut(b, time);
   } else if (b.type === "bridge") {
     drawIsometricBridge(b, time);
+  } else if (b.type === "watchtower") {
+    drawIsometricWatchtower(b, time);
+  } else if (b.type === "underground_forge") {
+    drawIsometricUndergroundForge(b, time);
+  } else if (b.type === "crystal_mine") {
+    drawIsometricCrystalMine(b, time);
   }
 }
 
 // 🌉 3D Ahşap Kazıklı ve Korkuluklu Köprü
 function drawIsometricBridge(b, time) {
-  // Su Üzerindeki Gölge
   ctx.fillStyle = "rgba(8, 28, 44, 0.45)";
   ctx.beginPath();
-  ctx.ellipse(2, 3 * Y_SCALE, 26, 16 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.ellipse(2, 3 * Y_SCALE, 28, 16 * Y_SCALE, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Suya Çakılı 4 Ahşap Kazık
   const pillars = [
     { x: -22, y: -10 * Y_SCALE },
     { x: 22,  y: -10 * Y_SCALE },
@@ -1487,240 +2870,194 @@ function drawIsometricBridge(b, time) {
     { x: 22,  y: 10 * Y_SCALE }
   ];
   pillars.forEach(p => {
-    ctx.fillStyle = "#5c3d22";
+    ctx.fillStyle = "#451a03";
     ctx.fillRect(p.x - 2.5, p.y - 6 * Y_SCALE, 5, 12 * Y_SCALE);
-    // Su Halka Dalgası
-    ctx.strokeStyle = "rgba(147, 197, 253, 0.5)";
+    ctx.strokeStyle = "rgba(186, 230, 253, 0.5)";
     ctx.lineWidth = 1.0;
     ctx.beginPath();
     ctx.arc(p.x, p.y + 6 * Y_SCALE, 3, 0, Math.PI * 2);
     ctx.stroke();
   });
 
-  // Ana Ahşap Kalaslar Platformu
-  const numPlanks = 7;
-  const bridgeW = 46;
-  const bridgeH = 24 * Y_SCALE;
+  const numPlanks = 8;
+  const bridgeW = 48;
+  const bridgeH = 26 * Y_SCALE;
 
   for (let i = 0; i < numPlanks; i++) {
     const t = i / (numPlanks - 1);
     const xPos = -bridgeW * 0.5 + bridgeW * t;
     ctx.fillStyle = (i % 2 === 0) ? "#d4a373" : "#b07d4b";
     ctx.fillRect(xPos - 2.5, -bridgeH * 0.5, 4.5, bridgeH);
-    ctx.strokeStyle = "#5c3d22";
+    ctx.strokeStyle = "#451a03";
     ctx.lineWidth = 0.8;
     ctx.strokeRect(xPos - 2.5, -bridgeH * 0.5, 4.5, bridgeH);
   }
 
-  // Yan Güvenlik Korkulukları
-  ctx.strokeStyle = "#5c3d22";
+  ctx.strokeStyle = "#451a03";
   ctx.lineWidth = 2.4;
-  // Üst Korkuluk
   ctx.beginPath();
   ctx.moveTo(-bridgeW * 0.5, -bridgeH * 0.5 - 4 * Y_SCALE);
   ctx.lineTo(bridgeW * 0.5, -bridgeH * 0.5 - 4 * Y_SCALE);
   ctx.stroke();
-  // Alt Korkuluk
   ctx.beginPath();
   ctx.moveTo(-bridgeW * 0.5, bridgeH * 0.5 - 1 * Y_SCALE);
   ctx.lineTo(bridgeW * 0.5, bridgeH * 0.5 - 1 * Y_SCALE);
   ctx.stroke();
-
-  // Korkuluk Dikmeleri
-  for (let i = 0; i < 4; i++) {
-    const t = i / 3;
-    const xPos = -bridgeW * 0.45 + bridgeW * 0.9 * t;
-    ctx.strokeStyle = "#d4a373";
-    ctx.lineWidth = 1.8;
-    ctx.beginPath();
-    ctx.moveTo(xPos, -bridgeH * 0.5);
-    ctx.lineTo(xPos, -bridgeH * 0.5 - 6 * Y_SCALE);
-    ctx.moveTo(xPos, bridgeH * 0.5 - 3 * Y_SCALE);
-    ctx.lineTo(xPos, bridgeH * 0.5 + 2 * Y_SCALE);
-    ctx.stroke();
-  }
 }
 
-// 🏰 3D Krallık Şatosu (Hisar, Çift Kuleler, Kiremit Çatılar, Meşaleler ve Dalgalanan Kraliyet Bayrağı)
+// 🏰 3D Kağan Otağı (İmparatorluk Beyaz Keçe Çadırı, Altın Alem, At Yelesi Tuğ, Taş Kaide ve Meşaleler)
 function drawIsometricCastle(level, time) {
-  // 1. Zemin Gölgesi
-  ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+  // 1. Zemin 45° Düşen Gölgesi
+  ctx.fillStyle = "rgba(0, 0, 0, 0.42)";
   ctx.beginPath();
-  ctx.ellipse(3, 4 * Y_SCALE, 44, 26 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.ellipse(8, 8 * Y_SCALE, 48, 28 * Y_SCALE, Math.PI / 10, 0, Math.PI * 2);
   ctx.fill();
 
-  // 2. Ana Şato Gövdesi (Taş Duvarlar)
-  const gw = 38;
-  const gh = 26 * Y_SCALE;
-  ctx.fillStyle = "#64748b"; // Sol aydınlık cephe
-  ctx.fillRect(-gw / 2, -gh, gw / 2, gh);
-  ctx.fillStyle = "#475569"; // Sağ gölge cephe
-  ctx.fillRect(0, -gh, gw / 2, gh);
-
-  // Taş derz çizgileri
-  ctx.strokeStyle = "#334155";
-  ctx.lineWidth = 1.0;
-  ctx.strokeRect(-gw / 2, -gh, gw, gh);
-
-  // 3. Ahşap & Demir Parmaklıklı Şato Kapısı
-  ctx.fillStyle = "#1e293b";
+  // Zemin Taş Kaidesi
+  ctx.fillStyle = "#334155";
   ctx.beginPath();
-  ctx.arc(0, -10 * Y_SCALE, 7, Math.PI, 0);
-  ctx.lineTo(7, 0);
-  ctx.lineTo(-7, 0);
+  ctx.ellipse(0, 3 * Y_SCALE, 42, 24 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#475569";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 40, 22 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 2. Beyaz Keçe Otağ Gövdesi (3D Silindirik Gradyan)
+  const yw = 52;
+  const yh = 22 * Y_SCALE;
+
+  const yurtGrad = ctx.createLinearGradient(-yw * 0.5, 0, yw * 0.5, 0);
+  yurtGrad.addColorStop(0, "#f8fafc");
+  yurtGrad.addColorStop(0.5, "#e2e8f0");
+  yurtGrad.addColorStop(1, "#94a3b8");
+
+  ctx.fillStyle = yurtGrad;
+  ctx.fillRect(-yw * 0.5, -yh, yw, yh);
+
+  // Otağ Gövdesinde Göktürk İşleme Kuşağı
+  ctx.fillStyle = "#991b1b";
+  ctx.fillRect(-yw * 0.5, -yh * 0.65, yw, 4.5 * Y_SCALE);
+  ctx.fillStyle = "#f59e0b";
+  ctx.font = "bold 8px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText("𐰋 𐱅 𐰼 𐰇", 0, -yh * 0.65 + 4 * Y_SCALE);
+
+  // 3. Konik Kubbe Çatısı (Dome with Golden Alem)
+  const domeH = 28 * Y_SCALE;
+  const domeGrad = ctx.createLinearGradient(-yw * 0.5, -yh, yw * 0.5, -yh);
+  domeGrad.addColorStop(0, "#f8fafc");
+  domeGrad.addColorStop(0.6, "#cbd5e1");
+  domeGrad.addColorStop(1, "#64748b");
+
+  ctx.fillStyle = domeGrad;
+  ctx.beginPath();
+  ctx.moveTo(-yw * 0.5, -yh);
+  ctx.quadraticCurveTo(0, -yh - domeH * 1.2, yw * 0.5, -yh);
   ctx.closePath();
   ctx.fill();
 
-  ctx.fillStyle = "#78350f";
-  ctx.fillRect(-5, -9 * Y_SCALE, 10, 9 * Y_SCALE);
-  ctx.strokeStyle = "#0f172a";
-  ctx.lineWidth = 1.2;
-  ctx.strokeRect(-5, -9 * Y_SCALE, 10, 9 * Y_SCALE);
-
-  // 4. Yan Savunma Kuleleri (Sol ve Sağ)
-  const towers = [
-    { x: -22, y: -4 * Y_SCALE, w: 14, h: 32 * Y_SCALE },
-    { x: 22,  y: -4 * Y_SCALE, w: 14, h: 32 * Y_SCALE }
-  ];
-
-  towers.forEach(tw => {
-    // Sol aydınlık
-    ctx.fillStyle = "#94a3b8";
-    ctx.fillRect(tw.x - tw.w / 2, tw.y - tw.h, tw.w / 2, tw.h);
-    // Sağ gölge
-    ctx.fillStyle = "#64748b";
-    ctx.fillRect(tw.x, tw.y - tw.h, tw.w / 2, tw.h);
-
-    // Kule Burçları
-    ctx.fillStyle = "#475569";
-    ctx.fillRect(tw.x - tw.w / 2 - 2, tw.y - tw.h - 4 * Y_SCALE, tw.w + 4, 4 * Y_SCALE);
-
-    // Konik Burgonya Kiremit Çatı
-    const roofH = 18 * Y_SCALE;
-    // Sol Kiremit Yüzeyi
-    ctx.fillStyle = "#ef4444";
-    ctx.beginPath();
-    ctx.moveTo(tw.x - tw.w / 2 - 2, tw.y - tw.h - 4 * Y_SCALE);
-    ctx.lineTo(tw.x, tw.y - tw.h - 4 * Y_SCALE + 2);
-    ctx.lineTo(tw.x, tw.y - tw.h - 4 * Y_SCALE - roofH);
-    ctx.closePath();
-    ctx.fill();
-
-    // Sağ Kiremit Yüzeyi
-    ctx.fillStyle = "#b91c1c";
-    ctx.beginPath();
-    ctx.moveTo(tw.x, tw.y - tw.h - 4 * Y_SCALE + 2);
-    ctx.lineTo(tw.x + tw.w / 2 + 2, tw.y - tw.h - 4 * Y_SCALE);
-    ctx.lineTo(tw.x, tw.y - tw.h - 4 * Y_SCALE - roofH);
-    ctx.closePath();
-    ctx.fill();
-
-    // Altın Çatı Tepeliği
-    ctx.fillStyle = "#f59e0b";
-    ctx.beginPath();
-    ctx.arc(tw.x, tw.y - tw.h - 4 * Y_SCALE - roofH, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Kule Ok Pencereleri (Işıklı)
-    ctx.fillStyle = "#fef08a";
-    ctx.fillRect(tw.x - 1.5, tw.y - tw.h + 8 * Y_SCALE, 3, 5 * Y_SCALE);
-  });
-
-  // 5. Merkez Yüksek Başkule (Donjon)
-  const mw = 22;
-  const mh = 42 * Y_SCALE;
-  ctx.fillStyle = "#cbd5e1";
-  ctx.fillRect(-mw / 2, -mh, mw / 2, mh - gh);
-  ctx.fillStyle = "#94a3b8";
-  ctx.fillRect(0, -mh, mw / 2, mh - gh);
-
-  // Başkule Burç Çıkıntıları (Kreneller)
-  ctx.fillStyle = "#475569";
-  for (let i = -mw / 2; i < mw / 2; i += 6) {
-    ctx.fillRect(i, -mh - 4 * Y_SCALE, 4, 4 * Y_SCALE);
-  }
-
-  // Başkule Pencereleri (Sıcak Meşale Parıltısı)
-  ctx.fillStyle = "#fde047";
-  ctx.fillRect(-5, -mh + 6 * Y_SCALE, 3.5, 6 * Y_SCALE);
-  ctx.fillRect(2, -mh + 6 * Y_SCALE, 3.5, 6 * Y_SCALE);
-
-  // 6. Dalgalanan Altın Kraliyet Bayrağı & Flama
-  const flagPoleX = 0;
-  const flagPoleY = -mh - 4 * Y_SCALE;
-  const poleH = 22 * Y_SCALE;
-
-  // Bayrak Direği
-  ctx.strokeStyle = "#e2e8f0";
-  ctx.lineWidth = 1.8;
+  // Kubbe Şangırak Açıklığı
+  ctx.fillStyle = "#d97706";
   ctx.beginPath();
-  ctx.moveTo(flagPoleX, flagPoleY);
-  ctx.lineTo(flagPoleX, flagPoleY - poleH);
+  ctx.ellipse(0, -yh - domeH, 10, 5.5 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Altın Alem
+  ctx.fillStyle = "#f59e0b";
+  ctx.beginPath();
+  ctx.arc(0, -yh - domeH - 4.5 * Y_SCALE, 4.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 4. Otağ Kapısı (Oymalı Ahşap)
+  ctx.fillStyle = "#1e293b";
+  ctx.fillRect(-7, -12 * Y_SCALE, 14, 12 * Y_SCALE);
+  ctx.fillStyle = "#78350f";
+  ctx.fillRect(-6, -11 * Y_SCALE, 12, 11 * Y_SCALE);
+  ctx.strokeStyle = "#f59e0b";
+  ctx.lineWidth = 1.2;
+  ctx.strokeRect(-6, -11 * Y_SCALE, 12, 11 * Y_SCALE);
+
+  // Kapı Halkası
+  ctx.fillStyle = "#f59e0b";
+  ctx.beginPath();
+  ctx.arc(3, -5 * Y_SCALE, 1.8, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 5. At Yelesi Tuğ
+  const tuX = 26;
+  const tuY = 0;
+  ctx.strokeStyle = "#94a3b8";
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.moveTo(tuX, tuY);
+  ctx.lineTo(tuX, tuY - 40 * Y_SCALE);
   ctx.stroke();
 
-  // Direk Ucu Altın Küre
   ctx.fillStyle = "#f59e0b";
   ctx.beginPath();
-  ctx.arc(flagPoleX, flagPoleY - poleH, 2.8, 0, Math.PI * 2);
+  ctx.arc(tuX, tuY - 40 * Y_SCALE, 4.0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Canlı Dalgalanan Kırlangıç Flama
-  const wave1 = Math.sin(time * 4.5) * 3.5;
-  const wave2 = Math.sin(time * 4.5 + 1.2) * 4.0;
-  const flagTop = flagPoleY - poleH + 2;
-
-  ctx.fillStyle = "#f59e0b";
+  const tuSway = Math.sin(time * 4.0) * 3.5;
+  ctx.fillStyle = "#0f172a";
   ctx.beginPath();
-  ctx.moveTo(flagPoleX, flagTop);
-  ctx.quadraticCurveTo(flagPoleX + 10, flagTop + wave1, flagPoleX + 22, flagTop + wave2);
-  ctx.lineTo(flagPoleX + 16, flagTop + 7 + wave2 * 0.8);
-  ctx.lineTo(flagPoleX + 22, flagTop + 14 + wave2);
-  ctx.quadraticCurveTo(flagPoleX + 10, flagTop + 12 + wave1, flagPoleX, flagTop + 12);
+  ctx.moveTo(tuX, tuY - 38 * Y_SCALE);
+  ctx.quadraticCurveTo(tuX + 7 + tuSway, tuY - 26 * Y_SCALE, tuX + 4 + tuSway, tuY - 18 * Y_SCALE);
+  ctx.lineTo(tuX - 1, tuY - 38 * Y_SCALE);
   ctx.closePath();
   ctx.fill();
 
-  // Flama Üzerinde Kraliyet Arması Kırmızısı
-  ctx.fillStyle = "#dc2626";
-  ctx.beginPath();
-  ctx.arc(flagPoleX + 7, flagTop + 6 + wave1 * 0.5, 2.2, 0, Math.PI * 2);
-  ctx.fill();
+  // 6. Çift Taş Meşale
+  const braziers = [-26, 26];
+  braziers.forEach(bx => {
+    ctx.fillStyle = "#334155";
+    ctx.fillRect(bx - 3.5, -6 * Y_SCALE, 7, 6 * Y_SCALE);
+    
+    const fSize = 4.0 + Math.sin(time * 6.5 + bx) * 1.5;
+    ctx.fillStyle = "#f97316";
+    ctx.beginPath();
+    ctx.arc(bx, -8 * Y_SCALE, fSize, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fef08a";
+    ctx.beginPath();
+    ctx.arc(bx, -8 * Y_SCALE, fSize * 0.55, 0, Math.PI * 2);
+    ctx.fill();
+  });
 
-  // İleri Kademe Şato Süsleri (Level 4+)
-  if (level >= 4) {
+  if (level >= 2) {
     ctx.fillStyle = "#f59e0b";
-    ctx.font = "bold 13px Outfit, sans-serif";
+    ctx.font = "bold 14px Outfit, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("👑", 0, -mh - 26 * Y_SCALE);
+    ctx.fillText("👑", 0, -yh - domeH - 12 * Y_SCALE);
   }
 }
 
-// 🌽 3D Karıklı, Çitli ve Rüzgarda Salınan Mısır Tarlası
+// 🌽 3D Bozkır Bostanı (Rüzgarda Salınan Mısırlar, Ahşap Çit & Minik Çiftçi)
 function drawIsometricCornField(b, time) {
-  // 1. Zemin Gölgesi ve Sürülmüş Toprak Tabanı
-  ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+  // 1. Zemin Düşen Gölgesi
+  ctx.fillStyle = "rgba(0, 0, 0, 0.28)";
   ctx.beginPath();
-  ctx.ellipse(0, 0, 42, 26 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.ellipse(4, 4 * Y_SCALE, 44, 26 * Y_SCALE, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // 2. Sürülmüş Tarla Karıkları (Plowed Soil Furrows)
+  // 2. Sürülmüş Koyu Verimli Toprak Karıkları
   const ridges = 5;
-  const rWidth = 46;
-  const rDepth = 32 * Y_SCALE;
+  const rWidth = 48;
+  const rDepth = 34 * Y_SCALE;
 
   for (let i = 0; i < ridges; i++) {
     const t = i / (ridges - 1);
     const zOffset = (-rDepth * 0.5) + (rDepth * t);
 
-    // Çukur Gölgesi
-    ctx.strokeStyle = "#3e2723";
+    ctx.strokeStyle = "#27160c";
     ctx.lineWidth = 4.5 * Y_SCALE;
     ctx.beginPath();
     ctx.moveTo(-rWidth * 0.48, zOffset);
     ctx.lineTo(rWidth * 0.48, zOffset);
     ctx.stroke();
 
-    // Güneş Vuran Toprak Tepesi
-    ctx.strokeStyle = "#795548";
+    ctx.strokeStyle = "#5a3825";
     ctx.lineWidth = 2.2 * Y_SCALE;
     ctx.beginPath();
     ctx.moveTo(-rWidth * 0.46, zOffset - 1.5 * Y_SCALE);
@@ -1730,171 +3067,164 @@ function drawIsometricCornField(b, time) {
 
   // 3. Ahşap Köşe Çitleri
   const posts = [
-    { x: -32, y: -14 * Y_SCALE },
-    { x: 32,  y: -14 * Y_SCALE },
-    { x: -34, y: 12 * Y_SCALE },
-    { x: 34,  y: 12 * Y_SCALE }
+    { x: -34, y: -15 * Y_SCALE },
+    { x: 34,  y: -15 * Y_SCALE },
+    { x: -36, y: 13 * Y_SCALE },
+    { x: 36,  y: 13 * Y_SCALE }
   ];
-
   posts.forEach(p => {
-    ctx.fillStyle = "#8d6e63";
-    ctx.fillRect(p.x - 1.8, p.y - 8 * Y_SCALE, 3.6, 8 * Y_SCALE);
-    ctx.fillStyle = "#d7ccc8";
-    ctx.fillRect(p.x - 1.8, p.y - 9 * Y_SCALE, 3.6, 1.5 * Y_SCALE);
+    ctx.fillStyle = "#78350f";
+    ctx.fillRect(p.x - 2, p.y - 9 * Y_SCALE, 4, 9 * Y_SCALE);
+    ctx.fillStyle = "#b45309";
+    ctx.fillRect(p.x - 2, p.y - 10 * Y_SCALE, 4, 1.5 * Y_SCALE);
   });
 
-  // Çit Yatay Tahtaları
-  ctx.strokeStyle = "#6d4c41";
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(-32, -18 * Y_SCALE);
-  ctx.lineTo(32, -18 * Y_SCALE);
-  ctx.stroke();
-
-  // 4. Canlı Rüzgarda Salınan Mısır Sapları & Koçanları
+  // 4. Salınan Mısır Sapları ve Olgun Koçanlar
   const stalks = [
-    { x: -20, y: -10 * Y_SCALE, sc: 0.90 },
-    { x: 0,   y: -14 * Y_SCALE, sc: 0.95 },
-    { x: 20,  y: -11 * Y_SCALE, sc: 0.92 },
-    { x: -14, y: 0,             sc: 1.08 },
-    { x: 12,  y: -2 * Y_SCALE,  sc: 1.05 },
-    { x: -22, y: 10 * Y_SCALE,  sc: 0.95 },
-    { x: -2,  y: 12 * Y_SCALE,  sc: 1.12 },
-    { x: 18,  y: 9 * Y_SCALE,   sc: 1.02 }
+    { x: -22, y: -11 * Y_SCALE, sc: 0.92 },
+    { x: 0,   y: -15 * Y_SCALE, sc: 0.98 },
+    { x: 22,  y: -12 * Y_SCALE, sc: 0.94 },
+    { x: -15, y: 0,             sc: 1.10 },
+    { x: 15,  y: -2 * Y_SCALE,  sc: 1.06 },
+    { x: -24, y: 11 * Y_SCALE,  sc: 0.96 },
+    { x: -2,  y: 13 * Y_SCALE,  sc: 1.14 },
+    { x: 20,  y: 10 * Y_SCALE,  sc: 1.04 }
   ];
   stalks.sort((a, b) => a.y - b.y);
 
   stalks.forEach((st, idx) => {
     const sway = Math.sin(time * 3.2 + idx * 0.85) * (2.8 * st.sc);
-    const stalkH = 22 * st.sc * Y_SCALE;
+    const stalkH = 24 * st.sc * Y_SCALE;
 
-    // Yeşil Sap
-    ctx.strokeStyle = "#16a34a";
+    // Sap
+    ctx.strokeStyle = "#15803d";
     ctx.lineWidth = 2.4 * st.sc;
     ctx.beginPath();
     ctx.moveTo(st.x, st.y);
     ctx.quadraticCurveTo(st.x + sway * 0.5, st.y - stalkH * 0.5, st.x + sway, st.y - stalkH);
     ctx.stroke();
 
-    // Açılan Mısır Yaprakları
-    ctx.strokeStyle = "#4ade80";
+    // Yapraklar
+    ctx.strokeStyle = "#22c55e";
     ctx.lineWidth = 1.8 * st.sc;
-    // Sol Yaprak
     ctx.beginPath();
     ctx.moveTo(st.x + sway * 0.3, st.y - stalkH * 0.35);
-    ctx.quadraticCurveTo(st.x - 7 * st.sc, st.y - stalkH * 0.45, st.x - 9 * st.sc + sway, st.y - stalkH * 0.2);
-    ctx.stroke();
-    // Sağ Yaprak
-    ctx.beginPath();
-    ctx.moveTo(st.x + sway * 0.6, st.y - stalkH * 0.65);
-    ctx.quadraticCurveTo(st.x + 8 * st.sc, st.y - stalkH * 0.75, st.x + 10 * st.sc + sway, st.y - stalkH * 0.5);
+    ctx.quadraticCurveTo(st.x - 8 * st.sc, st.y - stalkH * 0.45, st.x - 10 * st.sc + sway, st.y - stalkH * 0.2);
     ctx.stroke();
 
-    // 🌽 Olgun Altın Sarısı Mısır Koçanı
+    // Altın Mısır Koçanı
     const cobX = st.x + sway * 0.55 + 2 * st.sc;
     const cobY = st.y - stalkH * 0.55;
     ctx.fillStyle = "#eab308";
     ctx.beginPath();
-    ctx.ellipse(cobX, cobY, 3.2 * st.sc, 6.5 * st.sc * Y_SCALE, Math.PI / 8, 0, Math.PI * 2);
+    ctx.ellipse(cobX, cobY, 3.5 * st.sc, 7.0 * st.sc * Y_SCALE, Math.PI / 8, 0, Math.PI * 2);
     ctx.fill();
-
-    // Mısır Püskülü (Tassel)
-    ctx.strokeStyle = "#ca8a04";
-    ctx.lineWidth = 1.2 * st.sc;
+    ctx.fillStyle = "#ca8a04";
     ctx.beginPath();
-    ctx.moveTo(st.x + sway, st.y - stalkH);
-    ctx.lineTo(st.x + sway - 2 * st.sc, st.y - stalkH - 4 * Y_SCALE);
-    ctx.moveTo(st.x + sway, st.y - stalkH);
-    ctx.lineTo(st.x + sway + 2 * st.sc, st.y - stalkH - 4.5 * Y_SCALE);
-    ctx.stroke();
+    ctx.ellipse(cobX, cobY, 2.0 * st.sc, 4.0 * st.sc * Y_SCALE, Math.PI / 8, 0, Math.PI * 2);
+    ctx.fill();
   });
 
-  // 5. Sevimli Tarla Korkuluğu (Scarecrow)
-  const scX = 26;
-  const scY = 2 * Y_SCALE;
-  // Direk
-  ctx.strokeStyle = "#5d4037";
-  ctx.lineWidth = 2.0;
-  ctx.beginPath();
-  ctx.moveTo(scX, scY);
-  ctx.lineTo(scX, scY - 18 * Y_SCALE);
-  ctx.moveTo(scX - 6, scY - 12 * Y_SCALE);
-  ctx.lineTo(scX + 6, scY - 12 * Y_SCALE);
-  ctx.stroke();
-  // Mavi Gömlek
-  ctx.fillStyle = "#2563eb";
-  ctx.fillRect(scX - 3.5, scY - 14 * Y_SCALE, 7, 7 * Y_SCALE);
-  // Saman Baş ve Şapka
-  ctx.fillStyle = "#fef08a";
-  ctx.beginPath();
-  ctx.arc(scX, scY - 16 * Y_SCALE, 2.5, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#b45309";
-  ctx.fillRect(scX - 4.5, scY - 19 * Y_SCALE, 9, 2.5 * Y_SCALE);
-  ctx.fillRect(scX - 2.5, scY - 22 * Y_SCALE, 5, 3.5 * Y_SCALE);
+  // 5. 🧑‍🌾 MİKRO YAŞAM: Tarlada Çalışan Minik Çiftçi Figürü
+  const farmerWalk = Math.sin(time * 1.8) * 10.0;
+  const farmerX = -4 + farmerWalk;
+  const farmerY = 2 * Y_SCALE;
 
-  // 6. Hasat Bekleyen Doluluk Göstergesi (Floating Harvest Glow)
+  // Çiftçi Gölgesi
+  ctx.fillStyle = "rgba(0,0,0,0.3)";
+  ctx.beginPath();
+  ctx.ellipse(farmerX, farmerY, 4.5, 2.5 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Çizmeler
+  ctx.strokeStyle = "#334155";
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.moveTo(farmerX - 1.5, farmerY);
+  ctx.lineTo(farmerX - 1.5, farmerY - 4 * Y_SCALE);
+  ctx.moveTo(farmerX + 1.5, farmerY);
+  ctx.lineTo(farmerX + 1.5, farmerY - 4 * Y_SCALE);
+  ctx.stroke();
+
+  // Mavi Kaftan
+  ctx.fillStyle = "#1d4ed8";
+  ctx.fillRect(farmerX - 3, farmerY - 10 * Y_SCALE, 6, 6 * Y_SCALE);
+
+  // Baş ve Keçe Börk
+  ctx.fillStyle = "#fed7aa";
+  ctx.beginPath();
+  ctx.arc(farmerX, farmerY - 12 * Y_SCALE, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#92400e";
+  ctx.fillRect(farmerX - 3, farmerY - 14.5 * Y_SCALE, 6, 2.5 * Y_SCALE);
+
+  // Orak Sallama
+  const sickleSwing = Math.sin(time * 5.5) * 0.6;
+  ctx.strokeStyle = "#e2e8f0";
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(farmerX + 2, farmerY - 8 * Y_SCALE);
+  ctx.lineTo(farmerX + 6 + Math.cos(sickleSwing) * 5, farmerY - 6 * Y_SCALE + Math.sin(sickleSwing) * 5);
+  ctx.stroke();
+
+  // 6. Entegre Neo-Brutalist Taş Rozet
   const accum = b.accumulated || 0;
   if (accum > 0.5) {
-    const floatOffset = Math.sin(time * 3.0) * 3.0;
-    ctx.fillStyle = "rgba(234, 179, 8, 0.92)";
-    ctx.beginPath();
-    ctx.arc(0, -32 * Y_SCALE + floatOffset, 11, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    ctx.fillStyle = "#000000";
-    ctx.font = "bold 11px Outfit, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("🌽", 0, -28 * Y_SCALE + floatOffset);
+    drawHarvestBadge(0, -34 * Y_SCALE, "🌽", accum, time);
   }
 }
 
-// 🌾 3D Dönen Değirmen (Taş Gövde, Ahşap Çatı ve Kanatlar)
+// 🌾 3D Dönen Rüzgar Değirmeni (Yontma Taş Gövde & Ahşap Kanatlar)
 function drawIsometricWindmill(b, time) {
-  // Zemin Gölgesi
+  // 1. Zemin 45° Düşen Gölgesi
   ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
   ctx.beginPath();
-  ctx.ellipse(2, 2 * Y_SCALE, 26, 16 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.ellipse(8, 6 * Y_SCALE, 28, 16 * Y_SCALE, Math.PI / 10, 0, Math.PI * 2);
   ctx.fill();
 
-  // Taş Gövde (Sol Aydınlık, Sağ Gölge)
+  // 2. Taş Silindirik Kule (Sol Yüz Işık, Sağ Yüz Gölge)
+  const towerH = 34 * Y_SCALE;
   ctx.fillStyle = "#cbd5e1";
   ctx.beginPath();
-  ctx.moveTo(-12, 0);
-  ctx.lineTo(0, 2 * Y_SCALE);
-  ctx.lineTo(0, -32 * Y_SCALE);
-  ctx.lineTo(-8, -32 * Y_SCALE);
+  ctx.moveTo(-14, 0);
+  ctx.lineTo(0, 3 * Y_SCALE);
+  ctx.lineTo(0, -towerH);
+  ctx.lineTo(-10, -towerH);
   ctx.closePath();
   ctx.fill();
 
-  ctx.fillStyle = "#94a3b8";
+  ctx.fillStyle = "#64748b";
   ctx.beginPath();
-  ctx.moveTo(0, 2 * Y_SCALE);
-  ctx.lineTo(12, 0);
-  ctx.lineTo(8, -32 * Y_SCALE);
-  ctx.lineTo(0, -32 * Y_SCALE);
+  ctx.moveTo(0, 3 * Y_SCALE);
+  ctx.lineTo(14, 0);
+  ctx.lineTo(10, -towerH);
+  ctx.lineTo(0, -towerH);
   ctx.closePath();
   ctx.fill();
 
-  // Kapı
-  ctx.fillStyle = "#78350f";
-  ctx.fillRect(-3, -8 * Y_SCALE, 6, 8 * Y_SCALE);
+  // Ahşap Kapı
+  ctx.fillStyle = "#451a03";
+  ctx.fillRect(-3.5, -9 * Y_SCALE, 7, 9 * Y_SCALE);
 
-  // Konik Ahşap Çatı
-  ctx.fillStyle = "#b45309";
+  // Koni Çatı
+  ctx.fillStyle = "#92400e";
   ctx.beginPath();
-  ctx.moveTo(-11, -32 * Y_SCALE);
-  ctx.lineTo(11, -32 * Y_SCALE);
-  ctx.lineTo(0, -46 * Y_SCALE);
+  ctx.moveTo(-12, -towerH);
+  ctx.lineTo(12, -towerH);
+  ctx.lineTo(0, -towerH - 16 * Y_SCALE);
   ctx.closePath();
   ctx.fill();
 
-  // Dönen 4 Yelken Kanadı
+  // Un Çuvalları (Kapı Önünde)
+  ctx.fillStyle = "#fef08a";
+  ctx.beginPath();
+  ctx.ellipse(8, -2 * Y_SCALE, 4, 3 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.ellipse(12, 0, 4.5, 3.5 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 3. Dönen 4 Kafes Kanat
   const bladeAngle = time * 3.2;
-  const hubY = -34 * Y_SCALE;
+  const hubY = -towerH - 2 * Y_SCALE;
 
   ctx.save();
   ctx.translate(0, hubY);
@@ -1902,95 +3232,119 @@ function drawIsometricWindmill(b, time) {
 
   for (let i = 0; i < 4; i++) {
     ctx.rotate(Math.PI / 2);
-    // Ahşap Kol
-    ctx.strokeStyle = "#5c3d22";
-    ctx.lineWidth = 2.2;
+    ctx.strokeStyle = "#451a03";
+    ctx.lineWidth = 2.4;
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    ctx.lineTo(0, -22);
+    ctx.lineTo(0, -24);
     ctx.stroke();
 
-    // Beyaz Keten Yelken Bezi
-    ctx.fillStyle = "rgba(254, 240, 138, 0.9)";
-    ctx.fillRect(2, -21, 7, 14);
+    ctx.fillStyle = "rgba(254, 240, 138, 0.95)";
+    ctx.fillRect(2, -23, 8, 16);
     ctx.strokeStyle = "#ca8a04";
     ctx.lineWidth = 0.8;
-    ctx.strokeRect(2, -21, 7, 14);
+    ctx.strokeRect(2, -23, 8, 16);
   }
 
-  // Merkez Göbek
   ctx.fillStyle = "#1e293b";
   ctx.beginPath();
-  ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
+  ctx.arc(0, 0, 4.0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
+
+  // 4. Entegre Neo-Brutalist Taş Rozet
+  const accum = b.accumulated || 0;
+  if (accum > 0.5) {
+    drawHarvestBadge(0, -towerH - 20 * Y_SCALE, "🌾", accum, time);
+  }
 }
 
-// 🪓 3D Oduncu Kulübesi (Kütük Ev, Odun Yığınları ve Baltalı Kütük)
+// 🪓 3D Ötüken Ormancı Kampı (Kütük Kulübe, Odun Yığınları & İşçi)
 function drawIsometricLumberjack(b, time) {
-  // Zemin Gölgesi
+  // 1. Zemin Düşen Gölgesi
   ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
   ctx.beginPath();
-  ctx.ellipse(0, 0, 32, 18 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.ellipse(6, 6 * Y_SCALE, 34, 18 * Y_SCALE, Math.PI / 10, 0, Math.PI * 2);
   ctx.fill();
 
-  // Kütük Duvarlar
-  ctx.fillStyle = "#854d0e";
-  ctx.fillRect(-18, -18 * Y_SCALE, 18, 18 * Y_SCALE);
-  ctx.fillStyle = "#713f12";
-  ctx.fillRect(0, -18 * Y_SCALE, 18, 18 * Y_SCALE);
+  // 2. Çentikli Kütük Kulübe Gövdesi
+  ctx.fillStyle = "#78350f";
+  ctx.fillRect(-20, -18 * Y_SCALE, 20, 18 * Y_SCALE);
+  ctx.fillStyle = "#451a03";
+  ctx.fillRect(0, -18 * Y_SCALE, 20, 18 * Y_SCALE);
 
-  // Üçgen Kiremit Çatı
-  ctx.fillStyle = "#a16207";
+  // Kütük Çizgileri
+  for (let y = 0; y < 4; y++) {
+    ctx.strokeStyle = "#291204";
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(-20, (-18 + y * 4.5) * Y_SCALE);
+    ctx.lineTo(20, (-18 + y * 4.5) * Y_SCALE);
+    ctx.stroke();
+  }
+
+  // Ahşap Çatı
+  ctx.fillStyle = "#b45309";
   ctx.beginPath();
-  ctx.moveTo(-22, -18 * Y_SCALE);
-  ctx.lineTo(22, -18 * Y_SCALE);
-  ctx.lineTo(0, -32 * Y_SCALE);
+  ctx.moveTo(-24, -18 * Y_SCALE);
+  ctx.lineTo(24, -18 * Y_SCALE);
+  ctx.lineTo(0, -34 * Y_SCALE);
   ctx.closePath();
   ctx.fill();
 
-  // Taş Baca & Duman
-  ctx.fillStyle = "#64748b";
-  ctx.fillRect(10, -30 * Y_SCALE, 5, 12 * Y_SCALE);
-  const smoke = Math.sin(time * 3.0) * 3.0;
-  ctx.fillStyle = "rgba(226, 232, 240, 0.6)";
+  // Taş Baca
+  ctx.fillStyle = "#475569";
+  ctx.fillRect(11, -32 * Y_SCALE, 5, 14 * Y_SCALE);
+
+  // Sundurma Feneri
+  ctx.fillStyle = "#f59e0b";
   ctx.beginPath();
-  ctx.arc(12 + smoke, -34 * Y_SCALE, 3, 0, Math.PI * 2);
-  ctx.arc(14 + smoke * 1.5, -39 * Y_SCALE, 4, 0, Math.PI * 2);
+  ctx.arc(-14, -14 * Y_SCALE, 2.5, 0, Math.PI * 2);
   ctx.fill();
 
-  // Baltalı Ağaç Kütüğü
+  // 3. Baltalı Kütük & Odun Yaran İşçi Figürü
+  const workerX = -18;
+  const workerY = -2 * Y_SCALE;
+  const axeSwing = Math.sin(time * 5.0) * 0.7;
+
   ctx.fillStyle = "#d97706";
-  ctx.fillRect(-22, -4 * Y_SCALE, 8, 5 * Y_SCALE);
+  ctx.fillRect(workerX - 4, workerY - 4 * Y_SCALE, 8, 5 * Y_SCALE);
+
   ctx.strokeStyle = "#e2e8f0";
   ctx.lineWidth = 2.0;
   ctx.beginPath();
-  ctx.moveTo(-18, -4 * Y_SCALE);
-  ctx.lineTo(-14, -11 * Y_SCALE);
+  ctx.moveTo(workerX, workerY - 4 * Y_SCALE);
+  ctx.lineTo(workerX + Math.cos(axeSwing) * 8, workerY - 12 * Y_SCALE + Math.sin(axeSwing) * 8);
   ctx.stroke();
 
-  // Odun Yığınları
-  ctx.fillStyle = "#b45309";
+  // İstifli Odun Yığınları
+  ctx.fillStyle = "#92400e";
   ctx.beginPath();
   ctx.arc(18, -2 * Y_SCALE, 3.5, 0, Math.PI * 2);
   ctx.arc(24, -2 * Y_SCALE, 3.5, 0, Math.PI * 2);
   ctx.arc(21, -6 * Y_SCALE, 3.5, 0, Math.PI * 2);
   ctx.fill();
+
+  // 4. Entegre Neo-Brutalist Taş Rozet
+  const accum = b.accumulated || 0;
+  if (accum > 0.5) {
+    drawHarvestBadge(0, -36 * Y_SCALE, "🪵", accum, time);
+  }
 }
 
 // 🪵 3D Kereste Fabrikası (Hızar Testeresi & Kalas Yığınları)
 function drawIsometricSawmill(b, time) {
-  // Zemin Gölgesi
+  // 1. Zemin Düşen Gölgesi
   ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
   ctx.beginPath();
-  ctx.ellipse(0, 0, 34, 20 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.ellipse(6, 6 * Y_SCALE, 36, 20 * Y_SCALE, Math.PI / 10, 0, Math.PI * 2);
   ctx.fill();
 
-  // Atölye Ahşap İskeleti
+  // 2. Ağır Ahşap Karkas Gövde
   ctx.fillStyle = "#78350f";
-  ctx.fillRect(-18, -14 * Y_SCALE, 36, 14 * Y_SCALE);
+  ctx.fillRect(-20, -16 * Y_SCALE, 40, 16 * Y_SCALE);
   ctx.fillStyle = "#92400e";
-  ctx.fillRect(-22, -26 * Y_SCALE, 44, 12 * Y_SCALE);
+  ctx.fillRect(-24, -28 * Y_SCALE, 48, 12 * Y_SCALE);
 
   // Dönen Çelik Hızar Testeresi
   const sawSpin = time * 12.0;
@@ -1999,291 +3353,242 @@ function drawIsometricSawmill(b, time) {
   ctx.rotate(sawSpin);
   ctx.fillStyle = "#e2e8f0";
   ctx.beginPath();
-  ctx.arc(0, 0, 7, 0, Math.PI * 2);
+  ctx.arc(0, 0, 8, 0, Math.PI * 2);
   ctx.fill();
   ctx.strokeStyle = "#94a3b8";
-  ctx.lineWidth = 1.5;
+  ctx.lineWidth = 1.6;
   ctx.stroke();
   ctx.restore();
 
-  // Kesilmiş Kereste Kalas Yığınları
+  // Kalas Yığınları
   ctx.fillStyle = "#fde68a";
-  ctx.fillRect(12, -4 * Y_SCALE, 14, 3 * Y_SCALE);
-  ctx.fillRect(14, -8 * Y_SCALE, 12, 3 * Y_SCALE);
-  ctx.fillRect(13, -12 * Y_SCALE, 13, 3 * Y_SCALE);
+  ctx.fillRect(12, -4 * Y_SCALE, 15, 3 * Y_SCALE);
+  ctx.fillRect(14, -8 * Y_SCALE, 13, 3 * Y_SCALE);
+  ctx.fillRect(13, -12 * Y_SCALE, 14, 3 * Y_SCALE);
   ctx.strokeStyle = "#d97706";
   ctx.lineWidth = 0.8;
-  ctx.strokeRect(12, -4 * Y_SCALE, 14, 3 * Y_SCALE);
-  ctx.strokeRect(14, -8 * Y_SCALE, 12, 3 * Y_SCALE);
+  ctx.strokeRect(12, -4 * Y_SCALE, 15, 3 * Y_SCALE);
+  ctx.strokeRect(14, -8 * Y_SCALE, 13, 3 * Y_SCALE);
+
+  // 3. Entegre Neo-Brutalist Taş Rozet
+  const accum = b.accumulated || 0;
+  if (accum > 0.5) {
+    drawHarvestBadge(0, -32 * Y_SCALE, "🪵", accum, time);
+  }
 }
 
-// 🛖 3D İşçi Kulübesi (Saman Çatılı Kulübe, Taş Baca ve El Arabası)
+// 🛖 3D İşçi Kulübesi (Taş Temel, Saman Çatı & Fener)
 function drawIsometricWorkerHut(b, time) {
-  // Zemin Gölgesi
-  ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+  ctx.fillStyle = "rgba(0, 0, 0, 0.32)";
   ctx.beginPath();
-  ctx.ellipse(0, 0, 30, 18 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.ellipse(6, 6 * Y_SCALE, 32, 18 * Y_SCALE, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Kil/Taş Duvarlar
   ctx.fillStyle = "#e2e8f0";
-  ctx.fillRect(-15, -16 * Y_SCALE, 30, 16 * Y_SCALE);
+  ctx.fillRect(-16, -16 * Y_SCALE, 32, 16 * Y_SCALE);
 
-  // Sarı Saman Çatı
   ctx.fillStyle = "#eab308";
   ctx.beginPath();
-  ctx.moveTo(-19, -16 * Y_SCALE);
-  ctx.lineTo(19, -16 * Y_SCALE);
-  ctx.lineTo(0, -30 * Y_SCALE);
+  ctx.moveTo(-20, -16 * Y_SCALE);
+  ctx.lineTo(20, -16 * Y_SCALE);
+  ctx.lineTo(0, -32 * Y_SCALE);
   ctx.closePath();
   ctx.fill();
 
-  // Kapı & Pencere
   ctx.fillStyle = "#78350f";
   ctx.fillRect(-4, -8 * Y_SCALE, 8, 8 * Y_SCALE);
   ctx.fillStyle = "#fde047";
-  ctx.fillRect(7, -12 * Y_SCALE, 4, 4 * Y_SCALE);
-
-  // Tüten Baca Dumanı
-  const smoke = Math.sin(time * 3.5) * 3.0;
-  ctx.fillStyle = "rgba(203, 213, 225, 0.7)";
-  ctx.beginPath();
-  ctx.arc(-8 + smoke, -32 * Y_SCALE, 3, 0, Math.PI * 2);
-  ctx.arc(-10 + smoke * 1.5, -37 * Y_SCALE, 4.5, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.fillRect(8, -12 * Y_SCALE, 4, 4 * Y_SCALE);
 }
 
-// 🍞 3D Taş Fırın (Taş Gövde, Kiremit Çatı, Fırın Ağzında Sıcak Ateş & Tüten Duman)
+// 🍞 3D Taş Ekmek Fırını (Bozkır Tandırı, Sıcak Kor Ateş & Duman)
 function drawIsometricBakery(b, time) {
-  // Zemin Gölgesi
+  // 1. Zemin Düşen Gölgesi
   ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
   ctx.beginPath();
-  ctx.ellipse(0, 0, 32, 18 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.ellipse(6, 6 * Y_SCALE, 34, 18 * Y_SCALE, Math.PI / 10, 0, Math.PI * 2);
   ctx.fill();
 
-  // Taş Gövde
-  ctx.fillStyle = "#6b7280";
+  // 2. Yontma Taş Duvarlar
+  ctx.fillStyle = "#64748b";
   ctx.fillRect(-18, -16 * Y_SCALE, 18, 16 * Y_SCALE);
-  ctx.fillStyle = "#4b5563";
+  ctx.fillStyle = "#475569";
   ctx.fillRect(0, -16 * Y_SCALE, 18, 16 * Y_SCALE);
-  ctx.strokeStyle = "#374151";
+  ctx.strokeStyle = "#1e293b";
   ctx.lineWidth = 1.0;
   ctx.strokeRect(-18, -16 * Y_SCALE, 36, 16 * Y_SCALE);
 
   // Kiremit Çatı
-  ctx.fillStyle = "#b91c1c";
+  ctx.fillStyle = "#991b1b";
   ctx.beginPath();
   ctx.moveTo(-22, -16 * Y_SCALE);
   ctx.lineTo(22, -16 * Y_SCALE);
-  ctx.lineTo(0, -32 * Y_SCALE);
+  ctx.lineTo(0, -34 * Y_SCALE);
   ctx.closePath();
   ctx.fill();
-  ctx.strokeStyle = "#ef4444";
-  ctx.lineWidth = 1.2;
-  ctx.stroke();
 
-  // Fırın Ağzı (Sıcak Ateş Parıltısı)
-  ctx.fillStyle = "#1c1917";
+  // Sıcak Tandır Ateşi Parıltısı
+  ctx.fillStyle = "#0c0a09";
   ctx.beginPath();
-  ctx.arc(0, -6 * Y_SCALE, 6, Math.PI, 0);
-  ctx.lineTo(6, 0);
-  ctx.lineTo(-6, 0);
+  ctx.arc(0, -6 * Y_SCALE, 6.5, Math.PI, 0);
+  ctx.lineTo(6.5, 0);
+  ctx.lineTo(-6.5, 0);
   ctx.closePath();
   ctx.fill();
 
-  const firePulse = Math.sin(time * 6.0) * 1.2;
+  const firePulse = Math.sin(time * 6.0) * 1.5;
   ctx.fillStyle = "#f97316";
   ctx.beginPath();
-  ctx.arc(0, -3 * Y_SCALE, 4 + firePulse, 0, Math.PI * 2);
+  ctx.arc(0, -3 * Y_SCALE, 4.5 + firePulse, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = "#fef08a";
   ctx.beginPath();
-  ctx.arc(0, -2 * Y_SCALE, 2.2, 0, Math.PI * 2);
+  ctx.arc(0, -2 * Y_SCALE, 2.5, 0, Math.PI * 2);
   ctx.fill();
 
-  // Taş Baca & Duman
-  ctx.fillStyle = "#4b5563";
-  ctx.fillRect(9, -32 * Y_SCALE, 6, 12 * Y_SCALE);
-  for (let i = 0; i < 3; i++) {
-    const smY = -34 * Y_SCALE - i * 7 * Y_SCALE - Math.sin(time * 3 + i) * 2;
-    const smX = 12 + Math.sin(time * 2.5 + i * 1.5) * 3.5;
-    ctx.fillStyle = `rgba(243, 244, 246, ${0.5 - i * 0.12})`;
-    ctx.beginPath();
-    ctx.arc(smX, smY, 3 + i * 1.2, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  // Taş Baca
+  ctx.fillStyle = "#334155";
+  ctx.fillRect(9, -34 * Y_SCALE, 6, 14 * Y_SCALE);
 
-  // Seviye Rozeti
-  if (b && b.level > 1) {
-    ctx.fillStyle = "#f59e0b";
-    ctx.beginPath();
-    ctx.arc(-14, -20 * Y_SCALE, 5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#1e293b";
-    ctx.font = "bold 9px Outfit, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText(`${b.level}`, -14, -17 * Y_SCALE);
+  // Ekmek Sepeti
+  ctx.fillStyle = "#d97706";
+  ctx.fillRect(-14, -4 * Y_SCALE, 6, 4 * Y_SCALE);
+  ctx.fillStyle = "#fed7aa";
+  ctx.beginPath();
+  ctx.arc(-11, -5 * Y_SCALE, 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 3. Entegre Neo-Brutalist Taş Rozet
+  const accum = b.accumulated || 0;
+  if (accum > 0.5) {
+    drawHarvestBadge(0, -36 * Y_SCALE, "🍞", accum, time);
   }
 }
 
-// 🪑 3D Mobilyacı / Marangoz Atölyesi (Ahşap İskelet, Mavi Çatı, Tezgah & Kesilmiş Kalaslar)
+// 🪑 3D Marangoz Atölyesi (Mavi Çatı, Tezgah & Kalaslar)
 function drawIsometricFurnitureMaker(b, time) {
-  // Zemin Gölgesi
   ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
   ctx.beginPath();
-  ctx.ellipse(0, 0, 34, 20 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.ellipse(6, 6 * Y_SCALE, 36, 20 * Y_SCALE, Math.PI / 10, 0, Math.PI * 2);
   ctx.fill();
 
-  // Ahşap Gövde
-  ctx.fillStyle = "#854d0e";
-  ctx.fillRect(-20, -15 * Y_SCALE, 20, 15 * Y_SCALE);
-  ctx.fillStyle = "#713f12";
-  ctx.fillRect(0, -15 * Y_SCALE, 20, 15 * Y_SCALE);
+  ctx.fillStyle = "#78350f";
+  ctx.fillRect(-22, -15 * Y_SCALE, 22, 15 * Y_SCALE);
+  ctx.fillStyle = "#451a03";
+  ctx.fillRect(0, -15 * Y_SCALE, 22, 15 * Y_SCALE);
 
-  // Mavi Kalas Çatı
-  ctx.fillStyle = "#1d4ed8";
+  ctx.fillStyle = "#1e40af";
   ctx.beginPath();
-  ctx.moveTo(-24, -15 * Y_SCALE);
-  ctx.lineTo(24, -15 * Y_SCALE);
-  ctx.lineTo(-4, -30 * Y_SCALE);
+  ctx.moveTo(-26, -15 * Y_SCALE);
+  ctx.lineTo(26, -15 * Y_SCALE);
+  ctx.lineTo(-4, -32 * Y_SCALE);
   ctx.closePath();
   ctx.fill();
-  ctx.strokeStyle = "#60a5fa";
+  ctx.strokeStyle = "#38bdf8";
   ctx.lineWidth = 1.2;
   ctx.stroke();
 
-  // Marangoz Çalışma Tezgahı
+  // Marangoz Tezgahı
   ctx.fillStyle = "#5c3d22";
   ctx.fillRect(-10, -5 * Y_SCALE, 20, 5 * Y_SCALE);
-  const sawOffset = Math.sin(time * 5.0) * 3.0;
-  ctx.strokeStyle = "#e2e8f0";
-  ctx.lineWidth = 2.0;
-  ctx.beginPath();
-  ctx.moveTo(-5 + sawOffset, -2 * Y_SCALE);
-  ctx.lineTo(5 + sawOffset, -2 * Y_SCALE);
-  ctx.stroke();
 
-  // Dışarıda İstiflenmiş Sandalye / Mobilya Kalasları
+  // Mobilya Sandığı
   ctx.fillStyle = "#d97706";
   ctx.fillRect(12, -2 * Y_SCALE, 8, 4 * Y_SCALE);
   ctx.fillRect(14, -6 * Y_SCALE, 6, 4 * Y_SCALE);
 
-  // Seviye Rozeti
-  if (b && b.level > 1) {
-    ctx.fillStyle = "#f59e0b";
-    ctx.beginPath();
-    ctx.arc(-14, -20 * Y_SCALE, 5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#1e293b";
-    ctx.font = "bold 9px Outfit, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText(`${b.level}`, -14, -17 * Y_SCALE);
+  // Entegre Neo-Brutalist Taş Rozet
+  const accum = b.accumulated || 0;
+  if (accum > 0.5) {
+    drawHarvestBadge(0, -34 * Y_SCALE, "🪑", accum, time);
   }
 }
 
-// 🪨 3D Taş Ocağı (Taş Bloklar, Vinç / Çıkrık, Çekiç & Taş Yığınları)
+// 🪨 3D Taş Ocağı (Basamaklı Ocak, Ahşap Vinç & Taş Yığınları)
 function drawIsometricQuarry(b, time) {
-  // Zemin Gölgesi
   ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
   ctx.beginPath();
-  ctx.ellipse(0, 0, 36, 20 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.ellipse(6, 6 * Y_SCALE, 38, 20 * Y_SCALE, Math.PI / 10, 0, Math.PI * 2);
   ctx.fill();
 
-  // Yontulmuş Taş Duvarlar & Çukur
+  // Basamaklı Taş Ocak Kesiti
   ctx.fillStyle = "#475569";
-  ctx.fillRect(-18, -12 * Y_SCALE, 36, 12 * Y_SCALE);
+  ctx.fillRect(-20, -12 * Y_SCALE, 40, 12 * Y_SCALE);
   ctx.fillStyle = "#334155";
-  ctx.fillRect(-14, -8 * Y_SCALE, 28, 8 * Y_SCALE);
+  ctx.fillRect(-16, -8 * Y_SCALE, 32, 8 * Y_SCALE);
 
-  // Ahşap Vinç / Çıkrık İskeleti
-  ctx.strokeStyle = "#854d0e";
-  ctx.lineWidth = 2.4;
+  // Ahşap A-İskelet Vinç
+  ctx.strokeStyle = "#78350f";
+  ctx.lineWidth = 2.6;
   ctx.beginPath();
-  ctx.moveTo(-16, -12 * Y_SCALE);
-  ctx.lineTo(-16, -28 * Y_SCALE);
-  ctx.lineTo(2, -24 * Y_SCALE);
+  ctx.moveTo(-18, -12 * Y_SCALE);
+  ctx.lineTo(-18, -30 * Y_SCALE);
+  ctx.lineTo(3, -26 * Y_SCALE);
   ctx.stroke();
 
-  // Halat ve Asılı Taş Bloğu
   const ropeSway = Math.sin(time * 3.0) * 2.0;
   ctx.strokeStyle = "#cbd5e1";
   ctx.lineWidth = 1.0;
   ctx.beginPath();
-  ctx.moveTo(2, -24 * Y_SCALE);
-  ctx.lineTo(2 + ropeSway, -14 * Y_SCALE);
+  ctx.moveTo(3, -26 * Y_SCALE);
+  ctx.lineTo(3 + ropeSway, -14 * Y_SCALE);
   ctx.stroke();
 
+  // Kaldırılan Taş Blok
   ctx.fillStyle = "#94a3b8";
-  ctx.fillRect(ropeSway - 3, -14 * Y_SCALE, 10, 8 * Y_SCALE);
+  ctx.fillRect(ropeSway - 2, -14 * Y_SCALE, 10, 8 * Y_SCALE);
   ctx.strokeStyle = "#475569";
   ctx.lineWidth = 0.8;
-  ctx.strokeRect(ropeSway - 3, -14 * Y_SCALE, 10, 8 * Y_SCALE);
+  ctx.strokeRect(ropeSway - 2, -14 * Y_SCALE, 10, 8 * Y_SCALE);
 
   // Yontulmuş Taş Yığınları
   ctx.fillStyle = "#cbd5e1";
   ctx.fillRect(10, -4 * Y_SCALE, 8, 6 * Y_SCALE);
   ctx.fillRect(16, -2 * Y_SCALE, 7, 5 * Y_SCALE);
 
-  // Seviye Rozeti
-  if (b && b.level > 1) {
-    ctx.fillStyle = "#f59e0b";
-    ctx.beginPath();
-    ctx.arc(-14, -20 * Y_SCALE, 5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#1e293b";
-    ctx.font = "bold 9px Outfit, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText(`${b.level}`, -14, -17 * Y_SCALE);
+  // Entegre Neo-Brutalist Taş Rozet
+  const accum = b.accumulated || 0;
+  if (accum > 0.5) {
+    drawHarvestBadge(0, -36 * Y_SCALE, "🪨", accum, time);
   }
 }
 
-// ⛏️ 3D Demir Madeni (Maden Tüneli Girişi, Ahşap Tahkimat, Demir Külçeleri & Tüten Fırın)
+// ⛏️ 3D Ergenekon Demir Madeni & Döküm Ocağı
 function drawIsometricMine(b, time) {
-  // Zemin Gölgesi
   ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
   ctx.beginPath();
-  ctx.ellipse(0, 0, 36, 22 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.ellipse(6, 6 * Y_SCALE, 38, 22 * Y_SCALE, Math.PI / 10, 0, Math.PI * 2);
   ctx.fill();
 
-  // Maden Tüneli Karanlığı (Arch Entrance)
-  ctx.fillStyle = "#0f172a";
+  // Maden Galerisi Ağzı (Adit)
+  ctx.fillStyle = "#090d16";
   ctx.beginPath();
-  ctx.arc(0, -10 * Y_SCALE, 12, Math.PI, 0);
-  ctx.lineTo(12, 0);
-  ctx.lineTo(-12, 0);
+  ctx.arc(0, -10 * Y_SCALE, 13, Math.PI, 0);
+  ctx.lineTo(13, 0);
+  ctx.lineTo(-13, 0);
   ctx.closePath();
   ctx.fill();
 
-  // Ahşap Tahkimat Kirişleri (Wooden Portal Beams)
+  // Ahşap Portal Karkası
   ctx.fillStyle = "#78350f";
-  ctx.fillRect(-15, -24 * Y_SCALE, 5, 24 * Y_SCALE);
-  ctx.fillRect(10, -24 * Y_SCALE, 5, 24 * Y_SCALE);
-  ctx.fillRect(-17, -26 * Y_SCALE, 34, 5 * Y_SCALE);
+  ctx.fillRect(-16, -26 * Y_SCALE, 5, 26 * Y_SCALE);
+  ctx.fillRect(11, -26 * Y_SCALE, 5, 26 * Y_SCALE);
+  ctx.fillRect(-18, -28 * Y_SCALE, 36, 5 * Y_SCALE);
 
-  // Döküm Ocağı Bacası & Ateş Parıltısı
+  // Döküm Fırını ve Kor Ateşi
   ctx.fillStyle = "#334155";
   ctx.fillRect(14, -22 * Y_SCALE, 8, 18 * Y_SCALE);
   const forgeGlow = Math.sin(time * 5.5) * 1.5;
   ctx.fillStyle = "#ef4444";
   ctx.beginPath();
-  ctx.arc(18, -4 * Y_SCALE, 3.5 + forgeGlow, 0, Math.PI * 2);
+  ctx.arc(18, -4 * Y_SCALE, 4.0 + forgeGlow, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = "#fde047";
   ctx.beginPath();
-  ctx.arc(18, -4 * Y_SCALE, 2.0, 0, Math.PI * 2);
+  ctx.arc(18, -4 * Y_SCALE, 2.2, 0, Math.PI * 2);
   ctx.fill();
 
-  // Baca Dumanı
-  for (let i = 0; i < 2; i++) {
-    const smY = -24 * Y_SCALE - i * 6 * Y_SCALE;
-    const smX = 18 + Math.sin(time * 3 + i) * 2.5;
-    ctx.fillStyle = `rgba(148, 163, 184, ${0.6 - i * 0.2})`;
-    ctx.beginPath();
-    ctx.arc(smX, smY, 3 + i, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // Parlak Demir Külçeleri
+  // Demir Külçeleri
   ctx.fillStyle = "#94a3b8";
   ctx.fillRect(-22, -3 * Y_SCALE, 9, 3 * Y_SCALE);
   ctx.fillRect(-20, -6 * Y_SCALE, 7, 3 * Y_SCALE);
@@ -2291,19 +3596,146 @@ function drawIsometricMine(b, time) {
   ctx.lineWidth = 0.8;
   ctx.strokeRect(-22, -3 * Y_SCALE, 9, 3 * Y_SCALE);
 
-  // Seviye Rozeti
+  // Entegre Neo-Brutalist Taş Rozet
+  const accum = b.accumulated || 0;
+  if (accum > 0.5) {
+    drawHarvestBadge(0, -36 * Y_SCALE, "⛏️", accum, time);
+  }
+}
+
+// 🏛️ 3D Kadim Kurgan / Balbal Taşları & Göktürk Rünleri
+function drawIsometricRuins(time) {
+  ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+  ctx.beginPath();
+  ctx.ellipse(6, 6 * Y_SCALE, 36, 20 * Y_SCALE, Math.PI / 10, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Taş Kaide
+  ctx.fillStyle = "#1e293b";
+  ctx.fillRect(-18, -6 * Y_SCALE, 36, 6 * Y_SCALE);
+
+  // Dikili Balbal Megalit Taşları
+  const runesGlow = Math.sin(time * 3.0) * 0.4 + 0.6;
+  ctx.fillStyle = "#334155";
+  ctx.fillRect(-15, -28 * Y_SCALE, 9, 22 * Y_SCALE);
+  ctx.fillRect(6, -28 * Y_SCALE, 9, 22 * Y_SCALE);
+  ctx.fillStyle = "#475569";
+  ctx.fillRect(-18, -32 * Y_SCALE, 36, 5 * Y_SCALE);
+
+  // Parlayan Turkuaz Göktürk Tamgaları
+  ctx.fillStyle = `rgba(6, 182, 212, ${runesGlow})`;
+  ctx.font = "bold 12px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText("𐰋", -10, -15 * Y_SCALE);
+  ctx.fillText("𐰏", 10, -15 * Y_SCALE);
+  ctx.fillText("🏛️", 0, -8 * Y_SCALE);
+}
+
+// 🏹 3D Gözcü Kulesi / Korgan
+function drawIsometricWatchtower(b, time) {
+  ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+  ctx.beginPath();
+  ctx.ellipse(6, 6 * Y_SCALE, 30, 16 * Y_SCALE, Math.PI / 10, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = "#3e1e0a";
+  ctx.lineWidth = 3.2;
+  ctx.beginPath();
+  ctx.moveTo(-11, 0); ctx.lineTo(-11, -34 * Y_SCALE);
+  ctx.moveTo(11, 0);  ctx.lineTo(11, -34 * Y_SCALE);
+  ctx.moveTo(-4, -6 * Y_SCALE); ctx.lineTo(-4, -40 * Y_SCALE);
+  ctx.moveTo(4, -6 * Y_SCALE);  ctx.lineTo(4, -40 * Y_SCALE);
+  ctx.stroke();
+
+  ctx.strokeStyle = "#78350f";
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  ctx.moveTo(-11, -4 * Y_SCALE); ctx.lineTo(11, -30 * Y_SCALE);
+  ctx.moveTo(11, -4 * Y_SCALE);  ctx.lineTo(-11, -30 * Y_SCALE);
+  ctx.stroke();
+
+  // Gözetleme Platformu
+  ctx.fillStyle = "#92400e";
+  ctx.fillRect(-15, -36 * Y_SCALE, 30, 5 * Y_SCALE);
+
+  // Sivri Çatı
+  ctx.fillStyle = "#b45309";
+  ctx.beginPath();
+  ctx.moveTo(-17, -36 * Y_SCALE);
+  ctx.lineTo(0, -52 * Y_SCALE);
+  ctx.lineTo(17, -36 * Y_SCALE);
+  ctx.closePath();
+  ctx.fill();
+
+  // Sinyal Meşalesi Ateşi
+  const fireFlicker = Math.sin(time * 6.0) * 1.5;
+  ctx.fillStyle = "#f97316";
+  ctx.beginPath();
+  ctx.arc(10, -38 * Y_SCALE, 3.5 + fireFlicker, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#fef08a";
+  ctx.beginPath();
+  ctx.arc(10, -38 * Y_SCALE, 1.8, 0, Math.PI * 2);
+  ctx.fill();
+
+  const flagWave = Math.sin(time * 4.0) * 2.5;
+  ctx.fillStyle = "#dc2626";
+  ctx.beginPath();
+  ctx.moveTo(0, -52 * Y_SCALE);
+  ctx.lineTo(8 + flagWave, -48 * Y_SCALE);
+  ctx.lineTo(0, -44 * Y_SCALE);
+  ctx.closePath();
+  ctx.fill();
+
   if (b && b.level > 1) {
     ctx.fillStyle = "#f59e0b";
     ctx.beginPath();
-    ctx.arc(-14, -20 * Y_SCALE, 5, 0, Math.PI * 2);
+    ctx.arc(-10, -22 * Y_SCALE, 5, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = "#1e293b";
     ctx.font = "bold 9px Outfit, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText(`${b.level}`, -14, -17 * Y_SCALE);
+    ctx.fillText(`${b.level}`, -10, -19 * Y_SCALE);
   }
 }
 
+// 🐫 3D İpek Yolu Kervanı (Gezgin Tüccar)
+function drawIsometricCaravan(time) {
+  const bob = Math.sin(time * 3.0) * 2.0;
+  ctx.save();
+  ctx.fillStyle = "rgba(245, 158, 11, 0.35)";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 28, 16 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.font = "24px Outfit, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("🐫", 0, -10 * Y_SCALE + bob);
+
+  ctx.fillStyle = "#fde047";
+  ctx.font = "bold 10px Outfit, sans-serif";
+  ctx.fillText("💰 TÜCCAR", 0, -26 * Y_SCALE + bob);
+  ctx.restore();
+}
+
+// 🔮 3D Bozkır Şamanı (Gizemli Şaman Ritüeli)
+function drawIsometricShaman(time) {
+  const pulse = Math.sin(time * 4.0) * 3.0;
+  ctx.save();
+  ctx.fillStyle = "rgba(168, 85, 247, 0.4)";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 30 + pulse, (16 + pulse * 0.5) * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.font = "24px Outfit, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("🧙‍♂️", 0, -10 * Y_SCALE);
+
+  ctx.fillStyle = "#c084fc";
+  ctx.font = "bold 10px Outfit, sans-serif";
+  ctx.fillText("✨ ŞAMAN", 0, -26 * Y_SCALE);
+  ctx.restore();
+}
 
 // =============================================================================
 // 7. OYUN DÖNGÜSÜ & EKONOMİ (PROCESS & FACTORIES)
@@ -2357,40 +3789,115 @@ function gameLoop(now) {
     saveGame();
   }
 
-  // 1. Üretim Döngüsü (Mısır, Oduncu, Değirmen, Kereste, Fırın, Mobilya, Taş Ocağı, Demir Madeni, İşçi)
+  if (game.shamanBoostTimer > 0) {
+    game.shamanBoostTimer -= delta;
+  }
+
+  // Rastgele Olaylar & Gece Akınları
+  processEncounters(delta);
+  processNightRaids(delta);
+
+  // 1. Mevsim Döngüsü (Zud Felaketi, Bahar, Yaz, Güz)
+  updateSeasons(delta);
+
+  // 2. Üretim Döngüsü (Mısır, Oduncu, Değirmen, Kereste, Fırın, Mobilya, Taş Ocağı, Demir Madeni, Yeraltı Ocağı, İşçi)
   processProduction(delta);
 
-  // 2. Çizim
+  // 3. Mikro Dinamik Parçacık & Canlı Doğa Güncellemeleri
+  updateCloudShadows(delta);
+  updateRoamingHerds(delta);
+  updateChimneyPuffs(delta);
+  updateFlyingResources(delta);
+  updateTileBounces(delta);
+  updateWeatherStreaks(delta);
+  updateSeasonalParticles(delta);
+  updatePackMules(delta);
+
+  // 4. Çizim
   draw();
 
-  // 3. UI Canlı Güncelleme
+  // 5. UI Canlı Güncelleme
   updateUI();
   updateOpenMenuLive();
+  updateQuestsUI();
+  updateEncounterTimerUI();
 
   requestAnimationFrame(gameLoop);
 }
 
+function updateSeasons(delta) {
+  game.seasonTimer = (game.seasonTimer || 0) + delta;
+  const SEASON_DURATION = 45.0;
+
+  if (game.seasonTimer >= SEASON_DURATION) {
+    game.seasonTimer = 0.0;
+    if (game.season === "SPRING") {
+      game.season = "SUMMER";
+      showToast("☀️ Yaz Mevsimi Geldi! (Tarlalar ve Değirmenler %130 Hızlandı)");
+    } else if (game.season === "SUMMER") {
+      game.season = "AUTUMN";
+      showToast("🍂 Sonbahar Geldi! (Odunculuk ve Madencilik %120 Hızlandı)");
+    } else if (game.season === "AUTUMN") {
+      game.season = "WINTER";
+      game.isZud = (game.seasonYear % 2 === 0);
+      if (game.isZud) {
+        showToast("❄️ ZUD (Kış Felaketi) Başladı! Isıtmasız Tarlalar Dondu!", true);
+        const banner = document.getElementById("season-banner");
+        if (banner) {
+          banner.classList.remove("hidden");
+          setTimeout(() => banner.classList.add("hidden"), 6000);
+        }
+      } else {
+        showToast("❄️ Kış Mevsimi Başladı! (Taş ve Madencilik Üretimi Öncelikli)");
+      }
+    } else {
+      game.season = "SPRING";
+      game.isZud = false;
+      game.seasonYear = (game.seasonYear || 1) + 1;
+      showToast(`🌸 ${game.seasonYear}. Yıl İlkbaharı Başladı! Topraklar Yeşerdi.`);
+    }
+  }
+
+  // Sezon gösterge butonunu güncelle
+  const seasonBtn = document.getElementById("chip-season");
+  if (seasonBtn) {
+    const sIcons = { SPRING: "🌸 İlkbahar", SUMMER: "☀️ Yaz", AUTUMN: "🍂 Sonbahar", WINTER: game.isZud ? "❄️ Zud Felaketi" : "❄️ Kış" };
+    seasonBtn.textContent = sIcons[game.season] || "🌸 İlkbahar";
+    if (game.isZud && game.season === "WINTER") {
+      seasonBtn.style.color = "#ef4444";
+      seasonBtn.style.borderColor = "#ef4444";
+    } else {
+      seasonBtn.style.color = "";
+      seasonBtn.style.borderColor = "";
+    }
+  }
+}
+
 function processProduction(delta) {
   const globalMult = game.getGlobalMultiplier();
+  const foodRelicMult = (game.relics && game.relics.cornucopia) ? 1.25 : 1.0;
+  const woodRelicMult = (game.relics && game.relics.axe) ? 1.25 : 1.0;
+  const stoneRelicMult = (game.relics && game.relics.shield) ? 1.30 : 1.0;
 
-  Object.values(game.tiles).forEach(tile => {
+  // Yüzey Üretimi
+  Object.values(game.tiles || {}).forEach(tile => {
     if (tile.state !== "OWNED" || !tile.building) return;
     const b = tile.building;
 
     if (b.type === "corn") {
-      const rate = (0.42 * Math.pow(1.5, b.level - 1)) * globalMult;
+      const rate = (0.42 * Math.pow(1.5, b.level - 1)) * globalMult * foodRelicMult;
       const maxCap = rate * 30.0;
       b.accumulated = Math.min(maxCap, (b.accumulated || 0) + rate * delta);
     } else if (b.type === "lumberjack") {
-      const rate = (0.35 * Math.pow(1.5, b.level - 1)) * globalMult;
+      const rate = (0.35 * Math.pow(1.5, b.level - 1)) * globalMult * woodRelicMult;
       const maxCap = rate * 30.0;
       b.accumulated = Math.min(maxCap, (b.accumulated || 0) + rate * delta);
     } else if (b.type === "quarry") {
-      const rate = (0.30 * Math.pow(1.5, b.level - 1)) * globalMult;
+      const rate = (0.30 * Math.pow(1.5, b.level - 1)) * globalMult * stoneRelicMult;
       const maxCap = rate * 30.0;
       b.accumulated = Math.min(maxCap, (b.accumulated || 0) + rate * delta);
     } else if (b.type === "mine") {
-      const rate = (0.18 * Math.pow(1.5, b.level - 1)) * globalMult;
+      const rate = (0.18 * Math.pow(1.5, b.level - 1)) * globalMult * stoneRelicMult;
       const maxCap = rate * 30.0;
       b.accumulated = b.accumulated || 0;
 
@@ -2423,7 +3930,7 @@ function processProduction(delta) {
         }
       }
     } else if (b.type === "windmill") {
-      const rate = (0.25 * Math.pow(1.5, b.level - 1)) * globalMult;
+      const rate = (0.25 * Math.pow(1.5, b.level - 1)) * globalMult * foodRelicMult;
       const maxCap = rate * 30.0;
       b.accumulated = b.accumulated || 0;
 
@@ -2455,7 +3962,7 @@ function processProduction(delta) {
         }
       }
     } else if (b.type === "sawmill") {
-      const rate = (0.20 * Math.pow(1.5, b.level - 1)) * globalMult;
+      const rate = (0.20 * Math.pow(1.5, b.level - 1)) * globalMult * woodRelicMult;
       const maxCap = rate * 30.0;
       b.accumulated = b.accumulated || 0;
 
@@ -2468,9 +3975,9 @@ function processProduction(delta) {
           const needed = rate * delta;
           const takePerHut = needed / lumberHuts.length;
           let got = 0;
-          lumberHuts.forEach(h => {
-            const take = Math.min(h.accumulated, takePerHut);
-            h.accumulated -= take;
+          lumberHuts.forEach(l => {
+            const take = Math.min(l.accumulated, takePerHut);
+            l.accumulated -= take;
             got += take;
           });
           b.accumulated = Math.min(maxCap, b.accumulated + got);
@@ -2519,7 +4026,7 @@ function processProduction(delta) {
         }
       }
     } else if (b.type === "furniture") {
-      const rate = (0.20 * Math.pow(1.5, b.level - 1)) * globalMult;
+      const rate = (0.20 * Math.pow(1.5, b.level - 1)) * globalMult * woodRelicMult;
       const maxCap = rate * 40.0;
       b.accumulated = b.accumulated || 0;
 
@@ -2591,11 +4098,447 @@ function processProduction(delta) {
           } else if (tgt.type === "mine") {
             game.iron = (game.iron || 0) + take;
             game.statTotalIron = (game.statTotalIron || 0) + take;
+          } else if (tgt.type === "underground_forge") {
+            game.obsidian = (game.obsidian || 0) + take;
+            game.statTotalObsidian = (game.statTotalObsidian || 0) + take;
+          } else if (tgt.type === "crystal_mine") {
+            game.mithril = (game.mithril || 0) + take;
+            game.statTotalMithril = (game.statTotalMithril || 0) + take;
           }
         });
       }
     }
   });
+
+  // Yeraltı Ergenekon Üretimi (Dökümhane & Kristal Madeni)
+  if (game.undergroundTiles) {
+    Object.values(game.undergroundTiles).forEach(tile => {
+      if (tile.state !== "OWNED" || !tile.building) return;
+      const b = tile.building;
+      if (b.type === "underground_forge") {
+        const rate = (0.22 * Math.pow(1.5, b.level - 1)) * globalMult;
+        const maxCap = rate * 40.0;
+        b.accumulated = Math.min(maxCap, (b.accumulated || 0) + rate * delta);
+      } else if (b.type === "crystal_mine") {
+        const rate = (0.16 * Math.pow(1.5, b.level - 1)) * globalMult;
+        const maxCap = rate * 40.0;
+        b.accumulated = Math.min(maxCap, (b.accumulated || 0) + rate * delta);
+      }
+    });
+  }
+}
+
+// =============================================================================
+// 7.1. ÜÇ KATMANLI KRALİYET GÖREV SİSTEMİ (QUESTS & DECREES)
+// =============================================================================
+
+const QUEST_TYPES = {
+  fast: [
+    { key: "collect_wood", desc: "{0} Odun Topla", target: [20, 35, 50], reward: { wood: 30, food: 20 }, rewardText: "+30 🪵 +20 🥡", tag: "⚡ Hızlı Ferman" },
+    { key: "collect_food", desc: "{0} Gıda Hasat Et", target: [25, 40, 60], reward: { food: 40, wood: 20 }, rewardText: "+40 🥡 +20 🪵", tag: "⚡ Hızlı Ferman" },
+    { key: "collect_stone", desc: "{0} Taş Çıkar", target: [10, 20, 30], reward: { stone: 20, iron: 10 }, rewardText: "+20 🪨 +10 ⛏️", tag: "⚡ Hızlı Ferman" },
+    { key: "conquer_tile", desc: "{0} Yeni Karo Fethet", target: [1, 2, 3], reward: { food: 30, wood: 30 }, rewardText: "+30 🥡 +30 🪵", tag: "⚡ Hızlı Ferman" }
+  ],
+  strat: [
+    { key: "build_worker", desc: "{0} İşçi Kulübesi Kur", target: [1, 2], reward: { crowns: 1, food: 50 }, rewardText: "+1 👑 +50 🥡", tag: "🏰 Krallık Fermanı" },
+    { key: "upgrade_building", desc: "{0} Bina Seviyesini Yükselt", target: [1, 2], reward: { crowns: 1, stone: 30 }, rewardText: "+1 👑 +30 🪨", tag: "🏰 Krallık Fermanı" },
+    { key: "build_watchtower", desc: "{0} Gözcü Kulesi İnşa Et", target: [1, 2], reward: { crowns: 1, wood: 40, stone: 25 }, rewardText: "+1 👑 +40 🪵 +25 🪨", tag: "🏰 Krallık Fermanı" },
+    { key: "conquer_forest", desc: "{0} Orman Karosu Fethet", target: [2, 3], reward: { crowns: 1, wood: 60 }, rewardText: "+1 👑 +60 🪵", tag: "🏰 Krallık Fermanı" }
+  ],
+  epic: [
+    { key: "castle_level", desc: "Şatoyu {0}. Seviyeye Yükselt", target: [2, 3, 4], reward: { crowns: 3, relic: true }, rewardText: "+3 👑 + Kadim Eser", tag: "👑 Epik Hükümdar Fermanı" },
+    { key: "conquer_total", desc: "Toplam {0} Toprak Fethet", target: [6, 12, 18], reward: { crowns: 4, relic: true }, rewardText: "+4 👑 + Kadim Eser", tag: "👑 Epik Hükümdar Fermanı" },
+    { key: "defend_raid", desc: "{0} Gece Baskınını Savuştur", target: [1, 2, 3], reward: { crowns: 3, relic: true }, rewardText: "+3 👑 + Kadim Eser", tag: "👑 Epik Hükümdar Fermanı" }
+  ]
+};
+
+function generateQuest(tier) {
+  const pool = QUEST_TYPES[tier];
+  const qDef = pool[Math.floor(Math.random() * pool.length)];
+  const target = qDef.target[Math.floor(Math.random() * qDef.target.length)];
+  
+  let desc = qDef.desc.replace("{0}", target);
+  let initialCount = 0;
+  if (qDef.key === "castle_level") {
+    initialCount = game ? game.castleLevel : 1;
+  } else if (qDef.key === "conquer_total") {
+    initialCount = game ? game.ownedCount : 1;
+  }
+
+  return {
+    tier,
+    key: qDef.key,
+    desc,
+    current: initialCount,
+    target: Math.max(initialCount + 1, target),
+    reward: { ...qDef.reward },
+    rewardText: qDef.rewardText,
+    ready: initialCount >= target
+  };
+}
+
+function initQuests() {
+  if (!game.quests) game.quests = {};
+  if (!game.quests.fast) game.quests.fast = generateQuest("fast");
+  if (!game.quests.strat) game.quests.strat = generateQuest("strat");
+  if (!game.quests.epic) game.quests.epic = generateQuest("epic");
+}
+
+function updateQuestProgress(key, amount = 1) {
+  if (!game.quests) initQuests();
+  let anyReady = false;
+
+  ["fast", "strat", "epic"].forEach(tier => {
+    const q = game.quests[tier];
+    if (q && !q.ready) {
+      if (q.key === key) {
+        q.current += amount;
+      } else if (q.key === "castle_level") {
+        q.current = game.castleLevel;
+      } else if (q.key === "conquer_total") {
+        q.current = game.ownedCount;
+      }
+      if (q.current >= q.target) {
+        q.current = q.target;
+        q.ready = true;
+        anyReady = true;
+      }
+    } else if (q && q.ready) {
+      anyReady = true;
+    }
+  });
+
+  const badge = document.getElementById("quest-badge");
+  if (badge) {
+    badge.classList.toggle("hidden", !anyReady);
+  }
+}
+
+function claimQuest(tier) {
+  if (!game.quests || !game.quests[tier] || !game.quests[tier].ready) return;
+  const q = game.quests[tier];
+  const rew = q.reward;
+
+  if (rew.food) game.food += rew.food;
+  if (rew.wood) game.wood += rew.wood;
+  if (rew.stone) game.stone = (game.stone || 0) + rew.stone;
+  if (rew.iron) game.iron = (game.iron || 0) + rew.iron;
+  if (rew.crowns) game.crowns = (game.crowns || 0) + rew.crowns;
+  if (rew.relic) unlockRandomRelic();
+
+  if (audio.playQuestComplete) audio.playQuestComplete();
+  else audio.playCollect();
+
+  triggerShockwave(0, 0, "#fde047");
+  showToast(`📜 Ferman Tamamlandı! ${q.rewardText} Ambarlara Eklendi!`);
+  
+  game.quests[tier] = generateQuest(tier);
+  saveGame();
+  updateUI();
+  updateQuestsUI();
+  updateQuestProgress("", 0);
+}
+
+function updateQuestsUI() {
+  if (!game.quests) initQuests();
+  const tiers = [
+    { id: "fast", descEl: "desc-quest-fast", progEl: "bar-quest-fast", countEl: "count-quest-fast", btnEl: "btn-claim-fast", rewEl: "reward-quest-fast" },
+    { id: "strat", descEl: "desc-quest-strat", progEl: "bar-quest-strat", countEl: "count-quest-strat", btnEl: "btn-claim-strat", rewEl: "reward-quest-strat" },
+    { id: "epic", descEl: "desc-quest-epic", progEl: "bar-quest-epic", countEl: "count-quest-epic", btnEl: "btn-claim-epic", rewEl: "reward-quest-epic" }
+  ];
+
+  tiers.forEach(tDef => {
+    const q = game.quests[tDef.id];
+    if (!q) return;
+
+    const desc = document.getElementById(tDef.descEl);
+    const prog = document.getElementById(tDef.progEl);
+    const count = document.getElementById(tDef.countEl);
+    const btn = document.getElementById(tDef.btnEl);
+    const rew = document.getElementById(tDef.rewEl);
+
+    if (desc) desc.textContent = q.desc;
+    if (rew) rew.textContent = q.rewardText;
+    if (count) count.textContent = `${Math.min(q.target, Math.floor(q.current))} / ${q.target}`;
+    
+    const pct = Math.min(100, Math.round((q.current / q.target) * 100));
+    if (prog) prog.style.width = `${pct}%`;
+    if (btn) {
+      btn.disabled = !q.ready;
+      btn.textContent = q.ready ? "Ödülü Al!" : "Devam Ediyor";
+    }
+  });
+}
+
+function openQuestsModal() {
+  audio.playClick();
+  updateQuestsUI();
+  modalBackdrop.classList.remove("hidden");
+  const modal = document.getElementById("quest-modal");
+  if (modal) modal.classList.remove("hidden");
+}
+
+// =============================================================================
+// 7.2. KADİM ESERLER SİSTEMİ (RELICS & ARTIFACTS)
+// =============================================================================
+
+const RELIC_DATA = [
+  { key: "axe", name: "Göktürk Baltası", icon: "🪓", perk: "Odun ve Kereste üretimine +%25 verim.", flavor: "Bozkırın kadim demircileri tarafından dövülmüş kutsal savaş baltası." },
+  { key: "cornucopia", name: "Bereket Boynuzu", icon: "🏺", perk: "Mısır ve Fırınlara +%25 üretim hızı.", flavor: "Toprağın sonsuz bereketini çağıran efsanevi tören kadehi." },
+  { key: "standard", name: "Kurt Başlı Tuğ", icon: "⚔️", perk: "Toprak fetih maliyetlerinde %15 kalıcı indirim.", flavor: "Orduların önünde dalgalanan dokuz kollu kutsal sancak." },
+  { key: "shield", name: "Demir Dağ Kalkanı", icon: "🛡️", perk: "Taş ve Demir madenlerine +%30 hız & Gece Savunması.", flavor: "Ergenekon Dağı'nın ilk cevheriyle dövülmüş aşılmaz kalkan." }
+];
+
+function unlockRandomRelic() {
+  if (!game.relics) game.relics = { axe: false, cornucopia: false, standard: false, shield: false };
+  const locked = RELIC_DATA.filter(r => !game.relics[r.key]);
+  if (locked.length > 0) {
+    const picked = locked[Math.floor(Math.random() * locked.length)];
+    game.relics[picked.key] = true;
+    showToast(`🏺 Kadim Eser Bulundu: ${picked.name}! (${picked.perk})`);
+  } else {
+    game.crowns = (game.crowns || 0) + 3;
+    showToast(`👑 Tüm Eserler Zaten Açık! +3 Ek Kraliyet Tacı Kazanıldı!`);
+  }
+}
+
+function openRelicsModal() {
+  audio.playClick();
+  updateRelicsUI();
+  modalBackdrop.classList.remove("hidden");
+  const relicsModal = document.getElementById("relics-modal");
+  if (relicsModal) relicsModal.classList.remove("hidden");
+}
+
+function updateRelicsUI() {
+  const container = document.getElementById("relics-grid");
+  if (!container) return;
+  if (!game.relics) game.relics = { axe: false, cornucopia: false, standard: false, shield: false };
+
+  container.innerHTML = RELIC_DATA.map(r => {
+    const unlocked = !!game.relics[r.key];
+    return `
+      <div class="relic-card ${unlocked ? 'unlocked' : ''}">
+        <div class="relic-icon-title">
+          <span style="font-size:1.6rem">${r.icon}</span>
+          <span style="font-weight:700;color:${unlocked ? '#fde047' : 'var(--text-muted)'}">${r.name}</span>
+        </div>
+        <div class="relic-perk" style="color:${unlocked ? '#38bdf8' : 'var(--text-muted)'}">${r.perk}</div>
+        <div class="relic-flavor" style="font-size:0.75rem;color:var(--text-muted);font-style:italic">${r.flavor}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+// =============================================================================
+// 7.3. RASTGELE OLAYLAR (RANDOM ENCOUNTERS - KERVAN & ŞAMAN)
+// =============================================================================
+
+function processEncounters(delta) {
+  game.encounterTimer = (game.encounterTimer || 0) + delta;
+  
+  if (game.activeEncounter) {
+    game.activeEncounter.timeRemaining -= delta;
+    if (game.activeEncounter.timeRemaining <= 0) {
+      game.activeEncounter = null;
+      const encModal = document.getElementById("encounter-modal");
+      if (encModal && !encModal.classList.contains("hidden")) {
+        closeModals();
+      }
+    }
+  }
+
+  if (game.encounterTimer >= 70.0 && !game.activeEncounter) {
+    game.encounterTimer = 0.0;
+    const ownedTiles = Object.values(game.tiles).filter(t => t.state === "OWNED");
+    if (ownedTiles.length > 0) {
+      const t = ownedTiles[Math.floor(Math.random() * ownedTiles.length)];
+      const type = Math.random() < 0.5 ? "trader" : "shaman";
+      game.activeEncounter = {
+        type,
+        q: t.q,
+        r: t.r,
+        timeRemaining: 45.0
+      };
+      audio.playCollect();
+      showToast(type === "trader" ? "🐫 İpek Yolu Kervanı Haritada Belirdi! Tıkla ve Takas Yap!" : "🔮 Bozkır Şamanı Haritada Belirdi! Tıkla ve Kutsama Al!");
+    }
+  }
+}
+
+function updateEncounterTimerUI() {
+  if (!game.activeEncounter) return;
+  const bar = document.getElementById("encounter-timer-fill");
+  if (bar) {
+    const pct = Math.max(0, Math.min(100, (game.activeEncounter.timeRemaining / 45.0) * 100));
+    bar.style.width = `${pct}%`;
+  }
+}
+
+function openEncounterModal() {
+  if (!game.activeEncounter) return;
+  audio.playClick();
+  const enc = game.activeEncounter;
+  const modal = document.getElementById("encounter-modal");
+  const icon = document.getElementById("encounter-icon");
+  const title = document.getElementById("encounter-title");
+  const desc = document.getElementById("encounter-desc");
+  const give = document.getElementById("encounter-give");
+  const get = document.getElementById("encounter-get");
+
+  if (enc.type === "trader") {
+    if (icon) icon.textContent = "🐫";
+    if (title) title.textContent = "Gezgin İpek Yolu Kervanı";
+    if (desc) desc.textContent = '"Uzak diyarlardan geldik hakanım! Değerli taş ve odunlarını bize sat, taç ve çılgınlık modu kazan!"';
+    if (give) give.textContent = "40 🪨 Taş + 30 🪵 Odun";
+    if (get) get.textContent = "2 Kraliyet Tacı (👑) + 30 sn 10x Hız";
+  } else {
+    if (icon) icon.textContent = "🔮";
+    if (title) title.textContent = "Göktürk Şamanı Ayini";
+    if (desc) desc.textContent = '"Gök Tengri adına bereket ayini yapalım! Gıda kurban et, 1 dakika boyunca tüm krallık 5 kat hızlı üretsin!"';
+    if (give) give.textContent = "30 🥡 Gıda";
+    if (get) get.textContent = "60 sn 5x Kutsal Üretim Bonusu";
+  }
+
+  modalBackdrop.classList.remove("hidden");
+  if (modal) modal.classList.remove("hidden");
+}
+
+function acceptEncounter() {
+  if (!game.activeEncounter) return;
+  const enc = game.activeEncounter;
+  if (enc.type === "trader") {
+    if ((game.stone || 0) < 40 || game.wood < 30) {
+      audio.playError();
+      showToast("⚠️ Kervan için yeterli Taş veya Odun yok!", true);
+      return;
+    }
+    game.stone -= 40;
+    game.wood -= 30;
+    game.crowns = (game.crowns || 0) + 2;
+    game.frenzyTimer = (game.frenzyTimer || 0) + 30;
+    audio.playPrestige();
+    showToast("🌟 Kervan Takası Yapıldı! +2 👑 Taç & 30 sn 10x Çılgınlık Modu!");
+  } else {
+    if (game.food < 30) {
+      audio.playError();
+      showToast("⚠️ Şaman ayini için en az 30 Gıda gerekli!", true);
+      return;
+    }
+    game.food -= 30;
+    game.shamanBoostTimer = (game.shamanBoostTimer || 0) + 60;
+    audio.playPrestige();
+    showToast("🔥 Şaman Ayini Kabul Edildi! 60 sn Boyunca 5x Üretim Aktif!");
+  }
+
+  game.activeEncounter = null;
+  closeModals();
+  saveGame();
+  updateUI();
+}
+
+function declineEncounter() {
+  game.activeEncounter = null;
+  closeModals();
+}
+
+// =============================================================================
+// 7.4. SİS ZİNDANLARI & KADİM ESERLER (RUINS EXPLORATION)
+// =============================================================================
+
+let currentRuinsTile = null;
+
+function openRuinsModal(tile) {
+  currentRuinsTile = tile;
+  audio.playClick();
+  modalBackdrop.classList.remove("hidden");
+  const modal = document.getElementById("ruins-modal");
+  if (modal) modal.classList.remove("hidden");
+}
+
+function exploreRuinsSafe() {
+  if (!currentRuinsTile) return;
+  currentRuinsTile.hasRuins = false;
+  game.food += 50;
+  game.stone = (game.stone || 0) + 30;
+  audio.playCollect();
+  showToast("👷 İşçiler Harabeyi Temizledi: +50 🥡 Gıda & +30 🪨 Taş!");
+  closeModals();
+  saveGame();
+  updateUI();
+  updateQuestProgress("explore_ruins", 1);
+}
+
+function exploreRuinsGamble() {
+  if (!currentRuinsTile) return;
+  currentRuinsTile.hasRuins = false;
+  if (audio.playDiceRoll) audio.playDiceRoll();
+
+  const success = Math.random() < 0.70;
+  if (success) {
+    game.crowns = (game.crowns || 0) + 2;
+    unlockRandomRelic();
+    audio.playPrestige();
+    triggerShockwave(0, 0, "#fde047");
+    showToast("🌟 Zafer! Mezarın Derinliklerinde Kadim Eser ve +2 👑 Taç Bulundu!");
+  } else {
+    audio.playError();
+    triggerScreenShake(8.0, 0.4);
+    showToast("⚠️ Sis Fırtınası! Mezar boş çıktı.", true);
+  }
+
+  closeModals();
+  saveGame();
+  updateUI();
+  updateQuestProgress("explore_ruins", 1);
+}
+
+// =============================================================================
+// 7.5. GECE BASKINLARI & GÖZCÜ KULESİ MEKANİĞİ (NIGHT RAIDS)
+// =============================================================================
+
+function processNightRaids(delta) {
+  const dayCycle = (game.animDayTime || 0) % 1.0;
+  const currentNightId = Math.floor(game.animDayTime || 0);
+
+  if (dayCycle >= 0.70 && dayCycle <= 0.85) {
+    if (game.lastRaidNight !== currentNightId) {
+      game.lastRaidNight = currentNightId;
+      
+      const raidBanner = document.getElementById("night-raid-banner");
+      if (raidBanner) {
+        raidBanner.classList.remove("hidden");
+        setTimeout(() => {
+          if (raidBanner) raidBanner.classList.add("hidden");
+        }, 4500);
+      }
+
+      if (audio.playRaidAlarm) audio.playRaidAlarm();
+
+      const watchtowers = Object.values(game.tiles).filter(t => t.building && t.building.type === "watchtower");
+      if (watchtowers.length > 0) {
+        const bonusLootFood = 25 * watchtowers.length;
+        const bonusLootWood = 20 * watchtowers.length;
+        const bonusLootStone = 15 * watchtowers.length;
+        game.food += bonusLootFood;
+        game.wood += bonusLootWood;
+        game.stone = (game.stone || 0) + bonusLootStone;
+        
+        triggerScreenShake(5.0, 0.2);
+        showToast(`🛡️ Gözcü Kuleleri Gece Baskınını Savuşturdu! Ganimet: +${bonusLootFood} 🥡 +${bonusLootWood} 🪵 +${bonusLootStone} 🪨`);
+        updateQuestProgress("defend_raid", 1);
+      } else {
+        const lostFood = Math.min(game.food, 15);
+        const lostWood = Math.min(game.wood, 10);
+        game.food -= lostFood;
+        game.wood -= lostWood;
+        triggerScreenShake(10.0, 0.5);
+        showToast(`⚠️ Gece Baskını! Savunmasız ambarlardan -${lostFood.toFixed(0)} 🥡 ve -${lostWood.toFixed(0)} 🪵 yağmalandı!`, true);
+      }
+      saveGame();
+      updateUI();
+    }
+  }
 }
 
 // =============================================================================
@@ -2675,7 +4618,8 @@ function setupInputHandlers() {
 
     const hexCoord = pixelToHex(worldX, worldY);
     const key = `${hexCoord.q},${hexCoord.r}`;
-    const tile = game.tiles[key];
+    const activeTileSource = (game.activeLayer === "UNDERGROUND") ? (game.undergroundTiles || {}) : game.tiles;
+    const tile = activeTileSource[key];
 
     if (tile) {
       handleTileClick(tile);
@@ -2684,6 +4628,14 @@ function setupInputHandlers() {
 }
 
 function handleTileClick(tile) {
+  triggerTileBounce(tile.q, tile.r);
+
+  // 0. Aktif Rastgele Olay (Kervan veya Şaman) Tıklaması
+  if (game.activeEncounter && game.activeEncounter.q === tile.q && game.activeEncounter.r === tile.r) {
+    openEncounterModal();
+    return;
+  }
+
   // 1. Dinamik Hazine Sandığı Tıklaması
   const chestIdx = (game.activeChests || []).findIndex(c => c.q === tile.q && c.r === tile.r);
   if (chestIdx !== -1) {
@@ -2714,12 +4666,13 @@ function handleTileClick(tile) {
 
   if (tile.state === "DISCOVERED") {
     // Deniz ve Köprü Geçiş Kontrolü:
+    const activeTileSource = (game.activeLayer === "UNDERGROUND") ? (game.undergroundTiles || {}) : game.tiles;
     const neighbors = NEIGHBOR_DIRS.map(d => `${tile.q + d.q},${tile.r + d.r}`);
     let hasValidAccess = false;
     let blockedByUnbridgedSea = false;
 
     for (const nKey of neighbors) {
-      const nTile = game.tiles[nKey];
+      const nTile = activeTileSource[nKey];
       if (nTile && nTile.state === "OWNED") {
         if (nTile.biome !== BIOMES.SEA) {
           hasValidAccess = true;
@@ -2747,93 +4700,53 @@ function handleTileClick(tile) {
 
     // Arsa Satın Alma / Fethetme (Mesafe Bölgeleri 1-6, 7-12, 13+)
     const cost = game.getLandExpansionCost(tile.q, tile.r, tile.biome);
-    const reqFood = cost.food || 0;
-    const reqWood = cost.wood || 0;
-    const reqFlour = cost.flour || 0;
-    const reqPlank = cost.plank || 0;
-    const reqBread = cost.bread || 0;
-    const reqFurn = cost.furniture || 0;
+    const canAfford = (
+      game.food >= (cost.food || 0) &&
+      game.wood >= (cost.wood || 0) &&
+      game.flour >= (cost.flour || 0) &&
+      game.plank >= (cost.plank || 0) &&
+      game.bread >= (cost.bread || 0) &&
+      game.furniture >= (cost.furniture || 0) &&
+      (game.stone || 0) >= (cost.stone || 0) &&
+      (game.iron || 0) >= (cost.iron || 0)
+    );
 
-    if (game.food >= reqFood && game.wood >= reqWood && game.flour >= reqFlour && game.plank >= reqPlank && game.bread >= reqBread && game.furniture >= reqFurn) {
-      game.food -= reqFood;
-      game.wood -= reqWood;
-      game.flour -= reqFlour;
-      game.plank -= reqPlank;
-      game.bread -= reqBread;
-      game.furniture -= reqFurn;
+    if (canAfford) {
+      game.food -= (cost.food || 0);
+      game.wood -= (cost.wood || 0);
+      game.flour -= (cost.flour || 0);
+      game.plank -= (cost.plank || 0);
+      game.bread -= (cost.bread || 0);
+      game.furniture -= (cost.furniture || 0);
+      game.stone = (game.stone || 0) - (cost.stone || 0);
+      game.iron = (game.iron || 0) - (cost.iron || 0);
 
-      if (tile.biome === BIOMES.MEADOW) game.purchasedMeadowCount++;
-      else if (tile.biome === BIOMES.FOREST) game.purchasedForestCount++;
-      else if (tile.biome === BIOMES.SEA) game.purchasedSeaCount++;
-      else if (tile.biome === BIOMES.MOUNTAIN) game.purchasedMountainCount++;
-
-      game.ownedCount += 1;
-      game.statTotalConquered += 1;
       tile.state = "OWNED";
+      game.ownedCount += 1;
+      game.purchasedTilesCount += 1;
+      game.statTotalConquered += 1;
 
-      const p = hexToPixel(tile.q, tile.r);
-      triggerShockwave(p.x, p.y, "#f8c83e");
-      triggerFloatingText(p.x, p.y - 20, "+1 🏰", "#4ade80");
-      triggerScreenShake(7.0, 0.25);
-
-      audio.playTileUnlock();
-      game.revealNeighbors(tile.q, tile.r);
+      const pos = hexToPixel(tile.q, tile.r);
+      triggerShockwave(pos.x, pos.y, "#38bdf8");
+      triggerScreenShake(6.0, 0.25);
+      audio.playExpand();
+      game.recalculateVisibility();
+      updateQuestProgress("conquer_tile", 1);
+      updateQuestProgress("own_tiles", game.ownedCount);
       saveGame();
-
-      let msg = `🏰 Bölge ${cost.zone} yeni arsa fethedildi! (+1 Toprak)`;
-      showToast(msg);
+      updateUI();
+      showToast(`🚩 Yeni Karo Fethedildi! (+1 Toprak, Toplam: ${game.ownedCount})`);
     } else {
       audio.playError();
-      let reqMsg = "⚠️ Yetersiz Kaynak! Gerekli: ";
-      if (reqFood > 0) reqMsg += `${reqFood} 🥡 `;
-      if (reqWood > 0) reqMsg += `${reqWood} 🪵 `;
-      if (reqFlour > 0) reqMsg += `${reqFlour} 🌾 `;
-      if (reqPlank > 0) reqMsg += `${reqPlank} 🪵 `;
-      if (reqBread > 0) reqMsg += `${reqBread} 🍞 `;
-      if (reqFurn > 0) reqMsg += `${reqFurn} 🪑 `;
-      showToast(reqMsg, true);
+      showToast("⚠️ Yetersiz Kaynak! Bu karoyu fethetmek için gereken malzemeler ambarlarda yok.", true);
     }
   } else if (tile.state === "OWNED") {
-    // Sahipli arsa etkileşimi
-    game.selectedTile = tile;
-    if (!tile.building) {
-      if (tile.biome === BIOMES.MEADOW) {
-        openBuildMenu(tile);
-      } else if (tile.biome === BIOMES.FOREST) {
-        if (game.castleLevel < 2) {
-          audio.playError();
-          showToast(t("toast_forest_locked"), true);
-        } else {
-          openBuildMenu(tile);
-        }
-      } else if (tile.biome === BIOMES.SEA) {
-        const neighbors = NEIGHBOR_DIRS.map(d => `${tile.q + d.q},${tile.r + d.r}`);
-        const hasAdjacentLand = neighbors.some(nKey => {
-          const nTile = game.tiles[nKey];
-          return nTile && nTile.biome !== BIOMES.SEA;
-        });
-        if (hasAdjacentLand) {
-          openBuildMenu(tile);
-        } else {
-          audio.playError();
-          showToast(t("toast_bridge_need_land"), true);
-        }
-      } else if (tile.biome === BIOMES.MOUNTAIN) {
-        if (game.castleLevel < 3) {
-          audio.playError();
-          showToast(t("locked_castle_3") || "🔒 Şato Seviye 3 Gereklidir!", true);
-        } else {
-          openBuildMenu(tile);
-        }
-      } else {
-        showToast(t("toast_no_build_biome"));
-      }
+    if (tile.hasRuins) {
+      openRuinsModal(tile);
+    } else if (tile.building) {
+      openBuildingMenu(tile);
     } else {
-      if (tile.building.type === "bridge") {
-        showToast("🌉 Ahşap Köprü. Açık deniz geçişi ve kara bağlantısı aktif.");
-      } else {
-        openBuildingMenu(tile);
-      }
+      openBuildMenu(tile);
     }
   }
 }
@@ -2853,6 +4766,8 @@ const breadLabel = document.getElementById("bread-label");
 const furnitureLabel = document.getElementById("furniture-label");
 const stoneLabel = document.getElementById("stone-label");
 const ironLabel = document.getElementById("iron-label");
+const obsidianLabel = document.getElementById("obsidian-label");
+const mithrilLabel = document.getElementById("mithril-label");
 const hintLabel = document.getElementById("hint-label");
 const drawerRow = document.getElementById("drawer-row");
 const btnToggleDrawer = document.getElementById("btn-toggle-drawer");
@@ -2975,6 +4890,24 @@ function openBuildMenu(tile) {
         </div>
       </div>
     `;
+
+    // 4. Gözcü Kulesi (Savunma)
+    const canTower = (game.wood >= 20 && (game.stone || 0) >= 15);
+    html += `
+      <div class="build-card">
+        <div class="build-card-info">
+          <span class="build-card-icon">🏹</span>
+          <div class="build-card-text">
+            <h4>${t("watchtower_name")}</h4>
+            <p>${t("watchtower_desc")}</p>
+          </div>
+        </div>
+        <div class="build-card-action">
+          <span class="cost-tag ${canTower ? '' : 'cant-afford'}">20 🪵 + 15 🪨</span>
+          <button class="btn-primary" onclick="buildOnSelected('watchtower', 0, 20, 0, 0, 0, 0, 15, 0)">${t("build_btn")}</button>
+        </div>
+      </div>
+    `;
   } else if (isForest) {
     // 1. Oduncu Kulübesi
     const lumberCount = Object.values(game.tiles).filter(t => t.building && t.building.type === "lumberjack").length;
@@ -3070,6 +5003,24 @@ function openBuildMenu(tile) {
         </div>
       </div>
     `;
+
+    // 3. Dağ Gözcü Kulesi (Savunma)
+    const canTowerMtn = (game.wood >= 20 && (game.stone || 0) >= 15);
+    html += `
+      <div class="build-card">
+        <div class="build-card-info">
+          <span class="build-card-icon">🏹</span>
+          <div class="build-card-text">
+            <h4>${t("watchtower_name")}</h4>
+            <p>${t("watchtower_desc")}</p>
+          </div>
+        </div>
+        <div class="build-card-action">
+          <span class="cost-tag ${canTowerMtn ? '' : 'cant-afford'}">20 🪵 + 15 🪨</span>
+          <button class="btn-primary" onclick="buildOnSelected('watchtower', 0, 20, 0, 0, 0, 0, 15, 0)">${t("build_btn")}</button>
+        </div>
+      </div>
+    `;
   } else if (isSea) {
     // 1. Ahşap Köprü Kartı (Deniz Üzerine)
     const canBridge = game.wood >= 4;
@@ -3152,6 +5103,11 @@ window.buildOnSelected = function(bType, foodCost = 0, woodCost = 0, flourCost =
 
   audio.playBuild();
   closeBottomMenu();
+  
+  // Görev İlerlemesi
+  updateQuestProgress("build_building", 1);
+  updateQuestProgress("build_" + bType, 1);
+
   saveGame();
   renderMap();
 
@@ -3164,6 +5120,7 @@ window.buildOnSelected = function(bType, foodCost = 0, woodCost = 0, flourCost =
   else if (bType === 'quarry') showToast(t("toast_built_quarry") || "🪨 Taş Ocağı kuruldu!");
   else if (bType === 'mine') showToast(t("toast_built_mine") || "⛏️ Demir Madeni açıldı!");
   else if (bType === 'worker') showToast(t("toast_built_worker"));
+  else if (bType === 'watchtower') showToast(t("toast_built_watchtower") || "🏹 Gözcü Kulesi kuruldu! Gece savunması aktif.");
   else if (bType === 'bridge') showToast(t("toast_built_bridge"));
 };
 
@@ -3422,6 +5379,28 @@ function openBuildingMenu(tile) {
         </button>
       </div>
     `;
+  } else if (b.type === "watchtower") {
+    menuTitle.textContent = `🏹 ${t("watchtower_name")} (${t("level")} ${b.level})`;
+    const costWood = Math.round(15 * Math.pow(1.4, b.level - 1));
+    const costStone = Math.round(10 * Math.pow(1.4, b.level - 1));
+
+    menuContent.innerHTML = `
+      <div class="prod-flow-row">
+        <div class="prod-icon-box">🛡️</div>
+        <div style="flex:1;text-align:left">
+          <p style="color:#38bdf8;font-weight:700;font-size:0.85rem">Savunma Gücü: ${b.level * 25} Güç</p>
+          <small style="color:var(--text-muted);font-size:0.75rem">Gece akıncılarını püskürtür ve ambarları korur.</small>
+        </div>
+        <button class="btn-upgrade" onclick="upgradeBuildingMulti('watchtower', 0, ${costWood}, 0, 0, 0, 0, ${costStone})">
+          <span>⬆️ (${costWood} 🪵 + ${costStone} 🪨)</span>
+          <small>Savunma +25</small>
+        </button>
+      </div>
+      <hr style="border-color:rgba(255,100,80,0.3);margin:6px 0">
+      <button class="btn-upgrade" style="background:rgba(200,60,50,0.18);color:#ff6655;width:100%;border:1px solid rgba(200,60,50,0.35)" onclick="demolishBuilding('watchtower', 0, 10, 0, 0, 0, 0, 7.5)">
+        🔨 Yapıyı Yık &nbsp;<small>(%50 iade: 10 🪵 + 7.5 🪨)</small>
+      </button>
+    `;
   }
 
   bottomMenu.classList.remove("hidden");
@@ -3492,9 +5471,12 @@ window.collectCorn = function() {
     b.accumulated = 0;
     audio.playCollect();
     const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
+    triggerTileBounce(game.selectedTile.q, game.selectedTile.r);
+    triggerFlyingResource(p.x, p.y, "🌽", "#eab308");
     triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🥡`, "#fde047");
     triggerScreenShake(2.5, 0.12);
     showToast(t("toast_collected_food", [formatCompact(val)]));
+    updateQuestProgress("collect_food", val);
     openBuildingMenu(game.selectedTile);
   }
 };
@@ -3509,9 +5491,12 @@ window.collectWood = function() {
     b.accumulated = 0;
     audio.playCollect();
     const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
+    triggerTileBounce(game.selectedTile.q, game.selectedTile.r);
+    triggerFlyingResource(p.x, p.y, "🪵", "#d4a373");
     triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🪵`, "#d4a373");
     triggerScreenShake(2.5, 0.12);
     showToast(t("toast_collected_wood", [formatCompact(val)]));
+    updateQuestProgress("collect_wood", val);
     openBuildingMenu(game.selectedTile);
   }
 };
@@ -3526,6 +5511,8 @@ window.collectFlour = function() {
     b.accumulated = 0;
     audio.playCollect();
     const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
+    triggerTileBounce(game.selectedTile.q, game.selectedTile.r);
+    triggerFlyingResource(p.x, p.y, "🌾", "#fef08a");
     triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🌾`, "#fef08a");
     triggerScreenShake(2.5, 0.12);
     showToast(t("toast_collected_flour", [formatCompact(val)]));
@@ -3543,6 +5530,8 @@ window.collectPlank = function() {
     b.accumulated = 0;
     audio.playCollect();
     const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
+    triggerTileBounce(game.selectedTile.q, game.selectedTile.r);
+    triggerFlyingResource(p.x, p.y, "🪵", "#fbcfe8");
     triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🪵`, "#fbcfe8");
     triggerScreenShake(2.5, 0.12);
     showToast(t("toast_collected_plank", [formatCompact(val)]));
@@ -3560,6 +5549,8 @@ window.collectBread = function() {
     b.accumulated = 0;
     audio.playCollect();
     const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
+    triggerTileBounce(game.selectedTile.q, game.selectedTile.r);
+    triggerFlyingResource(p.x, p.y, "🍞", "#fdba74");
     triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🍞`, "#fdba74");
     triggerScreenShake(2.5, 0.12);
     showToast(t("toast_collected_bread", [formatCompact(val)]));
@@ -3577,6 +5568,8 @@ window.collectFurniture = function() {
     b.accumulated = 0;
     audio.playCollect();
     const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
+    triggerTileBounce(game.selectedTile.q, game.selectedTile.r);
+    triggerFlyingResource(p.x, p.y, "🪑", "#93c5fd");
     triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🪑`, "#93c5fd");
     triggerScreenShake(2.5, 0.12);
     showToast(t("toast_collected_furniture", [formatCompact(val)]));
@@ -3594,9 +5587,12 @@ window.collectStone = function() {
     b.accumulated = 0;
     audio.playCollect();
     const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
+    triggerTileBounce(game.selectedTile.q, game.selectedTile.r);
+    triggerFlyingResource(p.x, p.y, "🪨", "#cbd5e1");
     triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🪨`, "#94a3b8");
     triggerScreenShake(2.5, 0.12);
     showToast(t("toast_collected_stone", [formatCompact(val)]) || `🪨 +${formatCompact(val)} Taş Toplandı!`);
+    updateQuestProgress("collect_stone", val);
     openBuildingMenu(game.selectedTile);
   }
 };
@@ -3611,6 +5607,8 @@ window.collectIron = function() {
     b.accumulated = 0;
     audio.playCollect();
     const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
+    triggerTileBounce(game.selectedTile.q, game.selectedTile.r);
+    triggerFlyingResource(p.x, p.y, "⛏️", "#38bdf8");
     triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} ⛏️`, "#38bdf8");
     triggerScreenShake(2.5, 0.12);
     showToast(t("toast_collected_iron", [formatCompact(val)]) || `⛏️ +${formatCompact(val)} Demir Toplandı!`);
@@ -3649,6 +5647,8 @@ window.upgradeBuilding = function(type, cost) {
   game.food -= cost;
   game.selectedTile.building.level += 1;
   audio.playUpgrade();
+  updateQuestProgress("upgrade_building", 1);
+  updateQuestProgress("upgrade_" + type, 1);
   saveGame();
   showToast(t("toast_upgraded", [t(type + "_name"), game.selectedTile.building.level]));
   openBuildingMenu(game.selectedTile);
@@ -3671,6 +5671,8 @@ window.upgradeBuildingMulti = function(type, foodCost = 0, woodCost = 0, flourCo
 
   game.selectedTile.building.level += 1;
   audio.playUpgrade();
+  updateQuestProgress("upgrade_building", 1);
+  updateQuestProgress("upgrade_" + type, 1);
   saveGame();
   showToast(t("toast_upgraded", [t(type + "_name"), game.selectedTile.building.level]));
   openBuildingMenu(game.selectedTile);
@@ -3689,6 +5691,7 @@ window.upgradeCastle = function() {
     triggerScreenShake(10.0, 0.35);
 
     audio.playCastleUpgrade();
+    updateQuestProgress("castle_level", game.castleLevel);
     saveGame();
     showToast(t("toast_castle_upgraded", [CASTLE_TITLES[game.castleLevel - 1]]));
     openBuildingMenu(game.selectedTile);
@@ -3887,6 +5890,184 @@ function setupModalHandlers() {
       });
     }
   });
+
+  // Görevler Modalı Butonları
+  const btnQuests = document.getElementById("btn-quests");
+  if (btnQuests) btnQuests.addEventListener("click", openQuestsModal);
+
+  const btnCloseQuests = document.getElementById("btn-close-quests");
+  if (btnCloseQuests) btnCloseQuests.addEventListener("click", closeModals);
+
+  const btnClaimFast = document.getElementById("btn-claim-fast");
+  if (btnClaimFast) btnClaimFast.addEventListener("click", () => claimQuest("fast"));
+
+  const btnClaimStrat = document.getElementById("btn-claim-strat");
+  if (btnClaimStrat) btnClaimStrat.addEventListener("click", () => claimQuest("strat"));
+
+  const btnClaimEpic = document.getElementById("btn-claim-epic");
+  if (btnClaimEpic) btnClaimEpic.addEventListener("click", () => claimQuest("epic"));
+
+  // Kadim Eserler Modalı Butonları
+  const btnRelics = document.getElementById("btn-relics");
+  if (btnRelics) btnRelics.addEventListener("click", openRelicsModal);
+
+  const btnCloseRelics = document.getElementById("btn-close-relics");
+  if (btnCloseRelics) btnCloseRelics.addEventListener("click", closeModals);
+
+  // Kervan & Şaman Olay Modalı Butonları
+  const btnAcceptEnc = document.getElementById("btn-accept-encounter");
+  if (btnAcceptEnc) btnAcceptEnc.addEventListener("click", acceptEncounter);
+
+  const btnDeclineEnc = document.getElementById("btn-decline-encounter");
+  if (btnDeclineEnc) btnDeclineEnc.addEventListener("click", declineEncounter);
+
+  // Zindan Keşif Modalı Butonları
+  const btnRuinsSafe = document.getElementById("btn-ruins-safe");
+  if (btnRuinsSafe) btnRuinsSafe.addEventListener("click", exploreRuinsSafe);
+
+  const btnRuinsGamble = document.getElementById("btn-ruins-gamble");
+  if (btnRuinsGamble) btnRuinsGamble.addEventListener("click", exploreRuinsGamble);
+
+  // Büyük Bozkır Göçü (Prestige 2.0) & Töre Ağacı Butonları
+  const btnMigration = document.getElementById("btn-migration");
+  if (btnMigration) btnMigration.addEventListener("click", openMigrationModal);
+
+  const btnCloseMigration = document.getElementById("btn-close-migration");
+  if (btnCloseMigration) btnCloseMigration.addEventListener("click", closeModals);
+
+  const btnExecMigration = document.getElementById("btn-execute-migration");
+  if (btnExecMigration) btnExecMigration.addEventListener("click", executeMigration);
+
+  // Töre Ağacı Yetenek Butonları
+  const toreKeys = [
+    { branch: "gokTengri", key: "rainBlessing" },
+    { branch: "gokTengri", key: "shamanAura" },
+    { branch: "kulTigin", key: "braveHeart" },
+    { branch: "kulTigin", key: "steelKorgan" },
+    { branch: "tonyukuk", key: "silkNetwork" },
+    { branch: "tonyukuk", key: "pavedRoads" }
+  ];
+  toreKeys.forEach(tk => {
+    const btn = document.getElementById(`btn-tore-${tk.key}`);
+    if (btn) {
+      btn.addEventListener("click", () => {
+        buyToreTalent(tk.branch, tk.key);
+      });
+    }
+  });
+
+  // Katman Geçiş Butonu (Bozkır vs Ergenekon Yeraltı)
+  const btnLayer = document.getElementById("btn-layer");
+  if (btnLayer) btnLayer.addEventListener("click", toggleActiveLayer);
+}
+
+function openMigrationModal() {
+  updateMigrationUI();
+  modalBackdrop.classList.remove("hidden");
+  const migModal = document.getElementById("migration-modal");
+  if (migModal) migModal.classList.remove("hidden");
+}
+
+function updateMigrationUI() {
+  const earned = game.calculateEarnedTamgas();
+  const tamgaValEl = document.getElementById("migration-tamga-val");
+  if (tamgaValEl) tamgaValEl.textContent = `+${earned} 𐰋 Tamga`;
+
+  const currTamgaChip = document.getElementById("chip-tamga");
+  if (currTamgaChip) currTamgaChip.textContent = `𐰋 ${game.tamgas || 0}`;
+
+  if (!game.toreTalents) {
+    game.toreTalents = {
+      gokTengri: { rainBlessing: 0, shamanAura: 0 },
+      kulTigin: { braveHeart: 0, steelKorgan: 0 },
+      tonyukuk: { silkNetwork: 0, pavedRoads: 0 }
+    };
+  }
+
+  const branches = ["gokTengri", "kulTigin", "tonyukuk"];
+  branches.forEach(br => {
+    Object.keys(game.toreTalents[br] || {}).forEach(k => {
+      const lvl = game.toreTalents[br][k] || 0;
+      const cost = Math.round(1 + lvl * 2);
+      const lvlEl = document.getElementById(`tore-${k}-lvl`);
+      if (lvlEl) lvlEl.textContent = `${lvl}/5`;
+
+      const btnEl = document.getElementById(`btn-tore-${k}`);
+      if (btnEl) {
+        if (lvl >= 5) {
+          btnEl.textContent = t("max_level") || "Maksimum";
+          btnEl.disabled = true;
+        } else {
+          btnEl.textContent = `${cost} 𐰋`;
+          btnEl.disabled = ((game.tamgas || 0) < cost);
+        }
+      }
+    });
+  });
+}
+
+function buyToreTalent(branch, key) {
+  if (!game.toreTalents) {
+    game.toreTalents = {
+      gokTengri: { rainBlessing: 0, shamanAura: 0 },
+      kulTigin: { braveHeart: 0, steelKorgan: 0 },
+      tonyukuk: { silkNetwork: 0, pavedRoads: 0 }
+    };
+  }
+  const currentLvl = (game.toreTalents[branch] && game.toreTalents[branch][key]) ? game.toreTalents[branch][key] : 0;
+  if (currentLvl >= 5) return;
+  const cost = Math.round(1 + currentLvl * 2);
+  if ((game.tamgas || 0) < cost) {
+    audio.playError();
+    showToast("⚠️ Yetersiz Kutlu Damga (𐰋)!", true);
+    return;
+  }
+  game.tamgas -= cost;
+  if (!game.toreTalents[branch]) game.toreTalents[branch] = {};
+  game.toreTalents[branch][key] = currentLvl + 1;
+  audio.playUpgrade();
+  saveGame();
+  updateMigrationUI();
+  updateUI();
+  showToast(`𐰋 Kadim Töre Güçlendirildi! (${key}: Sv. ${game.toreTalents[branch][key]})`);
+}
+
+function executeMigration() {
+  const earned = game.calculateEarnedTamgas();
+  if (earned <= 0) return;
+
+  game.tamgas = (game.tamgas || 0) + earned;
+  game.totalMigrations = (game.totalMigrations || 0) + 1;
+
+  // Sıfırlama ve Bozkır Göçü
+  game.food = 1.0;
+  game.wood = 1.0;
+  game.flour = 0.0;
+  game.plank = 0.0;
+  game.bread = 0.0;
+  game.furniture = 0.0;
+  game.stone = 0.0;
+  game.iron = 0.0;
+  game.obsidian = 0.0;
+  game.mithril = 0.0;
+  game.castleLevel = 1;
+  game.initFreshMap();
+
+  closeModals();
+  audio.playPrestige();
+  triggerScreenShake(12.0, 0.4);
+  saveGame();
+  showToast(`🐎 BÜYÜK BOZKIR GÖÇÜ TAMAMLANDI! (+${earned} 𐰋 Damga Kazanıldı)`);
+}
+
+function toggleActiveLayer() {
+  audio.playClick();
+  game.activeLayer = (game.activeLayer === "SURFACE") ? "UNDERGROUND" : "SURFACE";
+  const btn = document.getElementById("btn-layer");
+  if (btn) {
+    btn.textContent = (game.activeLayer === "SURFACE") ? "🌍" : "🌋";
+  }
+  showToast((game.activeLayer === "SURFACE") ? "☀️ Bozkır Dünyasına Geçildi" : "🌋 Ergenekon Yeraltı Mağarasına İnildi");
 }
 
 function openSettingsModal() {
@@ -3905,6 +6086,21 @@ function closeModals() {
   settingsModal.classList.add("hidden");
   prestigeConfirmModal.classList.add("hidden");
   offlineModal.classList.add("hidden");
+
+  const qModal = document.getElementById("quest-modal");
+  if (qModal) qModal.classList.add("hidden");
+
+  const rModal = document.getElementById("relics-modal");
+  if (rModal) rModal.classList.add("hidden");
+
+  const eModal = document.getElementById("encounter-modal");
+  if (eModal) eModal.classList.add("hidden");
+
+  const ruModal = document.getElementById("ruins-modal");
+  if (ruModal) ruModal.classList.add("hidden");
+
+  const mModal = document.getElementById("migration-modal");
+  if (mModal) mModal.classList.add("hidden");
 }
 
 function buyTalent(key) {
@@ -4170,6 +6366,17 @@ function saveGame() {
     furniture: game.furniture,
     stone: game.stone || 0,
     iron: game.iron || 0,
+    obsidian: game.obsidian || 0,
+    mithril: game.mithril || 0,
+    tamgas: game.tamgas || 0,
+    totalMigrations: game.totalMigrations || 0,
+    toreTalents: game.toreTalents || {},
+    season: game.season || "SPRING",
+    seasonTimer: game.seasonTimer || 0,
+    seasonYear: game.seasonYear || 1,
+    isZud: !!game.isZud,
+    activeLayer: game.activeLayer || "SURFACE",
+    undergroundUnlocked: !!game.undergroundUnlocked,
     talents: game.talents || {},
     crowns: game.crowns,
     totalRebirths: game.totalRebirths,
@@ -4180,6 +6387,10 @@ function saveGame() {
     purchasedSeaCount: game.purchasedSeaCount,
     purchasedMountainCount: game.purchasedMountainCount,
     castleLevel: game.castleLevel,
+    relics: game.relics || { axe: false, cornucopia: false, standard: false, shield: false },
+    quests: game.quests || null,
+    shamanBoostTimer: game.shamanBoostTimer || 0,
+    lastRaidNight: game.lastRaidNight !== undefined ? game.lastRaidNight : -1,
     stats: {
       totalFood: game.statTotalFood,
       totalWood: game.statTotalWood,
@@ -4189,13 +6400,28 @@ function saveGame() {
       totalFurniture: game.statTotalFurniture,
       totalStone: game.statTotalStone || 0,
       totalIron: game.statTotalIron || 0,
+      totalObsidian: game.statTotalObsidian || 0,
+      totalMithril: game.statTotalMithril || 0,
       totalConquered: game.statTotalConquered,
       playtime: game.statPlaytime
     },
-    tiles: Object.values(game.tiles).map(t => ({
+    tiles: Object.values(game.tiles || {}).map(t => ({
       q: t.q, r: t.r,
       state: t.state,
-      biomeId: t.biome.id,
+      biomeId: (t.biome && t.biome.id !== undefined) ? t.biome.id : 1,
+      hasRuins: !!t.hasRuins,
+      building: t.building ? {
+        type: t.building.type,
+        level: t.building.level,
+        accumulated: t.building.accumulated || 0,
+        totalGathered: t.building.totalGathered || 0
+      } : null
+    })),
+    undergroundTiles: Object.values(game.undergroundTiles || {}).map(t => ({
+      q: t.q, r: t.r,
+      state: t.state,
+      biomeId: (t.biome && t.biome.id !== undefined) ? t.biome.id : 10,
+      hasRuins: !!t.hasRuins,
       building: t.building ? {
         type: t.building.type,
         level: t.building.level,
@@ -4235,6 +6461,21 @@ function loadGame() {
     game.furniture = data.furniture || 0.0;
     game.stone = data.stone || 0.0;
     game.iron = data.iron || 0.0;
+    game.obsidian = data.obsidian || 0.0;
+    game.mithril = data.mithril || 0.0;
+    game.tamgas = data.tamgas || 0;
+    game.totalMigrations = data.totalMigrations || 0;
+    game.toreTalents = data.toreTalents || {
+      gokTengri: { rainBlessing: 0, shamanAura: 0 },
+      kulTigin: { braveHeart: 0, steelKorgan: 0 },
+      tonyukuk: { silkNetwork: 0, pavedRoads: 0 }
+    };
+    game.season = data.season || "SPRING";
+    game.seasonTimer = data.seasonTimer || 0.0;
+    game.seasonYear = data.seasonYear || 1;
+    game.isZud = !!data.isZud;
+    game.activeLayer = data.activeLayer || "SURFACE";
+    game.undergroundUnlocked = !!data.undergroundUnlocked;
     game.talents = data.talents || { workerSpeed: 0, boostAll: 0, treasureHunter: 0, conquestMaster: 0 };
     game.crowns = data.crowns || 0;
     game.totalRebirths = data.totalRebirths || 0;
@@ -4245,6 +6486,11 @@ function loadGame() {
     game.purchasedSeaCount = data.purchasedSeaCount || 0;
     game.purchasedMountainCount = data.purchasedMountainCount || 0;
     game.castleLevel = data.castleLevel || 1;
+    game.relics = data.relics || { axe: false, cornucopia: false, standard: false, shield: false };
+    game.quests = data.quests || null;
+    game.shamanBoostTimer = data.shamanBoostTimer || 0;
+    game.lastRaidNight = data.lastRaidNight !== undefined ? data.lastRaidNight : -1;
+    initQuests();
 
     if (data.stats) {
       game.statTotalFood = data.stats.totalFood || 0;
@@ -4255,22 +6501,54 @@ function loadGame() {
       game.statTotalFurniture = data.stats.totalFurniture || 0;
       game.statTotalStone = data.stats.totalStone || 0;
       game.statTotalIron = data.stats.totalIron || 0;
+      game.statTotalObsidian = data.stats.totalObsidian || 0;
+      game.statTotalMithril = data.stats.totalMithril || 0;
       game.statTotalConquered = data.stats.totalConquered || 1;
       game.statPlaytime = data.stats.playtime || 0;
     }
 
     // Karoları Yükle
     game.tiles = {};
-    const biomeMap = [BIOMES.SEA, BIOMES.MEADOW, BIOMES.FOREST, BIOMES.MOUNTAIN];
+    const biomeMap = {
+      0: BIOMES.SEA,
+      1: BIOMES.MEADOW,
+      2: BIOMES.FOREST,
+      3: BIOMES.MOUNTAIN,
+      4: BIOMES.SNOW_PEAK,
+      5: BIOMES.DESERT_OASIS,
+      6: BIOMES.WONDER,
+      10: BIOMES.CAVERN,
+      11: BIOMES.MAGMA,
+      12: BIOMES.CRYSTAL
+    };
+
     data.tiles.forEach(td => {
       const key = `${td.q},${td.r}`;
       game.tiles[key] = {
         q: td.q, r: td.r,
         state: td.state,
         biome: biomeMap[td.biomeId] || BIOMES.MEADOW,
-        building: td.building
+        building: td.building,
+        hasRuins: !!td.hasRuins
       };
     });
+
+    // Yeraltı Karolarını Yükle
+    if (data.undergroundTiles && data.undergroundTiles.length > 0) {
+      game.undergroundTiles = {};
+      data.undergroundTiles.forEach(td => {
+        const key = `${td.q},${td.r}`;
+        game.undergroundTiles[key] = {
+          q: td.q, r: td.r,
+          state: td.state,
+          biome: biomeMap[td.biomeId] || BIOMES.CAVERN,
+          building: td.building,
+          hasRuins: !!td.hasRuins
+        };
+      });
+    } else {
+      game.initUndergroundMap();
+    }
 
     // Çevrimdışı Gelir Kontrolü
     checkOfflineGains(data.timestamp);

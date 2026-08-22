@@ -1,28 +1,44 @@
 /* ==========================================================================
-   Idle Kingdom Clicker — Mobile-First Web Stylesheet
+   Idle Kingdom Clicker — Arkeolojik Neo-Brutalizm & Bozkır Destanı UI
    ========================================================================== */
 
 :root {
-  --bg-dark: #0a0d14;
-  --panel-bg: rgba(16, 22, 34, 0.95);
-  --chip-bg: rgba(28, 38, 56, 0.88);
-  --chip-border: rgba(70, 95, 140, 0.45);
+  --bg-dark: #060913;
+  --panel-bg: rgba(13, 19, 33, 0.96);
+  --chip-bg: rgba(22, 32, 52, 0.95);
+  --chip-border: #334155;
   
-  --primary-accent: #2e8b57;
-  --primary-hover: #3cb371;
-  --secondary-bg: #222b3d;
-  --secondary-hover: #2e3a52;
+  --neo-border: 2px solid #334155;
+  --neo-border-gold: 2px solid #d97706;
+  --neo-border-rune: 2px solid #0891b2;
+  --neo-shadow: 3px 3px 0px #020617;
+  --neo-shadow-lg: 5px 5px 0px #020617;
+  --neo-shadow-gold: 3px 3px 0px #78350f;
+  --neo-shadow-rune: 3px 3px 0px #0e7490;
   
-  --gold: #f8c83e;
-  --green: #4ade80;
-  --red: #f87171;
-  --blue: #60a5fa;
-  --wood-color: #d4a373;
+  --primary-accent: #0d9488;
+  --primary-hover: #14b8a6;
+  --secondary-bg: #1e293b;
+  --secondary-hover: #334155;
+  
+  --gold: #f59e0b;
+  --gold-glow: #fde047;
+  --tengri-turkuaz: #06b6d4;
+  --tengri-cyan: #38bdf8;
+  --green: #10b981;
+  --red: #ef4444;
+  --blue: #38bdf8;
+  --wood-color: #d97706;
   --flour-color: #fef08a;
+  --stone-color: #94a3b8;
+  --iron-color: #38bdf8;
   
-  --text-main: #f1f5f9;
+  --text-main: #f8fafc;
   --text-muted: #94a3b8;
-  --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-title: 'Cinzel', -apple-system, Georgia, serif;
+  --font-body: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-family: var(--font-body);
 }
 
 * {
@@ -66,22 +82,23 @@ html, body {
 }
 
 /* ==========================================================================
-   Top Header & Resource Chips
+   Top Header & Resource Chips (Arkeolojik Neo-Brutalist Tablet)
    ========================================================================== */
 
 #top-bar {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 8px;
+  left: 10px;
+  right: 10px;
+  max-width: 900px;
+  margin: 0 auto;
   background: var(--panel-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--chip-border);
-  border-bottom-left-radius: 20px;
-  border-bottom-right-radius: 20px;
-  padding: 10px 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: var(--neo-border);
+  border-radius: 14px;
+  padding: 8px 12px;
+  box-shadow: var(--neo-shadow-lg);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -98,17 +115,24 @@ html, body {
 .chip {
   flex: 1;
   background: var(--chip-bg);
-  border: 1px solid var(--chip-border);
-  border-radius: 12px;
+  border: 1.5px solid var(--chip-border);
+  border-radius: 8px;
   padding: 6px 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 6px;
   font-size: 0.82rem;
-  font-weight: 600;
+  font-weight: 700;
+  font-family: var(--font-body);
   white-space: nowrap;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: var(--neo-shadow);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.chip .chip-label {
+  font-family: var(--font-mono);
+  letter-spacing: -0.3px;
 }
 
 .food-chip .chip-label { color: #fde047; }
@@ -119,19 +143,21 @@ html, body {
 .plank-chip .chip-label { color: #fbcfe8; }
 .bread-chip .chip-label { color: #fdba74; }
 .furniture-chip .chip-label { color: #93c5fd; }
+.stone-chip .chip-label { color: var(--stone-color); }
+.iron-chip .chip-label { color: var(--iron-color); }
 
 .frenzy-btn {
   background: linear-gradient(135deg, #f59e0b, #ef4444) !important;
   color: #fff !important;
-  font-weight: 700;
-  border-color: #fcd34d !important;
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+  font-weight: 800;
+  border: 1.5px solid #fde047 !important;
+  box-shadow: var(--neo-shadow-gold) !important;
   animation: pulseGlow 1.8s infinite alternate;
 }
 
 @keyframes pulseGlow {
-  from { transform: scale(1); box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
-  to { transform: scale(1.06); box-shadow: 0 0 16px rgba(239, 68, 68, 0.8); }
+  from { transform: scale(1); box-shadow: 0 0 6px rgba(245, 158, 11, 0.4); }
+  to { transform: scale(1.05); box-shadow: 0 0 16px rgba(239, 68, 68, 0.8); }
 }
 
 .drawer-row {
@@ -142,9 +168,9 @@ html, body {
 
 .icon-btn {
   background: var(--chip-bg);
-  border: 1px solid var(--chip-border);
+  border: 1.5px solid var(--chip-border);
   color: var(--text-main);
-  border-radius: 12px;
+  border-radius: 8px;
   width: 36px;
   height: 34px;
   font-size: 0.95rem;
@@ -152,19 +178,28 @@ html, body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.12s, background 0.2s;
+  box-shadow: var(--neo-shadow);
+  transition: transform 0.08s, box-shadow 0.08s, background 0.15s;
   flex-shrink: 0;
+  position: relative;
+}
+
+.icon-btn:hover {
+  background: #1e293b;
+  border-color: #475569;
 }
 
 .icon-btn:active {
-  transform: scale(0.92);
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #020617;
 }
 
 #hint-bar {
   text-align: center;
   font-size: 0.76rem;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
+  font-family: var(--font-body);
   padding: 2px 4px;
   white-space: nowrap;
   overflow: hidden;
@@ -172,36 +207,38 @@ html, body {
 }
 
 /* ==========================================================================
-   Toast Notifications
+   Toast Notifications (Göktürk Fermanı & Taş Plaket)
    ========================================================================== */
 
 #toast-container {
   position: absolute;
-  top: 155px;
+  top: 145px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(15, 23, 42, 0.94);
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.96);
+  border: var(--neo-border);
+  border-radius: 10px;
   padding: 10px 18px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
+  box-shadow: var(--neo-shadow-lg);
+  backdrop-filter: blur(12px);
   z-index: 200;
   pointer-events: none;
   transition: opacity 0.25s, transform 0.25s;
   max-width: 90%;
   text-align: center;
   font-size: 0.88rem;
-  font-weight: 600;
+  font-weight: 700;
+  font-family: var(--font-body);
 }
 
 #toast-container.toast-warning {
-  border-color: rgba(248, 113, 113, 0.8);
-  color: var(--red);
+  border-color: #ef4444;
+  color: #fca5a5;
+  box-shadow: 4px 4px 0px #7f1d1d;
 }
 
 /* ==========================================================================
-   Bottom Action Drawer & Menus
+   Bottom Action Drawer & Menus (Monolitik Taş Podyum)
    ========================================================================== */
 
 #bottom-menu {
@@ -214,10 +251,10 @@ html, body {
   background: var(--panel-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(99, 102, 241, 0.35);
-  border-radius: 24px;
+  border: var(--neo-border);
+  border-radius: 16px;
   padding: 16px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+  box-shadow: var(--neo-shadow-lg);
   z-index: 100;
   display: flex;
   flex-direction: column;
@@ -229,24 +266,33 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1.5px solid #334155;
   padding-bottom: 8px;
 }
 
 .menu-header h3 {
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 700;
+  font-family: var(--font-title);
   color: var(--gold);
+  letter-spacing: 0.5px;
 }
 
 .close-btn {
-  background: transparent;
-  border: none;
+  background: #1e293b;
+  border: 1.5px solid #334155;
+  box-shadow: 2px 2px 0px #020617;
   color: var(--text-muted);
-  font-size: 1.1rem;
+  font-size: 1rem;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 8px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+
+.close-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px #020617;
 }
 
 .close-btn:active {
@@ -259,16 +305,22 @@ html, body {
   gap: 10px;
 }
 
-/* Building Card in Build Menu */
+/* Building Card in Build Menu (Neo-Brutalist Stone Plaque) */
 .build-card {
   background: var(--chip-bg);
-  border: 1px solid var(--chip-border);
-  border-radius: 16px;
+  border: 1.5px solid var(--chip-border);
+  border-radius: 10px;
   padding: 10px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  box-shadow: var(--neo-shadow);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.build-card:hover {
+  border-color: #475569;
 }
 
 .build-card-info {
@@ -283,9 +335,11 @@ html, body {
 }
 
 .build-card-text h4 {
-  font-size: 0.92rem;
+  font-size: 0.94rem;
   font-weight: 700;
+  font-family: var(--font-title);
   color: var(--text-main);
+  letter-spacing: 0.3px;
 }
 
 .build-card-text p {
@@ -303,6 +357,7 @@ html, body {
 .cost-tag {
   font-size: 0.78rem;
   font-weight: 700;
+  font-family: var(--font-mono);
   color: var(--green);
 }
 
@@ -319,15 +374,16 @@ html, body {
 
 .prod-icon-box {
   width: 54px;
-  height: 60px;
+  height: 58px;
   background: var(--chip-bg);
-  border: 1px solid var(--gold);
-  border-radius: 14px;
+  border: 1.5px solid var(--gold);
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.8rem;
   flex-shrink: 0;
+  box-shadow: var(--neo-shadow-gold);
 }
 
 .prod-rate-box {
@@ -335,8 +391,9 @@ html, body {
   flex-direction: column;
   align-items: center;
   font-size: 0.75rem;
+  font-family: var(--font-mono);
   color: var(--green);
-  font-weight: 600;
+  font-weight: 700;
   width: 85px;
   flex-shrink: 0;
 }
@@ -348,84 +405,90 @@ html, body {
 
 .btn-collect {
   flex: 1;
-  background: linear-gradient(135deg, #166534, #15803d);
-  border: 1px solid #4ade80;
+  background: linear-gradient(135deg, #15803d, #16a34a);
+  border: 1.5px solid #4ade80;
   color: #fff;
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-family: inherit;
-  font-weight: 700;
-  box-shadow: 0 4px 12px rgba(22, 101, 52, 0.4);
-  transition: transform 0.1s;
+  font-family: var(--font-body);
+  font-weight: 800;
+  box-shadow: 3px 3px 0px #14532d;
+  transition: transform 0.08s, box-shadow 0.08s;
 }
 
 .btn-collect:active {
-  transform: scale(0.96);
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #14532d;
 }
 
 .btn-upgrade {
   flex: 1;
   background: linear-gradient(135deg, #1e293b, #334155);
-  border: 1px solid #64748b;
+  border: 1.5px solid #64748b;
   color: #fff;
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-family: inherit;
-  font-weight: 700;
-  transition: transform 0.1s;
+  font-family: var(--font-body);
+  font-weight: 800;
+  box-shadow: 3px 3px 0px #0f172a;
+  transition: transform 0.08s, box-shadow 0.08s;
 }
 
 .btn-upgrade:active {
-  transform: scale(0.96);
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #0f172a;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #15803d, #16a34a);
-  border: 1px solid #4ade80;
+  background: linear-gradient(135deg, #0d9488, #14b8a6);
+  border: 1.5px solid #2dd4bf;
   color: #fff;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 8px 16px;
-  font-weight: 700;
+  font-weight: 800;
   font-size: 0.88rem;
   cursor: pointer;
-  font-family: inherit;
-  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.35);
-  transition: transform 0.1s;
+  font-family: var(--font-body);
+  box-shadow: 3px 3px 0px #134e4a;
+  transition: transform 0.08s, box-shadow 0.08s;
 }
 
 .btn-primary:active {
-  transform: scale(0.96);
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #134e4a;
 }
 
 .btn-secondary {
   background: var(--secondary-bg);
-  border: 1px solid var(--chip-border);
+  border: 1.5px solid #475569;
   color: var(--text-main);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 8px 16px;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.88rem;
   cursor: pointer;
-  font-family: inherit;
-  transition: transform 0.1s;
+  font-family: var(--font-body);
+  box-shadow: 3px 3px 0px #0f172a;
+  transition: transform 0.08s, box-shadow 0.08s;
 }
 
 .btn-secondary:active {
-  transform: scale(0.96);
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #0f172a;
 }
 
 /* ==========================================================================
-   Modals & Popups
+   Modals & Popups (Arkeolojik Taş Tabletler)
    ========================================================================== */
 
 #modal-backdrop {
@@ -434,9 +497,9 @@ html, body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.72);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(3, 7, 18, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -446,16 +509,16 @@ html, body {
 
 .modal-card {
   background: var(--panel-bg);
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  border-radius: 24px;
+  border: var(--neo-border);
+  border-radius: 16px;
   padding: 20px;
   width: 100%;
   max-width: 480px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+  box-shadow: var(--neo-shadow-lg);
   display: flex;
   flex-direction: column;
   gap: 14px;
-  animation: zoomIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: zoomIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .modal-small {
@@ -467,18 +530,24 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border-bottom: 1.5px solid #334155;
+  padding-bottom: 8px;
 }
 
 .modal-header h2 {
   font-size: 1.15rem;
   font-weight: 700;
+  font-family: var(--font-title);
+  color: var(--gold);
+  letter-spacing: 0.5px;
 }
 
 .tab-buttons-row {
   display: flex;
   gap: 6px;
-  background: rgba(0, 0, 0, 0.35);
-  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1.5px solid #334155;
+  border-radius: 10px;
   padding: 4px;
 }
 
@@ -489,17 +558,18 @@ html, body {
   color: var(--text-muted);
   padding: 8px 4px;
   font-size: 0.8rem;
-  font-weight: 600;
-  border-radius: 10px;
+  font-weight: 700;
+  border-radius: 6px;
   cursor: pointer;
-  font-family: inherit;
-  transition: background 0.2s, color 0.2s;
+  font-family: var(--font-body);
+  transition: all 0.15s ease;
 }
 
 .tab-btn.active {
   background: var(--chip-bg);
-  color: var(--text-main);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid #475569;
+  color: var(--gold);
+  box-shadow: 2px 2px 0px #020617;
 }
 
 .tab-pane {
@@ -510,8 +580,10 @@ html, body {
 
 .section-label {
   font-size: 0.82rem;
-  font-weight: 600;
+  font-weight: 700;
+  font-family: var(--font-title);
   color: var(--text-muted);
+  letter-spacing: 0.4px;
 }
 
 .lang-grid {
@@ -522,19 +594,21 @@ html, body {
 
 .btn-lang {
   background: var(--chip-bg);
-  border: 1px solid var(--chip-border);
+  border: 1.5px solid var(--chip-border);
   color: var(--text-main);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 8px 4px;
   font-weight: 700;
   font-size: 0.82rem;
   cursor: pointer;
-  font-family: inherit;
+  font-family: var(--font-body);
+  box-shadow: var(--neo-shadow);
 }
 
 .btn-lang.active {
   border-color: var(--gold);
-  background: rgba(248, 200, 62, 0.15);
+  background: rgba(245, 158, 11, 0.15);
+  box-shadow: var(--neo-shadow-gold);
 }
 
 .audio-control-row {
@@ -545,7 +619,7 @@ html, body {
 
 .audio-control-row input[type="range"] {
   flex: 1;
-  accent-color: var(--green);
+  accent-color: var(--gold);
 }
 
 .stats-list {
@@ -558,8 +632,15 @@ html, body {
 .stat-row {
   display: flex;
   justify-content: space-between;
-  padding: 4px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 6px 0;
+  border-bottom: 1px solid #1e293b;
+  font-family: var(--font-body);
+}
+
+.stat-row span:last-child {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--gold);
 }
 
 .prestige-desc {
@@ -569,19 +650,22 @@ html, body {
 }
 
 .prestige-box {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--chip-border);
-  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1.5px solid var(--chip-border);
+  border-radius: 10px;
   padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 6px;
   font-size: 0.88rem;
+  box-shadow: var(--neo-shadow);
 }
 
 .prestige-btn {
   padding: 12px;
   font-size: 0.95rem;
+  font-family: var(--font-title);
+  letter-spacing: 0.5px;
 }
 
 .modal-desc {
@@ -604,20 +688,23 @@ html, body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1.5px solid #334155;
+  border-radius: 10px;
   padding: 12px;
   margin: 6px 0;
+  box-shadow: var(--neo-shadow);
 }
 
 .gain-item {
   font-weight: 700;
   font-size: 0.88rem;
+  font-family: var(--font-mono);
 }
 
 .modal-divider {
   border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1.5px solid #334155;
 }
 
 /* Helpers */
@@ -631,19 +718,21 @@ html, body {
 .text-bread { color: #fdba74; }
 .text-furniture { color: #93c5fd; }
 .text-stone { color: #cbd5e1; }
-.text-iron { color: #94a3b8; }
+.text-iron { color: #38bdf8; }
 
-.stone-chip { border-color: rgba(203, 213, 225, 0.4); background: rgba(203, 213, 225, 0.12); }
-.iron-chip { border-color: rgba(148, 163, 184, 0.4); background: rgba(148, 163, 184, 0.12); }
+.stone-chip { border-color: #475569; background: rgba(71, 85, 105, 0.3); }
+.iron-chip { border-color: #0284c7; background: rgba(2, 132, 199, 0.2); }
 
-/* Talent Tree UI */
+/* Talent Tree UI (Arkeolojik Bilgelik Tableti) */
 .talent-crown-header {
-  background: rgba(248, 200, 62, 0.12);
-  border: 1px solid rgba(248, 200, 62, 0.3);
+  background: rgba(245, 158, 11, 0.12);
+  border: 1.5px solid var(--gold);
   padding: 8px 12px;
-  border-radius: 12px;
+  border-radius: 8px;
   margin-bottom: 10px;
   text-align: center;
+  font-family: var(--font-title);
+  box-shadow: var(--neo-shadow-gold);
 }
 
 .talents-grid {
@@ -656,19 +745,21 @@ html, body {
 }
 
 .talent-card {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
+  background: var(--chip-bg);
+  border: 1.5px solid var(--chip-border);
+  border-radius: 10px;
   padding: 10px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  box-shadow: var(--neo-shadow);
 }
 
 .talent-info h4 {
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 700;
+  font-family: var(--font-title);
   margin-bottom: 2px;
   color: var(--text-main);
 }
@@ -680,24 +771,498 @@ html, body {
 
 .btn-talent-up {
   background: linear-gradient(135deg, #d97706, #f59e0b);
-  border: 1px solid #fde047;
+  border: 1.5px solid #fde047;
   color: #1e1b4b;
   font-weight: 800;
   font-size: 0.82rem;
   padding: 6px 12px;
-  border-radius: 10px;
+  border-radius: 6px;
   cursor: pointer;
   white-space: nowrap;
-  font-family: inherit;
-  box-shadow: 0 4px 10px rgba(245, 158, 11, 0.25);
-  transition: transform 0.1s;
+  font-family: var(--font-body);
+  box-shadow: 2px 2px 0px #78350f;
+  transition: transform 0.08s;
 }
 
 .btn-talent-up:active {
-  transform: scale(0.94);
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px #78350f;
 }
 
-/* Animations */
+/* ==========================================================================
+   Quests & Decrees (Kraliyet Fermanları UI)
+   ========================================================================== */
+
+.quest-card {
+  background: var(--chip-bg);
+  border: 1.5px solid var(--chip-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: var(--neo-shadow);
+  transition: all 0.15s ease;
+}
+
+.quest-card.ready-to-claim {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  box-shadow: var(--neo-shadow-gold);
+}
+
+.quest-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.quest-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-family: var(--font-title);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.tag-fast { background: rgba(6, 182, 212, 0.2); color: #38bdf8; border: 1px solid #0891b2; }
+.tag-strat { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid #9333ea; }
+.tag-epic { background: rgba(245, 158, 11, 0.2); color: #fde047; border: 1px solid #d97706; }
+
+.quest-reward {
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: #facc15;
+}
+
+.quest-desc {
+  font-size: 0.84rem;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.quest-progress-bg {
+  width: 100%;
+  height: 8px;
+  background: #090d16;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #334155;
+}
+
+.quest-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #06b6d4, #10b981);
+  border-radius: 4px;
+  transition: width 0.2s ease;
+}
+
+.quest-action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.quest-count {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.btn-claim-quest {
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  font-family: var(--font-body);
+  border-radius: 6px;
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  border: 1.5px solid #fde047;
+  color: #0f172a;
+  box-shadow: 2px 2px 0px #78350f;
+  cursor: pointer;
+  transition: transform 0.08s;
+}
+
+.btn-claim-quest:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px #78350f;
+}
+
+.btn-claim-quest:disabled {
+  background: #1e293b;
+  color: #64748b;
+  border-color: #334155;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Relics Grid (Kadim Eserler Vitrini)
+   ========================================================================== */
+
+.relics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.relic-card {
+  background: var(--chip-bg);
+  border: 1.5px solid var(--chip-border);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  opacity: 0.35;
+  filter: grayscale(90%);
+  box-shadow: var(--neo-shadow);
+  transition: all 0.2s ease;
+}
+
+.relic-card.unlocked {
+  opacity: 1.0;
+  filter: none;
+  border-color: #06b6d4;
+  background: rgba(6, 182, 212, 0.08);
+  box-shadow: var(--neo-shadow-rune);
+}
+
+.relic-icon-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-family: var(--font-title);
+  font-size: 0.85rem;
+  color: var(--text-main);
+}
+
+.relic-perk {
+  font-size: 0.72rem;
+  color: #38bdf8;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.relic-flavor {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ==========================================================================
+   Encounter & Ruins Modal (Bozkır Olayları & Zindan)
+   ========================================================================== */
+
+.encounter-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.encounter-icon {
+  font-size: 1.8rem;
+}
+
+.encounter-offer-box {
+  background: #090d16;
+  border: 1.5px solid var(--chip-border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 10px 0;
+  font-size: 0.85rem;
+  box-shadow: var(--neo-shadow);
+}
+
+.encounter-timer-bar {
+  width: 100%;
+  height: 6px;
+  background: #090d16;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+#encounter-timer-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+  transition: width 0.1s linear;
+}
+
+.ruins-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.ruins-choice-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  text-align: left;
+  border: 1.5px solid var(--chip-border);
+  background: var(--chip-bg);
+  box-shadow: var(--neo-shadow);
+  cursor: pointer;
+  transition: transform 0.08s;
+}
+
+.ruins-choice-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #020617;
+}
+
+.ruins-choice-btn span {
+  font-size: 0.75rem;
+color: #facc15;
+}
+
+.quest-desc {
+  font-size: 0.84rem;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.quest-progress-bg {
+  width: 100%;
+  height: 8px;
+  background: #090d16;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #334155;
+}
+
+.quest-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #06b6d4, #10b981);
+  border-radius: 4px;
+  transition: width 0.2s ease;
+}
+
+.quest-action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.quest-count {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.btn-claim-quest {
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  font-family: var(--font-body);
+  border-radius: 6px;
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  border: 1.5px solid #fde047;
+  color: #0f172a;
+  box-shadow: 2px 2px 0px #78350f;
+  cursor: pointer;
+  transition: transform 0.08s;
+}
+
+.btn-claim-quest:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px #78350f;
+}
+
+.btn-claim-quest:disabled {
+  background: #1e293b;
+  color: #64748b;
+  border-color: #334155;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Relics Grid (Kadim Eserler Vitrini)
+   ========================================================================== */
+
+.relics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.relic-card {
+  background: var(--chip-bg);
+  border: 1.5px solid var(--chip-border);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  opacity: 0.35;
+  filter: grayscale(90%);
+  box-shadow: var(--neo-shadow);
+  transition: all 0.2s ease;
+}
+
+.relic-card.unlocked {
+  opacity: 1.0;
+  filter: none;
+  border-color: #06b6d4;
+  background: rgba(6, 182, 212, 0.08);
+  box-shadow: var(--neo-shadow-rune);
+}
+
+.relic-icon-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-family: var(--font-title);
+  font-size: 0.85rem;
+  color: var(--text-main);
+}
+
+.relic-perk {
+  font-size: 0.72rem;
+  color: #38bdf8;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.relic-flavor {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ==========================================================================
+   Encounter & Ruins Modal (Bozkır Olayları & Zindan)
+   ========================================================================== */
+
+.encounter-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.encounter-icon {
+  font-size: 1.8rem;
+}
+
+.encounter-offer-box {
+  background: #090d16;
+  border: 1.5px solid var(--chip-border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 10px 0;
+  font-size: 0.85rem;
+  box-shadow: var(--neo-shadow);
+}
+
+.encounter-timer-bar {
+  width: 100%;
+  height: 6px;
+  background: #090d16;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+#encounter-timer-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+  transition: width 0.1s linear;
+}
+
+.ruins-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.ruins-choice-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  text-align: left;
+  border: 1.5px solid var(--chip-border);
+  background: var(--chip-bg);
+  box-shadow: var(--neo-shadow);
+  cursor: pointer;
+  transition: transform 0.08s;
+}
+
+.ruins-choice-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #020617;
+}
+
+.ruins-choice-btn span {
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+/* ==========================================================================
+   Night Raid Banner (Gece Baskını Savaş Borusu Uyarısı)
+   ========================================================================== */
+
+.raid-banner {
+  position: absolute;
+  top: 75px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #b91c1c, #7f1d1d);
+  border: 2px solid #ef4444;
+  color: white;
+  font-weight: 800;
+  font-family: var(--font-title);
+  font-size: 0.82rem;
+  padding: 8px 18px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 4px 4px 0px #450a0a;
+  z-index: 100;
+  animation: raidPulse 1s infinite alternate;
+  letter-spacing: 0.5px;
+}
+
+@keyframes raidPulse {
+  from { transform: translateX(-50%) scale(1); }
+  to { transform: translateX(-50%) scale(1.03); }
+}
+
+/* ==========================================================================
+   Animations
+   ========================================================================== */
+
 @keyframes slideUp {
   from { transform: translateY(30px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
@@ -711,4 +1276,207 @@ html, body {
 @keyframes zoomIn {
   from { transform: scale(0.92); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
+}
+
+/* ==========================================================================
+   Season Chip & Zud Banner
+   ========================================================================== */
+
+.season-chip {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+  border: 1.5px solid #0ea5e9;
+  box-shadow: 2px 2px 0px #020617;
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.season-banner {
+  position: absolute;
+  top: 75px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #1e3a8a, #0369a1);
+  border: 2px solid #38bdf8;
+  color: #f8fafc;
+  font-weight: 800;
+  font-family: var(--font-title);
+  font-size: 0.82rem;
+  padding: 8px 18px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 4px 4px 0px #0c4a6e;
+  z-index: 100;
+  animation: raidPulse 1.2s infinite alternate;
+  letter-spacing: 0.5px;
+}
+
+.season-banner-icon {
+  font-size: 1.2rem;
+}
+
+.tamga-chip {
+  background: rgba(14, 165, 233, 0.12);
+  border: 1.5px solid #06b6d4;
+  color: #22d3ee;
+  font-weight: 700;
+}
+
+.layer-btn {
+  background: linear-gradient(135deg, #0f172a, #1e1b4b);
+  border-color: #818cf8;
+}
+
+.migration-btn {
+  background: linear-gradient(135deg, #1c1917, #451a03);
+  border-color: #f59e0b;
+}
+
+.obsidian-chip {
+  border-color: #a855f7;
+  color: #c084fc;
+}
+
+.mithril-chip {
+  border-color: #38bdf8;
+  color: #7dd3fc;
+}
+
+/* ==========================================================================
+   Büyük Bozkır Göçü & Töre Ağacı UI
+   ========================================================================== */
+
+.migration-summary-box {
+  background: #090d16;
+  border: 1.5px solid var(--chip-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+  box-shadow: var(--neo-shadow);
+}
+
+.migration-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+.migration-action-btn {
+  width: 100%;
+  padding: 10px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border: 2px solid #fbbf24;
+  box-shadow: 3px 3px 0px #78350f;
+}
+
+.tore-branches-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.tore-branch {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1.5px solid var(--chip-border);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.branch-tengri {
+  border-color: #0284c7;
+  background: rgba(2, 132, 199, 0.06);
+}
+
+.branch-kultigin {
+  border-color: #dc2626;
+  background: rgba(220, 38, 38, 0.06);
+}
+
+.branch-tonyukuk {
+  border-color: #d97706;
+  background: rgba(217, 119, 6, 0.06);
+}
+
+.branch-title {
+  font-family: var(--font-title);
+  font-size: 0.82rem;
+  margin: 0;
+  color: var(--text-main);
+  letter-spacing: 0.5px;
+}
+
+.tore-skills-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.tore-card {
+  background: var(--chip-bg);
+  border: 1.5px solid var(--chip-border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  box-shadow: var(--neo-shadow);
+}
+
+.tore-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.tore-card-info b {
+  font-size: 0.8rem;
+  color: var(--text-main);
+}
+
+.tore-card-info p {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.btn-tore-up {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  border: 1.5px solid #38bdf8;
+  color: white;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-weight: 700;
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  box-shadow: 2px 2px 0px #082f49;
+  white-space: nowrap;
+  transition: transform 0.08s ease;
+}
+
+.btn-tore-up:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px #082f49;
+}
+
+.btn-tore-up:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(80%);
 }
