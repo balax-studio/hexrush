@@ -180,6 +180,8 @@ static func calculate_offline_gains(save_data: Dictionary) -> Dictionary:
 	var gained_wood = 0.0
 	var gained_flour = 0.0
 	var gained_plank = 0.0
+	var gained_bread = 0.0
+	var gained_furniture = 0.0
 	
 	if save_data.has("tiles"):
 		var tiles_arr: Array = save_data["tiles"]
@@ -197,10 +199,8 @@ static func calculate_offline_gains(save_data: Dictionary) -> Dictionary:
 				var rate = (0.42 * pow(1.5, b_lvl - 1)) * global_mult
 				var max_cap = (rate * 30.0)
 				if has_workers:
-					# İşçiler varsa doğrudan ambara taşınır
 					gained_food += rate * capped_seconds
 				else:
-					# İşçi yoksa tarlanın kendi ambar kapasitesi kadar birikir
 					gained_food += min(max_cap, rate * capped_seconds)
 					
 			elif b_type == "lumberjack":
@@ -227,10 +227,28 @@ static func calculate_offline_gains(save_data: Dictionary) -> Dictionary:
 				else:
 					gained_plank += min(max_cap, rate * capped_seconds)
 					
+			elif b_type == "bakery":
+				var rate = (0.25 * pow(1.5, b_lvl - 1)) * global_mult
+				var max_cap = (rate * 30.0)
+				if has_workers:
+					gained_bread += rate * capped_seconds
+				else:
+					gained_bread += min(max_cap, rate * capped_seconds)
+					
+			elif b_type == "furniture":
+				var rate = (0.20 * pow(1.5, b_lvl - 1)) * global_mult
+				var max_cap = (rate * 30.0)
+				if has_workers:
+					gained_furniture += rate * capped_seconds
+				else:
+					gained_furniture += min(max_cap, rate * capped_seconds)
+					
 	return {
 		"seconds": capped_seconds,
 		"food": gained_food,
 		"wood": gained_wood,
 		"flour": gained_flour,
-		"plank": gained_plank
+		"plank": gained_plank,
+		"bread": gained_bread,
+		"furniture": gained_furniture
 	}
