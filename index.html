@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Idle Kingdom Clicker</title>
+  
+  <!-- PWA & Mobile Web App Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Idle Kingdom" />
+  <meta name="theme-color" content="#161b22" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- CSS Styles -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="game-container">
+    <!-- 3D Isometric Canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Top UI Bar -->
+    <header id="top-bar">
+      <div class="top-row">
+        <div class="chip food-chip" id="chip-food">
+          <span class="chip-icon">🥡</span>
+          <span class="chip-label" id="food-label">Gıda: 1</span>
+        </div>
+        <div class="chip wood-chip" id="chip-wood">
+          <span class="chip-icon">🪵</span>
+          <span class="chip-label" id="wood-label">Odun: 0</span>
+        </div>
+        <div class="chip crown-chip" id="chip-crown">
+          <span class="chip-icon">👑</span>
+          <span class="chip-label" id="crown-label">0</span>
+        </div>
+        <div class="chip land-chip" id="chip-land">
+          <span class="chip-icon">🏰</span>
+          <span class="chip-label" id="land-label">1</span>
+        </div>
+        <button id="btn-toggle-drawer" class="icon-btn" title="Envanter Çekmecesi">▼</button>
+        <button id="btn-settings" class="icon-btn" title="Ayarlar & İstatistikler">⚙️</button>
+      </div>
+
+      <!-- Expandable Secondary Resources Drawer -->
+      <div id="drawer-row" class="drawer-row hidden">
+        <div class="chip flour-chip" id="chip-flour">
+          <span class="chip-icon">🌾</span>
+          <span class="chip-label" id="flour-label">Un: 0</span>
+        </div>
+        <div class="chip plank-chip" id="chip-plank">
+          <span class="chip-icon">🪵</span>
+          <span class="chip-label" id="plank-label">Kereste: 0</span>
+        </div>
+      </div>
+
+      <!-- Dynamic Quest / Hint Bar -->
+      <div id="hint-bar">
+        <span id="hint-label">Şatoyu Seviye 2'ye yükselterek Odunculuğun kilidini aç! (Gerekli: 6 🥡)</span>
+      </div>
+    </header>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="hidden">
+      <div id="toast-message">Bildirim</div>
+    </div>
+
+    <!-- Bottom Dynamic Action Drawer -->
+    <div id="bottom-menu" class="hidden">
+      <div class="menu-header">
+        <h3 id="menu-title">Menü Başlığı</h3>
+        <button id="btn-close-menu" class="close-btn">✕</button>
+      </div>
+      <div id="menu-content" class="menu-content"></div>
+    </div>
+
+    <!-- Settings & Stats & Prestige Modal -->
+    <div id="modal-backdrop" class="hidden">
+      <div id="settings-modal" class="modal-card hidden">
+        <div class="modal-header">
+          <h2 id="settings-title">⚙️ Ayarlar & Krallık Yönetimi</h2>
+          <button id="btn-close-settings" class="close-btn">✕</button>
+        </div>
+
+        <div class="tab-buttons-row">
+          <button id="tab-btn-general" class="tab-btn active">🌐 Genel & Ses</button>
+          <button id="tab-btn-stats" class="tab-btn">📊 İstatistikler</button>
+          <button id="tab-btn-prestige" class="tab-btn">👑 Prestij</button>
+        </div>
+
+        <!-- Tab 1: General & Sound -->
+        <div id="tab-general" class="tab-pane active">
+          <label class="section-label" id="lbl-lang-select">Dil Seçimi / Language:</label>
+          <div class="lang-grid">
+            <button class="btn-lang" data-lang="tr">🇹🇷 TR</button>
+            <button class="btn-lang" data-lang="en">🇬🇧 EN</button>
+            <button class="btn-lang" data-lang="es">🇪🇸 ES</button>
+            <button class="btn-lang" data-lang="de">🇩🇪 DE</button>
+          </div>
+
+          <hr class="modal-divider" />
+
+          <label class="section-label" id="lbl-audio-sfx">Ses Efektleri (SFX):</label>
+          <div class="audio-control-row">
+            <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.8" />
+            <button id="btn-mute-toggle" class="btn-secondary">🔊 Açık</button>
+          </div>
+        </div>
+
+        <!-- Tab 2: Stats -->
+        <div id="tab-stats" class="tab-pane hidden">
+          <div class="stats-list">
+            <div class="stat-row"><span id="lbl-stat-playtime">Toplam Oynama Süresi</span>: <b id="val-stat-playtime">0 dk</b></div>
+            <div class="stat-row"><span id="lbl-stat-conquered">Fethedilen Toprak</span>: <b id="val-stat-conquered">1</b></div>
+            <div class="stat-row"><span id="lbl-stat-food">Toplam Üretilen Gıda</span>: <b id="val-stat-food">0</b></div>
+            <div class="stat-row"><span id="lbl-stat-wood">Toplam Üretilen Odun</span>: <b id="val-stat-wood">0</b></div>
+            <div class="stat-row"><span id="lbl-stat-flour">Toplam Üretilen Un</span>: <b id="val-stat-flour">0</b></div>
+            <div class="stat-row"><span id="lbl-stat-plank">Toplam Üretilen Kereste</span>: <b id="val-stat-plank">0</b></div>
+            <div class="stat-row"><span id="lbl-stat-rebirths">Yapılan Prestij Sayısı</span>: <b id="val-stat-rebirths">0</b></div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Prestige (Rebirth) -->
+        <div id="tab-prestige" class="tab-pane hidden">
+          <p id="lbl-prestige-desc" class="prestige-desc">
+            Krallığını sıfırlayarak kalıcı Kraliyet Taçları kazan. Her taç üretimi ve taşımayı kalıcı olarak %5 hızlandırır!
+          </p>
+          <div class="prestige-box">
+            <div class="prestige-row"><span id="lbl-curr-crowns">Mevcut Taçlar</span>: <b id="val-curr-crowns" class="text-gold">0 👑 (+%0)</b></div>
+            <div class="prestige-row"><span id="lbl-earn-crowns">Sıfırlanınca Kazanılacak Taç</span>: <b id="val-earn-crowns" class="text-green">+0 👑</b></div>
+          </div>
+          <button id="btn-do-prestige" class="btn-primary prestige-btn">👑 Krallığı Sıfırla & Yeniden Doğur</button>
+        </div>
+      </div>
+
+      <!-- Prestige Confirm Dialog -->
+      <div id="prestige-confirm-modal" class="modal-card modal-small hidden">
+        <h3 id="lbl-prestige-confirm-title" class="text-gold">⚠️ Krallığı Sıfırlamak İstediğinden Emin Misin?</h3>
+        <p id="lbl-prestige-confirm-desc" class="modal-desc">
+          Harita, binalar ve mevcut kaynakların sıfırlanacak. Karşılığında +X Kraliyet Tacı kazanacaksın!
+        </p>
+        <div class="dialog-button-row">
+          <button id="btn-confirm-rebirth" class="btn-primary">Evet, Yeniden Doğur!</button>
+          <button id="btn-cancel-rebirth" class="btn-secondary">İptal</button>
+        </div>
+      </div>
+
+      <!-- 8-Hour Offline Gains Modal -->
+      <div id="offline-modal" class="modal-card modal-small hidden">
+        <h2 id="lbl-offline-title" class="text-gold">👑 Krallığına Hoş Geldin!</h2>
+        <p id="lbl-offline-desc" class="modal-desc">
+          Sen yokken krallığın çalışmaya devam etti (0 dk boyunca):
+        </p>
+        <div class="offline-gains-grid">
+          <div class="gain-item text-yellow" id="gain-food">+0.0 🥡 Gıda</div>
+          <div class="gain-item text-wood" id="gain-wood">+0.0 🪵 Odun</div>
+          <div class="gain-item text-flour" id="gain-flour">+0.0 🌾 Un</div>
+          <div class="gain-item text-plank" id="gain-plank">+0.0 🪵 Kereste</div>
+        </div>
+        <div class="dialog-button-row">
+          <button id="btn-claim-offline" class="btn-secondary">Tümünü Al</button>
+          <button id="btn-claim-3x" class="btn-primary">📺 3x Al (Bonus)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Logic Engine Script -->
+  <script src="game.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => {
+          console.log('SW registration failed:', err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
+

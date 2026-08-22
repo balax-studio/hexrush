@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8rnf1eldx92a"]
+
+[ext_resource type="Script" path="res://scripts/CornField.gd" id="1_cornfield"]
+
+[node name="CornField" type="Node2D"]
+script = ExtResource("1_cornfield")

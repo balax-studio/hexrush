@@ -1,0 +1,7 @@
+﻿.godot/
+*.import
+*.tmp
+*.log
+.vscode/
+altıgen/
+altigen_web_surumu.zip
