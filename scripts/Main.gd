@@ -692,7 +692,7 @@ func _on_tile_clicked_discovered(coord: Vector2i, tile: HexTile) -> void:
 					break
 				else:
 					# Bir deniz karosuna bağlı -> Üzerinde köprü var mı?
-					if n_tile.has_building() and (n_tile.building is Bridge or "bridge" in n_tile.building.name.to_lower()):
+					if n_tile.has_building() and ("bridge" in n_tile.building.name.to_lower() or (n_tile.building.get_script() != null and "bridge" in n_tile.building.get_script().resource_path.to_lower())):
 						has_valid_access = true
 						break
 					else:
