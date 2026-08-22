@@ -678,8 +678,8 @@ class GameState {
 
   calculateEarnedCrowns() {
     const totalRes = this.getCareerTotalResources();
-    const baseCrowns = Math.floor(Math.sqrt(totalRes / 1000.0));
-    return baseCrowns * this.castleLevel;
+    const baseCrowns = Math.floor(Math.sqrt(totalRes / 20.0));
+    return Math.max(1, baseCrowns * this.castleLevel);
   }
 
   initFreshMap() {

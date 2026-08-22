@@ -1526,6 +1526,23 @@ func _update_stats_tab_live() -> void:
 	if stat_plank_label: stat_plank_label.text = "%s: %.1f" % [Localization.tr_t("stat_total_plank"), stat_total_plank]
 	if stat_rebirths_label: stat_rebirths_label.text = "%s: %d" % [Localization.tr_t("stat_rebirths"), total_rebirths]
 
+func get_castle_multiplier() -> float:
+	return 1.0 + float(castle_level - 1) * 0.25
+
+func get_prestige_multiplier() -> float:
+	return 1.0 + float(crowns) * 0.05
+
+func get_global_multiplier() -> float:
+	return get_castle_multiplier() * get_prestige_multiplier()
+
+func get_career_total_resources() -> float:
+	return stat_total_food + stat_total_wood + stat_total_flour + stat_total_plank
+
+func calculate_earned_crowns() -> int:
+	var total_res = get_career_total_resources()
+	var base_crowns = int(floor(sqrt(total_res / 20.0)))
+	return max(1, base_crowns * castle_level)
+
 func _update_prestige_tab_live() -> void:
 	var cur_bonus = int((get_prestige_multiplier() - 1.0) * 100.0)
 	var earned = calculate_earned_crowns()
@@ -1534,11 +1551,6 @@ func _update_prestige_tab_live() -> void:
 
 func _on_prestige_button_pressed() -> void:
 	var earned = calculate_earned_crowns()
-	if earned <= 0:
-		sound_manager.play_error()
-		show_toast(Localization.tr_t("rebirth_need_more"), true)
-		return
-		
 	sound_manager.play_click()
 	prestige_confirm_title.text = Localization.tr_t("prestige_confirm_title")
 	prestige_confirm_desc.text = Localization.tr_t("prestige_confirm_desc", [earned, int(((1.0 + float(crowns + earned) * 0.05) - 1.0) * 100.0)])
