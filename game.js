@@ -13,6 +13,10 @@ const STRINGS = {
     wood: "Odun",
     flour: "Un",
     plank: "Kereste",
+    bread: "Ekmek",
+    furniture: "Mobilya",
+    stone: "Taş",
+    iron: "Demir",
     land: "Toprak",
     crowns: "Kraliyet Tacı",
     free: "ÜCRETSİZ",
@@ -28,6 +32,9 @@ const STRINGS = {
     total_transferred: "Taşındı",
     supply_neighbor: "🟢 Komşu Tarladan (%100)",
     supply_neighbor_wood: "🟢 Komşu Oduncudan (%100)",
+    supply_neighbor_flour: "🟢 Komşu Değirmenden (%100)",
+    supply_neighbor_plank: "🟢 Komşu Kereste Fabrikasından (%100)",
+    supply_neighbor_stone: "🟢 Komşu Taş Ocağından (%100)",
     supply_global: "🟡 Ana Ambardan (%50)",
     
     // Biyomlar & Yapılar
@@ -35,10 +42,18 @@ const STRINGS = {
     corn_desc: "Temel gıda üretimi.",
     windmill_name: "Değirmen (Tier 2)",
     windmill_desc: "Gıdayı Un'a çevirir.",
+    bakery_name: "Taş Fırın (Tier 3)",
+    bakery_desc: "Un ve Gıdadan Ekmek üretir (Yüksek kâr).",
     lumberjack_name: "Oduncu Kulübesi",
     lumberjack_desc: "Temel odun üretimi.",
     sawmill_name: "Kereste Fabrikası (Tier 2)",
     sawmill_desc: "Odunu Kalas'a çevirir.",
+    furniture_name: "Mobilyacı (Tier 3)",
+    furniture_desc: "Kalas ve Odundan Mobilya üretir (Yüksek kâr).",
+    quarry_name: "Taş Ocağı (Maden)",
+    quarry_desc: "Dağlardan saf taş çıkarır.",
+    mine_name: "Demir Madeni (Maden)",
+    mine_desc: "Taş ve odundan demir külçeleri eritir.",
     worker_name: "İşçi Kulübesi",
     worker_desc: "Komşulardan otomatik hammadde taşır.",
     castle_title: "🏰 Krallık Şatosu",
@@ -46,15 +61,19 @@ const STRINGS = {
     next_unlock: "Sonraki Kilit",
     max_level: "MAKSİMUM SEVİYE",
     max_power_active: "👑 Krallık Maksimum Gücüne Ulaştı!",
+    locked_castle_3: "🔒 ŞATO SV. 3",
+    locked_castle_4: "🔒 ŞATO SV. 4",
     
     // Menü Başlıkları
     build_title_meadow: "🌾 Çayır İnşaat Menüsü",
     build_title_forest: "🌲 Orman İnşaat Menüsü",
     build_title_sea: "🌊 Deniz İnşaat Menüsü",
+    build_title_mountain: "🏔️ Dağ & Madencilik Menüsü",
     settings_title: "⚙️ Ayarlar & Krallık Yönetimi",
     tab_general: "🌐 Genel & Ses",
     tab_stats: "📊 İstatistikler",
     tab_prestige: "👑 Prestij",
+    tab_talents: "⚡ Yetenekler",
     language_select: "Dil Seçimi / Language:",
     sfx_volume: "Ses Efektleri (SFX):",
     mute: "Sessiz",
@@ -73,8 +92,8 @@ const STRINGS = {
     // Toastlar
     toast_free_tile: "✨ İlk arsanı ÜCRETSİZ fethettin! (+1 Toprak)",
     toast_buy_tile: "🏰 {0} 🥡 Gıda karşılığında yeni arsa fethedildi! (+1 Toprak)",
-    toast_mountain_conquered: "🏔️ Dağ Fethedildi! Arkasındaki 1 birim sınırındaki tüm araziler açığa çıkarıldı.",
-    toast_mountain_info: "🏔️ Fethedilmiş Dağ Zirvesi. Çevredeki tüm topraklar görüş alanında.",
+    toast_mountain_conquered: "🏔️ Dağ Fethedildi! Taş & Demir Madenciliği için hazır.",
+    toast_mountain_info: "🏔️ Fethedilmiş Dağ Zirvesi. Taş Ocağı ve Demir Madeni inşa edebilirsiniz.",
     toast_no_food_tile: "⚠️ Yetersiz Gıda! Yeni altıgen açmak için {0} 🥡 Gıda gerekli.",
     toast_adjacent_required: "⚠️ Yalnızca sınır komşunuz olan arazileri fethedebilirsiniz!",
     toast_need_bridge: "⚠️ Açık Deniz Engeli! Denizden geçiş için önce bu deniz karosuna köprü inşa etmelisin.",
@@ -83,14 +102,24 @@ const STRINGS = {
     toast_no_build_biome: "ℹ️ Bu biyomda henüz inşa edilebilir yapı bulunmuyor.",
     toast_built_corn: "🌽 Mısır Tarlası inşa edildi!",
     toast_built_windmill: "🌾 Değirmen kuruldu! Un üretimi başladı.",
+    toast_built_bakery: "🍞 Taş Fırın kuruldu! Ekmek üretimi başladı.",
     toast_built_lumberjack: "🪓 Oduncu Kulübesi kuruldu! Odun üretimi başladı.",
     toast_built_sawmill: "🪵 Kereste Fabrikası kuruldu! Kalas üretimi başladı.",
+    toast_built_furniture: "🪑 Mobilya Atölyesi kuruldu! Mobilya üretimi başladı.",
+    toast_built_quarry: "🪨 Taş Ocağı kuruldu! Taş üretimi başladı.",
+    toast_built_mine: "⛏️ Demir Madeni kuruldu! Demir üretimi başladı.",
     toast_built_worker: "🛖 İşçi Kulübesi kuruldu! Otomatik taşıma başladı.",
     toast_built_bridge: "🌉 Köprü inşa edildi! Deniz ötesi kara fethine açıldı.",
     toast_collected_food: "🥡 +{0} Gıda ambarına eklendi!",
     toast_collected_wood: "🪵 +{0} Odun kereste ambarına eklendi!",
     toast_collected_flour: "🌾 +{0} Un ambarına eklendi!",
     toast_collected_plank: "🪵 +{0} Kereste/Kalas ambarına eklendi!",
+    toast_collected_bread: "🍞 +{0} Ekmek ambarına eklendi!",
+    toast_collected_furniture: "🪑 +{0} Mobilya ambarına eklendi!",
+    toast_collected_stone: "🪨 +{0} Taş ambarına eklendi!",
+    toast_collected_iron: "⛏️ +{0} Demir ambarına eklendi!",
+    toast_chest_found: "🎁 Gizemli Hazine Sandığı Açıldı! Bolca kaynak kazanıldı!",
+    toast_talent_bought: "⚡ Yetenek Geliştirildi!",
     toast_upgraded: "✨ {0} Seviye {1}'e yükseltildi!",
     toast_castle_upgraded: "👑 Krallık {0} kademesine yükseltildi! (+%25 Küresel Hız)",
     toast_insufficient_res: "⚠️ Yetersiz Kaynak!",
@@ -107,6 +136,10 @@ const STRINGS = {
     stat_total_wood: "Toplam Üretilen Odun",
     stat_total_flour: "Toplam Üretilen Un",
     stat_total_plank: "Toplam Üretilen Kereste",
+    stat_total_bread: "Toplam Üretilen Ekmek",
+    stat_total_furniture: "Toplam Üretilen Mobilya",
+    stat_total_stone: "Toplam Üretilen Taş",
+    stat_total_iron: "Toplam Üretilen Demir",
     stat_rebirths: "Yapılan Prestij Sayısı",
     prestige_desc: "Krallığını sıfırlayarak kalıcı Kraliyet Taçları kazan. Her taç üretimi ve taşımayı kalıcı olarak %5 hızlandırır!",
     current_crowns: "Mevcut Taçlar",
@@ -124,6 +157,10 @@ const STRINGS = {
     wood: "Wood",
     flour: "Flour",
     plank: "Plank",
+    bread: "Bread",
+    furniture: "Furniture",
+    stone: "Stone",
+    iron: "Iron",
     land: "Land",
     crowns: "Royal Crowns",
     free: "FREE",
@@ -139,16 +176,27 @@ const STRINGS = {
     total_transferred: "Transferred",
     supply_neighbor: "🟢 Neighbor Farm (100%)",
     supply_neighbor_wood: "🟢 Neighbor Lumberjack (100%)",
+    supply_neighbor_flour: "🟢 Neighbor Windmill (100%)",
+    supply_neighbor_plank: "🟢 Neighbor Sawmill (100%)",
+    supply_neighbor_stone: "🟢 Neighbor Quarry (100%)",
     supply_global: "🟡 Global Silo (50%)",
     
     corn_name: "Corn Field",
     corn_desc: "Basic food production.",
     windmill_name: "Windmill (Tier 2)",
     windmill_desc: "Processes food into flour.",
+    bakery_name: "Stone Bakery (Tier 3)",
+    bakery_desc: "Processes flour and food into bread.",
     lumberjack_name: "Lumberjack Hut",
     lumberjack_desc: "Basic wood production.",
     sawmill_name: "Sawmill (Tier 2)",
     sawmill_desc: "Processes wood into planks.",
+    furniture_name: "Furniture Maker (Tier 3)",
+    furniture_desc: "Processes planks and wood into furniture.",
+    quarry_name: "Stone Quarry",
+    quarry_desc: "Extracts solid stone from mountains.",
+    mine_name: "Iron Mine",
+    mine_desc: "Smelts iron ore from stone and wood.",
     worker_name: "Worker Hut",
     worker_desc: "Auto-gathers resources from neighbors.",
     castle_title: "🏰 Kingdom Castle",
@@ -156,13 +204,18 @@ const STRINGS = {
     next_unlock: "Next Unlock",
     max_level: "MAX LEVEL",
     max_power_active: "👑 Kingdom Reached Max Power!",
+    locked_castle_3: "🔒 CASTLE LV. 3",
+    locked_castle_4: "🔒 CASTLE LV. 4",
     
     build_title_meadow: "🌾 Meadow Build Menu",
     build_title_forest: "🌲 Forest Build Menu",
+    build_title_sea: "🌊 Sea Build Menu",
+    build_title_mountain: "🏔️ Mountain & Mining Menu",
     settings_title: "⚙️ Settings & Kingdom Management",
     tab_general: "🌐 General & Audio",
     tab_stats: "📊 Statistics",
     tab_prestige: "👑 Prestige",
+    tab_talents: "⚡ Talents",
     language_select: "Language Selection:",
     sfx_volume: "Sound Effects (SFX):",
     mute: "Muted",
@@ -170,25 +223,42 @@ const STRINGS = {
     
     hint_castle_1: "Upgrade Castle to Level 2 to unlock Lumberjack! (Cost: 6 🥡)",
     hint_castle_2: "Upgrade Castle to Level 3 to unlock Windmill & Sawmill! (18 🥡 + 10 🪵)",
-    hint_expand: "Conquer new lands: 1 🥡 Food | Refine goods with factories!",
+    hint_expand: "Conquer new lands: Scaled cost | Refine goods with factories!",
     hint_no_food: "Out of food! Harvest corn fields or build a worker hut.",
     
+    bridge_name: "Wooden Bridge",
+    bridge_desc: "Crosses open sea and unlocks neighbor land.",
+
     toast_free_tile: "✨ First land conquered for FREE! (+1 Land)",
-    toast_buy_tile: "🏰 Land conquered for 1 🥡 Food! (+1 Land)",
-    toast_mountain_conquered: "🏔️ Mountain Conquered! All lands within 1-unit boundary revealed.",
-    toast_mountain_info: "🏔️ Conquered Mountain Peak. Surrounding lands in line of sight.",
-    toast_no_food_tile: "⚠️ Not enough food! 1 🥡 Food required.",
+    toast_buy_tile: "🏰 Land conquered for {0} 🥡 Food! (+1 Land)",
+    toast_mountain_conquered: "🏔️ Mountain Conquered! Ready for Quarry and Iron Mine.",
+    toast_mountain_info: "🏔️ Conquered Mountain Peak. You can build Quarries and Mines.",
+    toast_no_food_tile: "⚠️ Not enough food! {0} 🥡 Food required.",
+    toast_adjacent_required: "⚠️ You can only conquer lands adjacent to your owned territory!",
+    toast_need_bridge: "⚠️ Open Sea Barrier! Build a bridge across this sea tile first.",
+    toast_bridge_need_land: "⚠️ Bridge requires connection to at least 1 adjacent land tile.",
     toast_forest_locked: "🔒 Forest Locked! Upgrade Castle to Level 2 first.",
     toast_no_build_biome: "ℹ️ No constructible buildings for this biome yet.",
     toast_built_corn: "🌽 Corn Field constructed!",
     toast_built_windmill: "🌾 Windmill built! Flour production started.",
+    toast_built_bakery: "🍞 Bakery built! Bread production started.",
     toast_built_lumberjack: "🪓 Lumberjack Hut built! Wood production started.",
     toast_built_sawmill: "🪵 Sawmill built! Plank production started.",
+    toast_built_furniture: "🪑 Furniture Maker built! Furniture production started.",
+    toast_built_quarry: "🪨 Stone Quarry built! Stone extraction started.",
+    toast_built_mine: "⛏️ Iron Mine built! Iron smelting started.",
     toast_built_worker: "🛖 Worker Hut built! Auto-transport active.",
+    toast_built_bridge: "🌉 Bridge built! Oversea lands unlocked for conquest.",
     toast_collected_food: "🥡 +{0} Food added to storage!",
     toast_collected_wood: "🪵 +{0} Wood added to storage!",
     toast_collected_flour: "🌾 +{0} Flour added to storage!",
     toast_collected_plank: "🪵 +{0} Planks added to storage!",
+    toast_collected_bread: "🍞 +{0} Bread added to storage!",
+    toast_collected_furniture: "🪑 +{0} Furniture added to storage!",
+    toast_collected_stone: "🪨 +{0} Stone added to storage!",
+    toast_collected_iron: "⛏️ +{0} Iron added to storage!",
+    toast_chest_found: "🎁 Mysterious Treasure Chest Opened! Wealth acquired!",
+    toast_talent_bought: "⚡ Talent Upgraded!",
     toast_upgraded: "✨ {0} upgraded to Level {1}!",
     toast_castle_upgraded: "👑 Kingdom promoted to {0}! (+25% Global Speed)",
     toast_insufficient_res: "⚠️ Insufficient Resources!",
@@ -204,6 +274,10 @@ const STRINGS = {
     stat_total_wood: "Total Wood Produced",
     stat_total_flour: "Total Flour Produced",
     stat_total_plank: "Total Planks Produced",
+    stat_total_bread: "Total Bread Produced",
+    stat_total_furniture: "Total Furniture Produced",
+    stat_total_stone: "Total Stone Produced",
+    stat_total_iron: "Total Iron Produced",
     stat_rebirths: "Total Rebirths",
     prestige_desc: "Reset your kingdom to gain Royal Crowns. Each crown permanently boosts all production speeds by +5%!",
     current_crowns: "Current Crowns",
@@ -221,6 +295,10 @@ const STRINGS = {
     wood: "Madera",
     flour: "Harina",
     plank: "Tablón",
+    bread: "Pan",
+    furniture: "Muebles",
+    stone: "Piedra",
+    iron: "Hierro",
     land: "Tierra",
     crowns: "Coronas Reales",
     free: "GRATIS",
@@ -236,16 +314,27 @@ const STRINGS = {
     total_transferred: "Trasladado",
     supply_neighbor: "🟢 Granja Vecina (100%)",
     supply_neighbor_wood: "🟢 Leñador Vecino (100%)",
+    supply_neighbor_flour: "🟢 Molino Vecino (100%)",
+    supply_neighbor_plank: "🟢 Aserradero Vecino (100%)",
+    supply_neighbor_stone: "🟢 Cantera Vecina (100%)",
     supply_global: "🟡 Almacén Global (50%)",
     
     corn_name: "Campo de Maíz",
     corn_desc: "Producción básica de comida.",
     windmill_name: "Molino (Nivel 2)",
     windmill_desc: "Transforma comida en harina.",
+    bakery_name: "Panadería (Nivel 3)",
+    bakery_desc: "Transforma harina y comida en pan.",
     lumberjack_name: "Cabaña de Leñador",
     lumberjack_desc: "Producción básica de madera.",
     sawmill_name: "Aserradero (Nivel 2)",
     sawmill_desc: "Transforma madera en tablones.",
+    furniture_name: "Mueblería (Nivel 3)",
+    furniture_desc: "Transforma tablones y madera en muebles.",
+    quarry_name: "Cantera de Piedra",
+    quarry_desc: "Extrae piedra de las montañas.",
+    mine_name: "Mina de Hierro",
+    mine_desc: "Funde hierro con piedra y madera.",
     worker_name: "Cabaña de Obreros",
     worker_desc: "Transporta recursos de vecinos.",
     castle_title: "🏰 Castillo del Reino",
@@ -253,13 +342,18 @@ const STRINGS = {
     next_unlock: "Próximo Desbloqueo",
     max_level: "NIVEL MÁXIMO",
     max_power_active: "👑 ¡Poder Legendario Alcanzado!",
+    locked_castle_3: "🔒 CASTILLO NV. 3",
+    locked_castle_4: "🔒 CASTILLO NV. 4",
     
     build_title_meadow: "🌾 Menú de Pradera",
     build_title_forest: "🌲 Menú de Bosque",
+    build_title_sea: "🌊 Menú de Mar",
+    build_title_mountain: "🏔️ Menú de Montaña y Minería",
     settings_title: "⚙️ Ajustes y Gestión del Reino",
     tab_general: "🌐 General y Sonido",
     tab_stats: "📊 Estadísticas",
     tab_prestige: "👑 Prestigio",
+    tab_talents: "⚡ Talentos",
     language_select: "Seleccionar Idioma:",
     sfx_volume: "Efectos de Sonido (SFX):",
     mute: "Silenciado",
@@ -270,22 +364,39 @@ const STRINGS = {
     hint_expand: "Conquista tierras: 1 🥡 Comida | ¡Procesa materias primas!",
     hint_no_food: "¡Sin comida! Cosecha maíz o construye una cabaña de obreros.",
     
+    bridge_name: "Puente de Madera",
+    bridge_desc: "Cruza el mar y abre tierras vecinas.",
+
     toast_free_tile: "✨ ¡Primera tierra conquistada GRATIS! (+1 Tierra)",
-    toast_buy_tile: "🏰 ¡Tierra conquistada por 1 🥡 Comida! (+1 Tierra)",
-    toast_mountain_conquered: "🏔️ ¡Montaña Conquistada! Todas las tierras cercanas reveladas.",
-    toast_mountain_info: "🏔️ Pico Conquistado. Tierras circundantes a la vista.",
-    toast_no_food_tile: "⚠️ ¡Comida insuficiente! 1 🥡 requerida.",
+    toast_buy_tile: "🏰 ¡Tierra conquistada por {0} 🥡 Comida! (+1 Tierra)",
+    toast_mountain_conquered: "🏔️ ¡Montaña Conquistada! Cantera y Mina listas.",
+    toast_mountain_info: "🏔️ Pico Conquistado. Puedes construir Canteras y Minas.",
+    toast_no_food_tile: "⚠️ ¡Comida insuficiente! {0} 🥡 requerida.",
+    toast_adjacent_required: "⚠️ ¡Solo puedes conquistar tierras adyacentes a tu territorio!",
+    toast_need_bridge: "⚠️ ¡Barrera de Mar! Construye un puente sobre este mar primero.",
+    toast_bridge_need_land: "⚠️ El puente requiere conexión con al menos 1 tierra adyacente.",
     toast_forest_locked: "🔒 ¡Bosque bloqueado! Mejora el castillo a Nivel 2 primero.",
     toast_no_build_biome: "ℹ️ Sin edificios para este bioma.",
     toast_built_corn: "🌽 ¡Campo de Maíz construido!",
     toast_built_windmill: "🌾 ¡Molino construido!",
+    toast_built_bakery: "🍞 ¡Panadería construida!",
     toast_built_lumberjack: "🪓 ¡Cabaña de Leñador construida!",
     toast_built_sawmill: "🪵 ¡Aserradero construido!",
+    toast_built_furniture: "🪑 ¡Mueblería construida!",
+    toast_built_quarry: "🪨 ¡Cantera de Piedra construida!",
+    toast_built_mine: "⛏️ ¡Mina de Hierro construida!",
     toast_built_worker: "🛖 ¡Cabaña de Obreros construida!",
+    toast_built_bridge: "🌉 ¡Puente construido!",
     toast_collected_food: "🥡 ¡+{0} Comida recolectada!",
     toast_collected_wood: "🪵 ¡+{0} Madera recolectada!",
     toast_collected_flour: "🌾 ¡+{0} Harina recolectada!",
     toast_collected_plank: "🪵 ¡+{0} Tablones recolectados!",
+    toast_collected_bread: "🍞 ¡+{0} Pan recolectado!",
+    toast_collected_furniture: "🪑 ¡+{0} Muebles recolectados!",
+    toast_collected_stone: "🪨 ¡+{0} Piedra recolectada!",
+    toast_collected_iron: "⛏️ ¡+{0} Hierro recolectado!",
+    toast_chest_found: "🎁 ¡Cofre del Tesoro Abierto!",
+    toast_talent_bought: "⚡ ¡Talento Mejorado!",
     toast_upgraded: "✨ ¡{0} mejorado a Nivel {1}!",
     toast_castle_upgraded: "👑 ¡Reino ascendido a {0}! (+25% Velocidad)",
     toast_insufficient_res: "⚠️ ¡Recursos Insuficientes!",
@@ -301,6 +412,10 @@ const STRINGS = {
     stat_total_wood: "Total de Madera Producida",
     stat_total_flour: "Total de Harina Producida",
     stat_total_plank: "Total de Tablones Producidos",
+    stat_total_bread: "Total de Pan Producido",
+    stat_total_furniture: "Total de Muebles Producidos",
+    stat_total_stone: "Total de Piedra Producida",
+    stat_total_iron: "Total de Hierro Producido",
     stat_rebirths: "Total de Renacimientos",
     prestige_desc: "Reinicia tu reino para ganar Coronas Reales. ¡Cada corona aumenta la velocidad en +5%!",
     current_crowns: "Coronas Actuales",
@@ -318,6 +433,10 @@ const STRINGS = {
     wood: "Holz",
     flour: "Mehl",
     plank: "Bretter",
+    bread: "Brot",
+    furniture: "Möbel",
+    stone: "Stein",
+    iron: "Eisen",
     land: "Land",
     crowns: "Königskronen",
     free: "KOSTENLOS",
@@ -333,16 +452,27 @@ const STRINGS = {
     total_transferred: "Transportiert",
     supply_neighbor: "🟢 Nachbarfeld (100%)",
     supply_neighbor_wood: "🟢 Nachbarholzfäller (100%)",
+    supply_neighbor_flour: "🟢 Nachbarmühle (100%)",
+    supply_neighbor_plank: "🟢 Nachbarsägewerk (100%)",
+    supply_neighbor_stone: "🟢 Nachbarsteinbruch (100%)",
     supply_global: "🟡 Hauptlager (50%)",
     
     corn_name: "Maisfeld",
     corn_desc: "Grundlegende Nahrungsproduktion.",
     windmill_name: "Windmühle (Stufe 2)",
     windmill_desc: "Verarbeitet Nahrung zu Mehl.",
+    bakery_name: "Bäckerei (Stufe 3)",
+    bakery_desc: "Verarbeitet Mehl und Nahrung zu Brot.",
     lumberjack_name: "Holzfällerhütte",
     lumberjack_desc: "Grundlegende Holzproduktion.",
     sawmill_name: "Sägewerk (Stufe 2)",
     sawmill_desc: "Verarbeitet Holz zu Brettern.",
+    furniture_name: "Möbeltischlerei (Stufe 3)",
+    furniture_desc: "Verarbeitet Bretter und Holz zu Möbeln.",
+    quarry_name: "Steinbruch",
+    quarry_desc: "Gewinnt soliden Stein aus den Bergen.",
+    mine_name: "Eisenmine",
+    mine_desc: "Schmilzt Eisenerz aus Stein und Holz.",
     worker_name: "Arbeiterhütte",
     worker_desc: "Transportiert Waren von Nachbarn.",
     castle_title: "🏰 Königsburg",
@@ -350,13 +480,18 @@ const STRINGS = {
     next_unlock: "Nächste Freischaltung",
     max_level: "MAXIMALE STUFE",
     max_power_active: "👑 Maximale Macht erreicht!",
+    locked_castle_3: "🔒 BURG STUFE 3",
+    locked_castle_4: "🔒 BURG STUFE 4",
     
     build_title_meadow: "🌾 Wiesen-Baumenü",
     build_title_forest: "🌲 Wald-Baumenü",
+    build_title_sea: "🌊 See-Baumenü",
+    build_title_mountain: "🏔️ Berg- & Bergbaumenü",
     settings_title: "⚙️ Einstellungen & Verwaltung",
     tab_general: "🌐 Allgemein & Audio",
     tab_stats: "📊 Statistiken",
     tab_prestige: "👑 Prestige",
+    tab_talents: "⚡ Talente",
     language_select: "Sprachauswahl:",
     sfx_volume: "Soundeffekte (SFX):",
     mute: "Stumm",
@@ -364,25 +499,42 @@ const STRINGS = {
     
     hint_castle_1: "Burg auf Stufe 2 für Holzfäller verbessern! (6 🥡)",
     hint_castle_2: "Burg auf Stufe 3 für Mühle & Sägewerk! (18 🥡 + 10 🪵)",
-    hint_expand: "Land erobern: 1 🥡 Nahrung | Fabriken bauen!",
+    hint_expand: "Land erobern: Skalierte Kosten | Fabriken bauen!",
     hint_no_food: "Keine Nahrung! Mais ernten oder Arbeiter bauen.",
     
+    bridge_name: "Holzbrücke",
+    bridge_desc: "Überquert offenes Meer und erschließt Nachbarländer.",
+
     toast_free_tile: "✨ Erstes Land KOSTENLOS erobert! (+1 Land)",
-    toast_buy_tile: "🏰 Land für 1 🥡 Nahrung erobert! (+1 Land)",
-    toast_mountain_conquered: "🏔️ Berg erobert! Umliegende Ländereien aufgedeckt.",
-    toast_mountain_info: "🏔️ Eroberter Berggipfel. Ländereien im Sichtfeld.",
-    toast_no_food_tile: "⚠️ Zu wenig Nahrung! 1 🥡 erforderlich.",
+    toast_buy_tile: "🏰 Land für {0} 🥡 Nahrung erobert! (+1 Land)",
+    toast_mountain_conquered: "🏔️ Berg erobert! Bereit für Steinbruch & Mine.",
+    toast_mountain_info: "🏔️ Eroberter Berggipfel. Du kannst Steinbrüche und Minen bauen.",
+    toast_no_food_tile: "⚠️ Zu wenig Nahrung! {0} 🥡 erforderlich.",
+    toast_adjacent_required: "⚠️ Du kannst nur an dein Territorium angrenzende Gebiete erobern!",
+    toast_need_bridge: "⚠️ Offenes Meer! Baue zuerst eine Brücke über dieses Wasser.",
+    toast_bridge_need_land: "⚠️ Brücke benötigt Verbindung zu mindestens 1 Landfeld.",
     toast_forest_locked: "🔒 Wald gesperrt! Burg zuerst auf Stufe 2 bringen.",
     toast_no_build_biome: "ℹ️ Keine Gebäude für dieses Biom verfügbar.",
     toast_built_corn: "🌽 Maisfeld errichtet!",
     toast_built_windmill: "🌾 Windmühle errichtet!",
+    toast_built_bakery: "🍞 Bäckerei errichtet!",
     toast_built_lumberjack: "🪓 Holzfällerhütte errichtet!",
     toast_built_sawmill: "🪵 Sägewerk errichtet!",
+    toast_built_furniture: "🪑 Möbeltischlerei errichtet!",
+    toast_built_quarry: "🪨 Steinbruch errichtet!",
+    toast_built_mine: "⛏️ Eisenmine errichtet!",
     toast_built_worker: "🛖 Arbeiterhütte errichtet!",
+    toast_built_bridge: "🌉 Brücke errichtet!",
     toast_collected_food: "🥡 +{0} Nahrung gesammelt!",
     toast_collected_wood: "🪵 +{0} Holz gesammelt!",
     toast_collected_flour: "🌾 +{0} Mehl gesammelt!",
     toast_collected_plank: "🪵 +{0} Bretter gesammelt!",
+    toast_collected_bread: "🍞 +{0} Brot gesammelt!",
+    toast_collected_furniture: "🪑 +{0} Möbel gesammelt!",
+    toast_collected_stone: "🪨 +{0} Stein gesammelt!",
+    toast_collected_iron: "⛏️ +{0} Eisen gesammelt!",
+    toast_chest_found: "🎁 Schatztruhe geöffnet! Reichtum erlangt!",
+    toast_talent_bought: "⚡ Talent aufgewertet!",
     toast_upgraded: "✨ {0} auf Stufe {1} verbessert!",
     toast_castle_upgraded: "👑 Königreich zu {0} erhoben! (+25% Tempo)",
     toast_insufficient_res: "⚠️ Unzureichende Ressourcen!",
@@ -398,6 +550,10 @@ const STRINGS = {
     stat_total_wood: "Gesamtes Holz",
     stat_total_flour: "Gesamtes Mehl",
     stat_total_plank: "Gesamte Bretter",
+    stat_total_bread: "Gesamtes Brot",
+    stat_total_furniture: "Gesamte Möbel",
+    stat_total_stone: "Gesamter Stein",
+    stat_total_iron: "Gesamtes Eisen",
     stat_rebirths: "Wiedergeburten",
     prestige_desc: "Setze das Reich zurück für Königskronen. Jede Krone bringt permanent +5% Tempo!",
     current_crowns: "Aktuelle Kronen",
@@ -636,6 +792,8 @@ class GameState {
     this.plank = 0.0;
     this.bread = 0.0;
     this.furniture = 0.0;
+    this.stone = 0.0;
+    this.iron = 0.0;
 
     this.crowns = 0;
     this.totalRebirths = 0;
@@ -646,7 +804,18 @@ class GameState {
     this.purchasedMountainCount = 0;
     this.castleLevel = 1;
 
+    this.talents = {
+      workerSpeed: 0,
+      boostAll: 0,
+      eagleEye: 0,
+      treasureHunter: 0,
+      conquestMaster: 0
+    };
+
     this.frenzyTimer = 0.0;
+    this.animDayTime = 0.0;
+    this.chestSpawnTimer = 0.0;
+    this.activeChests = [];
 
     // Kariyer İstatistikleri
     this.statTotalFood = 0.0;
@@ -655,6 +824,8 @@ class GameState {
     this.statTotalPlank = 0.0;
     this.statTotalBread = 0.0;
     this.statTotalFurniture = 0.0;
+    this.statTotalStone = 0.0;
+    this.statTotalIron = 0.0;
     this.statTotalConquered = 1;
     this.statPlaytime = 0.0;
 
@@ -670,7 +841,8 @@ class GameState {
   }
 
   getPrestigeMultiplier() {
-    return 1.0 + this.crowns * 0.05;
+    const talentBoost = (this.talents ? (this.talents.boostAll || 0) : 0) * 0.10;
+    return 1.0 + this.crowns * 0.05 + talentBoost;
   }
 
   getFrenzyMultiplier() {
@@ -689,34 +861,40 @@ class GameState {
     else if (biome === BIOMES.SEA) n = this.purchasedSeaCount;
     else if (biome === BIOMES.MOUNTAIN) n = this.purchasedMountainCount;
     
-    const baseCost = Math.max(1, Math.floor(1.0 * Math.pow(1.15, n) * (1.0 + 0.15 * Math.max(0, dist - 1))));
+    const conquestLvl = (this.talents && this.talents.conquestMaster) ? this.talents.conquestMaster : 0;
+    const discount = Math.max(0.5, 1.0 - conquestLvl * 0.08);
+
+    const baseCost = Math.max(1, Math.floor(1.0 * Math.pow(1.15, n) * (1.0 + 0.15 * Math.max(0, dist - 1)) * discount));
     
     // Bölge 1: 1 - 6 hex
     if (dist <= 6) {
-      if (biome === BIOMES.MEADOW) return { zone: 1, food: baseCost, wood: 0, flour: 0, plank: 0, bread: 0, furniture: 0 };
-      if (biome === BIOMES.FOREST) return { zone: 1, food: 0, wood: baseCost, flour: 0, plank: 0, bread: 0, furniture: 0 };
-      if (biome === BIOMES.SEA) return { zone: 1, food: 0, wood: baseCost, flour: 0, plank: 0, bread: 0, furniture: 0 };
-      return { zone: 1, food: baseCost, wood: baseCost, flour: 0, plank: 0, bread: 0, furniture: 0 };
+      if (biome === BIOMES.MEADOW) return { zone: 1, food: baseCost, wood: 0, flour: 0, plank: 0, bread: 0, furniture: 0, stone: 0, iron: 0 };
+      if (biome === BIOMES.FOREST) return { zone: 1, food: 0, wood: baseCost, flour: 0, plank: 0, bread: 0, furniture: 0, stone: 0, iron: 0 };
+      if (biome === BIOMES.SEA) return { zone: 1, food: 0, wood: baseCost, flour: 0, plank: 0, bread: 0, furniture: 0, stone: 0, iron: 0 };
+      if (biome === BIOMES.MOUNTAIN) return { zone: 1, food: baseCost, wood: baseCost, flour: 0, plank: 0, bread: 0, furniture: 0, stone: 0, iron: 0 };
+      return { zone: 1, food: baseCost, wood: baseCost, flour: 0, plank: 0, bread: 0, furniture: 0, stone: 0, iron: 0 };
     }
     // Bölge 2: 7 - 12 hex (Temel + Tier 2)
     else if (dist <= 12) {
-      const tier2Cost = Math.max(1, Math.floor(2.0 * Math.pow(1.12, Math.max(0, n - 6))));
-      if (biome === BIOMES.MEADOW) return { zone: 2, food: baseCost, wood: 0, flour: tier2Cost, plank: 0, bread: 0, furniture: 0 };
-      if (biome === BIOMES.FOREST) return { zone: 2, food: 0, wood: baseCost, flour: 0, plank: tier2Cost, bread: 0, furniture: 0 };
-      if (biome === BIOMES.SEA) return { zone: 2, food: 0, wood: baseCost, flour: 0, plank: tier2Cost, bread: 0, furniture: 0 };
-      return { zone: 2, food: baseCost, wood: baseCost, flour: tier2Cost, plank: tier2Cost, bread: 0, furniture: 0 };
+      const tier2Cost = Math.max(1, Math.floor(2.0 * Math.pow(1.12, Math.max(0, n - 6)) * discount));
+      if (biome === BIOMES.MEADOW) return { zone: 2, food: baseCost, wood: 0, flour: tier2Cost, plank: 0, bread: 0, furniture: 0, stone: 0, iron: 0 };
+      if (biome === BIOMES.FOREST) return { zone: 2, food: 0, wood: baseCost, flour: 0, plank: tier2Cost, bread: 0, furniture: 0, stone: 0, iron: 0 };
+      if (biome === BIOMES.SEA) return { zone: 2, food: 0, wood: baseCost, flour: 0, plank: tier2Cost, bread: 0, furniture: 0, stone: 0, iron: 0 };
+      if (biome === BIOMES.MOUNTAIN) return { zone: 2, food: baseCost, wood: baseCost, flour: 0, plank: tier2Cost, bread: 0, furniture: 0, stone: tier2Cost, iron: 0 };
+      return { zone: 2, food: baseCost, wood: baseCost, flour: tier2Cost, plank: tier2Cost, bread: 0, furniture: 0, stone: tier2Cost, iron: 0 };
     }
     // Bölge 3: 13+ hex (Tier 3)
     else {
-      const tier3Cost = Math.max(1, Math.floor(2.0 * Math.pow(1.10, Math.max(0, n - 12))));
-      if (biome === BIOMES.MEADOW) return { zone: 3, food: baseCost, wood: 0, flour: 6, plank: 0, bread: tier3Cost, furniture: 0 };
-      if (biome === BIOMES.FOREST) return { zone: 3, food: 0, wood: baseCost, flour: 0, plank: 6, bread: 0, furniture: tier3Cost };
-      return { zone: 3, food: baseCost, wood: baseCost, flour: 6, plank: 6, bread: tier3Cost, furniture: tier3Cost };
+      const tier3Cost = Math.max(1, Math.floor(2.0 * Math.pow(1.10, Math.max(0, n - 12)) * discount));
+      if (biome === BIOMES.MEADOW) return { zone: 3, food: baseCost, wood: 0, flour: 6, plank: 0, bread: tier3Cost, furniture: 0, stone: 0, iron: 0 };
+      if (biome === BIOMES.FOREST) return { zone: 3, food: 0, wood: baseCost, flour: 0, plank: 6, bread: 0, furniture: tier3Cost, stone: 0, iron: 0 };
+      if (biome === BIOMES.MOUNTAIN) return { zone: 3, food: baseCost, wood: baseCost, flour: 0, plank: 6, bread: 0, furniture: 0, stone: 6, iron: tier3Cost };
+      return { zone: 3, food: baseCost, wood: baseCost, flour: 6, plank: 6, bread: tier3Cost, furniture: tier3Cost, stone: 6, iron: tier3Cost };
     }
   }
 
   getCareerTotalResources() {
-    return this.statTotalFood + this.statTotalWood + this.statTotalFlour + this.statTotalPlank + this.statTotalBread + this.statTotalFurniture;
+    return (this.statTotalFood || 0) + (this.statTotalWood || 0) + (this.statTotalFlour || 0) + (this.statTotalPlank || 0) + (this.statTotalBread || 0) + (this.statTotalFurniture || 0) + (this.statTotalStone || 0) + (this.statTotalIron || 0);
   }
 
   calculateEarnedCrowns() {
@@ -875,6 +1053,29 @@ let dragStart = { x: 0, y: 0 };
 let lastTouchDist = 0;
 let animWindTime = 0.0;
 
+let screenShakeTimer = 0.0;
+let screenShakeIntensity = 0.0;
+let screenShakeDuration = 0.0;
+let shockwaves = [];
+let floatingTexts = [];
+
+function triggerScreenShake(intensity = 6.0, duration = 0.2) {
+  screenShakeIntensity = intensity;
+  screenShakeDuration = duration;
+  screenShakeTimer = duration;
+  if (typeof navigator !== "undefined" && navigator.vibrate) {
+    try { navigator.vibrate(Math.min(50, Math.floor(duration * 100))); } catch (e) {}
+  }
+}
+
+function triggerShockwave(x, y, color = "#f8c83e") {
+  shockwaves.push({ x, y, radius: 10, maxRadius: 90, alpha: 1.0, color });
+}
+
+function triggerFloatingText(x, y, text, color = "#f8c83e") {
+  floatingTexts.push({ x, y, text, color, alpha: 1.0, life: 1.0 });
+}
+
 function resizeCanvas() {
   const dpr = window.devicePixelRatio || 1;
   canvas.width = window.innerWidth * dpr;
@@ -888,18 +1089,26 @@ function draw() {
   ctx.save();
   ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
-  // Arka plan koyu gradyanı
+  // Arka plan koyu gradyanı (Brutalist Sinematik Göktürk Atmosferi)
   const bgGrad = ctx.createRadialGradient(
     window.innerWidth / 2, window.innerHeight / 2, 50,
     window.innerWidth / 2, window.innerHeight / 2, Math.max(window.innerWidth, window.innerHeight)
   );
-  bgGrad.addColorStop(0, "#101726");
-  bgGrad.addColorStop(1, "#070a10");
+  bgGrad.addColorStop(0, "#0f172a");
+  bgGrad.addColorStop(1, "#020617");
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
-  // Kamera Dönüşümü
-  ctx.translate(window.innerWidth / 2 + camera.x, window.innerHeight / 2 + camera.y);
+  // Kamera Dönüşümü + Tok Ekran Sarsıntısı (Screen Shake)
+  let shakeX = 0;
+  let shakeY = 0;
+  if (screenShakeTimer > 0) {
+    const damping = screenShakeTimer / (screenShakeDuration || 0.1);
+    shakeX = (Math.random() - 0.5) * 2 * screenShakeIntensity * damping;
+    shakeY = (Math.random() - 0.5) * 2 * screenShakeIntensity * damping;
+  }
+
+  ctx.translate(window.innerWidth / 2 + camera.x + shakeX, window.innerHeight / 2 + camera.y + shakeY);
   ctx.scale(camera.zoom, camera.zoom);
 
   // Karoları Y-Sort derinliğine göre sırala
@@ -914,6 +1123,79 @@ function draw() {
   tileList.forEach(tile => {
     drawHexTile(tile);
   });
+
+  // 2. Dinamik Savaş Sisi (Fog of War) - Gizli Alanlar Üzerinde Hareketli Sis Bulutları
+  const hiddenTiles = Object.values(game.tiles).filter(t => t.state === "HIDDEN");
+  hiddenTiles.forEach(ht => {
+    const pos = hexToPixel(ht.q, ht.r);
+    // Kamera görüş alanı içinde mi?
+    const screenX = pos.x + camera.x + window.innerWidth / 2;
+    const screenY = pos.y + camera.y + window.innerHeight / 2;
+    if (screenX > -100 && screenX < window.innerWidth + 100 && screenY > -100 && screenY < window.innerHeight + 100) {
+      const fogSway = Math.sin(animWindTime * 1.5 + ht.q * 1.2) * 8.0;
+      ctx.save();
+      ctx.fillStyle = "rgba(15, 23, 42, 0.65)";
+      ctx.beginPath();
+      ctx.ellipse(pos.x + fogSway, pos.y, 45, 28 * Y_SCALE, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  });
+
+  // 3. Şok Dalgalarını Çiz (Conquest Shockwaves)
+  for (let i = shockwaves.length - 1; i >= 0; i--) {
+    const sw = shockwaves[i];
+    ctx.save();
+    ctx.strokeStyle = sw.color;
+    ctx.globalAlpha = Math.max(0, sw.alpha);
+    ctx.lineWidth = 3.5 * (sw.alpha);
+    ctx.beginPath();
+    ctx.ellipse(sw.x, sw.y, sw.radius, sw.radius * Y_SCALE, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    sw.radius += 2.8;
+    sw.alpha -= 0.035;
+    if (sw.alpha <= 0 || sw.radius >= sw.maxRadius) {
+      shockwaves.splice(i, 1);
+    }
+  }
+
+  // 4. Yükselen Metinleri Çiz (Floating Gain Texts)
+  for (let i = floatingTexts.length - 1; i >= 0; i--) {
+    const ft = floatingTexts[i];
+    ctx.save();
+    ctx.font = "bold 13px 'Outfit', sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillStyle = ft.color;
+    ctx.globalAlpha = Math.max(0, ft.alpha);
+    ctx.shadowColor = "rgba(0,0,0,0.8)";
+    ctx.shadowBlur = 4;
+    ctx.fillText(ft.text, ft.x, ft.y);
+    ctx.restore();
+
+    ft.y -= 0.8;
+    ft.alpha -= 0.025;
+    if (ft.alpha <= 0) {
+      floatingTexts.splice(i, 1);
+    }
+  }
+
+  // 5. Gündüz / Günbatımı / Gece Sinematik Atmosfer Tonu Overlay
+  const dayCycle = (game.animDayTime || 0) % 1.0;
+  if (dayCycle > 0.35 && dayCycle <= 0.6) {
+    const t = (dayCycle - 0.35) / 0.25;
+    ctx.save();
+    ctx.fillStyle = `rgba(245, 158, 11, ${0.12 * Math.sin(t * Math.PI)})`;
+    ctx.fillRect(-window.innerWidth * 2, -window.innerHeight * 2, window.innerWidth * 4, window.innerHeight * 4);
+    ctx.restore();
+  } else if (dayCycle > 0.6 && dayCycle <= 0.9) {
+    const t = (dayCycle - 0.6) / 0.3;
+    ctx.save();
+    ctx.fillStyle = `rgba(15, 23, 42, ${0.28 * Math.sin(t * Math.PI)})`;
+    ctx.fillRect(-window.innerWidth * 2, -window.innerHeight * 2, window.innerWidth * 4, window.innerHeight * 4);
+    ctx.restore();
+  }
 
   ctx.restore();
 }
@@ -984,7 +1266,24 @@ function drawHexTile(tile) {
     drawBuilding(tile.building, animWindTime);
   }
 
-  // 6. Keşif Bekleyen Artı Sembolü
+  // 6. Aktif Hazine Sandığı (Canlı Bouncing & Parıltılı Altın Aura)
+  const hasChest = (game.activeChests && game.activeChests.some(c => c.q === tile.q && c.r === tile.r));
+  if (hasChest) {
+    const bounce = Math.sin(animWindTime * 4.5) * 4.5;
+    ctx.save();
+    // Altın Işık Halesi
+    ctx.fillStyle = "rgba(234, 179, 8, 0.4)";
+    ctx.beginPath();
+    ctx.arc(0, -18 * Y_SCALE + bounce, 18, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.font = "20px Outfit, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("🎁", 0, -10 * Y_SCALE + bounce);
+    ctx.restore();
+  }
+
+  // 7. Keşif Bekleyen Artı Sembolü
   if (isDiscovered) {
     ctx.strokeStyle = "#ffffff";
     ctx.lineWidth = 3.0;
@@ -1153,10 +1452,18 @@ function drawBuilding(b, time) {
     drawIsometricCornField(b, time);
   } else if (b.type === "windmill") {
     drawIsometricWindmill(b, time);
+  } else if (b.type === "bakery") {
+    drawIsometricBakery(b, time);
   } else if (b.type === "lumberjack") {
     drawIsometricLumberjack(b, time);
   } else if (b.type === "sawmill") {
     drawIsometricSawmill(b, time);
+  } else if (b.type === "furniture") {
+    drawIsometricFurnitureMaker(b, time);
+  } else if (b.type === "quarry") {
+    drawIsometricQuarry(b, time);
+  } else if (b.type === "mine") {
+    drawIsometricMine(b, time);
   } else if (b.type === "worker") {
     drawIsometricWorkerHut(b, time);
   } else if (b.type === "bridge") {
@@ -1746,6 +2053,257 @@ function drawIsometricWorkerHut(b, time) {
   ctx.fill();
 }
 
+// 🍞 3D Taş Fırın (Taş Gövde, Kiremit Çatı, Fırın Ağzında Sıcak Ateş & Tüten Duman)
+function drawIsometricBakery(b, time) {
+  // Zemin Gölgesi
+  ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 32, 18 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Taş Gövde
+  ctx.fillStyle = "#6b7280";
+  ctx.fillRect(-18, -16 * Y_SCALE, 18, 16 * Y_SCALE);
+  ctx.fillStyle = "#4b5563";
+  ctx.fillRect(0, -16 * Y_SCALE, 18, 16 * Y_SCALE);
+  ctx.strokeStyle = "#374151";
+  ctx.lineWidth = 1.0;
+  ctx.strokeRect(-18, -16 * Y_SCALE, 36, 16 * Y_SCALE);
+
+  // Kiremit Çatı
+  ctx.fillStyle = "#b91c1c";
+  ctx.beginPath();
+  ctx.moveTo(-22, -16 * Y_SCALE);
+  ctx.lineTo(22, -16 * Y_SCALE);
+  ctx.lineTo(0, -32 * Y_SCALE);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = "#ef4444";
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+
+  // Fırın Ağzı (Sıcak Ateş Parıltısı)
+  ctx.fillStyle = "#1c1917";
+  ctx.beginPath();
+  ctx.arc(0, -6 * Y_SCALE, 6, Math.PI, 0);
+  ctx.lineTo(6, 0);
+  ctx.lineTo(-6, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  const firePulse = Math.sin(time * 6.0) * 1.2;
+  ctx.fillStyle = "#f97316";
+  ctx.beginPath();
+  ctx.arc(0, -3 * Y_SCALE, 4 + firePulse, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#fef08a";
+  ctx.beginPath();
+  ctx.arc(0, -2 * Y_SCALE, 2.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Taş Baca & Duman
+  ctx.fillStyle = "#4b5563";
+  ctx.fillRect(9, -32 * Y_SCALE, 6, 12 * Y_SCALE);
+  for (let i = 0; i < 3; i++) {
+    const smY = -34 * Y_SCALE - i * 7 * Y_SCALE - Math.sin(time * 3 + i) * 2;
+    const smX = 12 + Math.sin(time * 2.5 + i * 1.5) * 3.5;
+    ctx.fillStyle = `rgba(243, 244, 246, ${0.5 - i * 0.12})`;
+    ctx.beginPath();
+    ctx.arc(smX, smY, 3 + i * 1.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Seviye Rozeti
+  if (b && b.level > 1) {
+    ctx.fillStyle = "#f59e0b";
+    ctx.beginPath();
+    ctx.arc(-14, -20 * Y_SCALE, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#1e293b";
+    ctx.font = "bold 9px Outfit, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(`${b.level}`, -14, -17 * Y_SCALE);
+  }
+}
+
+// 🪑 3D Mobilyacı / Marangoz Atölyesi (Ahşap İskelet, Mavi Çatı, Tezgah & Kesilmiş Kalaslar)
+function drawIsometricFurnitureMaker(b, time) {
+  // Zemin Gölgesi
+  ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 34, 20 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Ahşap Gövde
+  ctx.fillStyle = "#854d0e";
+  ctx.fillRect(-20, -15 * Y_SCALE, 20, 15 * Y_SCALE);
+  ctx.fillStyle = "#713f12";
+  ctx.fillRect(0, -15 * Y_SCALE, 20, 15 * Y_SCALE);
+
+  // Mavi Kalas Çatı
+  ctx.fillStyle = "#1d4ed8";
+  ctx.beginPath();
+  ctx.moveTo(-24, -15 * Y_SCALE);
+  ctx.lineTo(24, -15 * Y_SCALE);
+  ctx.lineTo(-4, -30 * Y_SCALE);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = "#60a5fa";
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+
+  // Marangoz Çalışma Tezgahı
+  ctx.fillStyle = "#5c3d22";
+  ctx.fillRect(-10, -5 * Y_SCALE, 20, 5 * Y_SCALE);
+  const sawOffset = Math.sin(time * 5.0) * 3.0;
+  ctx.strokeStyle = "#e2e8f0";
+  ctx.lineWidth = 2.0;
+  ctx.beginPath();
+  ctx.moveTo(-5 + sawOffset, -2 * Y_SCALE);
+  ctx.lineTo(5 + sawOffset, -2 * Y_SCALE);
+  ctx.stroke();
+
+  // Dışarıda İstiflenmiş Sandalye / Mobilya Kalasları
+  ctx.fillStyle = "#d97706";
+  ctx.fillRect(12, -2 * Y_SCALE, 8, 4 * Y_SCALE);
+  ctx.fillRect(14, -6 * Y_SCALE, 6, 4 * Y_SCALE);
+
+  // Seviye Rozeti
+  if (b && b.level > 1) {
+    ctx.fillStyle = "#f59e0b";
+    ctx.beginPath();
+    ctx.arc(-14, -20 * Y_SCALE, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#1e293b";
+    ctx.font = "bold 9px Outfit, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(`${b.level}`, -14, -17 * Y_SCALE);
+  }
+}
+
+// 🪨 3D Taş Ocağı (Taş Bloklar, Vinç / Çıkrık, Çekiç & Taş Yığınları)
+function drawIsometricQuarry(b, time) {
+  // Zemin Gölgesi
+  ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 36, 20 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Yontulmuş Taş Duvarlar & Çukur
+  ctx.fillStyle = "#475569";
+  ctx.fillRect(-18, -12 * Y_SCALE, 36, 12 * Y_SCALE);
+  ctx.fillStyle = "#334155";
+  ctx.fillRect(-14, -8 * Y_SCALE, 28, 8 * Y_SCALE);
+
+  // Ahşap Vinç / Çıkrık İskeleti
+  ctx.strokeStyle = "#854d0e";
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  ctx.moveTo(-16, -12 * Y_SCALE);
+  ctx.lineTo(-16, -28 * Y_SCALE);
+  ctx.lineTo(2, -24 * Y_SCALE);
+  ctx.stroke();
+
+  // Halat ve Asılı Taş Bloğu
+  const ropeSway = Math.sin(time * 3.0) * 2.0;
+  ctx.strokeStyle = "#cbd5e1";
+  ctx.lineWidth = 1.0;
+  ctx.beginPath();
+  ctx.moveTo(2, -24 * Y_SCALE);
+  ctx.lineTo(2 + ropeSway, -14 * Y_SCALE);
+  ctx.stroke();
+
+  ctx.fillStyle = "#94a3b8";
+  ctx.fillRect(ropeSway - 3, -14 * Y_SCALE, 10, 8 * Y_SCALE);
+  ctx.strokeStyle = "#475569";
+  ctx.lineWidth = 0.8;
+  ctx.strokeRect(ropeSway - 3, -14 * Y_SCALE, 10, 8 * Y_SCALE);
+
+  // Yontulmuş Taş Yığınları
+  ctx.fillStyle = "#cbd5e1";
+  ctx.fillRect(10, -4 * Y_SCALE, 8, 6 * Y_SCALE);
+  ctx.fillRect(16, -2 * Y_SCALE, 7, 5 * Y_SCALE);
+
+  // Seviye Rozeti
+  if (b && b.level > 1) {
+    ctx.fillStyle = "#f59e0b";
+    ctx.beginPath();
+    ctx.arc(-14, -20 * Y_SCALE, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#1e293b";
+    ctx.font = "bold 9px Outfit, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(`${b.level}`, -14, -17 * Y_SCALE);
+  }
+}
+
+// ⛏️ 3D Demir Madeni (Maden Tüneli Girişi, Ahşap Tahkimat, Demir Külçeleri & Tüten Fırın)
+function drawIsometricMine(b, time) {
+  // Zemin Gölgesi
+  ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 36, 22 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Maden Tüneli Karanlığı (Arch Entrance)
+  ctx.fillStyle = "#0f172a";
+  ctx.beginPath();
+  ctx.arc(0, -10 * Y_SCALE, 12, Math.PI, 0);
+  ctx.lineTo(12, 0);
+  ctx.lineTo(-12, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  // Ahşap Tahkimat Kirişleri (Wooden Portal Beams)
+  ctx.fillStyle = "#78350f";
+  ctx.fillRect(-15, -24 * Y_SCALE, 5, 24 * Y_SCALE);
+  ctx.fillRect(10, -24 * Y_SCALE, 5, 24 * Y_SCALE);
+  ctx.fillRect(-17, -26 * Y_SCALE, 34, 5 * Y_SCALE);
+
+  // Döküm Ocağı Bacası & Ateş Parıltısı
+  ctx.fillStyle = "#334155";
+  ctx.fillRect(14, -22 * Y_SCALE, 8, 18 * Y_SCALE);
+  const forgeGlow = Math.sin(time * 5.5) * 1.5;
+  ctx.fillStyle = "#ef4444";
+  ctx.beginPath();
+  ctx.arc(18, -4 * Y_SCALE, 3.5 + forgeGlow, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#fde047";
+  ctx.beginPath();
+  ctx.arc(18, -4 * Y_SCALE, 2.0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Baca Dumanı
+  for (let i = 0; i < 2; i++) {
+    const smY = -24 * Y_SCALE - i * 6 * Y_SCALE;
+    const smX = 18 + Math.sin(time * 3 + i) * 2.5;
+    ctx.fillStyle = `rgba(148, 163, 184, ${0.6 - i * 0.2})`;
+    ctx.beginPath();
+    ctx.arc(smX, smY, 3 + i, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Parlak Demir Külçeleri
+  ctx.fillStyle = "#94a3b8";
+  ctx.fillRect(-22, -3 * Y_SCALE, 9, 3 * Y_SCALE);
+  ctx.fillRect(-20, -6 * Y_SCALE, 7, 3 * Y_SCALE);
+  ctx.strokeStyle = "#f8fafc";
+  ctx.lineWidth = 0.8;
+  ctx.strokeRect(-22, -3 * Y_SCALE, 9, 3 * Y_SCALE);
+
+  // Seviye Rozeti
+  if (b && b.level > 1) {
+    ctx.fillStyle = "#f59e0b";
+    ctx.beginPath();
+    ctx.arc(-14, -20 * Y_SCALE, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#1e293b";
+    ctx.font = "bold 9px Outfit, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(`${b.level}`, -14, -17 * Y_SCALE);
+  }
+}
+
 
 // =============================================================================
 // 7. OYUN DÖNGÜSÜ & EKONOMİ (PROCESS & FACTORIES)
@@ -1760,13 +2318,46 @@ function gameLoop(now) {
   game.statPlaytime += delta;
   animWindTime += delta;
   game.autoSaveTimer += delta;
+  game.animDayTime = (game.animDayTime || 0) + delta * 0.03;
+
+  // Rastgele Hazine Sandığı Oluşturucu (40-60sn arayla)
+  game.chestSpawnTimer = (game.chestSpawnTimer || 0) + delta;
+  const treasureLvl = (game.talents && game.talents.treasureHunter) ? game.talents.treasureHunter : 0;
+  const spawnThreshold = Math.max(18.0, 42.0 - treasureLvl * 5.0);
+
+  if (!game.activeChests) game.activeChests = [];
+
+  // Süresi biten sandıkları temizle
+  game.activeChests.forEach(c => c.lifetime -= delta);
+  game.activeChests = game.activeChests.filter(c => c.lifetime > 0);
+
+  if (game.chestSpawnTimer >= spawnThreshold && game.activeChests.length < 3) {
+    game.chestSpawnTimer = 0.0;
+    const ownedTiles = Object.values(game.tiles).filter(t => t.state === "OWNED" || t.state === "DISCOVERED");
+    if (ownedTiles.length > 0) {
+      const targetTile = ownedTiles[Math.floor(Math.random() * ownedTiles.length)];
+      const chestKey = `${targetTile.q},${targetTile.r}`;
+      if (!game.activeChests.some(c => c.key === chestKey)) {
+        game.activeChests.push({
+          q: targetTile.q,
+          r: targetTile.r,
+          key: chestKey,
+          lifetime: 60.0
+        });
+      }
+    }
+  }
+
+  if (screenShakeTimer > 0) {
+    screenShakeTimer -= delta;
+  }
 
   if (game.autoSaveTimer >= 30.0) {
     game.autoSaveTimer = 0.0;
     saveGame();
   }
 
-  // 1. Üretim Döngüsü (Mısır, Oduncu, Değirmen, Kereste, İşçi)
+  // 1. Üretim Döngüsü (Mısır, Oduncu, Değirmen, Kereste, Fırın, Mobilya, Taş Ocağı, Demir Madeni, İşçi)
   processProduction(delta);
 
   // 2. Çizim
@@ -1794,6 +2385,43 @@ function processProduction(delta) {
       const rate = (0.35 * Math.pow(1.5, b.level - 1)) * globalMult;
       const maxCap = rate * 30.0;
       b.accumulated = Math.min(maxCap, (b.accumulated || 0) + rate * delta);
+    } else if (b.type === "quarry") {
+      const rate = (0.30 * Math.pow(1.5, b.level - 1)) * globalMult;
+      const maxCap = rate * 30.0;
+      b.accumulated = Math.min(maxCap, (b.accumulated || 0) + rate * delta);
+    } else if (b.type === "mine") {
+      const rate = (0.18 * Math.pow(1.5, b.level - 1)) * globalMult;
+      const maxCap = rate * 30.0;
+      b.accumulated = b.accumulated || 0;
+
+      if (b.accumulated < maxCap) {
+        const neighbors = game.getNeighborBuildings(tile.q, tile.r);
+        const quarries = neighbors.filter(nb => nb.type === "quarry" && (nb.accumulated || 0) > 0.01);
+
+        if (quarries.length > 0) {
+          b.isAdjacent = true;
+          const needed = rate * delta;
+          const takePerQ = needed / quarries.length;
+          let got = 0;
+          quarries.forEach(q => {
+            const take = Math.min(q.accumulated, takePerQ);
+            q.accumulated -= take;
+            got += take;
+          });
+          b.accumulated = Math.min(maxCap, b.accumulated + got);
+          game.statTotalIron = (game.statTotalIron || 0) + got;
+        } else {
+          b.isAdjacent = false;
+          const neededStone = (rate * 0.5) * delta;
+          const neededWood = (rate * 0.3) * delta;
+          if (game.stone >= neededStone && game.wood >= neededWood) {
+            game.stone -= neededStone;
+            game.wood -= neededWood;
+            b.accumulated = Math.min(maxCap, b.accumulated + rate * delta);
+            game.statTotalIron = (game.statTotalIron || 0) + rate * delta;
+          }
+        }
+      }
     } else if (b.type === "windmill") {
       const rate = (0.25 * Math.pow(1.5, b.level - 1)) * globalMult;
       const maxCap = rate * 30.0;
@@ -1857,8 +2485,75 @@ function processProduction(delta) {
           }
         }
       }
+    } else if (b.type === "bakery") {
+      const rate = (0.25 * Math.pow(1.5, b.level - 1)) * globalMult;
+      const maxCap = rate * 40.0;
+      b.accumulated = b.accumulated || 0;
+
+      if (b.accumulated < maxCap) {
+        const neighbors = game.getNeighborBuildings(tile.q, tile.r);
+        const mills = neighbors.filter(nb => nb.type === "windmill" && (nb.accumulated || 0) > 0.01);
+
+        if (mills.length > 0) {
+          b.isAdjacent = true;
+          const needed = rate * delta;
+          const takePerMill = needed / mills.length;
+          let got = 0;
+          mills.forEach(m => {
+            const take = Math.min(m.accumulated, takePerMill);
+            m.accumulated -= take;
+            got += take;
+          });
+          b.accumulated = Math.min(maxCap, b.accumulated + got);
+          game.statTotalBread += got;
+        } else {
+          b.isAdjacent = false;
+          const neededFlour = (rate * 0.5) * delta;
+          const neededFood = (rate * 0.5) * delta;
+          if (game.flour >= neededFlour && game.food >= neededFood) {
+            game.flour -= neededFlour;
+            game.food -= neededFood;
+            b.accumulated = Math.min(maxCap, b.accumulated + rate * delta);
+            game.statTotalBread += rate * delta;
+          }
+        }
+      }
+    } else if (b.type === "furniture") {
+      const rate = (0.20 * Math.pow(1.5, b.level - 1)) * globalMult;
+      const maxCap = rate * 40.0;
+      b.accumulated = b.accumulated || 0;
+
+      if (b.accumulated < maxCap) {
+        const neighbors = game.getNeighborBuildings(tile.q, tile.r);
+        const sawmills = neighbors.filter(nb => nb.type === "sawmill" && (nb.accumulated || 0) > 0.01);
+
+        if (sawmills.length > 0) {
+          b.isAdjacent = true;
+          const needed = rate * delta;
+          const takePerSaw = needed / sawmills.length;
+          let got = 0;
+          sawmills.forEach(s => {
+            const take = Math.min(s.accumulated, takePerSaw);
+            s.accumulated -= take;
+            got += take;
+          });
+          b.accumulated = Math.min(maxCap, b.accumulated + got);
+          game.statTotalFurniture += got;
+        } else {
+          b.isAdjacent = false;
+          const neededPlank = (rate * 0.5) * delta;
+          const neededWood = (rate * 0.5) * delta;
+          if (game.plank >= neededPlank && game.wood >= neededWood) {
+            game.plank -= neededPlank;
+            game.wood -= neededWood;
+            b.accumulated = Math.min(maxCap, b.accumulated + rate * delta);
+            game.statTotalFurniture += rate * delta;
+          }
+        }
+      }
     } else if (b.type === "worker") {
-      const rate = (0.80 * Math.pow(1.5, b.level - 1)) * globalMult;
+      const workerBonus = 1.0 + ((game.talents && game.talents.workerSpeed) ? game.talents.workerSpeed * 0.25 : 0.0);
+      const rate = (0.80 * Math.pow(1.5, b.level - 1)) * globalMult * workerBonus;
       const neighbors = game.getNeighborBuildings(tile.q, tile.r);
       const targets = neighbors.filter(nb => (nb.accumulated || 0) > 0.001);
 
@@ -1880,8 +2575,22 @@ function processProduction(delta) {
             game.statTotalWood += take;
           } else if (tgt.type === "windmill") {
             game.flour += take;
+            game.statTotalFlour += take;
           } else if (tgt.type === "sawmill") {
             game.plank += take;
+            game.statTotalPlank += take;
+          } else if (tgt.type === "bakery") {
+            game.bread += take;
+            game.statTotalBread += take;
+          } else if (tgt.type === "furniture") {
+            game.furniture += take;
+            game.statTotalFurniture += take;
+          } else if (tgt.type === "quarry") {
+            game.stone = (game.stone || 0) + take;
+            game.statTotalStone = (game.statTotalStone || 0) + take;
+          } else if (tgt.type === "mine") {
+            game.iron = (game.iron || 0) + take;
+            game.statTotalIron = (game.statTotalIron || 0) + take;
           }
         });
       }
@@ -1975,6 +2684,34 @@ function setupInputHandlers() {
 }
 
 function handleTileClick(tile) {
+  // 1. Dinamik Hazine Sandığı Tıklaması
+  const chestIdx = (game.activeChests || []).findIndex(c => c.q === tile.q && c.r === tile.r);
+  if (chestIdx !== -1) {
+    game.activeChests.splice(chestIdx, 1);
+
+    const bonusCrowns = Math.floor(1 + Math.random() * 3);
+    const bonusFood = Math.floor(20 + Math.random() * 30);
+    const bonusWood = Math.floor(15 + Math.random() * 25);
+    const bonusStone = Math.floor(10 + Math.random() * 20);
+    const bonusIron = Math.floor(5 + Math.random() * 10);
+
+    game.crowns = (game.crowns || 0) + bonusCrowns;
+    game.food = (game.food || 0) + bonusFood;
+    game.wood = (game.wood || 0) + bonusWood;
+    game.stone = (game.stone || 0) + bonusStone;
+    game.iron = (game.iron || 0) + bonusIron;
+
+    const pos = hexToPixel(tile.q, tile.r);
+    triggerShockwave(pos.x, pos.y, "#eab308");
+    triggerFloatingText(pos.x, pos.y - 25, `+${bonusCrowns} 👑 +${bonusFood} 🥡 +${bonusStone} 🪨`, "#fde047");
+    triggerScreenShake(8.0, 0.3);
+    audio.playCoin();
+    showToast(t("toast_chest_opened", [bonusCrowns, bonusFood, bonusStone, bonusIron]) || `🎁 Sandık Açıldı! +${bonusCrowns} 👑 +${bonusFood} 🥡 +${bonusStone} 🪨 +${bonusIron} ⛏️`);
+    saveGame();
+    updateUI();
+    return;
+  }
+
   if (tile.state === "DISCOVERED") {
     // Deniz ve Köprü Geçiş Kontrolü:
     const neighbors = NEIGHBOR_DIRS.map(d => `${tile.q + d.q},${tile.r + d.r}`);
@@ -2034,6 +2771,11 @@ function handleTileClick(tile) {
       game.statTotalConquered += 1;
       tile.state = "OWNED";
 
+      const p = hexToPixel(tile.q, tile.r);
+      triggerShockwave(p.x, p.y, "#f8c83e");
+      triggerFloatingText(p.x, p.y - 20, "+1 🏰", "#4ade80");
+      triggerScreenShake(7.0, 0.25);
+
       audio.playTileUnlock();
       game.revealNeighbors(tile.q, tile.r);
       saveGame();
@@ -2065,7 +2807,6 @@ function handleTileClick(tile) {
           openBuildMenu(tile);
         }
       } else if (tile.biome === BIOMES.SEA) {
-        // Deniz karosuna köprü inşa edebilmek için en az 1 komşu kara parçası olmalı
         const neighbors = NEIGHBOR_DIRS.map(d => `${tile.q + d.q},${tile.r + d.r}`);
         const hasAdjacentLand = neighbors.some(nKey => {
           const nTile = game.tiles[nKey];
@@ -2078,7 +2819,12 @@ function handleTileClick(tile) {
           showToast(t("toast_bridge_need_land"), true);
         }
       } else if (tile.biome === BIOMES.MOUNTAIN) {
-        showToast(t("toast_mountain_info"));
+        if (game.castleLevel < 3) {
+          audio.playError();
+          showToast(t("locked_castle_3") || "🔒 Şato Seviye 3 Gereklidir!", true);
+        } else {
+          openBuildMenu(tile);
+        }
       } else {
         showToast(t("toast_no_build_biome"));
       }
@@ -2105,6 +2851,8 @@ const flourLabel = document.getElementById("flour-label");
 const plankLabel = document.getElementById("plank-label");
 const breadLabel = document.getElementById("bread-label");
 const furnitureLabel = document.getElementById("furniture-label");
+const stoneLabel = document.getElementById("stone-label");
+const ironLabel = document.getElementById("iron-label");
 const hintLabel = document.getElementById("hint-label");
 const drawerRow = document.getElementById("drawer-row");
 const btnToggleDrawer = document.getElementById("btn-toggle-drawer");
@@ -2121,15 +2869,27 @@ const settingsModal = document.getElementById("settings-modal");
 const prestigeConfirmModal = document.getElementById("prestige-confirm-modal");
 const offlineModal = document.getElementById("offline-modal");
 
+function formatCompact(val) {
+  if (val === undefined || val === null) return "0";
+  if (val < 0) return "-" + formatCompact(-val);
+  if (val < 1000) return val % 1 === 0 ? val.toString() : val.toFixed(1);
+  if (val < 1000000) return (val / 1000).toFixed(1) + "K";
+  if (val < 1000000000) return (val / 1000000).toFixed(1) + "M";
+  if (val < 1000000000000) return (val / 1000000000).toFixed(1) + "B";
+  return (val / 1000000000000).toFixed(1) + "T";
+}
+
 function updateUI() {
-  if (foodLabel) foodLabel.textContent = `${t("food")}: ${game.food % 1 === 0 ? game.food : game.food.toFixed(1)}`;
-  if (woodLabel) woodLabel.textContent = `${t("wood")}: ${game.wood % 1 === 0 ? game.wood : game.wood.toFixed(1)}`;
-  if (flourLabel) flourLabel.textContent = `${t("flour")}: ${game.flour % 1 === 0 ? game.flour : game.flour.toFixed(1)}`;
-  if (plankLabel) plankLabel.textContent = `${t("plank")}: ${game.plank % 1 === 0 ? game.plank : game.plank.toFixed(1)}`;
-  if (breadLabel) breadLabel.textContent = `Ekmek: ${game.bread % 1 === 0 ? game.bread : game.bread.toFixed(1)}`;
-  if (furnitureLabel) furnitureLabel.textContent = `Mobilya: ${game.furniture % 1 === 0 ? game.furniture : game.furniture.toFixed(1)}`;
-  if (crownLabel) crownLabel.textContent = `${game.crowns}`;
-  if (landLabel) landLabel.textContent = `${game.ownedCount}`;
+  if (foodLabel) foodLabel.textContent = `${t("food")}: ${formatCompact(game.food)}`;
+  if (woodLabel) woodLabel.textContent = `${t("wood")}: ${formatCompact(game.wood)}`;
+  if (flourLabel) flourLabel.textContent = `${t("flour")}: ${formatCompact(game.flour)}`;
+  if (plankLabel) plankLabel.textContent = `${t("plank")}: ${formatCompact(game.plank)}`;
+  if (breadLabel) breadLabel.textContent = `${t("bread")}: ${formatCompact(game.bread)}`;
+  if (furnitureLabel) furnitureLabel.textContent = `${t("furniture")}: ${formatCompact(game.furniture)}`;
+  if (stoneLabel) stoneLabel.textContent = `${t("stone")}: ${formatCompact(game.stone || 0)}`;
+  if (ironLabel) ironLabel.textContent = `${t("iron")}: ${formatCompact(game.iron || 0)}`;
+  if (crownLabel) crownLabel.textContent = `${formatCompact(game.crowns)}`;
+  if (landLabel) landLabel.textContent = `${formatCompact(game.ownedCount)}`;
 
   if (btnFrenzy) {
     btnFrenzy.textContent = game.frenzyTimer > 0 ? `⚡ 10x (${Math.ceil(game.frenzyTimer)}s)` : "⚡";
@@ -2149,10 +2909,12 @@ function openBuildMenu(tile) {
   const isMeadow = (tile.biome === BIOMES.MEADOW);
   const isForest = (tile.biome === BIOMES.FOREST);
   const isSea = (tile.biome === BIOMES.SEA);
+  const isMountain = (tile.biome === BIOMES.MOUNTAIN);
 
   if (isMeadow) menuTitle.textContent = t("build_title_meadow");
   else if (isForest) menuTitle.textContent = t("build_title_forest");
   else if (isSea) menuTitle.textContent = t("build_title_sea");
+  else if (isMountain) menuTitle.textContent = t("build_title_mountain") || "⛰️ Dağ İnşaat Menüsü";
 
   let html = "";
   if (isMeadow) {
@@ -2189,8 +2951,27 @@ function openBuildMenu(tile) {
           </div>
         </div>
         <div class="build-card-action">
-          <span class="cost-tag ${canMill ? '' : 'cant-afford'}">${isLvl3 ? '5 🥡 + 3 🪵' : '🔒 ŞATO SV. 3'}</span>
+          <span class="cost-tag ${canMill ? '' : 'cant-afford'}">${isLvl3 ? '5 🥡 + 3 🪵' : t('locked_castle_3')}</span>
           <button class="btn-primary" ${isLvl3 ? '' : 'disabled'} onclick="buildOnSelected('windmill', 5, 3)">${t("build_btn")}</button>
+        </div>
+      </div>
+    `;
+
+    // 3. Taş Fırın Kartı (Tier 3)
+    const isLvl4 = game.castleLevel >= 4;
+    const canBakery = isLvl4 && game.food >= 10 && game.flour >= 8;
+    html += `
+      <div class="build-card">
+        <div class="build-card-info">
+          <span class="build-card-icon">🍞</span>
+          <div class="build-card-text">
+            <h4>${t("bakery_name")}</h4>
+            <p>${t("bakery_desc")}</p>
+          </div>
+        </div>
+        <div class="build-card-action">
+          <span class="cost-tag ${canBakery ? '' : 'cant-afford'}">${isLvl4 ? '10 🥡 + 8 🌾' : t('locked_castle_4')}</span>
+          <button class="btn-primary" ${isLvl4 ? '' : 'disabled'} onclick="buildOnSelected('bakery', 10, 0, 8, 0)">${t("build_btn")}</button>
         </div>
       </div>
     `;
@@ -2228,8 +3009,64 @@ function openBuildMenu(tile) {
           </div>
         </div>
         <div class="build-card-action">
-          <span class="cost-tag ${canSaw ? '' : 'cant-afford'}">${isLvl3 ? '4 🥡 + 5 🪵' : '🔒 ŞATO SV. 3'}</span>
+          <span class="cost-tag ${canSaw ? '' : 'cant-afford'}">${isLvl3 ? '4 🥡 + 5 🪵' : t('locked_castle_3')}</span>
           <button class="btn-primary" ${isLvl3 ? '' : 'disabled'} onclick="buildOnSelected('sawmill', 4, 5)">${t("build_btn")}</button>
+        </div>
+      </div>
+    `;
+
+    // 3. Mobilyacı Kartı (Tier 3)
+    const isLvl4 = game.castleLevel >= 4;
+    const canFurn = isLvl4 && game.wood >= 12 && game.plank >= 6;
+    html += `
+      <div class="build-card">
+        <div class="build-card-info">
+          <span class="build-card-icon">🪑</span>
+          <div class="build-card-text">
+            <h4>${t("furniture_name")}</h4>
+            <p>${t("furniture_desc")}</p>
+          </div>
+        </div>
+        <div class="build-card-action">
+          <span class="cost-tag ${canFurn ? '' : 'cant-afford'}">${isLvl4 ? '12 🪵 + 6 🪵 Kereste' : t('locked_castle_4')}</span>
+          <button class="btn-primary" ${isLvl4 ? '' : 'disabled'} onclick="buildOnSelected('furniture', 0, 12, 0, 6)">${t("build_btn")}</button>
+        </div>
+      </div>
+    `;
+  } else if (isMountain) {
+    // 1. Taş Ocağı
+    const canQuarry = game.wood >= 40 && game.plank >= 20;
+    html += `
+      <div class="build-card">
+        <div class="build-card-info">
+          <span class="build-card-icon">🪨</span>
+          <div class="build-card-text">
+            <h4>${t("quarry_name")}</h4>
+            <p>${t("quarry_desc")}</p>
+          </div>
+        </div>
+        <div class="build-card-action">
+          <span class="cost-tag ${canQuarry ? '' : 'cant-afford'}">40 🪵 + 20 🪵 Kereste</span>
+          <button class="btn-primary" onclick="buildOnSelected('quarry', 0, 40, 0, 20)">${t("build_btn")}</button>
+        </div>
+      </div>
+    `;
+
+    // 2. Demir Madeni (Tier 3 - Şato Seviye 4)
+    const isLvl4 = game.castleLevel >= 4;
+    const canMine = isLvl4 && game.wood >= 60 && (game.stone || 0) >= 30;
+    html += `
+      <div class="build-card">
+        <div class="build-card-info">
+          <span class="build-card-icon">⛏️</span>
+          <div class="build-card-text">
+            <h4>${t("mine_name")}</h4>
+            <p>${t("mine_desc")}</p>
+          </div>
+        </div>
+        <div class="build-card-action">
+          <span class="cost-tag ${canMine ? '' : 'cant-afford'}">${isLvl4 ? '60 🪵 + 30 🪨' : t('locked_castle_4')}</span>
+          <button class="btn-primary" ${isLvl4 ? '' : 'disabled'} onclick="buildOnSelected('mine', 0, 60, 0, 0, 0, 0, 30)">${t("build_btn")}</button>
         </div>
       </div>
     `;
@@ -2253,7 +3090,7 @@ function openBuildMenu(tile) {
     `;
   }
 
-  // 3. İşçi Kulübesi Kartı (Çayır ve Ormanda yapılabilir)
+  // 3. İşçi Kulübesi Kartı (Deniz hariç her yerde yapılabilir)
   if (!isSea) {
     const workerCount = Object.values(game.tiles).filter(t => t.building && t.building.type === "worker").length;
     const workerCost = workerCount === 0 ? 0 : 3;
@@ -2290,9 +3127,9 @@ function openBuildMenu(tile) {
   bottomMenu.classList.remove("hidden");
 }
 
-window.buildOnSelected = function(bType, foodCost = 0, woodCost = 0) {
+window.buildOnSelected = function(bType, foodCost = 0, woodCost = 0, flourCost = 0, plankCost = 0, breadCost = 0, furnitureCost = 0, stoneCost = 0, ironCost = 0) {
   if (!game.selectedTile) return;
-  if (game.food < foodCost || game.wood < woodCost) {
+  if (game.food < foodCost || game.wood < woodCost || game.flour < flourCost || game.plank < plankCost || game.bread < breadCost || game.furniture < furnitureCost || (game.stone || 0) < stoneCost || (game.iron || 0) < ironCost) {
     audio.playError();
     showToast(t("toast_insufficient_res"), true);
     return;
@@ -2300,6 +3137,13 @@ window.buildOnSelected = function(bType, foodCost = 0, woodCost = 0) {
 
   game.food -= foodCost;
   game.wood -= woodCost;
+  game.flour -= flourCost;
+  game.plank -= plankCost;
+  game.bread -= breadCost;
+  game.furniture -= furnitureCost;
+  game.stone = (game.stone || 0) - stoneCost;
+  game.iron = (game.iron || 0) - ironCost;
+
   game.selectedTile.building = {
     type: bType,
     level: 1,
@@ -2313,8 +3157,12 @@ window.buildOnSelected = function(bType, foodCost = 0, woodCost = 0) {
 
   if (bType === 'corn') showToast(t("toast_built_corn"));
   else if (bType === 'windmill') showToast(t("toast_built_windmill"));
+  else if (bType === 'bakery') showToast(t("toast_built_bakery"));
   else if (bType === 'lumberjack') showToast(t("toast_built_lumberjack"));
   else if (bType === 'sawmill') showToast(t("toast_built_sawmill"));
+  else if (bType === 'furniture') showToast(t("toast_built_furniture"));
+  else if (bType === 'quarry') showToast(t("toast_built_quarry") || "🪨 Taş Ocağı kuruldu!");
+  else if (bType === 'mine') showToast(t("toast_built_mine") || "⛏️ Demir Madeni açıldı!");
   else if (bType === 'worker') showToast(t("toast_built_worker"));
   else if (bType === 'bridge') showToast(t("toast_built_bridge"));
 };
@@ -2408,6 +3256,30 @@ function openBuildingMenu(tile) {
         🔨 Yapıyı Yık &nbsp;<small>(%50 iade: 2.5 🥡 + 1.5 🪵)</small>
       </button>
     `;
+  } else if (b.type === "bakery") {
+    menuTitle.textContent = `🍞 ${t("bakery_name")} (${t("level")} ${b.level})`;
+    const rate = (0.25 * Math.pow(1.5, b.level - 1)) * game.getGlobalMultiplier();
+    const upFood = Math.round(10 * Math.pow(1.35, b.level - 1));
+    const upFlour = Math.round(8 * Math.pow(1.35, b.level - 1));
+    const accum = b.accumulated || 0;
+
+    menuContent.innerHTML = `
+      <div class="prod-flow-row">
+        <div class="prod-icon-box">🍞</div>
+        <div class="prod-rate-box">
+          <span>${rate.toFixed(2)} ${t("bread")}${t("per_sec")}</span>
+          <small style="font-size:0.65rem">${b.isAdjacent ? t("supply_neighbor_flour") : t("supply_global")}</small>
+        </div>
+        <button class="btn-collect" onclick="collectBread()">
+          <span>${accum.toFixed(2)} 🍞</span>
+          <small>${t("collect")}</small>
+        </button>
+        <button class="btn-upgrade" onclick="upgradeBuildingMulti('bakery', ${upFood}, 0, ${upFlour}, 0)">
+          <span>⬆️ (${upFood} 🥡+${upFlour} 🌾)</span>
+          <small>+${(rate * 0.5).toFixed(2)}/sn</small>
+        </button>
+      </div>
+    `;
   } else if (b.type === "lumberjack") {
     menuTitle.textContent = `🪓 ${t("lumberjack_name")} (${t("level")} ${b.level})`;
     const rate = (0.35 * Math.pow(1.5, b.level - 1)) * game.getGlobalMultiplier();
@@ -2459,6 +3331,30 @@ function openBuildingMenu(tile) {
         </button>
       </div>
     `;
+  } else if (b.type === "furniture") {
+    menuTitle.textContent = `🪑 ${t("furniture_name")} (${t("level")} ${b.level})`;
+    const rate = (0.20 * Math.pow(1.5, b.level - 1)) * game.getGlobalMultiplier();
+    const upWood = Math.round(12 * Math.pow(1.35, b.level - 1));
+    const upPlank = Math.round(8 * Math.pow(1.35, b.level - 1));
+    const accum = b.accumulated || 0;
+
+    menuContent.innerHTML = `
+      <div class="prod-flow-row">
+        <div class="prod-icon-box">🪑</div>
+        <div class="prod-rate-box">
+          <span>${rate.toFixed(2)} ${t("furniture")}${t("per_sec")}</span>
+          <small style="font-size:0.65rem">${b.isAdjacent ? t("supply_neighbor_plank") : t("supply_global")}</small>
+        </div>
+        <button class="btn-collect" onclick="collectFurniture()">
+          <span>${accum.toFixed(2)} 🪑</span>
+          <small>${t("collect")}</small>
+        </button>
+        <button class="btn-upgrade" onclick="upgradeBuildingMulti('furniture', 0, ${upWood}, 0, ${upPlank})">
+          <span>⬆️ (${upWood} 🪵+${upPlank} 🪵 Kereste)</span>
+          <small>+${(rate * 0.5).toFixed(2)}/sn</small>
+        </button>
+      </div>
+    `;
   } else if (b.type === "worker") {
     menuTitle.textContent = `🛖 ${t("worker_name")} (${t("level")} ${b.level})`;
     const rate = (0.80 * Math.pow(1.5, b.level - 1)) * game.getGlobalMultiplier();
@@ -2478,6 +3374,54 @@ function openBuildingMenu(tile) {
         </button>
       </div>
     `;
+  } else if (b.type === "quarry") {
+    menuTitle.textContent = `🪨 ${t("quarry_name")} (${t("level")} ${b.level})`;
+    const rate = (0.35 * Math.pow(1.5, b.level - 1)) * game.getGlobalMultiplier();
+    const upWood = Math.round(15 * Math.pow(1.4, b.level - 1));
+    const upPlank = Math.round(8 * Math.pow(1.4, b.level - 1));
+    const accum = b.accumulated || 0;
+
+    menuContent.innerHTML = `
+      <div class="prod-flow-row">
+        <div class="prod-icon-box">🪨</div>
+        <div class="prod-rate-box">
+          <span>${rate.toFixed(2)} ${t("stone")}${t("per_sec")}</span>
+          <small style="font-size:0.65rem">${b.isAdjacent ? t("supply_neighbor_plank") : t("supply_global")}</small>
+        </div>
+        <button class="btn-collect" onclick="collectStone()">
+          <span>${accum.toFixed(2)} 🪨</span>
+          <small>${t("collect")}</small>
+        </button>
+        <button class="btn-upgrade" onclick="upgradeBuildingMulti('quarry', 0, ${upWood}, 0, ${upPlank})">
+          <span>⬆️ (${upWood} 🪵+${upPlank} 🪵 Kereste)</span>
+          <small>+${(rate * 0.5).toFixed(2)}/sn</small>
+        </button>
+      </div>
+    `;
+  } else if (b.type === "mine") {
+    menuTitle.textContent = `⛏️ ${t("mine_name")} (${t("level")} ${b.level})`;
+    const rate = (0.25 * Math.pow(1.5, b.level - 1)) * game.getGlobalMultiplier();
+    const upWood = Math.round(25 * Math.pow(1.4, b.level - 1));
+    const upStone = Math.round(15 * Math.pow(1.4, b.level - 1));
+    const accum = b.accumulated || 0;
+
+    menuContent.innerHTML = `
+      <div class="prod-flow-row">
+        <div class="prod-icon-box">⛏️</div>
+        <div class="prod-rate-box">
+          <span>${rate.toFixed(2)} ${t("iron")}${t("per_sec")}</span>
+          <small style="font-size:0.65rem">${b.isAdjacent ? t("supply_neighbor") : t("supply_global")}</small>
+        </div>
+        <button class="btn-collect" onclick="collectIron()">
+          <span>${accum.toFixed(2)} ⛏️</span>
+          <small>${t("collect")}</small>
+        </button>
+        <button class="btn-upgrade" onclick="upgradeBuildingMulti('mine', 0, ${upWood}, 0, 0, 0, 0, ${upStone})">
+          <span>⬆️ (${upWood} 🪵+${upStone} 🪨)</span>
+          <small>+${(rate * 0.5).toFixed(2)}/sn</small>
+        </button>
+      </div>
+    `;
   }
 
   bottomMenu.classList.remove("hidden");
@@ -2485,10 +3429,8 @@ function openBuildingMenu(tile) {
 
 function updateOpenMenuLive() {
   if (bottomMenu.classList.contains("hidden") || !game.selectedTile) return;
-  // Canlı değer güncellemesi
   const b = game.selectedTile.building;
   if (!b) return;
-  // Güncel metinleri tazele
 }
 
 function closeBottomMenu() {
@@ -2549,7 +3491,10 @@ window.collectCorn = function() {
     game.statTotalFood += val;
     b.accumulated = 0;
     audio.playCollect();
-    showToast(t("toast_collected_food", [val]));
+    const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
+    triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🥡`, "#fde047");
+    triggerScreenShake(2.5, 0.12);
+    showToast(t("toast_collected_food", [formatCompact(val)]));
     openBuildingMenu(game.selectedTile);
   }
 };
@@ -2563,7 +3508,10 @@ window.collectWood = function() {
     game.statTotalWood += val;
     b.accumulated = 0;
     audio.playCollect();
-    showToast(t("toast_collected_wood", [val]));
+    const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
+    triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🪵`, "#d4a373");
+    triggerScreenShake(2.5, 0.12);
+    showToast(t("toast_collected_wood", [formatCompact(val)]));
     openBuildingMenu(game.selectedTile);
   }
 };
@@ -2574,9 +3522,13 @@ window.collectFlour = function() {
   const val = b.accumulated || 0;
   if (val > 0.001) {
     game.flour += val;
+    game.statTotalFlour += val;
     b.accumulated = 0;
     audio.playCollect();
-    showToast(t("toast_collected_flour", [val]));
+    const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
+    triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🌾`, "#fef08a");
+    triggerScreenShake(2.5, 0.12);
+    showToast(t("toast_collected_flour", [formatCompact(val)]));
     openBuildingMenu(game.selectedTile);
   }
 };
@@ -2587,11 +3539,105 @@ window.collectPlank = function() {
   const val = b.accumulated || 0;
   if (val > 0.001) {
     game.plank += val;
+    game.statTotalPlank += val;
     b.accumulated = 0;
     audio.playCollect();
-    showToast(t("toast_collected_plank", [val]));
+    const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
+    triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🪵`, "#fbcfe8");
+    triggerScreenShake(2.5, 0.12);
+    showToast(t("toast_collected_plank", [formatCompact(val)]));
     openBuildingMenu(game.selectedTile);
   }
+};
+
+window.collectBread = function() {
+  if (!game.selectedTile || !game.selectedTile.building) return;
+  const b = game.selectedTile.building;
+  const val = b.accumulated || 0;
+  if (val > 0.001) {
+    game.bread += val;
+    game.statTotalBread += val;
+    b.accumulated = 0;
+    audio.playCollect();
+    const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
+    triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🍞`, "#fdba74");
+    triggerScreenShake(2.5, 0.12);
+    showToast(t("toast_collected_bread", [formatCompact(val)]));
+    openBuildingMenu(game.selectedTile);
+  }
+};
+
+window.collectFurniture = function() {
+  if (!game.selectedTile || !game.selectedTile.building) return;
+  const b = game.selectedTile.building;
+  const val = b.accumulated || 0;
+  if (val > 0.001) {
+    game.furniture += val;
+    game.statTotalFurniture += val;
+    b.accumulated = 0;
+    audio.playCollect();
+    const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
+    triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🪑`, "#93c5fd");
+    triggerScreenShake(2.5, 0.12);
+    showToast(t("toast_collected_furniture", [formatCompact(val)]));
+    openBuildingMenu(game.selectedTile);
+  }
+};
+
+window.collectStone = function() {
+  if (!game.selectedTile || !game.selectedTile.building) return;
+  const b = game.selectedTile.building;
+  const val = b.accumulated || 0;
+  if (val > 0.001) {
+    game.stone = (game.stone || 0) + val;
+    game.statTotalStone = (game.statTotalStone || 0) + val;
+    b.accumulated = 0;
+    audio.playCollect();
+    const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
+    triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} 🪨`, "#94a3b8");
+    triggerScreenShake(2.5, 0.12);
+    showToast(t("toast_collected_stone", [formatCompact(val)]) || `🪨 +${formatCompact(val)} Taş Toplandı!`);
+    openBuildingMenu(game.selectedTile);
+  }
+};
+
+window.collectIron = function() {
+  if (!game.selectedTile || !game.selectedTile.building) return;
+  const b = game.selectedTile.building;
+  const val = b.accumulated || 0;
+  if (val > 0.001) {
+    game.iron = (game.iron || 0) + val;
+    game.statTotalIron = (game.statTotalIron || 0) + val;
+    b.accumulated = 0;
+    audio.playCollect();
+    const p = hexToPixel(game.selectedTile.q, game.selectedTile.r);
+    triggerFloatingText(p.x, p.y - 25, `+${formatCompact(val)} ⛏️`, "#38bdf8");
+    triggerScreenShake(2.5, 0.12);
+    showToast(t("toast_collected_iron", [formatCompact(val)]) || `⛏️ +${formatCompact(val)} Demir Toplandı!`);
+    openBuildingMenu(game.selectedTile);
+  }
+};
+
+window.buyTalent = function(key) {
+  if (!game.talents) game.talents = { workerSpeed: 0, boostAll: 0, treasureHunter: 0, conquestMaster: 0 };
+  const currentLvl = game.talents[key] || 0;
+  const cost = Math.round(1 + currentLvl * 2);
+
+  if ((game.crowns || 0) < cost) {
+    audio.playError();
+    showToast(t("toast_insufficient_res") || "⚠️ Yetersiz Taç!", true);
+    return;
+  }
+
+  game.crowns -= cost;
+  game.talents[key] = currentLvl + 1;
+
+  audio.playPrestige();
+  triggerScreenShake(5.0, 0.2);
+  saveGame();
+  updateTalentsUI();
+  updateUI();
+  showToast(`🌟 Yetenek Yükseltildi! (Seviye ${game.talents[key]})`);
 };
 
 window.upgradeBuilding = function(type, cost) {
@@ -2608,14 +3654,21 @@ window.upgradeBuilding = function(type, cost) {
   openBuildingMenu(game.selectedTile);
 };
 
-window.upgradeBuildingMulti = function(type, foodCost, woodCost) {
-  if (game.food < foodCost || game.wood < woodCost) {
+window.upgradeBuildingMulti = function(type, foodCost = 0, woodCost = 0, flourCost = 0, plankCost = 0, breadCost = 0, furnitureCost = 0, stoneCost = 0, ironCost = 0) {
+  if (game.food < foodCost || game.wood < woodCost || game.flour < flourCost || game.plank < plankCost || game.bread < breadCost || game.furniture < furnitureCost || (game.stone || 0) < stoneCost || (game.iron || 0) < ironCost) {
     audio.playError();
     showToast(t("toast_insufficient_res"), true);
     return;
   }
   game.food -= foodCost;
   game.wood -= woodCost;
+  game.flour -= flourCost;
+  game.plank -= plankCost;
+  game.bread -= breadCost;
+  game.furniture -= furnitureCost;
+  game.stone = (game.stone || 0) - stoneCost;
+  game.iron = (game.iron || 0) - ironCost;
+
   game.selectedTile.building.level += 1;
   audio.playUpgrade();
   saveGame();
@@ -2630,6 +3683,11 @@ window.upgradeCastle = function() {
     game.food -= upData.costFood;
     game.wood -= upData.costWood;
     game.castleLevel += 1;
+
+    triggerShockwave(0, 0, "#f8c83e");
+    triggerFloatingText(0, -35, `👑 SV. ${game.castleLevel}`, "#f8c83e");
+    triggerScreenShake(10.0, 0.35);
+
     audio.playCastleUpgrade();
     saveGame();
     showToast(t("toast_castle_upgraded", [CASTLE_TITLES[game.castleLevel - 1]]));
@@ -2696,27 +3754,33 @@ function setupModalHandlers() {
   const tabBtnGen = document.getElementById("tab-btn-general");
   const tabBtnStat = document.getElementById("tab-btn-stats");
   const tabBtnPres = document.getElementById("tab-btn-prestige");
+  const tabBtnTal = document.getElementById("tab-btn-talents");
   const tabGen = document.getElementById("tab-general");
   const tabStat = document.getElementById("tab-stats");
   const tabPres = document.getElementById("tab-prestige");
+  const tabTal = document.getElementById("tab-talents");
 
   function switchTab(idx) {
     audio.playClick();
-    tabBtnGen.classList.toggle("active", idx === 0);
-    tabBtnStat.classList.toggle("active", idx === 1);
-    tabBtnPres.classList.toggle("active", idx === 2);
+    if (tabBtnGen) tabBtnGen.classList.toggle("active", idx === 0);
+    if (tabBtnStat) tabBtnStat.classList.toggle("active", idx === 1);
+    if (tabBtnPres) tabBtnPres.classList.toggle("active", idx === 2);
+    if (tabBtnTal) tabBtnTal.classList.toggle("active", idx === 3);
 
-    tabGen.classList.toggle("hidden", idx !== 0);
-    tabStat.classList.toggle("hidden", idx !== 1);
-    tabPres.classList.toggle("hidden", idx !== 2);
+    if (tabGen) tabGen.classList.toggle("hidden", idx !== 0);
+    if (tabStat) tabStat.classList.toggle("hidden", idx !== 1);
+    if (tabPres) tabPres.classList.toggle("hidden", idx !== 2);
+    if (tabTal) tabTal.classList.toggle("hidden", idx !== 3);
 
     if (idx === 1) updateStatsModal();
     if (idx === 2) updatePrestigeModal();
+    if (idx === 3) updateTalentsUI();
   }
 
-  tabBtnGen.addEventListener("click", () => switchTab(0));
-  tabBtnStat.addEventListener("click", () => switchTab(1));
-  tabBtnPres.addEventListener("click", () => switchTab(2));
+  if (tabBtnGen) tabBtnGen.addEventListener("click", () => switchTab(0));
+  if (tabBtnStat) tabBtnStat.addEventListener("click", () => switchTab(1));
+  if (tabBtnPres) tabBtnPres.addEventListener("click", () => switchTab(2));
+  if (tabBtnTal) tabBtnTal.addEventListener("click", () => switchTab(3));
 
   // Dil Değiştirme Butonları
   document.querySelectorAll(".btn-lang").forEach(btn => {
@@ -2732,65 +3796,96 @@ function setupModalHandlers() {
   const volumeSlider = document.getElementById("volume-slider");
   const btnMute = document.getElementById("btn-mute-toggle");
 
-  volumeSlider.addEventListener("input", e => {
-    audio.volume = parseFloat(e.target.value);
-  });
+  if (volumeSlider) {
+    volumeSlider.addEventListener("input", e => {
+      audio.volume = parseFloat(e.target.value);
+    });
+  }
 
-  btnMute.addEventListener("click", () => {
-    audio.isMuted = !audio.isMuted;
-    btnMute.textContent = audio.isMuted ? "🔇 " + t("mute") : "🔊 " + t("unmute");
-    audio.playClick();
-  });
+  if (btnMute) {
+    btnMute.addEventListener("click", () => {
+      audio.isMuted = !audio.isMuted;
+      btnMute.textContent = audio.isMuted ? "🔇 " + t("mute") : "🔊 " + t("unmute");
+      audio.playClick();
+    });
+  }
 
   // Prestij Butonları
-  document.getElementById("btn-do-prestige").addEventListener("click", () => {
-    const earned = game.calculateEarnedCrowns();
-    if (earned <= 0) {
-      audio.playError();
-      showToast(t("rebirth_need_more"), true);
-      return;
-    }
-    audio.playClick();
-    settingsModal.classList.add("hidden");
-    const nextBonus = Math.round(((1.0 + (game.crowns + earned) * 0.05) - 1.0) * 100);
-    document.getElementById("lbl-prestige-confirm-desc").textContent = t("prestige_confirm_desc", [earned, nextBonus]);
-    prestigeConfirmModal.classList.remove("hidden");
-  });
+  const btnDoPrestige = document.getElementById("btn-do-prestige");
+  if (btnDoPrestige) {
+    btnDoPrestige.addEventListener("click", () => {
+      const earned = game.calculateEarnedCrowns();
+      if (earned <= 0) {
+        audio.playError();
+        showToast(t("rebirth_need_more"), true);
+        return;
+      }
+      audio.playClick();
+      settingsModal.classList.add("hidden");
+      const nextBonus = Math.round(((1.0 + (game.crowns + earned) * 0.05) - 1.0) * 100);
+      document.getElementById("lbl-prestige-confirm-desc").textContent = t("prestige_confirm_desc", [earned, nextBonus]);
+      prestigeConfirmModal.classList.remove("hidden");
+    });
+  }
 
-  document.getElementById("btn-confirm-rebirth").addEventListener("click", () => {
-    const earned = game.calculateEarnedCrowns();
-    if (earned <= 0) return;
+  const btnConfirmRebirth = document.getElementById("btn-confirm-rebirth");
+  if (btnConfirmRebirth) {
+    btnConfirmRebirth.addEventListener("click", () => {
+      const earned = game.calculateEarnedCrowns();
+      if (earned <= 0) return;
 
-    game.crowns += earned;
-    game.totalRebirths += 1;
+      game.crowns += earned;
+      game.totalRebirths += 1;
 
-    // Sıfırlama
-    game.food = 1.0;
-    game.wood = 1.0;
-    game.flour = 0.0;
-    game.plank = 0.0;
-    game.bread = 0.0;
-    game.furniture = 0.0;
-    game.castleLevel = 1;
-    game.initFreshMap();
+      // Sıfırlama
+      game.food = 1.0;
+      game.wood = 1.0;
+      game.flour = 0.0;
+      game.plank = 0.0;
+      game.bread = 0.0;
+      game.furniture = 0.0;
+      game.stone = 0.0;
+      game.iron = 0.0;
+      game.castleLevel = 1;
+      game.initFreshMap();
 
-    closeModals();
-    audio.playPrestige();
-    saveGame();
-    showToast(t("toast_prestige_success", [earned, Math.round((game.getPrestigeMultiplier() - 1.0) * 100)]));
-  });
+      closeModals();
+      audio.playPrestige();
+      saveGame();
+      showToast(t("toast_prestige_success", [earned, Math.round((game.getPrestigeMultiplier() - 1.0) * 100)]));
+    });
+  }
 
-  document.getElementById("btn-cancel-rebirth").addEventListener("click", () => {
-    prestigeConfirmModal.classList.add("hidden");
-    settingsModal.classList.remove("hidden");
-  });
+  const btnCancelRebirth = document.getElementById("btn-cancel-rebirth");
+  if (btnCancelRebirth) {
+    btnCancelRebirth.addEventListener("click", () => {
+      prestigeConfirmModal.classList.add("hidden");
+      settingsModal.classList.remove("hidden");
+    });
+  }
 
   // Çevrimdışı Gelir Butonları
-  document.getElementById("btn-claim-offline").addEventListener("click", () => {
-    claimOfflineGains(1);
-  });
-  document.getElementById("btn-claim-3x").addEventListener("click", () => {
-    claimOfflineGains(3);
+  const btnClaimOffline = document.getElementById("btn-claim-offline");
+  if (btnClaimOffline) {
+    btnClaimOffline.addEventListener("click", () => {
+      claimOfflineGains(1);
+    });
+  }
+  const btnClaim3x = document.getElementById("btn-claim-3x");
+  if (btnClaim3x) {
+    btnClaim3x.addEventListener("click", () => {
+      claimOfflineGains(3);
+    });
+  }
+
+  // Yetenek Yükseltme Butonları
+  ["workerSpeed", "boostAll", "treasureHunter", "conquestMaster"].forEach(key => {
+    const btn = document.getElementById(`btn-talent-${key}`);
+    if (btn) {
+      btn.addEventListener("click", () => {
+        buyTalent(key);
+      });
+    }
   });
 }
 
@@ -2798,6 +3893,7 @@ function openSettingsModal() {
   updateLanguageUI();
   updateStatsModal();
   updatePrestigeModal();
+  updateTalentsUI();
   modalBackdrop.classList.remove("hidden");
   settingsModal.classList.remove("hidden");
   prestigeConfirmModal.classList.add("hidden");
@@ -2811,19 +3907,93 @@ function closeModals() {
   offlineModal.classList.add("hidden");
 }
 
+function buyTalent(key) {
+  if (!game.talents) game.talents = { workerSpeed: 0, boostAll: 0, treasureHunter: 0, conquestMaster: 0 };
+  const currentLvl = game.talents[key] || 0;
+  if (currentLvl >= 10) return;
+  const cost = Math.round(1 + currentLvl * 2);
+  if ((game.crowns || 0) < cost) {
+    audio.playError();
+    showToast("⚠️ Yetersiz Kraliyet Tacı!", true);
+    return;
+  }
+  game.crowns -= cost;
+  game.talents[key] = currentLvl + 1;
+  audio.playUpgrade();
+  saveGame();
+  updateTalentsUI();
+  updateUI();
+  showToast(`✨ Yetenek Yükseltildi! (${key}: Sv. ${game.talents[key]})`);
+}
+
+function updateTalentsUI() {
+  if (!game.talents) game.talents = { workerSpeed: 0, boostAll: 0, treasureHunter: 0, conquestMaster: 0 };
+  const crownEl = document.getElementById("talent-crowns-val");
+  if (crownEl) crownEl.textContent = `${game.crowns || 0} 👑`;
+
+  const talents = [
+    { key: "workerSpeed", max: 10 },
+    { key: "boostAll", max: 10 },
+    { key: "treasureHunter", max: 10 },
+    { key: "conquestMaster", max: 10 }
+  ];
+
+  talents.forEach(tDef => {
+    const lvl = game.talents[tDef.key] || 0;
+    const cost = Math.round(1 + lvl * 2);
+    const lvlEl = document.getElementById(`talent-${tDef.key}-lvl`);
+    if (lvlEl) lvlEl.textContent = `${lvl}/${tDef.max}`;
+
+    const btnEl = document.getElementById(`btn-talent-${tDef.key}`);
+    if (btnEl) {
+      if (lvl >= tDef.max) {
+        btnEl.textContent = t("max_level") || "Maksimum";
+        btnEl.disabled = true;
+      } else {
+        btnEl.textContent = `${cost} 👑`;
+        btnEl.disabled = ((game.crowns || 0) < cost);
+      }
+    }
+  });
+}
+
 function updateLanguageUI() {
   document.querySelectorAll(".btn-lang").forEach(btn => {
     btn.classList.toggle("active", btn.getAttribute("data-lang") === currentLang);
   });
 
-  document.getElementById("settings-title").textContent = t("settings_title");
-  document.getElementById("tab-btn-general").textContent = t("tab_general");
-  document.getElementById("tab-btn-stats").textContent = t("tab_stats");
-  document.getElementById("tab-btn-prestige").textContent = t("tab_prestige");
-  document.getElementById("lbl-lang-select").textContent = t("language_select");
-  document.getElementById("lbl-audio-sfx").textContent = t("sfx_volume");
-  document.getElementById("lbl-prestige-desc").textContent = t("prestige_desc");
-  document.getElementById("btn-do-prestige").textContent = t("rebirth_btn");
+  const setEl = (id, text) => {
+    const el = document.getElementById(id);
+    if (el && text) el.textContent = text;
+  };
+
+  setEl("settings-title", t("settings_title"));
+  setEl("tab-btn-general", t("tab_general"));
+  setEl("tab-btn-stats", t("tab_stats"));
+  setEl("tab-btn-prestige", t("tab_prestige"));
+  setEl("tab-btn-talents", t("tab_talents") || "🌟 Yetenekler");
+  setEl("lbl-lang-select", t("language_select"));
+  setEl("lbl-audio-sfx", t("sfx_volume"));
+  setEl("lbl-prestige-desc", t("prestige_desc"));
+  setEl("btn-do-prestige", t("rebirth_btn"));
+
+  setEl("lbl-stat-playtime", t("stat_playtime"));
+  setEl("lbl-stat-conquered", t("stat_conquered"));
+  setEl("lbl-stat-food", t("stat_total_food"));
+  setEl("lbl-stat-wood", t("stat_total_wood"));
+  setEl("lbl-stat-flour", t("stat_total_flour"));
+  setEl("lbl-stat-plank", t("stat_total_plank"));
+  setEl("lbl-stat-bread", t("stat_total_bread"));
+  setEl("lbl-stat-furniture", t("stat_total_furniture"));
+  setEl("lbl-stat-stone", t("stat_total_stone") || "Toplam Taş");
+  setEl("lbl-stat-iron", t("stat_total_iron") || "Toplam Demir");
+  setEl("lbl-stat-rebirths", t("stat_rebirths"));
+
+  setEl("lbl-curr-crowns", t("current_crowns"));
+  setEl("lbl-earn-crowns", t("earned_crowns"));
+  setEl("lbl-prestige-confirm-title", t("prestige_confirm_title"));
+  setEl("btn-confirm-rebirth", t("confirm"));
+  setEl("btn-cancel-rebirth", t("cancel"));
 
   updateUI();
 }
@@ -2831,24 +4001,34 @@ function updateLanguageUI() {
 function updateStatsModal() {
   const mins = Math.floor(game.statPlaytime / 60);
   const secs = Math.floor(game.statPlaytime % 60);
-  document.getElementById("val-stat-playtime").textContent = `${mins} dk ${secs} sn`;
-  document.getElementById("val-stat-conquered").textContent = `${game.statTotalConquered}`;
-  document.getElementById("val-stat-food").textContent = `${game.statTotalFood.toFixed(1)}`;
-  document.getElementById("val-stat-wood").textContent = `${game.statTotalWood.toFixed(1)}`;
-  document.getElementById("val-stat-flour").textContent = `${game.statTotalFlour.toFixed(1)}`;
-  document.getElementById("val-stat-plank").textContent = `${game.statTotalPlank.toFixed(1)}`;
-  document.getElementById("val-stat-rebirths").textContent = `${game.totalRebirths}`;
+  const setVal = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  };
+  setVal("val-stat-playtime", `${mins} dk ${secs} sn`);
+  setVal("val-stat-conquered", `${game.statTotalConquered}`);
+  setVal("val-stat-food", `${(game.statTotalFood || 0).toFixed(1)}`);
+  setVal("val-stat-wood", `${(game.statTotalWood || 0).toFixed(1)}`);
+  setVal("val-stat-flour", `${(game.statTotalFlour || 0).toFixed(1)}`);
+  setVal("val-stat-plank", `${(game.statTotalPlank || 0).toFixed(1)}`);
+  setVal("val-stat-bread", `${(game.statTotalBread || 0).toFixed(1)}`);
+  setVal("val-stat-furniture", `${(game.statTotalFurniture || 0).toFixed(1)}`);
+  setVal("val-stat-stone", `${(game.statTotalStone || 0).toFixed(1)}`);
+  setVal("val-stat-iron", `${(game.statTotalIron || 0).toFixed(1)}`);
+  setVal("val-stat-rebirths", `${game.totalRebirths}`);
 }
 
 function updatePrestigeModal() {
   const bonusPct = Math.round((game.getPrestigeMultiplier() - 1.0) * 100);
   const earned = game.calculateEarnedCrowns();
-  document.getElementById("val-curr-crowns").textContent = `${game.crowns} 👑 (+%${bonusPct})`;
-  document.getElementById("val-earn-crowns").textContent = `+${earned} 👑`;
+  const currEl = document.getElementById("val-curr-crowns");
+  if (currEl) currEl.textContent = `${game.crowns} 👑 (+%${bonusPct})`;
+  const earnEl = document.getElementById("val-earn-crowns");
+  if (earnEl) earnEl.textContent = `+${earned} 👑`;
 }
 
 // Çevrimdışı Gelir
-let pendingOffline = { food: 0, wood: 0, flour: 0, plank: 0 };
+let pendingOffline = { food: 0, wood: 0, flour: 0, plank: 0, bread: 0, furniture: 0, stone: 0, iron: 0 };
 
 function checkOfflineGains(lastTimestamp) {
   if (!lastTimestamp) return;
@@ -2859,7 +4039,7 @@ function checkOfflineGains(lastTimestamp) {
   const cappedSeconds = Math.min(8 * 3600, elapsed);
   const globalMult = game.getGlobalMultiplier();
 
-  let f = 0, w = 0, fl = 0, p = 0;
+  let f = 0, w = 0, fl = 0, p = 0, br = 0, fu = 0, st = 0, ir = 0;
   const hasWorkers = Object.values(game.tiles).some(t => t.building && t.building.type === "worker");
 
   Object.values(game.tiles).forEach(t => {
@@ -2877,22 +4057,46 @@ function checkOfflineGains(lastTimestamp) {
     } else if (b.type === "sawmill") {
       const rate = (0.20 * Math.pow(1.5, b.level - 1)) * globalMult;
       p += hasWorkers ? rate * cappedSeconds : Math.min(rate * 30.0, rate * cappedSeconds);
+    } else if (b.type === "bakery") {
+      const rate = (0.25 * Math.pow(1.5, b.level - 1)) * globalMult;
+      br += hasWorkers ? rate * cappedSeconds : Math.min(rate * 40.0, rate * cappedSeconds);
+    } else if (b.type === "furniture") {
+      const rate = (0.20 * Math.pow(1.5, b.level - 1)) * globalMult;
+      fu += hasWorkers ? rate * cappedSeconds : Math.min(rate * 40.0, rate * cappedSeconds);
+    } else if (b.type === "quarry") {
+      const rate = (0.35 * Math.pow(1.5, b.level - 1)) * globalMult;
+      st += hasWorkers ? rate * cappedSeconds : Math.min(rate * 30.0, rate * cappedSeconds);
+    } else if (b.type === "mine") {
+      const rate = (0.25 * Math.pow(1.5, b.level - 1)) * globalMult;
+      ir += hasWorkers ? rate * cappedSeconds : Math.min(rate * 30.0, rate * cappedSeconds);
     }
   });
 
-  if (f > 0.1 || w > 0.1 || fl > 0.1 || p > 0.1) {
-    pendingOffline = { food: f, wood: w, flour: fl, plank: p };
+  if (f > 0.1 || w > 0.1 || fl > 0.1 || p > 0.1 || br > 0.1 || fu > 0.1 || st > 0.1 || ir > 0.1) {
+    pendingOffline = { food: f, wood: w, flour: fl, plank: p, bread: br, furniture: fu, stone: st, iron: ir };
     const mins = Math.floor(cappedSeconds / 60);
     const timeStr = mins >= 60 ? `${Math.floor(mins / 60)} sa ${mins % 60} dk` : `${mins} dk`;
 
-    document.getElementById("lbl-offline-title").textContent = t("offline_welcome");
-    document.getElementById("lbl-offline-desc").textContent = t("offline_desc", [timeStr]);
-    document.getElementById("gain-food").textContent = `+${f.toFixed(1)} 🥡 ${t("food")}`;
-    document.getElementById("gain-wood").textContent = `+${w.toFixed(1)} 🪵 ${t("wood")}`;
-    document.getElementById("gain-flour").textContent = `+${fl.toFixed(1)} 🌾 ${t("flour")}`;
-    document.getElementById("gain-plank").textContent = `+${p.toFixed(1)} 🪵 ${t("plank")}`;
-    document.getElementById("btn-claim-offline").textContent = t("offline_claim");
-    document.getElementById("btn-claim-3x").textContent = t("offline_claim_3x");
+    const setGain = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    };
+
+    setGain("lbl-offline-title", t("offline_welcome"));
+    setGain("lbl-offline-desc", t("offline_desc", [timeStr]));
+    setGain("gain-food", `+${f.toFixed(1)} 🥡 ${t("food")}`);
+    setGain("gain-wood", `+${w.toFixed(1)} 🪵 ${t("wood")}`);
+    setGain("gain-flour", `+${fl.toFixed(1)} 🌾 ${t("flour")}`);
+    setGain("gain-plank", `+${p.toFixed(1)} 🪵 ${t("plank")}`);
+    setGain("gain-bread", `+${br.toFixed(1)} 🍞 ${t("bread")}`);
+    setGain("gain-furniture", `+${fu.toFixed(1)} 🪑 ${t("furniture")}`);
+    setGain("gain-stone", `+${st.toFixed(1)} 🪨 ${t("stone")}`);
+    setGain("gain-iron", `+${ir.toFixed(1)} ⛏️ ${t("iron")}`);
+
+    const claimBtn = document.getElementById("btn-claim-offline");
+    if (claimBtn) claimBtn.textContent = t("offline_claim");
+    const claim3xBtn = document.getElementById("btn-claim-3x");
+    if (claim3xBtn) claim3xBtn.textContent = t("offline_claim_3x");
 
     modalBackdrop.classList.remove("hidden");
     offlineModal.classList.remove("hidden");
@@ -2901,15 +4105,23 @@ function checkOfflineGains(lastTimestamp) {
 }
 
 function claimOfflineGains(multiplier = 1) {
-  game.food += pendingOffline.food * multiplier;
-  game.wood += pendingOffline.wood * multiplier;
-  game.flour += pendingOffline.flour * multiplier;
-  game.plank += pendingOffline.plank * multiplier;
+  game.food += (pendingOffline.food || 0) * multiplier;
+  game.wood += (pendingOffline.wood || 0) * multiplier;
+  game.flour += (pendingOffline.flour || 0) * multiplier;
+  game.plank += (pendingOffline.plank || 0) * multiplier;
+  game.bread += (pendingOffline.bread || 0) * multiplier;
+  game.furniture += (pendingOffline.furniture || 0) * multiplier;
+  game.stone = (game.stone || 0) + (pendingOffline.stone || 0) * multiplier;
+  game.iron = (game.iron || 0) + (pendingOffline.iron || 0) * multiplier;
 
-  game.statTotalFood += pendingOffline.food * multiplier;
-  game.statTotalWood += pendingOffline.wood * multiplier;
-  game.statTotalFlour += pendingOffline.flour * multiplier;
-  game.statTotalPlank += pendingOffline.plank * multiplier;
+  game.statTotalFood += (pendingOffline.food || 0) * multiplier;
+  game.statTotalWood += (pendingOffline.wood || 0) * multiplier;
+  game.statTotalFlour += (pendingOffline.flour || 0) * multiplier;
+  game.statTotalPlank += (pendingOffline.plank || 0) * multiplier;
+  game.statTotalBread += (pendingOffline.bread || 0) * multiplier;
+  game.statTotalFurniture += (pendingOffline.furniture || 0) * multiplier;
+  game.statTotalStone = (game.statTotalStone || 0) + (pendingOffline.stone || 0) * multiplier;
+  game.statTotalIron = (game.statTotalIron || 0) + (pendingOffline.iron || 0) * multiplier;
 
   closeModals();
   audio.playPrestige();
@@ -2924,6 +4136,7 @@ let toastTimeout = null;
 function showToast(msg, isWarning = false) {
   const container = document.getElementById("toast-container");
   const msgEl = document.getElementById("toast-message");
+  if (!container || !msgEl) return;
   msgEl.textContent = msg;
 
   container.classList.remove("hidden");
@@ -2953,16 +4166,29 @@ function saveGame() {
     wood: game.wood,
     flour: game.flour,
     plank: game.plank,
+    bread: game.bread,
+    furniture: game.furniture,
+    stone: game.stone || 0,
+    iron: game.iron || 0,
+    talents: game.talents || {},
     crowns: game.crowns,
     totalRebirths: game.totalRebirths,
     ownedCount: game.ownedCount,
     purchasedTilesCount: game.purchasedTilesCount,
+    purchasedMeadowCount: game.purchasedMeadowCount,
+    purchasedForestCount: game.purchasedForestCount,
+    purchasedSeaCount: game.purchasedSeaCount,
+    purchasedMountainCount: game.purchasedMountainCount,
     castleLevel: game.castleLevel,
     stats: {
       totalFood: game.statTotalFood,
       totalWood: game.statTotalWood,
       totalFlour: game.statTotalFlour,
       totalPlank: game.statTotalPlank,
+      totalBread: game.statTotalBread,
+      totalFurniture: game.statTotalFurniture,
+      totalStone: game.statTotalStone || 0,
+      totalIron: game.statTotalIron || 0,
       totalConquered: game.statTotalConquered,
       playtime: game.statPlaytime
     },
@@ -3007,10 +4233,17 @@ function loadGame() {
     game.plank = data.plank || 0.0;
     game.bread = data.bread || 0.0;
     game.furniture = data.furniture || 0.0;
+    game.stone = data.stone || 0.0;
+    game.iron = data.iron || 0.0;
+    game.talents = data.talents || { workerSpeed: 0, boostAll: 0, treasureHunter: 0, conquestMaster: 0 };
     game.crowns = data.crowns || 0;
     game.totalRebirths = data.totalRebirths || 0;
     game.ownedCount = data.ownedCount || 1;
     game.purchasedTilesCount = data.purchasedTilesCount || 0;
+    game.purchasedMeadowCount = data.purchasedMeadowCount || 0;
+    game.purchasedForestCount = data.purchasedForestCount || 0;
+    game.purchasedSeaCount = data.purchasedSeaCount || 0;
+    game.purchasedMountainCount = data.purchasedMountainCount || 0;
     game.castleLevel = data.castleLevel || 1;
 
     if (data.stats) {
@@ -3018,6 +4251,10 @@ function loadGame() {
       game.statTotalWood = data.stats.totalWood || 0;
       game.statTotalFlour = data.stats.totalFlour || 0;
       game.statTotalPlank = data.stats.totalPlank || 0;
+      game.statTotalBread = data.stats.totalBread || 0;
+      game.statTotalFurniture = data.stats.totalFurniture || 0;
+      game.statTotalStone = data.stats.totalStone || 0;
+      game.statTotalIron = data.stats.totalIron || 0;
       game.statTotalConquered = data.stats.totalConquered || 1;
       game.statPlaytime = data.stats.playtime || 0;
     }

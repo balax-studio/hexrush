@@ -19,7 +19,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
   <!-- CSS Styles -->
-  <link rel="stylesheet" href="style.css?v=2" />
+  <link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
   <div id="game-container">
@@ -68,6 +68,14 @@
           <span class="chip-icon">🪑</span>
           <span class="chip-label" id="furniture-label">Mobilya: 0</span>
         </div>
+        <div class="chip stone-chip" id="chip-stone">
+          <span class="chip-icon">🪨</span>
+          <span class="chip-label" id="stone-label">Taş: 0</span>
+        </div>
+        <div class="chip iron-chip" id="chip-iron">
+          <span class="chip-icon">⛏️</span>
+          <span class="chip-label" id="iron-label">Demir: 0</span>
+        </div>
       </div>
 
       <!-- Dynamic Quest / Hint Bar -->
@@ -99,9 +107,10 @@
         </div>
 
         <div class="tab-buttons-row">
-          <button id="tab-btn-general" class="tab-btn active">🌐 Genel & Ses</button>
+          <button id="tab-btn-general" class="tab-btn active">🌐 Genel</button>
           <button id="tab-btn-stats" class="tab-btn">📊 İstatistikler</button>
           <button id="tab-btn-prestige" class="tab-btn">👑 Prestij</button>
+          <button id="tab-btn-talents" class="tab-btn">⚡ Yetenekler</button>
         </div>
 
         <!-- Tab 1: General & Sound -->
@@ -132,6 +141,10 @@
             <div class="stat-row"><span id="lbl-stat-wood">Toplam Üretilen Odun</span>: <b id="val-stat-wood">0</b></div>
             <div class="stat-row"><span id="lbl-stat-flour">Toplam Üretilen Un</span>: <b id="val-stat-flour">0</b></div>
             <div class="stat-row"><span id="lbl-stat-plank">Toplam Üretilen Kereste</span>: <b id="val-stat-plank">0</b></div>
+            <div class="stat-row"><span id="lbl-stat-bread">Toplam Üretilen Ekmek</span>: <b id="val-stat-bread">0</b></div>
+            <div class="stat-row"><span id="lbl-stat-furniture">Toplam Üretilen Mobilya</span>: <b id="val-stat-furniture">0</b></div>
+            <div class="stat-row"><span id="lbl-stat-stone">Toplam Üretilen Taş</span>: <b id="val-stat-stone">0</b></div>
+            <div class="stat-row"><span id="lbl-stat-iron">Toplam Üretilen Demir</span>: <b id="val-stat-iron">0</b></div>
             <div class="stat-row"><span id="lbl-stat-rebirths">Yapılan Prestij Sayısı</span>: <b id="val-stat-rebirths">0</b></div>
           </div>
         </div>
@@ -146,6 +159,43 @@
             <div class="prestige-row"><span id="lbl-earn-crowns">Sıfırlanınca Kazanılacak Taç</span>: <b id="val-earn-crowns" class="text-green">+0 👑</b></div>
           </div>
           <button id="btn-do-prestige" class="btn-primary prestige-btn">👑 Krallığı Sıfırla & Yeniden Doğur</button>
+        </div>
+
+        <!-- Tab 4: Talent Tree (Yetenek Ağacı) -->
+        <div id="tab-talents" class="tab-pane hidden">
+          <div class="talent-crown-header">
+            <span class="text-gold" style="font-weight:700;font-size:0.95rem">👑 Harcanabilir Taç: <b id="talent-crown-val">0</b></span>
+          </div>
+          <div class="talents-grid">
+            <div class="talent-card" id="talent-worker">
+              <div class="talent-info">
+                <h4>⚡ Hızlı İşçiler (<span id="lvl-talent-worker">0</span>/5)</h4>
+                <p>İşçi taşıma hızı +%25/sv.</p>
+              </div>
+              <button class="btn-talent-up" onclick="buyTalent('workerSpeed')">⬆️ <span id="cost-talent-worker">2</span> 👑</button>
+            </div>
+            <div class="talent-card" id="talent-boost">
+              <div class="talent-info">
+                <h4>✨ Verimli Krallık (<span id="lvl-talent-boost">0</span>/5)</h4>
+                <p>Tüm üretime +%10 hız/sv.</p>
+              </div>
+              <button class="btn-talent-up" onclick="buyTalent('boostAll')">⬆️ <span id="cost-talent-boost">3</span> 👑</button>
+            </div>
+            <div class="talent-card" id="talent-treasure">
+              <div class="talent-info">
+                <h4>🎁 Hazine Avcısı (<span id="lvl-talent-treasure">0</span>/5)</h4>
+                <p>Sandıklar %30 daha sık çıkar.</p>
+              </div>
+              <button class="btn-talent-up" onclick="buyTalent('treasureHunter')">⬆️ <span id="cost-talent-treasure">2</span> 👑</button>
+            </div>
+            <div class="talent-card" id="talent-conquest">
+              <div class="talent-info">
+                <h4>🏰 Fetih Ustası (<span id="lvl-talent-conquest">0</span>/5)</h4>
+                <p>Arsa maliyeti -%8/sv.</p>
+              </div>
+              <button class="btn-talent-up" onclick="buyTalent('conquestMaster')">⬆️ <span id="cost-talent-conquest">3</span> 👑</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -172,6 +222,10 @@
           <div class="gain-item text-wood" id="gain-wood">+0.0 🪵 Odun</div>
           <div class="gain-item text-flour" id="gain-flour">+0.0 🌾 Un</div>
           <div class="gain-item text-plank" id="gain-plank">+0.0 🪵 Kereste</div>
+          <div class="gain-item text-bread" id="gain-bread">+0.0 🍞 Ekmek</div>
+          <div class="gain-item text-furniture" id="gain-furniture">+0.0 🪑 Mobilya</div>
+          <div class="gain-item text-stone" id="gain-stone">+0.0 🪨 Taş</div>
+          <div class="gain-item text-iron" id="gain-iron">+0.0 ⛏️ Demir</div>
         </div>
         <div class="dialog-button-row">
           <button id="btn-claim-offline" class="btn-secondary">Tümünü Al</button>
@@ -182,7 +236,7 @@
   </div>
 
   <!-- Game Logic Engine Script -->
-  <script src="game.js?v=4"></script>
+  <script src="game.js?v=7"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
