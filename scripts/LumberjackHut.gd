@@ -7,7 +7,7 @@ extends Node2D
 @export var hut_scale: float = 1.0
 @export var y_scale: float = 0.85
 
-# Üretim ve Seviye Durumu (Idle Kingdom Clicker Matematiği)
+# Üretim ve Seviye Durumu (Hex Idle Matematiği)
 const FILL_DURATION: float = 30.0     # 30 saniyede tam dolum süresi
 
 var level: int = 1

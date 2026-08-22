@@ -1,6 +1,6 @@
 {
-  "name": "Idle Kingdom Clicker",
-  "short_name": "Kingdom",
+  "name": "Hex Idle",
+  "short_name": "Hex Idle",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0d1117",

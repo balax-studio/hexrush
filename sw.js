@@ -1,5 +1,5 @@
-// Idle Kingdom Clicker — Service Worker for Offline PWA
-const CACHE_NAME = 'kingdom-pwa-v7-awwwards-edition';
+// Hex Idle — Service Worker for Offline PWA
+const CACHE_NAME = 'hex-idle-v8';
 const ASSETS = [
   './',
   './index.html',

@@ -4,7 +4,7 @@ function getIconSvg(name, extraClass = "") {
 }
 
 /**
- * Idle Kingdom Clicker — Mobile-First Web Edition
+ * Hex Idle — Mobile-First Web Edition
  * 100% Pure HTML5 Canvas + Web Audio + Vanilla JS
  */
 
