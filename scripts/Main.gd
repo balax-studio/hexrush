@@ -360,6 +360,28 @@ func _ready() -> void:
 	if toast_label: toast_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if hint_label: hint_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
+	# === YIKMA BUTONLARINI DİNAMİK EKLE (Her bina menüsüne) ===
+	_add_demolish_button_to_menu(production_menu, "UI/ProductionMenu/MarginContainer/VBoxContainer", "_on_demolish_corn_pressed")
+	_add_demolish_button_to_menu(flour_menu, "UI/FlourMenu/MarginContainer/VBoxContainer", "_on_demolish_windmill_pressed")
+	_add_demolish_button_to_menu(wood_menu, "UI/WoodMenu/MarginContainer/VBoxContainer", "_on_demolish_lumberjack_pressed")
+	_add_demolish_button_to_menu(plank_menu, "UI/PlankMenu/MarginContainer/VBoxContainer", "_on_demolish_sawmill_pressed")
+	_add_demolish_button_to_menu(worker_menu, "UI/WorkerMenu/MarginContainer/VBoxContainer", "_on_demolish_worker_pressed")
+	
+	# === ORMANLAŞTIRMA / DEFOREST BUTONU (Build Menüsünün altına) ===
+	var bm_vbox = get_node_or_null("UI/BuildMenu/MarginContainer/VBoxContainer")
+	if bm_vbox:
+		var deforest_sep = HSeparator.new()
+		deforest_sep.name = "DeforestSep"
+		deforest_sep.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		bm_vbox.add_child(deforest_sep)
+		var deforest_btn = Button.new()
+		deforest_btn.name = "DeforestButton"
+		deforest_btn.text = "🌿 Ağaçları Kurut (Orman → Çayır)"
+		deforest_btn.add_theme_color_override("font_color", Color(0.3, 0.85, 0.45))
+		deforest_btn.visible = false  # Sadece FOREST hexlerde göster
+		deforest_btn.pressed.connect(_deforest_tile)
+		bm_vbox.add_child(deforest_btn)
+	
 	# Başlangıçta panelleri gizle
 	close_all_menus()
 	settings_modal.visible = false
@@ -1127,6 +1149,14 @@ func open_build_menu() -> void:
 		worker_desc_label.text = Localization.tr_t("worker_desc")
 		btn_build_worker.text = Localization.tr_t("build_btn")
 	
+	# Deforest butonu: sadece ORMAN hexinde göster
+	var deforest_btn_node = get_node_or_null("UI/BuildMenu/MarginContainer/VBoxContainer/DeforestButton")
+	var deforest_sep_node = get_node_or_null("UI/BuildMenu/MarginContainer/VBoxContainer/DeforestSep")
+	if deforest_btn_node:
+		deforest_btn_node.visible = is_forest
+	if deforest_sep_node:
+		deforest_sep_node.visible = is_forest
+	
 	var corn_cost = 0 if corn_fields_count == 0 else 2
 	var wood_cost = 2 if lumberjack_huts_count == 0 else 2 + (lumberjack_huts_count * 2)
 	var worker_cost = 0 if worker_huts_count == 0 else 3
@@ -1309,6 +1339,115 @@ func _on_build_worker_pressed() -> void:
 	update_ui()
 	SaveManager.save_game(self)
 	show_toast(Localization.tr_t("toast_built_worker"))
+
+# =============================================================================
+# YAPI YIKMA & ORMAN DÖNÜŞÜM SİSTEMİ
+# =============================================================================
+
+## Bina menüsüne dinamik 'Yık' butonu ekler
+func _add_demolish_button_to_menu(menu: PanelContainer, vbox_path: String, callback_name: String) -> void:
+	if not menu: return
+	var vbox = get_node_or_null(vbox_path)
+	if not vbox: return
+	var sep = HSeparator.new()
+	sep.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(sep)
+	var btn = Button.new()
+	btn.name = "DemolishButton_" + callback_name
+	btn.text = "🔨 Yapıyı Yık (%50 Kaynak İade)"
+	btn.add_theme_color_override("font_color", Color(1.0, 0.4, 0.35))
+	btn.pressed.connect(Callable(self, callback_name))
+	vbox.add_child(btn)
+
+## İnşaat maliyetinin %50'sini iade eder ve binayı kaldırır
+func _demolish_building_on_tile(tile: HexTile, refund_type: String, refund_amount: float, building_count_var: String) -> void:
+	if not tile or not tile.has_building(): return
+	var b = tile.building
+	# Birikmiş kaynakları önce topla (ziyan olmasın)
+	if "accumulated_food" in b and b.accumulated_food > 0:
+		food += b.accumulated_food
+		stat_total_food += b.accumulated_food
+	elif "accumulated_flour" in b and b.accumulated_flour > 0:
+		flour += b.accumulated_flour
+		stat_total_flour += b.accumulated_flour
+	elif "accumulated_wood" in b and b.accumulated_wood > 0:
+		wood += b.accumulated_wood
+		stat_total_wood += b.accumulated_wood
+	elif "accumulated_plank" in b and b.accumulated_plank > 0:
+		plank += b.accumulated_plank
+		stat_total_plank += b.accumulated_plank
+	elif "accumulated_bread" in b and b.accumulated_bread > 0:
+		bread += b.accumulated_bread
+	elif "accumulated_furniture" in b and b.accumulated_furniture > 0:
+		furniture += b.accumulated_furniture
+	# Kaynak iadesi (%50)
+	if refund_type == "food": food += refund_amount
+	elif refund_type == "wood": wood += refund_amount
+	elif refund_type == "flour": flour += refund_amount
+	elif refund_type == "plank": plank += refund_amount
+	# Binayı kaldır
+	b.queue_free()
+	tile.building = null
+	# Sayacı güncelle (set ile)
+	set(building_count_var, max(0, get(building_count_var) - 1))
+	close_all_menus()
+	update_ui()
+	SaveManager.save_game(self)
+	sound_manager.play_build()
+	show_toast("🔨 Yapı yıkıldı! Kaynaklarınız iade edildi.")
+
+func _on_demolish_corn_pressed() -> void:
+	if not selected_tile or not is_instance_valid(selected_tile): return
+	var lvl = active_corn_field.get("level") if active_corn_field else 1
+	# İnşa maliyeti: ilk ücretsiz, sonraki 2 gıda → iade: lvl*1 gıda (basit yaklaşım)
+	var refund = max(0.0, (corn_fields_count) * 1.0)  # ~%50 iade
+	_demolish_building_on_tile(selected_tile, "food", refund, "corn_fields_count")
+
+func _on_demolish_windmill_pressed() -> void:
+	if not selected_tile or not is_instance_valid(selected_tile): return
+	_demolish_building_on_tile(selected_tile, "food", 2.5, "windmills_count")  # 5 gıda + 3 odun → 2.5 gıda iade
+	wood += 1.5  # +1.5 odun iade
+	update_ui()
+
+func _on_demolish_lumberjack_pressed() -> void:
+	if not selected_tile or not is_instance_valid(selected_tile): return
+	var cost = 2 if lumberjack_huts_count <= 1 else 2 + ((lumberjack_huts_count - 1) * 2)
+	var refund = floor(cost * 0.5)
+	_demolish_building_on_tile(selected_tile, "food", refund, "lumberjack_huts_count")
+
+func _on_demolish_sawmill_pressed() -> void:
+	if not selected_tile or not is_instance_valid(selected_tile): return
+	_demolish_building_on_tile(selected_tile, "food", 2.0, "sawmills_count")  # 4 gıda iade
+	wood += 2.5  # +2.5 odun iade
+	update_ui()
+
+func _on_demolish_worker_pressed() -> void:
+	if not selected_tile or not is_instance_valid(selected_tile): return
+	var refund = 1.5 if worker_huts_count > 1 else 0.0
+	_demolish_building_on_tile(selected_tile, "food", refund, "worker_huts_count")
+
+## Orman hexini çayıra dönüştürür (binası varsa önce yıkar)
+func _deforest_tile() -> void:
+	if not selected_tile or not is_instance_valid(selected_tile): return
+	if selected_tile.tile_type != HexTile.TileType.FOREST: return
+	# Orman binası varsa yık (kaynak iade ile)
+	if selected_tile.has_building():
+		var b = selected_tile.building
+		if "accumulated_wood" in b and b.accumulated_wood > 0:
+			wood += b.accumulated_wood
+			stat_total_wood += b.accumulated_wood
+		var refund_food = floor(lumberjack_huts_count * 1.0)
+		wood += refund_food
+		b.queue_free()
+		selected_tile.building = null
+		lumberjack_huts_count = max(0, lumberjack_huts_count - 1)
+	# Biyomu FOREST → MEADOW yap
+	selected_tile.set_tile_type(HexTile.TileType.MEADOW)
+	close_all_menus()
+	update_ui()
+	SaveManager.save_game(self)
+	sound_manager.play_build()
+	show_toast("🌿 Orman kurutuldu! Hex çayıra dönüştü.")
 
 # =============================================================================
 # ŞATO KRALLIK YÖNETİM MENÜSÜ

@@ -2276,6 +2276,17 @@ function openBuildMenu(tile) {
   }
 
   menuContent.innerHTML = html;
+
+  // ORMAN hexinde Ormansızlaştır butonu ekle
+  if (tile.biome && tile.biome.name === 'FOREST') {
+    menuContent.innerHTML += `
+      <hr style="border-color:rgba(80,200,100,0.3);margin:6px 0">
+      <button class="btn-upgrade" style="background:rgba(40,160,80,0.18);color:#55dd88;width:100%;border:1px solid rgba(80,200,100,0.35)" onclick="deforestTile()">
+        🌿 Ağaçları Kurut (Orman → Çayır) &nbsp;<small>(Ücretsiz)</small>
+      </button>
+    `;
+  }
+
   bottomMenu.classList.remove("hidden");
 }
 
@@ -2298,6 +2309,7 @@ window.buildOnSelected = function(bType, foodCost = 0, woodCost = 0) {
   audio.playBuild();
   closeBottomMenu();
   saveGame();
+  renderMap();
 
   if (bType === 'corn') showToast(t("toast_built_corn"));
   else if (bType === 'windmill') showToast(t("toast_built_windmill"));
@@ -2345,6 +2357,7 @@ function openBuildingMenu(tile) {
     const rate = (0.42 * Math.pow(1.5, b.level - 1)) * game.getGlobalMultiplier();
     const upCost = Math.round(2 * Math.pow(1.8, b.level - 1));
     const accum = b.accumulated || 0;
+    const cornRefund = Math.max(0, game.purchasedMeadowCount * 0.5).toFixed(1);
 
     menuContent.innerHTML = `
       <div class="prod-flow-row">
@@ -2362,6 +2375,10 @@ function openBuildingMenu(tile) {
           <small>+${(rate * 0.5).toFixed(2)} ${t("per_sec")}</small>
         </button>
       </div>
+      <hr style="border-color:rgba(255,100,80,0.3);margin:6px 0">
+      <button class="btn-upgrade" style="background:rgba(200,60,50,0.18);color:#ff6655;width:100%;border:1px solid rgba(200,60,50,0.35)" onclick="demolishBuilding('corn', ${cornRefund}, 0)">
+        🔨 Yapıyı Yık &nbsp;<small>(%50 iade: ${cornRefund} 🥡)</small>
+      </button>
     `;
   } else if (b.type === "windmill") {
     menuTitle.textContent = `🌾 ${t("windmill_name")} (${t("level")} ${b.level})`;
@@ -2386,6 +2403,10 @@ function openBuildingMenu(tile) {
           <small>+${(rate * 0.5).toFixed(2)}/sn</small>
         </button>
       </div>
+      <hr style="border-color:rgba(255,100,80,0.3);margin:6px 0">
+      <button class="btn-upgrade" style="background:rgba(200,60,50,0.18);color:#ff6655;width:100%;border:1px solid rgba(200,60,50,0.35)" onclick="demolishBuilding('windmill', 2.5, 1.5)">
+        🔨 Yapıyı Yık &nbsp;<small>(%50 iade: 2.5 🥡 + 1.5 🪵)</small>
+      </button>
     `;
   } else if (b.type === "lumberjack") {
     menuTitle.textContent = `🪓 ${t("lumberjack_name")} (${t("level")} ${b.level})`;
@@ -2409,6 +2430,10 @@ function openBuildingMenu(tile) {
           <small>+${(rate * 0.5).toFixed(2)} ${t("per_sec")}</small>
         </button>
       </div>
+      <hr style="border-color:rgba(255,100,80,0.3);margin:6px 0">
+      <button class="btn-upgrade" style="background:rgba(200,60,50,0.18);color:#ff6655;width:100%;border:1px solid rgba(200,60,50,0.35)" onclick="demolishBuilding('lumberjack', ${Math.floor(upCost * 0.5)}, 0)">
+        🔨 Yapıyı Yık &nbsp;<small>(%50 iade: ${Math.floor(upCost * 0.5)} 🥡)</small>
+      </button>
     `;
   } else if (b.type === "sawmill") {
     menuTitle.textContent = `🪵 ${t("sawmill_name")} (${t("level")} ${b.level})`;
@@ -2470,6 +2495,49 @@ function closeBottomMenu() {
   bottomMenu.classList.add("hidden");
   game.selectedTile = null;
 }
+
+// === YAPI YIKMA & ORMANLAŞTIRMA ===
+window.demolishBuilding = function(type, refundFood, refundWood) {
+  if (!game.selectedTile || !game.selectedTile.building) return;
+  const b = game.selectedTile.building;
+  const accum = b.accumulated || 0;
+  // Birikmiş kaynakları topla
+  if (type === 'corn') { game.food += accum; game.statTotalFood = (game.statTotalFood || 0) + accum; }
+  else if (type === 'windmill') { game.flour += accum; }
+  else if (type === 'lumberjack') { game.wood += accum; game.statTotalWood = (game.statTotalWood || 0) + accum; }
+  else if (type === 'sawmill') { game.plank += accum; }
+  // Kaynak iadesi
+  game.food += parseFloat(refundFood) || 0;
+  game.wood += parseFloat(refundWood) || 0;
+  // Binayı kaldır
+  game.selectedTile.building = null;
+  closeBottomMenu();
+  audio.playBuild();
+  showToast('🔨 Yapı yıkıldı! Kaynaklarınız iade edildi.');
+  saveGame();
+  renderMap();
+  updateUI();
+};
+
+window.deforestTile = function() {
+  if (!game.selectedTile) return;
+  const tile = game.selectedTile;
+  if (!tile.biome || tile.biome.name !== 'FOREST') return;
+  // Orman binası varsa birikimi topla
+  if (tile.building && tile.building.accumulated > 0) {
+    game.wood += tile.building.accumulated;
+  }
+  // Binayı kaldır
+  tile.building = null;
+  // Biyomu MEADOW yap
+  tile.biome = BIOMES.MEADOW;
+  closeBottomMenu();
+  audio.playBuild();
+  showToast('🌿 Ağaçlar kurutuldu! Hex çayıra dönüştü.');
+  saveGame();
+  renderMap();
+  updateUI();
+};
 
 // Koleksiyon İşlemleri
 window.collectCorn = function() {
