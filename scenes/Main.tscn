@@ -820,6 +820,13 @@ theme_override_font_sizes/font_size = 13
 text = "ÜCRETSİZ"
 vertical_alignment = 1
 
+[node name="BuildButton" type="Button" parent="UI/BuildMenu/MarginContainer/VBoxContainer/WorkerCard/HBoxContainer"]
+custom_minimum_size = Vector2(80, 36)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 13
+text = "İnşa Et"
+
 [node name="WatchtowerCard" type="PanelContainer" parent="UI/BuildMenu/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")

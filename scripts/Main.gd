@@ -342,7 +342,6 @@ func _ready() -> void:
 	if btn_frenzy: btn_frenzy.pressed.connect(trigger_mega_ad_boost)
 	
 	btn_close_build_menu.pressed.connect(close_build_menu)
-	btn_close_build_menu.pressed.connect(close_build_menu)
 	btn_build_corn.pressed.connect(_on_build_corn_pressed)
 	btn_build_windmill.pressed.connect(_on_build_windmill_pressed)
 	if btn_build_bakery: btn_build_bakery.pressed.connect(_on_build_bakery_pressed)
