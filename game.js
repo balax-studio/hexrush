@@ -1037,75 +1037,536 @@ function drawIsometricSea(time) {
   ctx.stroke();
 }
 
-// 🏗️ BİNA VE YAPILAR
+// 🏗️ 3D İZOMETRİK BİNA VE YAPILAR (GODOT İLE %100 BİREBİR DERİNLİK VE ANİMASYON)
+
 function drawBuilding(b, time) {
   if (b.type === "castle") {
-    // 3D Krallık Şatosu
-    ctx.fillStyle = "#64748b";
-    ctx.fillRect(-22, -28 * Y_SCALE, 44, 28 * Y_SCALE);
+    drawIsometricCastle(b.level || game.castleLevel, time);
+  } else if (b.type === "corn") {
+    drawIsometricCornField(b, time);
+  } else if (b.type === "windmill") {
+    drawIsometricWindmill(b, time);
+  } else if (b.type === "lumberjack") {
+    drawIsometricLumberjack(b, time);
+  } else if (b.type === "sawmill") {
+    drawIsometricSawmill(b, time);
+  } else if (b.type === "worker") {
+    drawIsometricWorkerHut(b, time);
+  }
+}
+
+// 🏰 3D Krallık Şatosu (Hisar, Çift Kuleler, Kiremit Çatılar, Meşaleler ve Dalgalanan Kraliyet Bayrağı)
+function drawIsometricCastle(level, time) {
+  // 1. Zemin Gölgesi
+  ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+  ctx.beginPath();
+  ctx.ellipse(3, 4 * Y_SCALE, 44, 26 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 2. Ana Şato Gövdesi (Taş Duvarlar)
+  const gw = 38;
+  const gh = 26 * Y_SCALE;
+  ctx.fillStyle = "#64748b"; // Sol aydınlık cephe
+  ctx.fillRect(-gw / 2, -gh, gw / 2, gh);
+  ctx.fillStyle = "#475569"; // Sağ gölge cephe
+  ctx.fillRect(0, -gh, gw / 2, gh);
+
+  // Taş derz çizgileri
+  ctx.strokeStyle = "#334155";
+  ctx.lineWidth = 1.0;
+  ctx.strokeRect(-gw / 2, -gh, gw, gh);
+
+  // 3. Ahşap & Demir Parmaklıklı Şato Kapısı
+  ctx.fillStyle = "#1e293b";
+  ctx.beginPath();
+  ctx.arc(0, -10 * Y_SCALE, 7, Math.PI, 0);
+  ctx.lineTo(7, 0);
+  ctx.lineTo(-7, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#78350f";
+  ctx.fillRect(-5, -9 * Y_SCALE, 10, 9 * Y_SCALE);
+  ctx.strokeStyle = "#0f172a";
+  ctx.lineWidth = 1.2;
+  ctx.strokeRect(-5, -9 * Y_SCALE, 10, 9 * Y_SCALE);
+
+  // 4. Yan Savunma Kuleleri (Sol ve Sağ)
+  const towers = [
+    { x: -22, y: -4 * Y_SCALE, w: 14, h: 32 * Y_SCALE },
+    { x: 22,  y: -4 * Y_SCALE, w: 14, h: 32 * Y_SCALE }
+  ];
+
+  towers.forEach(tw => {
+    // Sol aydınlık
     ctx.fillStyle = "#94a3b8";
-    ctx.fillRect(-18, -34 * Y_SCALE, 36, 10 * Y_SCALE);
+    ctx.fillRect(tw.x - tw.w / 2, tw.y - tw.h, tw.w / 2, tw.h);
+    // Sağ gölge
+    ctx.fillStyle = "#64748b";
+    ctx.fillRect(tw.x, tw.y - tw.h, tw.w / 2, tw.h);
 
     // Kule Burçları
-    ctx.fillStyle = "#334155";
-    ctx.fillRect(-24, -38 * Y_SCALE, 10, 16 * Y_SCALE);
-    ctx.fillRect(14, -38 * Y_SCALE, 10, 16 * Y_SCALE);
+    ctx.fillStyle = "#475569";
+    ctx.fillRect(tw.x - tw.w / 2 - 2, tw.y - tw.h - 4 * Y_SCALE, tw.w + 4, 4 * Y_SCALE);
 
-    // Altın Kraliyet Tacı & Bayrak
-    ctx.fillStyle = "#f59e0b";
-    ctx.font = "bold 16px Outfit, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("👑", 0, -36 * Y_SCALE);
-  } else if (b.type === "corn") {
-    // Mısır Tarlası
-    ctx.font = "22px Outfit, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("🌽", 0, -4 * Y_SCALE);
-  } else if (b.type === "windmill") {
-    // 3D Dönen Değirmen
-    ctx.fillStyle = "#e2e8f0";
+    // Konik Burgonya Kiremit Çatı
+    const roofH = 18 * Y_SCALE;
+    // Sol Kiremit Yüzeyi
+    ctx.fillStyle = "#ef4444";
     ctx.beginPath();
-    ctx.moveTo(-12, 0);
-    ctx.lineTo(12, 0);
-    ctx.lineTo(8, -32 * Y_SCALE);
-    ctx.lineTo(-8, -32 * Y_SCALE);
+    ctx.moveTo(tw.x - tw.w / 2 - 2, tw.y - tw.h - 4 * Y_SCALE);
+    ctx.lineTo(tw.x, tw.y - tw.h - 4 * Y_SCALE + 2);
+    ctx.lineTo(tw.x, tw.y - tw.h - 4 * Y_SCALE - roofH);
     ctx.closePath();
     ctx.fill();
 
-    // Dönen Kanatlar
-    const bladeAngle = time * 3.0;
-    ctx.save();
-    ctx.translate(0, -26 * Y_SCALE);
-    ctx.rotate(bladeAngle);
-    ctx.strokeStyle = "#92400e";
-    ctx.lineWidth = 2.5;
-    for (let i = 0; i < 4; i++) {
-      ctx.rotate(Math.PI / 2);
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(0, -18);
-      ctx.stroke();
-      ctx.fillStyle = "#fef08a";
-      ctx.fillRect(2, -18, 6, 12);
-    }
-    ctx.restore();
-  } else if (b.type === "lumberjack") {
-    // Oduncu Kulübesi
-    ctx.font = "22px Outfit, sans-serif";
+    // Sağ Kiremit Yüzeyi
+    ctx.fillStyle = "#b91c1c";
+    ctx.beginPath();
+    ctx.moveTo(tw.x, tw.y - tw.h - 4 * Y_SCALE + 2);
+    ctx.lineTo(tw.x + tw.w / 2 + 2, tw.y - tw.h - 4 * Y_SCALE);
+    ctx.lineTo(tw.x, tw.y - tw.h - 4 * Y_SCALE - roofH);
+    ctx.closePath();
+    ctx.fill();
+
+    // Altın Çatı Tepeliği
+    ctx.fillStyle = "#f59e0b";
+    ctx.beginPath();
+    ctx.arc(tw.x, tw.y - tw.h - 4 * Y_SCALE - roofH, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Kule Ok Pencereleri (Işıklı)
+    ctx.fillStyle = "#fef08a";
+    ctx.fillRect(tw.x - 1.5, tw.y - tw.h + 8 * Y_SCALE, 3, 5 * Y_SCALE);
+  });
+
+  // 5. Merkez Yüksek Başkule (Donjon)
+  const mw = 22;
+  const mh = 42 * Y_SCALE;
+  ctx.fillStyle = "#cbd5e1";
+  ctx.fillRect(-mw / 2, -mh, mw / 2, mh - gh);
+  ctx.fillStyle = "#94a3b8";
+  ctx.fillRect(0, -mh, mw / 2, mh - gh);
+
+  // Başkule Burç Çıkıntıları (Kreneller)
+  ctx.fillStyle = "#475569";
+  for (let i = -mw / 2; i < mw / 2; i += 6) {
+    ctx.fillRect(i, -mh - 4 * Y_SCALE, 4, 4 * Y_SCALE);
+  }
+
+  // Başkule Pencereleri (Sıcak Meşale Parıltısı)
+  ctx.fillStyle = "#fde047";
+  ctx.fillRect(-5, -mh + 6 * Y_SCALE, 3.5, 6 * Y_SCALE);
+  ctx.fillRect(2, -mh + 6 * Y_SCALE, 3.5, 6 * Y_SCALE);
+
+  // 6. Dalgalanan Altın Kraliyet Bayrağı & Flama
+  const flagPoleX = 0;
+  const flagPoleY = -mh - 4 * Y_SCALE;
+  const poleH = 22 * Y_SCALE;
+
+  // Bayrak Direği
+  ctx.strokeStyle = "#e2e8f0";
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  ctx.moveTo(flagPoleX, flagPoleY);
+  ctx.lineTo(flagPoleX, flagPoleY - poleH);
+  ctx.stroke();
+
+  // Direk Ucu Altın Küre
+  ctx.fillStyle = "#f59e0b";
+  ctx.beginPath();
+  ctx.arc(flagPoleX, flagPoleY - poleH, 2.8, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Canlı Dalgalanan Kırlangıç Flama
+  const wave1 = Math.sin(time * 4.5) * 3.5;
+  const wave2 = Math.sin(time * 4.5 + 1.2) * 4.0;
+  const flagTop = flagPoleY - poleH + 2;
+
+  ctx.fillStyle = "#f59e0b";
+  ctx.beginPath();
+  ctx.moveTo(flagPoleX, flagTop);
+  ctx.quadraticCurveTo(flagPoleX + 10, flagTop + wave1, flagPoleX + 22, flagTop + wave2);
+  ctx.lineTo(flagPoleX + 16, flagTop + 7 + wave2 * 0.8);
+  ctx.lineTo(flagPoleX + 22, flagTop + 14 + wave2);
+  ctx.quadraticCurveTo(flagPoleX + 10, flagTop + 12 + wave1, flagPoleX, flagTop + 12);
+  ctx.closePath();
+  ctx.fill();
+
+  // Flama Üzerinde Kraliyet Arması Kırmızısı
+  ctx.fillStyle = "#dc2626";
+  ctx.beginPath();
+  ctx.arc(flagPoleX + 7, flagTop + 6 + wave1 * 0.5, 2.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // İleri Kademe Şato Süsleri (Level 4+)
+  if (level >= 4) {
+    ctx.fillStyle = "#f59e0b";
+    ctx.font = "bold 13px Outfit, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("🪓", 0, -4 * Y_SCALE);
-  } else if (b.type === "sawmill") {
-    // Kereste Fabrikası
-    ctx.font = "22px Outfit, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("🪵", 0, -4 * Y_SCALE);
-  } else if (b.type === "worker") {
-    // İşçi Kulübesi
-    ctx.font = "22px Outfit, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("🛖", 0, -4 * Y_SCALE);
+    ctx.fillText("👑", 0, -mh - 26 * Y_SCALE);
   }
 }
+
+// 🌽 3D Karıklı, Çitli ve Rüzgarda Salınan Mısır Tarlası
+function drawIsometricCornField(b, time) {
+  // 1. Zemin Gölgesi ve Sürülmüş Toprak Tabanı
+  ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 42, 26 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 2. Sürülmüş Tarla Karıkları (Plowed Soil Furrows)
+  const ridges = 5;
+  const rWidth = 46;
+  const rDepth = 32 * Y_SCALE;
+
+  for (let i = 0; i < ridges; i++) {
+    const t = i / (ridges - 1);
+    const zOffset = (-rDepth * 0.5) + (rDepth * t);
+
+    // Çukur Gölgesi
+    ctx.strokeStyle = "#3e2723";
+    ctx.lineWidth = 4.5 * Y_SCALE;
+    ctx.beginPath();
+    ctx.moveTo(-rWidth * 0.48, zOffset);
+    ctx.lineTo(rWidth * 0.48, zOffset);
+    ctx.stroke();
+
+    // Güneş Vuran Toprak Tepesi
+    ctx.strokeStyle = "#795548";
+    ctx.lineWidth = 2.2 * Y_SCALE;
+    ctx.beginPath();
+    ctx.moveTo(-rWidth * 0.46, zOffset - 1.5 * Y_SCALE);
+    ctx.lineTo(rWidth * 0.46, zOffset - 1.5 * Y_SCALE);
+    ctx.stroke();
+  }
+
+  // 3. Ahşap Köşe Çitleri
+  const posts = [
+    { x: -32, y: -14 * Y_SCALE },
+    { x: 32,  y: -14 * Y_SCALE },
+    { x: -34, y: 12 * Y_SCALE },
+    { x: 34,  y: 12 * Y_SCALE }
+  ];
+
+  posts.forEach(p => {
+    ctx.fillStyle = "#8d6e63";
+    ctx.fillRect(p.x - 1.8, p.y - 8 * Y_SCALE, 3.6, 8 * Y_SCALE);
+    ctx.fillStyle = "#d7ccc8";
+    ctx.fillRect(p.x - 1.8, p.y - 9 * Y_SCALE, 3.6, 1.5 * Y_SCALE);
+  });
+
+  // Çit Yatay Tahtaları
+  ctx.strokeStyle = "#6d4c41";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(-32, -18 * Y_SCALE);
+  ctx.lineTo(32, -18 * Y_SCALE);
+  ctx.stroke();
+
+  // 4. Canlı Rüzgarda Salınan Mısır Sapları & Koçanları
+  const stalks = [
+    { x: -20, y: -10 * Y_SCALE, sc: 0.90 },
+    { x: 0,   y: -14 * Y_SCALE, sc: 0.95 },
+    { x: 20,  y: -11 * Y_SCALE, sc: 0.92 },
+    { x: -14, y: 0,             sc: 1.08 },
+    { x: 12,  y: -2 * Y_SCALE,  sc: 1.05 },
+    { x: -22, y: 10 * Y_SCALE,  sc: 0.95 },
+    { x: -2,  y: 12 * Y_SCALE,  sc: 1.12 },
+    { x: 18,  y: 9 * Y_SCALE,   sc: 1.02 }
+  ];
+  stalks.sort((a, b) => a.y - b.y);
+
+  stalks.forEach((st, idx) => {
+    const sway = Math.sin(time * 3.2 + idx * 0.85) * (2.8 * st.sc);
+    const stalkH = 22 * st.sc * Y_SCALE;
+
+    // Yeşil Sap
+    ctx.strokeStyle = "#16a34a";
+    ctx.lineWidth = 2.4 * st.sc;
+    ctx.beginPath();
+    ctx.moveTo(st.x, st.y);
+    ctx.quadraticCurveTo(st.x + sway * 0.5, st.y - stalkH * 0.5, st.x + sway, st.y - stalkH);
+    ctx.stroke();
+
+    // Açılan Mısır Yaprakları
+    ctx.strokeStyle = "#4ade80";
+    ctx.lineWidth = 1.8 * st.sc;
+    // Sol Yaprak
+    ctx.beginPath();
+    ctx.moveTo(st.x + sway * 0.3, st.y - stalkH * 0.35);
+    ctx.quadraticCurveTo(st.x - 7 * st.sc, st.y - stalkH * 0.45, st.x - 9 * st.sc + sway, st.y - stalkH * 0.2);
+    ctx.stroke();
+    // Sağ Yaprak
+    ctx.beginPath();
+    ctx.moveTo(st.x + sway * 0.6, st.y - stalkH * 0.65);
+    ctx.quadraticCurveTo(st.x + 8 * st.sc, st.y - stalkH * 0.75, st.x + 10 * st.sc + sway, st.y - stalkH * 0.5);
+    ctx.stroke();
+
+    // 🌽 Olgun Altın Sarısı Mısır Koçanı
+    const cobX = st.x + sway * 0.55 + 2 * st.sc;
+    const cobY = st.y - stalkH * 0.55;
+    ctx.fillStyle = "#eab308";
+    ctx.beginPath();
+    ctx.ellipse(cobX, cobY, 3.2 * st.sc, 6.5 * st.sc * Y_SCALE, Math.PI / 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Mısır Püskülü (Tassel)
+    ctx.strokeStyle = "#ca8a04";
+    ctx.lineWidth = 1.2 * st.sc;
+    ctx.beginPath();
+    ctx.moveTo(st.x + sway, st.y - stalkH);
+    ctx.lineTo(st.x + sway - 2 * st.sc, st.y - stalkH - 4 * Y_SCALE);
+    ctx.moveTo(st.x + sway, st.y - stalkH);
+    ctx.lineTo(st.x + sway + 2 * st.sc, st.y - stalkH - 4.5 * Y_SCALE);
+    ctx.stroke();
+  });
+
+  // 5. Sevimli Tarla Korkuluğu (Scarecrow)
+  const scX = 26;
+  const scY = 2 * Y_SCALE;
+  // Direk
+  ctx.strokeStyle = "#5d4037";
+  ctx.lineWidth = 2.0;
+  ctx.beginPath();
+  ctx.moveTo(scX, scY);
+  ctx.lineTo(scX, scY - 18 * Y_SCALE);
+  ctx.moveTo(scX - 6, scY - 12 * Y_SCALE);
+  ctx.lineTo(scX + 6, scY - 12 * Y_SCALE);
+  ctx.stroke();
+  // Mavi Gömlek
+  ctx.fillStyle = "#2563eb";
+  ctx.fillRect(scX - 3.5, scY - 14 * Y_SCALE, 7, 7 * Y_SCALE);
+  // Saman Baş ve Şapka
+  ctx.fillStyle = "#fef08a";
+  ctx.beginPath();
+  ctx.arc(scX, scY - 16 * Y_SCALE, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#b45309";
+  ctx.fillRect(scX - 4.5, scY - 19 * Y_SCALE, 9, 2.5 * Y_SCALE);
+  ctx.fillRect(scX - 2.5, scY - 22 * Y_SCALE, 5, 3.5 * Y_SCALE);
+
+  // 6. Hasat Bekleyen Doluluk Göstergesi (Floating Harvest Glow)
+  const accum = b.accumulated || 0;
+  if (accum > 0.5) {
+    const floatOffset = Math.sin(time * 3.0) * 3.0;
+    ctx.fillStyle = "rgba(234, 179, 8, 0.92)";
+    ctx.beginPath();
+    ctx.arc(0, -32 * Y_SCALE + floatOffset, 11, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = "#000000";
+    ctx.font = "bold 11px Outfit, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("🌽", 0, -28 * Y_SCALE + floatOffset);
+  }
+}
+
+// 🌾 3D Dönen Değirmen (Taş Gövde, Ahşap Çatı ve Kanatlar)
+function drawIsometricWindmill(b, time) {
+  // Zemin Gölgesi
+  ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+  ctx.beginPath();
+  ctx.ellipse(2, 2 * Y_SCALE, 26, 16 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Taş Gövde (Sol Aydınlık, Sağ Gölge)
+  ctx.fillStyle = "#cbd5e1";
+  ctx.beginPath();
+  ctx.moveTo(-12, 0);
+  ctx.lineTo(0, 2 * Y_SCALE);
+  ctx.lineTo(0, -32 * Y_SCALE);
+  ctx.lineTo(-8, -32 * Y_SCALE);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#94a3b8";
+  ctx.beginPath();
+  ctx.moveTo(0, 2 * Y_SCALE);
+  ctx.lineTo(12, 0);
+  ctx.lineTo(8, -32 * Y_SCALE);
+  ctx.lineTo(0, -32 * Y_SCALE);
+  ctx.closePath();
+  ctx.fill();
+
+  // Kapı
+  ctx.fillStyle = "#78350f";
+  ctx.fillRect(-3, -8 * Y_SCALE, 6, 8 * Y_SCALE);
+
+  // Konik Ahşap Çatı
+  ctx.fillStyle = "#b45309";
+  ctx.beginPath();
+  ctx.moveTo(-11, -32 * Y_SCALE);
+  ctx.lineTo(11, -32 * Y_SCALE);
+  ctx.lineTo(0, -46 * Y_SCALE);
+  ctx.closePath();
+  ctx.fill();
+
+  // Dönen 4 Yelken Kanadı
+  const bladeAngle = time * 3.2;
+  const hubY = -34 * Y_SCALE;
+
+  ctx.save();
+  ctx.translate(0, hubY);
+  ctx.rotate(bladeAngle);
+
+  for (let i = 0; i < 4; i++) {
+    ctx.rotate(Math.PI / 2);
+    // Ahşap Kol
+    ctx.strokeStyle = "#5c3d22";
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, -22);
+    ctx.stroke();
+
+    // Beyaz Keten Yelken Bezi
+    ctx.fillStyle = "rgba(254, 240, 138, 0.9)";
+    ctx.fillRect(2, -21, 7, 14);
+    ctx.strokeStyle = "#ca8a04";
+    ctx.lineWidth = 0.8;
+    ctx.strokeRect(2, -21, 7, 14);
+  }
+
+  // Merkez Göbek
+  ctx.fillStyle = "#1e293b";
+  ctx.beginPath();
+  ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+// 🪓 3D Oduncu Kulübesi (Kütük Ev, Odun Yığınları ve Baltalı Kütük)
+function drawIsometricLumberjack(b, time) {
+  // Zemin Gölgesi
+  ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 32, 18 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Kütük Duvarlar
+  ctx.fillStyle = "#854d0e";
+  ctx.fillRect(-18, -18 * Y_SCALE, 18, 18 * Y_SCALE);
+  ctx.fillStyle = "#713f12";
+  ctx.fillRect(0, -18 * Y_SCALE, 18, 18 * Y_SCALE);
+
+  // Üçgen Kiremit Çatı
+  ctx.fillStyle = "#a16207";
+  ctx.beginPath();
+  ctx.moveTo(-22, -18 * Y_SCALE);
+  ctx.lineTo(22, -18 * Y_SCALE);
+  ctx.lineTo(0, -32 * Y_SCALE);
+  ctx.closePath();
+  ctx.fill();
+
+  // Taş Baca & Duman
+  ctx.fillStyle = "#64748b";
+  ctx.fillRect(10, -30 * Y_SCALE, 5, 12 * Y_SCALE);
+  const smoke = Math.sin(time * 3.0) * 3.0;
+  ctx.fillStyle = "rgba(226, 232, 240, 0.6)";
+  ctx.beginPath();
+  ctx.arc(12 + smoke, -34 * Y_SCALE, 3, 0, Math.PI * 2);
+  ctx.arc(14 + smoke * 1.5, -39 * Y_SCALE, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Baltalı Ağaç Kütüğü
+  ctx.fillStyle = "#d97706";
+  ctx.fillRect(-22, -4 * Y_SCALE, 8, 5 * Y_SCALE);
+  ctx.strokeStyle = "#e2e8f0";
+  ctx.lineWidth = 2.0;
+  ctx.beginPath();
+  ctx.moveTo(-18, -4 * Y_SCALE);
+  ctx.lineTo(-14, -11 * Y_SCALE);
+  ctx.stroke();
+
+  // Odun Yığınları
+  ctx.fillStyle = "#b45309";
+  ctx.beginPath();
+  ctx.arc(18, -2 * Y_SCALE, 3.5, 0, Math.PI * 2);
+  ctx.arc(24, -2 * Y_SCALE, 3.5, 0, Math.PI * 2);
+  ctx.arc(21, -6 * Y_SCALE, 3.5, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// 🪵 3D Kereste Fabrikası (Hızar Testeresi & Kalas Yığınları)
+function drawIsometricSawmill(b, time) {
+  // Zemin Gölgesi
+  ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 34, 20 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Atölye Ahşap İskeleti
+  ctx.fillStyle = "#78350f";
+  ctx.fillRect(-18, -14 * Y_SCALE, 36, 14 * Y_SCALE);
+  ctx.fillStyle = "#92400e";
+  ctx.fillRect(-22, -26 * Y_SCALE, 44, 12 * Y_SCALE);
+
+  // Dönen Çelik Hızar Testeresi
+  const sawSpin = time * 12.0;
+  ctx.save();
+  ctx.translate(-2, -6 * Y_SCALE);
+  ctx.rotate(sawSpin);
+  ctx.fillStyle = "#e2e8f0";
+  ctx.beginPath();
+  ctx.arc(0, 0, 7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "#94a3b8";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+
+  // Kesilmiş Kereste Kalas Yığınları
+  ctx.fillStyle = "#fde68a";
+  ctx.fillRect(12, -4 * Y_SCALE, 14, 3 * Y_SCALE);
+  ctx.fillRect(14, -8 * Y_SCALE, 12, 3 * Y_SCALE);
+  ctx.fillRect(13, -12 * Y_SCALE, 13, 3 * Y_SCALE);
+  ctx.strokeStyle = "#d97706";
+  ctx.lineWidth = 0.8;
+  ctx.strokeRect(12, -4 * Y_SCALE, 14, 3 * Y_SCALE);
+  ctx.strokeRect(14, -8 * Y_SCALE, 12, 3 * Y_SCALE);
+}
+
+// 🛖 3D İşçi Kulübesi (Saman Çatılı Kulübe, Taş Baca ve El Arabası)
+function drawIsometricWorkerHut(b, time) {
+  // Zemin Gölgesi
+  ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 30, 18 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Kil/Taş Duvarlar
+  ctx.fillStyle = "#e2e8f0";
+  ctx.fillRect(-15, -16 * Y_SCALE, 30, 16 * Y_SCALE);
+
+  // Sarı Saman Çatı
+  ctx.fillStyle = "#eab308";
+  ctx.beginPath();
+  ctx.moveTo(-19, -16 * Y_SCALE);
+  ctx.lineTo(19, -16 * Y_SCALE);
+  ctx.lineTo(0, -30 * Y_SCALE);
+  ctx.closePath();
+  ctx.fill();
+
+  // Kapı & Pencere
+  ctx.fillStyle = "#78350f";
+  ctx.fillRect(-4, -8 * Y_SCALE, 8, 8 * Y_SCALE);
+  ctx.fillStyle = "#fde047";
+  ctx.fillRect(7, -12 * Y_SCALE, 4, 4 * Y_SCALE);
+
+  // Tüten Baca Dumanı
+  const smoke = Math.sin(time * 3.5) * 3.0;
+  ctx.fillStyle = "rgba(203, 213, 225, 0.7)";
+  ctx.beginPath();
+  ctx.arc(-8 + smoke, -32 * Y_SCALE, 3, 0, Math.PI * 2);
+  ctx.arc(-10 + smoke * 1.5, -37 * Y_SCALE, 4.5, 0, Math.PI * 2);
+  ctx.fill();
+}
+
 
 // =============================================================================
 // 7. OYUN DÖNGÜSÜ & EKONOMİ (PROCESS & FACTORIES)
