@@ -225,7 +225,7 @@ var sound_manager: SoundManager
 
 # Oyun Durumu (Game State)
 var food: float = 1.0
-var wood: float = 0.0
+var wood: float = 1.0
 var flour: float = 0.0
 var plank: float = 0.0
 var bread: float = 0.0
@@ -418,7 +418,7 @@ func _load_from_dict(d: Dictionary) -> void:
 	if d.has("resources"):
 		var r = d["resources"]
 		food = float(r.get("food", 1.0))
-		wood = float(r.get("wood", 0.0))
+		wood = float(r.get("wood", 1.0))
 		flour = float(r.get("flour", 0.0))
 		plank = float(r.get("plank", 0.0))
 		bread = float(r.get("bread", 0.0))
@@ -1846,7 +1846,7 @@ func _confirm_and_execute_prestige() -> void:
 	total_rebirths += 1
 	
 	food = 1.0
-	wood = 0.0
+	wood = 1.0
 	flour = 0.0
 	plank = 0.0
 	bread = 0.0

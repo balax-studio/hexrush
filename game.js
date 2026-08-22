@@ -631,7 +631,7 @@ const BIOMES = {
 class GameState {
   constructor() {
     this.food = 1.0;
-    this.wood = 0.0;
+    this.wood = 1.0;
     this.flour = 0.0;
     this.plank = 0.0;
     this.bread = 0.0;
@@ -2681,9 +2681,11 @@ function setupModalHandlers() {
 
     // Sıfırlama
     game.food = 1.0;
-    game.wood = 0.0;
+    game.wood = 1.0;
     game.flour = 0.0;
     game.plank = 0.0;
+    game.bread = 0.0;
+    game.furniture = 0.0;
     game.castleLevel = 1;
     game.initFreshMap();
 
@@ -2914,10 +2916,12 @@ function loadGame() {
     }
 
     currentLang = data.lang || "tr";
-    game.food = data.food || 1.0;
-    game.wood = data.wood || 0.0;
+    game.food = (data.food !== undefined) ? data.food : 1.0;
+    game.wood = (data.wood !== undefined) ? data.wood : 1.0;
     game.flour = data.flour || 0.0;
     game.plank = data.plank || 0.0;
+    game.bread = data.bread || 0.0;
+    game.furniture = data.furniture || 0.0;
     game.crowns = data.crowns || 0;
     game.totalRebirths = data.totalRebirths || 0;
     game.ownedCount = data.ownedCount || 1;
