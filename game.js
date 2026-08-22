@@ -50,6 +50,7 @@ const STRINGS = {
     // Menü Başlıkları
     build_title_meadow: "🌾 Çayır İnşaat Menüsü",
     build_title_forest: "🌲 Orman İnşaat Menüsü",
+    build_title_sea: "🌊 Deniz İnşaat Menüsü",
     settings_title: "⚙️ Ayarlar & Krallık Yönetimi",
     tab_general: "🌐 Genel & Ses",
     tab_stats: "📊 İstatistikler",
@@ -62,15 +63,21 @@ const STRINGS = {
     // İpuçları
     hint_castle_1: "Şatoyu Seviye 2'ye yükselterek Odunculuğun kilidini aç! (Gerekli: 6 🥡)",
     hint_castle_2: "Şatoyu Seviye 3'e yükselterek Değirmen & Kereste Fabrikasını aç! (18 🥡 + 10 🪵)",
-    hint_expand: "Yeni altıgen fethet: 1 🥡 Gıda | Fabrikalarla katma değerli ürün üret!",
+    hint_expand: "Yeni altıgen fethet: Üstel maliyet | Fabrikalarla katma değerli ürün üret!",
     hint_no_food: "Gıda tükendi! Mısır tarlalarını hasat et veya işçi kulübesi kur.",
     
+    // Binalar
+    bridge_name: "Ahşap Köprü",
+    bridge_desc: "Açık deniz geçişini sağlar ve komşu karalara ulaşım açar.",
+
     // Toastlar
     toast_free_tile: "✨ İlk arsanı ÜCRETSİZ fethettin! (+1 Toprak)",
-    toast_buy_tile: "🏰 1 🥡 Gıda karşılığında yeni arsa fethedildi! (+1 Toprak)",
+    toast_buy_tile: "🏰 {0} 🥡 Gıda karşılığında yeni arsa fethedildi! (+1 Toprak)",
     toast_mountain_conquered: "🏔️ Dağ Fethedildi! Arkasındaki 1 birim sınırındaki tüm araziler açığa çıkarıldı.",
     toast_mountain_info: "🏔️ Fethedilmiş Dağ Zirvesi. Çevredeki tüm topraklar görüş alanında.",
-    toast_no_food_tile: "⚠️ Yetersiz Gıda! Yeni altıgen açmak için 1 🥡 Gıda gerekli.",
+    toast_no_food_tile: "⚠️ Yetersiz Gıda! Yeni altıgen açmak için {0} 🥡 Gıda gerekli.",
+    toast_need_bridge: "⚠️ Açık Deniz Engeli! Denizden geçiş için önce bu deniz karosuna köprü inşa etmelisin.",
+    toast_bridge_need_land: "⚠️ Köprü inşa etmek için en az 1 komşu kara parçası gereklidir.",
     toast_forest_locked: "🔒 Orman Kilitli! Odunculuk için Şatoyu Seviye 2'ye yükselt.",
     toast_no_build_biome: "ℹ️ Bu biyomda henüz inşa edilebilir yapı bulunmuyor.",
     toast_built_corn: "🌽 Mısır Tarlası inşa edildi!",
@@ -78,6 +85,7 @@ const STRINGS = {
     toast_built_lumberjack: "🪓 Oduncu Kulübesi kuruldu! Odun üretimi başladı.",
     toast_built_sawmill: "🪵 Kereste Fabrikası kuruldu! Kalas üretimi başladı.",
     toast_built_worker: "🛖 İşçi Kulübesi kuruldu! Otomatik taşıma başladı.",
+    toast_built_bridge: "🌉 Köprü inşa edildi! Deniz ötesi kara fethine açıldı.",
     toast_collected_food: "🥡 +{0} Gıda ambarına eklendi!",
     toast_collected_wood: "🪵 +{0} Odun kereste ambarına eklendi!",
     toast_collected_flour: "🌾 +{0} Un ambarına eklendi!",
@@ -659,6 +667,11 @@ class GameState {
     return this.getCastleMultiplier() * this.getPrestigeMultiplier();
   }
 
+  getLandExpansionCost() {
+    if (this.purchasedTilesCount === 0) return 0;
+    return Math.max(1, Math.floor(1.0 * Math.pow(1.18, this.purchasedTilesCount - 1)));
+  }
+
   getCareerTotalResources() {
     return this.statTotalFood + this.statTotalWood + this.statTotalFlour + this.statTotalPlank;
   }
@@ -1052,6 +1065,78 @@ function drawBuilding(b, time) {
     drawIsometricSawmill(b, time);
   } else if (b.type === "worker") {
     drawIsometricWorkerHut(b, time);
+  } else if (b.type === "bridge") {
+    drawIsometricBridge(b, time);
+  }
+}
+
+// 🌉 3D Ahşap Kazıklı ve Korkuluklu Köprü
+function drawIsometricBridge(b, time) {
+  // Su Üzerindeki Gölge
+  ctx.fillStyle = "rgba(8, 28, 44, 0.45)";
+  ctx.beginPath();
+  ctx.ellipse(2, 3 * Y_SCALE, 26, 16 * Y_SCALE, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Suya Çakılı 4 Ahşap Kazık
+  const pillars = [
+    { x: -22, y: -10 * Y_SCALE },
+    { x: 22,  y: -10 * Y_SCALE },
+    { x: -22, y: 10 * Y_SCALE },
+    { x: 22,  y: 10 * Y_SCALE }
+  ];
+  pillars.forEach(p => {
+    ctx.fillStyle = "#5c3d22";
+    ctx.fillRect(p.x - 2.5, p.y - 6 * Y_SCALE, 5, 12 * Y_SCALE);
+    // Su Halka Dalgası
+    ctx.strokeStyle = "rgba(147, 197, 253, 0.5)";
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y + 6 * Y_SCALE, 3, 0, Math.PI * 2);
+    ctx.stroke();
+  });
+
+  // Ana Ahşap Kalaslar Platformu
+  const numPlanks = 7;
+  const bridgeW = 46;
+  const bridgeH = 24 * Y_SCALE;
+
+  for (let i = 0; i < numPlanks; i++) {
+    const t = i / (numPlanks - 1);
+    const xPos = -bridgeW * 0.5 + bridgeW * t;
+    ctx.fillStyle = (i % 2 === 0) ? "#d4a373" : "#b07d4b";
+    ctx.fillRect(xPos - 2.5, -bridgeH * 0.5, 4.5, bridgeH);
+    ctx.strokeStyle = "#5c3d22";
+    ctx.lineWidth = 0.8;
+    ctx.strokeRect(xPos - 2.5, -bridgeH * 0.5, 4.5, bridgeH);
+  }
+
+  // Yan Güvenlik Korkulukları
+  ctx.strokeStyle = "#5c3d22";
+  ctx.lineWidth = 2.4;
+  // Üst Korkuluk
+  ctx.beginPath();
+  ctx.moveTo(-bridgeW * 0.5, -bridgeH * 0.5 - 4 * Y_SCALE);
+  ctx.lineTo(bridgeW * 0.5, -bridgeH * 0.5 - 4 * Y_SCALE);
+  ctx.stroke();
+  // Alt Korkuluk
+  ctx.beginPath();
+  ctx.moveTo(-bridgeW * 0.5, bridgeH * 0.5 - 1 * Y_SCALE);
+  ctx.lineTo(bridgeW * 0.5, bridgeH * 0.5 - 1 * Y_SCALE);
+  ctx.stroke();
+
+  // Korkuluk Dikmeleri
+  for (let i = 0; i < 4; i++) {
+    const t = i / 3;
+    const xPos = -bridgeW * 0.45 + bridgeW * 0.9 * t;
+    ctx.strokeStyle = "#d4a373";
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(xPos, -bridgeH * 0.5);
+    ctx.lineTo(xPos, -bridgeH * 0.5 - 6 * Y_SCALE);
+    ctx.moveTo(xPos, bridgeH * 0.5 - 3 * Y_SCALE);
+    ctx.lineTo(xPos, bridgeH * 0.5 + 2 * Y_SCALE);
+    ctx.stroke();
   }
 }
 
@@ -1797,8 +1882,36 @@ function setupInputHandlers() {
 
 function handleTileClick(tile) {
   if (tile.state === "DISCOVERED") {
-    // Arsa Satın Alma / Fethetme
-    const cost = game.purchasedTilesCount === 0 ? 0 : 1;
+    // Deniz ve Köprü Geçiş Kontrolü:
+    const neighbors = NEIGHBOR_DIRS.map(d => `${tile.q + d.q},${tile.r + d.r}`);
+    let hasValidAccess = false;
+    let blockedByUnbridgedSea = false;
+
+    for (const nKey of neighbors) {
+      const nTile = game.tiles[nKey];
+      if (nTile && nTile.state === "OWNED") {
+        if (nTile.biome !== BIOMES.SEA) {
+          hasValidAccess = true;
+          break;
+        } else {
+          if (nTile.building && nTile.building.type === "bridge") {
+            hasValidAccess = true;
+            break;
+          } else {
+            blockedByUnbridgedSea = true;
+          }
+        }
+      }
+    }
+
+    if (!hasValidAccess) {
+      audio.playError();
+      showToast(t("toast_need_bridge"), true);
+      return;
+    }
+
+    // Arsa Satın Alma / Fethetme (Üstel Artan Maliyet)
+    const cost = game.getLandExpansionCost();
     if (game.food >= cost) {
       game.food -= cost;
       game.purchasedTilesCount += 1;
@@ -1815,11 +1928,11 @@ function handleTileClick(tile) {
       } else if (cost === 0) {
         showToast(t("toast_free_tile"));
       } else {
-        showToast(t("toast_buy_tile"));
+        showToast(t("toast_buy_tile").replace("%d", cost).replace("1", cost));
       }
     } else {
       audio.playError();
-      showToast(t("toast_no_food_tile"), true);
+      showToast(t("toast_no_food_tile").replace("%d", cost).replace("1", cost), true);
     }
   } else if (tile.state === "OWNED") {
     // Sahipli arsa etkileşimi
@@ -1834,13 +1947,30 @@ function handleTileClick(tile) {
         } else {
           openBuildMenu(tile);
         }
+      } else if (tile.biome === BIOMES.SEA) {
+        // Deniz karosuna köprü inşa edebilmek için en az 1 komşu kara parçası olmalı
+        const neighbors = NEIGHBOR_DIRS.map(d => `${tile.q + d.q},${tile.r + d.r}`);
+        const hasAdjacentLand = neighbors.some(nKey => {
+          const nTile = game.tiles[nKey];
+          return nTile && nTile.biome !== BIOMES.SEA;
+        });
+        if (hasAdjacentLand) {
+          openBuildMenu(tile);
+        } else {
+          audio.playError();
+          showToast(t("toast_bridge_need_land"), true);
+        }
       } else if (tile.biome === BIOMES.MOUNTAIN) {
         showToast(t("toast_mountain_info"));
       } else {
         showToast(t("toast_no_build_biome"));
       }
     } else {
-      openBuildingMenu(tile);
+      if (tile.building.type === "bridge") {
+        showToast("🌉 Ahşap Köprü. Açık deniz geçişi ve kara bağlantısı aktif.");
+      } else {
+        openBuildingMenu(tile);
+      }
     }
   }
 }
@@ -1888,7 +2018,12 @@ function updateUI() {
 function openBuildMenu(tile) {
   audio.playClick();
   const isMeadow = (tile.biome === BIOMES.MEADOW);
-  menuTitle.textContent = isMeadow ? t("build_title_meadow") : t("build_title_forest");
+  const isForest = (tile.biome === BIOMES.FOREST);
+  const isSea = (tile.biome === BIOMES.SEA);
+
+  if (isMeadow) menuTitle.textContent = t("build_title_meadow");
+  else if (isForest) menuTitle.textContent = t("build_title_forest");
+  else if (isSea) menuTitle.textContent = t("build_title_sea");
 
   let html = "";
   if (isMeadow) {
@@ -1930,7 +2065,7 @@ function openBuildMenu(tile) {
         </div>
       </div>
     `;
-  } else {
+  } else if (isForest) {
     // 1. Oduncu Kulübesi
     const lumberCount = Object.values(game.tiles).filter(t => t.building && t.building.type === "lumberjack").length;
     const lumberCost = lumberCount === 0 ? 2 : 2 + lumberCount * 2;
@@ -1969,27 +2104,47 @@ function openBuildMenu(tile) {
         </div>
       </div>
     `;
-  }
-
-  // 3. İşçi Kulübesi Kartı (Her biyomda yapılabilir)
-  const workerCount = Object.values(game.tiles).filter(t => t.building && t.building.type === "worker").length;
-  const workerCost = workerCount === 0 ? 0 : 3;
-  const canWorker = game.food >= workerCost;
-  html += `
-    <div class="build-card">
-      <div class="build-card-info">
-        <span class="build-card-icon">🛖</span>
-        <div class="build-card-text">
-          <h4>${t("worker_name")}</h4>
-          <p>${t("worker_desc")}</p>
+  } else if (isSea) {
+    // 1. Ahşap Köprü Kartı (Deniz Üzerine)
+    const canBridge = game.wood >= 4;
+    html += `
+      <div class="build-card">
+        <div class="build-card-info">
+          <span class="build-card-icon">🌉</span>
+          <div class="build-card-text">
+            <h4>${t("bridge_name")}</h4>
+            <p>${t("bridge_desc")}</p>
+          </div>
+        </div>
+        <div class="build-card-action">
+          <span class="cost-tag ${canBridge ? '' : 'cant-afford'}">4 🪵</span>
+          <button class="btn-primary" onclick="buildOnSelected('bridge', 0, 4)">${t("build_btn")}</button>
         </div>
       </div>
-      <div class="build-card-action">
-        <span class="cost-tag ${canWorker ? '' : 'cant-afford'}">${workerCost === 0 ? t("free") : workerCost + " 🥡"}</span>
-        <button class="btn-primary" onclick="buildOnSelected('worker', ${workerCost})">${t("build_btn")}</button>
+    `;
+  }
+
+  // 3. İşçi Kulübesi Kartı (Çayır ve Ormanda yapılabilir)
+  if (!isSea) {
+    const workerCount = Object.values(game.tiles).filter(t => t.building && t.building.type === "worker").length;
+    const workerCost = workerCount === 0 ? 0 : 3;
+    const canWorker = game.food >= workerCost;
+    html += `
+      <div class="build-card">
+        <div class="build-card-info">
+          <span class="build-card-icon">🛖</span>
+          <div class="build-card-text">
+            <h4>${t("worker_name")}</h4>
+            <p>${t("worker_desc")}</p>
+          </div>
+        </div>
+        <div class="build-card-action">
+          <span class="cost-tag ${canWorker ? '' : 'cant-afford'}">${workerCost === 0 ? t("free") : workerCost + " 🥡"}</span>
+          <button class="btn-primary" onclick="buildOnSelected('worker', ${workerCost})">${t("build_btn")}</button>
+        </div>
       </div>
-    </div>
-  `;
+    `;
+  }
 
   menuContent.innerHTML = html;
   bottomMenu.classList.remove("hidden");
@@ -2020,6 +2175,7 @@ window.buildOnSelected = function(bType, foodCost = 0, woodCost = 0) {
   else if (bType === 'lumberjack') showToast(t("toast_built_lumberjack"));
   else if (bType === 'sawmill') showToast(t("toast_built_sawmill"));
   else if (bType === 'worker') showToast(t("toast_built_worker"));
+  else if (bType === 'bridge') showToast(t("toast_built_bridge"));
 };
 
 function openBuildingMenu(tile) {

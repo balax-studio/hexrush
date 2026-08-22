@@ -51,6 +51,13 @@ extends Node2D
 @onready var worker_cost_badge: Label = $UI/BuildMenu/MarginContainer/VBoxContainer/WorkerCard/HBoxContainer/CostBadge
 @onready var btn_build_worker: Button = $UI/BuildMenu/MarginContainer/VBoxContainer/WorkerCard/HBoxContainer/BuildButton
 
+# Köprü İnşaat Kartı
+@onready var bridge_card: PanelContainer = $UI/BuildMenu/MarginContainer/VBoxContainer/BridgeCard
+@onready var bridge_name_label: Label = $UI/BuildMenu/MarginContainer/VBoxContainer/BridgeCard/HBoxContainer/InfoVBox/NameLabel
+@onready var bridge_desc_label: Label = $UI/BuildMenu/MarginContainer/VBoxContainer/BridgeCard/HBoxContainer/InfoVBox/DescLabel
+@onready var bridge_cost_badge: Label = $UI/BuildMenu/MarginContainer/VBoxContainer/BridgeCard/HBoxContainer/CostBadge
+@onready var btn_build_bridge: Button = $UI/BuildMenu/MarginContainer/VBoxContainer/BridgeCard/HBoxContainer/BuildButton
+
 # Şato Krallık Yönetim Menüsü (Castle Menu)
 @onready var castle_menu: PanelContainer = $UI/CastleMenu
 @onready var castle_title_label: Label = $UI/CastleMenu/MarginContainer/VBoxContainer/HeaderRow/TitleLabel
@@ -181,6 +188,7 @@ extends Node2D
 @export var sawmill_scene: PackedScene = preload("res://scenes/Sawmill.tscn")
 @export var worker_hut_scene: PackedScene = preload("res://scenes/WorkerHut.tscn")
 @export var castle_scene: PackedScene = preload("res://scenes/Castle.tscn")
+@export var bridge_scene: PackedScene = preload("res://scenes/Bridge.tscn")
 
 # 10 Kademeli Şato Yükseltme Tablosu
 const CASTLE_UPGRADES = {
@@ -262,6 +270,7 @@ func _ready() -> void:
 	btn_build_lumberjack.pressed.connect(_on_build_lumberjack_pressed)
 	btn_build_sawmill.pressed.connect(_on_build_sawmill_pressed)
 	btn_build_worker.pressed.connect(_on_build_worker_pressed)
+	btn_build_bridge.pressed.connect(_on_build_bridge_pressed)
 	btn_close_build_menu.pressed.connect(close_build_menu)
 	
 	# Şato menüsü butonları
@@ -659,10 +668,45 @@ func _toggle_inventory_drawer() -> void:
 # ETKİLEŞİM & ARSA TIKLAMA
 # =============================================================================
 
-func _on_tile_clicked_discovered(_coord: Vector2i, tile: HexTile) -> void:
+func get_land_expansion_cost() -> int:
+	if purchased_tiles_count == 0:
+		return 0
+	return int(max(1.0, floor(1.0 * pow(1.18, float(purchased_tiles_count - 1)))))
+
+func _on_tile_clicked_discovered(coord: Vector2i, tile: HexTile) -> void:
 	close_all_menus()
 	
-	var cost: float = 0.0 if purchased_tiles_count == 0 else 1.0
+	# Deniz ve Köprü Geçiş Kontrolü:
+	# Karoya doğrudan bir kara arsasından veya köprü inşa edilmiş bir deniz arsasından ulaşılmalıdır.
+	var neighbors = HexMath.get_neighbors(coord)
+	var has_valid_access = false
+	var blocked_by_unbridged_sea = false
+	
+	for n_coord in neighbors:
+		if hex_grid.tiles.has(n_coord):
+			var n_tile: HexTile = hex_grid.tiles[n_coord]
+			if n_tile.state == HexTile.TileState.OWNED:
+				if n_tile.tile_type != HexTile.TileType.SEA:
+					# Normal bir kara karosuna (Çayır, Orman, Dağ) bağlı -> Geçiş serbest
+					has_valid_access = true
+					break
+				else:
+					# Bir deniz karosuna bağlı -> Üzerinde köprü var mı?
+					if n_tile.has_building() and (n_tile.building is Bridge or "bridge" in n_tile.building.name.to_lower()):
+						has_valid_access = true
+						break
+					else:
+						blocked_by_unbridged_sea = true
+						
+	if not has_valid_access:
+		sound_manager.play_error()
+		if blocked_by_unbridged_sea:
+			show_toast(Localization.tr_t("toast_need_bridge"), true)
+		else:
+			show_toast(Localization.tr_t("toast_need_bridge"), true)
+		return
+		
+	var cost: int = get_land_expansion_cost()
 	
 	if food >= cost:
 		food -= cost
@@ -677,13 +721,13 @@ func _on_tile_clicked_discovered(_coord: Vector2i, tile: HexTile) -> void:
 		
 		if tile.tile_type == HexTile.TileType.MOUNTAIN:
 			show_toast(Localization.tr_t("toast_mountain_conquered"))
-		elif cost == 0.0:
+		elif cost == 0:
 			show_toast(Localization.tr_t("toast_free_tile"))
 		else:
-			show_toast(Localization.tr_t("toast_buy_tile"))
+			show_toast(Localization.tr_t("toast_buy_tile", [cost]))
 	else:
 		sound_manager.play_error()
-		show_toast(Localization.tr_t("toast_no_food_tile"), true)
+		show_toast(Localization.tr_t("toast_no_food_tile", [cost]), true)
 
 func _on_tile_clicked_owned(_coord: Vector2i, tile: HexTile) -> void:
 	if not tile.has_building():
@@ -699,6 +743,23 @@ func _on_tile_clicked_owned(_coord: Vector2i, tile: HexTile) -> void:
 				close_all_menus()
 				selected_tile = tile
 				open_build_menu()
+		elif tile.tile_type == HexTile.TileType.SEA:
+			# Deniz karosuna köprü inşa edebilmek için en az 1 komşu kara karosu olmalı
+			var neighbors = HexMath.get_neighbors(tile.grid_coord)
+			var has_adjacent_land = false
+			for n_coord in neighbors:
+				if hex_grid.tiles.has(n_coord):
+					var n_tile: HexTile = hex_grid.tiles[n_coord]
+					if n_tile.tile_type != HexTile.TileType.SEA:
+						has_adjacent_land = true
+						break
+			if has_adjacent_land:
+				close_all_menus()
+				selected_tile = tile
+				open_build_menu()
+			else:
+				sound_manager.play_error()
+				show_toast(Localization.tr_t("toast_bridge_need_land"), true)
 		elif tile.tile_type == HexTile.TileType.MOUNTAIN:
 			show_toast(Localization.tr_t("toast_mountain_info"))
 		else:
@@ -774,6 +835,8 @@ func open_build_menu() -> void:
 		windmill_card.visible = true
 		lumberjack_card.visible = false
 		sawmill_card.visible = false
+		bridge_card.visible = false
+		worker_card.visible = true
 		
 		corn_name_label.text = Localization.tr_t("corn_name")
 		corn_desc_label.text = Localization.tr_t("corn_desc")
@@ -798,6 +861,8 @@ func open_build_menu() -> void:
 		windmill_card.visible = false
 		lumberjack_card.visible = true
 		sawmill_card.visible = true
+		bridge_card.visible = false
+		worker_card.visible = true
 		
 		lumberjack_name_label.text = Localization.tr_t("lumberjack_name")
 		lumberjack_desc_label.text = Localization.tr_t("lumberjack_desc")
@@ -816,13 +881,29 @@ func open_build_menu() -> void:
 			var can_afford_sm = (food >= 4 and wood >= 5)
 			sawmill_cost_badge.add_theme_color_override("font_color", Color(0.4, 0.95, 0.45) if can_afford_sm else Color(1.0, 0.45, 0.45))
 			btn_build_sawmill.disabled = false
+	elif selected_tile.tile_type == HexTile.TileType.SEA:
+		build_menu_title.text = Localization.tr_t("build_title_sea")
+		corn_card.visible = false
+		windmill_card.visible = false
+		lumberjack_card.visible = false
+		sawmill_card.visible = false
+		worker_card.visible = false
+		bridge_card.visible = true
+		
+		bridge_name_label.text = Localization.tr_t("bridge_name")
+		bridge_desc_label.text = Localization.tr_t("bridge_desc")
+		btn_build_bridge.text = Localization.tr_t("build_btn")
+		bridge_cost_badge.text = "4 🪵"
+		var can_afford_bridge = (wood >= 4)
+		bridge_cost_badge.add_theme_color_override("font_color", Color(0.4, 0.95, 0.45) if can_afford_bridge else Color(1.0, 0.45, 0.45))
+		btn_build_bridge.disabled = false
 	else:
 		return
 		
-	worker_card.visible = true
-	worker_name_label.text = Localization.tr_t("worker_name")
-	worker_desc_label.text = Localization.tr_t("worker_desc")
-	btn_build_worker.text = Localization.tr_t("build_btn")
+	if worker_card.visible:
+		worker_name_label.text = Localization.tr_t("worker_name")
+		worker_desc_label.text = Localization.tr_t("worker_desc")
+		btn_build_worker.text = Localization.tr_t("build_btn")
 	
 	var corn_cost = 0 if corn_fields_count == 0 else 2
 	var wood_cost = 2 if lumberjack_huts_count == 0 else 2 + (lumberjack_huts_count * 2)
@@ -852,6 +933,24 @@ func close_build_menu() -> void:
 	_menu_tween = create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	_menu_tween.tween_property(build_menu, "modulate:a", 0.0, 0.15)
 	_menu_tween.tween_callback(func(): build_menu.visible = false; selected_tile = null)
+
+func _on_build_bridge_pressed() -> void:
+	if not selected_tile or not is_instance_valid(selected_tile): return
+	var bridge_wood_cost = 4
+	if wood < bridge_wood_cost:
+		sound_manager.play_error()
+		show_toast(Localization.tr_t("toast_insufficient_res"), true)
+		return
+	wood -= bridge_wood_cost
+	var instance = bridge_scene.instantiate()
+	if instance and "y_scale" in instance: instance.y_scale = hex_grid.y_scale
+	if instance and "grid_coord" in instance: instance.grid_coord = selected_tile.grid_coord
+	selected_tile.set_building(instance)
+	sound_manager.play_build()
+	close_build_menu()
+	update_ui()
+	SaveManager.save_game(self)
+	show_toast(Localization.tr_t("toast_built_bridge"))
 
 func _on_build_corn_pressed() -> void:
 	if not selected_tile or not is_instance_valid(selected_tile): return
