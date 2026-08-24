@@ -1,9 +1,28 @@
+# Flutter & Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# IDE & OS
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+Thumbs.db
+
+# Screenshots & Archives
+*.png
+*.zip
+*.log
+*.tmp
+scratch/
+
+# Legacy Godot
 .godot/
 *.import
-*.tmp
-*.log
-.vscode/
-altıgen/
-altigen_web_surumu.zip
-altigen.vs1_tum_proje.zip
-scratch/

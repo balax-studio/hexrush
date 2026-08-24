@@ -1,54 +1,53 @@
-# Claude Code Game Studios -- Game Studio Agent Architecture
+# Hex Idle - Kingdom & Economy Game (Flutter / Dart 3.x)
 
-Indie game development managed through 49 coordinated Claude Code subagents.
-Each agent owns a specific domain, enforcing separation of concerns and quality.
+A high-performance, standalone isometric hexagonal idle kingdom and economy game built with **pure Flutter & Dart 3.x**.
 
 ## Technology Stack
 
-- **Engine**: [CHOOSE: Godot 4 / Unity / Unreal Engine 5]
-- **Language**: [CHOOSE: GDScript / C# / C++ / Blueprint]
-- **Version Control**: Git with trunk-based development
-- **Build System**: [SPECIFY after choosing engine]
-- **Asset Pipeline**: [SPECIFY after choosing engine]
-
-> **Note**: Engine-specialist agents exist for Godot, Unity, and Unreal with
-> dedicated sub-specialists. Use the set matching your engine.
+- **Framework**: Flutter 3.x / Dart 3.x (Clean Architecture: Core, Domain, Data, Presentation)
+- **Rendering**: Hardware-accelerated Flutter `CustomPainter` + `Canvas` (Pointy-top isometric hex grid)
+- **State Management**: `flutter_riverpod` (StateNotifier & AsyncNotifier)
+- **Local Persistence**: `shared_preferences` (JSON Save State with offline earnings simulation)
+- **Localization**: TR, EN, ES, DE multi-language engine
+- **Audio**: `audioplayers` sound effects and ambient BGM
 
 ## Project Structure
 
-@.claude/docs/directory-structure.md
+```
+lib/
+├── core/
+│   ├── hex/             # HexAxial coordinates & HexMath calculations
+│   ├── localization/    # Multi-language string tables
+│   └── theme/           # Dark fantasy palette & typography
+├── domain/
+│   ├── economy/         # EconomyCalculator, multi-tier multipliers, seasons
+│   └── models/          # HexTileModel, BuildingModel, GameStateModel
+├── data/
+│   └── save_repository.dart # Local storage & JSON serialization
+└── presentation/
+    ├── canvas/          # HexGridPainter & HexInteractiveMap (pan/zoom/hit-test)
+    ├── providers/       # GameStateNotifier & game loop ticker
+    ├── screens/         # GameScreen scaffold
+    └── widgets/         # TopBarHUD, TileActionSheet, ToastOverlay, SettingsDialog
+test/
+├── hex_math_test.dart
+├── economy_calculator_test.dart
+├── game_state_test.dart
+└── widget_test.dart
+```
 
-## Engine Version Reference
+## Running & Testing
 
-@docs/engine-reference/godot/VERSION.md
+```bash
+# Run Unit & Widget Tests
+flutter test
 
-## Technical Preferences
+# Run Locally on Web
+flutter run -d chrome
 
-@.claude/docs/technical-preferences.md
+# Run on Desktop (Windows)
+flutter run -d windows
 
-## Coordination Rules
-
-@.claude/docs/coordination-rules.md
-
-## Collaboration Protocol
-
-**User-driven collaboration, not autonomous execution.**
-Every task follows: **Question -> Options -> Decision -> Draft -> Approval**
-
-- Agents MUST ask "May I write this to [filepath]?" before using Write/Edit tools
-- Agents MUST show drafts or summaries before requesting approval
-- Multi-file changes require explicit approval for the full changeset
-- No commits without user instruction
-
-See `docs/COLLABORATIVE-DESIGN-PRINCIPLE.md` for full protocol and examples.
-
-> **First session?** If the project has no engine configured and no game concept,
-> run `/start` to begin the guided onboarding flow.
-
-## Coding Standards
-
-@.claude/docs/coding-standards.md
-
-## Context Management
-
-@.claude/docs/context-management.md
+# Build Production Web Release
+flutter build web --release
+```

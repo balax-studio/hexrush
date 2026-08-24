@@ -1,6 +1,0 @@
-[gd_scene format=3 uid="uid://b28xjc7k8t2mq"]
-
-[ext_resource type="Script" path="res://scripts/Castle.gd" id="1_castle"]
-
-[node name="Castle" type="Node2D"]
-script = ExtResource("1_castle")

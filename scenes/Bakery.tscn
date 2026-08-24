@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://dmh8m32f5e3vx"]
-
-[ext_resource type="Script" path="res://scripts/Bakery.gd" id="1_bakery"]
-
-[node name="Bakery" type="Node2D"]
-script = ExtResource("1_bakery")

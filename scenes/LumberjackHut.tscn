@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://c7k9x1lj0w38p"]
-
-[ext_resource type="Script" path="res://scripts/LumberjackHut.gd" id="1_lumberjack"]
-
-[node name="LumberjackHut" type="Node2D"]
-script = ExtResource("1_lumberjack")

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "Flutter Game Engine Architecture & Execution Flow",
+  "description": "Comprehensive CodeTour detailing the pure Flutter/Dart 3.x hexagonal engine, rendering pipeline, and reactive state loop.",
+  "steps": [
+    {
+      "file": "lib/main.dart",
+      "line": 6,
+      "title": "1. Application Entry Point & ProviderScope",
+      "description": "Situation: The Flutter application bootstrap.\nMechanism: Injects Riverpod `ProviderScope` and sets up dark fantasy theme tokens with non-blocking native font rendering.\nImplication: Ensures single source of truth and global reactive state access across all widgets.\nGotcha: Avoid runtime network font dependencies in web builds to prevent white/blank screens."
+    },
+    {
+      "file": "lib/presentation/screens/game_screen.dart",
+      "line": 14,
+      "title": "2. Main Game Screen Composite Stack",
+      "description": "Situation: Root HUD and Canvas composition.\nMechanism: Uses a `Stack` overlaying `HexInteractiveMap` (canvas), `TopBarHUD` (resources & seasons), `TileActionSheet` (conquer/build panel), and `ToastOverlay`.\nImplication: Allows the 60-120 FPS canvas to pan freely while the HUD stays anchored to screen edges.\nGotcha: Sub-widgets use `Positioned.fill` and `Positioned(top/bottom: 0)` to guarantee safe responsive rendering."
+    },
+    {
+      "file": "lib/presentation/canvas/hex_interactive_map.dart",
+      "line": 40,
+      "title": "3. Interactive Map & Coordinate Hit Testing",
+      "description": "Situation: Pan/zoom canvas and touch/click event pipeline.\nMechanism: Uses `LayoutBuilder` with `InteractiveViewer` (0.3x-3.0x scale) and inverse matrix hit testing to translate screen taps into axial `HexAxial(q, r)`.\nImplication: Centers the castle at (0, 0) instantly on launch and converts touch points to game tile events with sub-pixel precision.\nGotcha: Tap positions must invert the transformation matrix before calculating offsets relative to the viewport center."
+    },
+    {
+      "file": "lib/presentation/canvas/hex_grid_painter.dart",
+      "line": 23,
+      "title": "4. Isometric Y-Sorted Hex Tile Painter",
+      "description": "Situation: Hardware-accelerated 2D CustomPainter.\nMechanism: Sorts all hex tiles by row index `r` (Y-sorting) to draw background biomes, season tints, buildings, and selection indicators in proper depth order.\nImplication: Eliminates sprite overlapping glitches and maintains 60+ FPS on mobile and web.\nGotcha: In pointy-top hexes, Y-scale compression (0.866) creates the isometric perspective."
+    },
+    {
+      "file": "lib/core/hex/hex_math.dart",
+      "line": 20,
+      "title": "5. Hexagonal Axial Mathematics",
+      "description": "Situation: Pure math calculations for pointy-top axial coordinates.\nMechanism: Converts between axial `(q, r)` and pixel `(x, y)` using standard pointy-top matrices: `x = size * sqrt(3) * (q + r/2)` and `y = size * 3/2 * r * yScale`.\nImplication: Completely replaces Godot's TileMap engine with clean, deterministic, testable Dart math.\nGotcha: Hex distance uses cube coordinate conversion `(|q| + |q+r| + |r|) / 2`."
+    },
+    {
+      "file": "lib/presentation/providers/game_state_notifier.dart",
+      "line": 35,
+      "title": "6. Game Loop & State Management",
+      "description": "Situation: 1-second game tick and action dispatcher.\nMechanism: `GameStateNotifier` runs a periodic 1-second timer that increments resources, applies seasonal changes (every 180 ticks), triggers auto-saves, and handles tile conquest.\nImplication: Immutable state updates via `state.copyWith()` ensure efficient Flutter rebuilds without memory leaks.\nGotcha: Auto-save occurs every 30 seconds into `SaveRepository` (SharedPreferences JSON)."
+    },
+    {
+      "file": "lib/domain/economy/economy_calculator.dart",
+      "line": 15,
+      "title": "7. Economy & Adjacency Synergies",
+      "description": "Situation: Production multipliers and game economy balancing.\nMechanism: Calculates castle multipliers, crown bonuses, seasonal boosts, and adjacency bonuses (e.g. Lumberjack next to Forest gives +100% production speed).\nImplication: Replaces GDScript economy rules with 1:1 numerical parity and comprehensive unit tests.\nGotcha: Offline progression is capped at 8 hours."
+    }
+  ]
+}
