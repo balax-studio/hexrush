@@ -218,55 +218,195 @@ class HexTileComponent extends PositionComponent {
           break;
       }
     } else {
-      // Doğal Voxel Biyom Öğeleri
+      // Doğal Voxel Biyom & Peyzaj Çeşitliliği (Her karo farklı ve canlı)
+      final int seed = (coord.q * 31 + coord.r * 17).abs();
+
       switch (tileModel.biome) {
         case TileBiome.meadow:
-          // Minik çim voxel küpleri
-          VoxelIsometricRenderer.drawIsoCube(
-            canvas,
-            Offset(center.dx - 8, center.dy),
-            w: 4.0,
-            d: 4.0,
-            h: 6.0,
-            topColor: const Color(0xFFA3E635),
-            leftColor: const Color(0xFF84CC16),
-            rightColor: const Color(0xFF65A30D),
-          );
-          VoxelIsometricRenderer.drawIsoCube(
-            canvas,
-            Offset(center.dx + 6, center.dy - 4),
-            w: 4.0,
-            d: 4.0,
-            h: 8.0,
-            topColor: const Color(0xFFA3E635),
-            leftColor: const Color(0xFF84CC16),
-            rightColor: const Color(0xFF65A30D),
-          );
+          _renderLivingMeadow(canvas, center, seed);
           break;
         case TileBiome.forest:
-          // 3D Bloklu Voxel Ağaçlar (Referans görseldeki gibi)
-          VoxelIsometricRenderer.drawVoxelTree(canvas, Offset(center.dx - 4, center.dy + 4), scale: 0.95);
-          VoxelIsometricRenderer.drawVoxelTree(canvas, Offset(center.dx + 12, center.dy - 6), scale: 0.7);
+          _renderLivingForest(canvas, center, seed);
           break;
         case TileBiome.mountain:
-          // 3D Kademeli Voxel Dağ Zirvesi
-          VoxelIsometricRenderer.drawVoxelMountain(canvas, center);
+          _renderLivingMountain(canvas, center, seed);
           break;
         case TileBiome.sea:
-          // Minik beyaz voxel dalga küpleri
-          final double waveOffset = math.sin(_animTimer * 2.0) * 3.0;
-          VoxelIsometricRenderer.drawIsoCube(
-            canvas,
-            Offset(center.dx + waveOffset, center.dy),
-            w: 12.0,
-            d: 4.0,
-            h: 2.0,
-            topColor: const Color(0xFFBAE6FD),
-            leftColor: const Color(0xFF7DD3FC),
-            rightColor: const Color(0xFF38BDF8),
-          );
+          _renderLivingSea(canvas, center, seed);
           break;
       }
+    }
+  }
+
+  /// Canlı & Çeşitlendirilmiş Orman Peyzajı (Meşe, Huş, Çam, Yaban Geyiği, Mantarlar, Çakıllar)
+  void _renderLivingForest(Canvas canvas, Offset center, int seed) {
+    final int variant = seed % 4;
+
+    switch (variant) {
+      case 0:
+        // Sık Meşe & Çam Korusu + Mantar
+        VoxelIsometricRenderer.drawVoxelTree(canvas, Offset(center.dx - 6, center.dy + 4), scale: 0.95);
+        VoxelIsometricRenderer.drawVoxelPine(canvas, Offset(center.dx + 12, center.dy - 6), scale: 0.85);
+        VoxelIsometricRenderer.drawVoxelMushroom(canvas, Offset(center.dx - 14, center.dy - 2), scale: 0.9);
+        break;
+      case 1:
+        // Huş Ormanı + Çakıl Taşları
+        VoxelIsometricRenderer.drawVoxelBirchTree(canvas, Offset(center.dx - 8, center.dy + 2), scale: 1.0);
+        VoxelIsometricRenderer.drawVoxelBirchTree(canvas, Offset(center.dx + 10, center.dy - 8), scale: 0.75);
+        VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx + 6, center.dy + 6), scale: 0.85);
+        break;
+      case 2:
+        // İğne Yapraklı Çam Korusu & Otlayan Sevimli 3D Yaban Geyiği
+        VoxelIsometricRenderer.drawVoxelPine(canvas, Offset(center.dx + 10, center.dy - 4), scale: 1.0);
+        VoxelIsometricRenderer.drawVoxelPine(canvas, Offset(center.dx - 12, center.dy - 8), scale: 0.7);
+        // Geyik
+        VoxelIsometricRenderer.drawVoxelDeer(
+          canvas,
+          Offset(center.dx - 2, center.dy + 6),
+          animTime: _animTimer + seed,
+          scale: 0.85,
+        );
+        break;
+      case 3:
+      default:
+        // Karışık Sonbahar / Canlı Orman & Yaban Çiçekleri
+        VoxelIsometricRenderer.drawVoxelTree(
+          canvas,
+          Offset(center.dx - 4, center.dy + 2),
+          scale: 1.0,
+          foliageTint: const Color(0xFF34D399),
+        );
+        VoxelIsometricRenderer.drawVoxelTree(
+          canvas,
+          Offset(center.dx + 12, center.dy - 4),
+          scale: 0.75,
+          foliageTint: const Color(0xFFFBBF24), // Altın yapraklı
+        );
+        VoxelIsometricRenderer.drawVoxelFlowers(
+          canvas,
+          Offset(center.dx - 12, center.dy + 8),
+          flowerColor: const Color(0xFFF43F5E),
+          scale: 0.9,
+        );
+        break;
+    }
+  }
+
+  /// Canlı Çayır Peyzajı (Otlayan Koyunlar, Çakıl Taşları, Renkli Kır Çiçekleri)
+  void _renderLivingMeadow(Canvas canvas, Offset center, int seed) {
+    final int variant = seed % 4;
+
+    switch (variant) {
+      case 0:
+        // Otlayan Sevimli 3D Voxel Koyun & Minik Çiçek
+        VoxelIsometricRenderer.drawVoxelSheep(
+          canvas,
+          Offset(center.dx - 2, center.dy + 2),
+          animTime: _animTimer + seed,
+          scale: 0.9,
+        );
+        VoxelIsometricRenderer.drawVoxelFlowers(
+          canvas,
+          Offset(center.dx + 12, center.dy - 6),
+          flowerColor: const Color(0xFFEC4899),
+          scale: 0.8,
+        );
+        break;
+      case 1:
+        // Renkli Çiçek Tarlası (Sarı, Kırmızı, Mavi Kır Çiçekleri)
+        VoxelIsometricRenderer.drawVoxelFlowers(
+          canvas,
+          Offset(center.dx - 8, center.dy + 2),
+          flowerColor: const Color(0xFFEF4444),
+          scale: 0.9,
+        );
+        VoxelIsometricRenderer.drawVoxelFlowers(
+          canvas,
+          Offset(center.dx + 8, center.dy - 4),
+          flowerColor: const Color(0xFF38BDF8),
+          scale: 0.85,
+        );
+        VoxelIsometricRenderer.drawVoxelFlowers(
+          canvas,
+          Offset(center.dx - 2, center.dy - 8),
+          flowerColor: const Color(0xFFFACC15),
+          scale: 0.8,
+        );
+        break;
+      case 2:
+        // Çakıllı Doğa & Yabani Çimen Kümeleri
+        VoxelIsometricRenderer.drawVoxelPebbles(
+          canvas,
+          Offset(center.dx - 4, center.dy + 2),
+          scale: 0.95,
+        );
+        VoxelIsometricRenderer.drawIsoCube(
+          canvas,
+          Offset(center.dx + 10, center.dy - 4),
+          w: 4.0,
+          d: 4.0,
+          h: 7.0,
+          topColor: const Color(0xFFA3E635),
+          leftColor: const Color(0xFF84CC16),
+          rightColor: const Color(0xFF65A30D),
+        );
+        break;
+      case 3:
+      default:
+        // Minik Huş Fidanı & Çimen
+        VoxelIsometricRenderer.drawVoxelBirchTree(
+          canvas,
+          Offset(center.dx - 6, center.dy - 2),
+          scale: 0.65,
+        );
+        VoxelIsometricRenderer.drawVoxelFlowers(
+          canvas,
+          Offset(center.dx + 8, center.dy + 4),
+          flowerColor: const Color(0xFFA855F7),
+          scale: 0.85,
+        );
+        break;
+    }
+  }
+
+  /// Canlı Dağ Zirvesi & Kaya Parçaları
+  void _renderLivingMountain(Canvas canvas, Offset center, int seed) {
+    VoxelIsometricRenderer.drawVoxelMountain(canvas, center);
+    if (seed % 2 == 0) {
+      VoxelIsometricRenderer.drawVoxelPebbles(
+        canvas,
+        Offset(center.dx + 14, center.dy + 8),
+        scale: 0.75,
+      );
+    }
+  }
+
+  /// Canlı Deniz / Okyanus Dalgaları & Su Hareketleri
+  void _renderLivingSea(Canvas canvas, Offset center, int seed) {
+    final double waveOffset = math.sin(_animTimer * 2.0 + (seed % 5)) * 3.5;
+    VoxelIsometricRenderer.drawIsoCube(
+      canvas,
+      Offset(center.dx + waveOffset, center.dy),
+      w: 14.0,
+      d: 5.0,
+      h: 2.0,
+      topColor: const Color(0xFFBAE6FD),
+      leftColor: const Color(0xFF7DD3FC),
+      rightColor: const Color(0xFF38BDF8),
+    );
+
+    if (seed % 3 == 0) {
+      final double wave2 = math.cos(_animTimer * 2.5 + seed) * 2.5;
+      VoxelIsometricRenderer.drawIsoCube(
+        canvas,
+        Offset(center.dx - 10 + wave2, center.dy - 6),
+        w: 8.0,
+        d: 3.0,
+        h: 1.5,
+        topColor: Colors.white.withValues(alpha: 0.8),
+        leftColor: const Color(0xFFBAE6FD),
+        rightColor: const Color(0xFF7DD3FC),
+      );
     }
   }
 
@@ -349,7 +489,7 @@ class HexTileComponent extends PositionComponent {
         if (isWinter) {
           return (const Color(0xFFCBD5E1), const Color(0xFF94A3B8), const Color(0xFF475569));
         }
-        // Canlı çim kenarı + Ada altı toprak/kaya kütlesi (Referans görseldeki diorama ada tabanı)
+        // Canlı çim kenarı + Ada altı toprak/kaya kütlesi (Diorama ada tabanı)
         return (const Color(0xFF65A30D), const Color(0xFF4D7C0F), const Color(0xFF5C3A21));
       case TileBiome.mountain:
         if (isWinter) {

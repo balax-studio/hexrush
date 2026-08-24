@@ -6,6 +6,7 @@ import '../../core/hex/hex_math.dart';
 import '../../domain/models/building_model.dart';
 import '../../domain/models/game_state.dart';
 import 'components/floating_voxel_cloud_component.dart';
+import 'components/flying_voxel_bird_component.dart';
 import 'components/hex_tile_component.dart';
 import 'components/snow_particle_emitter.dart';
 import 'components/worker_agent_component.dart';
@@ -19,6 +20,7 @@ class HexMapGame extends FlameGame {
   final List<WorkerAgentComponent> _workerComponents = [];
   final List<FloatingVoxelCloudComponent> _cloudComponents = [];
   late final SnowParticleEmitter _snowEmitter;
+  late final FlyingVoxelBirdComponent _flyingBirds;
 
   GameState? _lastState;
   double _currentZoom = 1.0;
@@ -40,6 +42,14 @@ class HexMapGame extends FlameGame {
 
     // 3D Voxel Yüzen Bulutlar
     _initFloatingClouds();
+
+    // 3D Voxel Uçan Kuş Sürüsü
+    _flyingBirds = FlyingVoxelBirdComponent(
+      startPos: Vector2(0, 0),
+      flightSpeed: 30.0,
+      flightRadius: 260.0,
+    );
+    gameWorld.add(_flyingBirds);
 
     _snowEmitter = SnowParticleEmitter();
     gameWorld.add(_snowEmitter);
