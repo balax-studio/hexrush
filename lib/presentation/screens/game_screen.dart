@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../flame/flame_interactive_map.dart';
+import '../widgets/diorama_lens_overlay.dart';
 import '../widgets/market_dialog.dart';
 import '../widgets/settings_dialog.dart';
 import '../widgets/tile_action_sheet.dart';
@@ -23,7 +24,12 @@ class GameScreen extends ConsumerWidget {
             child: FlameInteractiveMap(),
           ),
 
-          // 2. Üst HUD Barı (Kaynaklar, Sezon, Pazar, Töre, Ayarlar)
+          // 2. Sinematik Minyatür Tilt-Shift Lens & Vinyet
+          const Positioned.fill(
+            child: DioramaLensOverlay(),
+          ),
+
+          // 3. Üst HUD Barı (Kaynaklar, Sezon, Pazar, Töre, Ayarlar)
           Positioned(
             top: 0,
             left: 0,
@@ -53,7 +59,7 @@ class GameScreen extends ConsumerWidget {
             ),
           ),
 
-          // 3. Seçili Karo Aksiyon Menüsü (Alt Kısım)
+          // 4. Seçili Karo Aksiyon Menüsü (Alt Kısım)
           const Positioned(
             bottom: 0,
             left: 0,
@@ -64,7 +70,7 @@ class GameScreen extends ConsumerWidget {
             ),
           ),
 
-          // 4. Non-blocking Bildirim Toaster
+          // 5. Non-blocking Bildirim Toaster
           const ToastOverlay(),
         ],
       ),

@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-/// 3D Voxel / Isometric Low-Poly Çizim Motoru
-/// Saf matematiksel 3D izometrik projeksiyon, faset aydınlatması ve zengin diorama peyzajı.
+/// 3D Voxel / Isometric Canlı Diorama Çizim Motoru
+/// Rüzgar salınımı, gece pencereleri, ateşböcekleri, sıçrayan balıklar, taş patikalar ve partiküller.
 class VoxelIsometricRenderer {
   static const double isoAngle = 30.0 * (math.pi / 180.0);
   static final double cosIso = math.cos(isoAngle);
@@ -79,10 +79,19 @@ class VoxelIsometricRenderer {
     canvas.drawPath(topFace, Paint()..color = topColor);
   }
 
-  // --- ORMAN AĞAÇ ÇEŞİTLERİ (VARIANCE) ---
+  // --- RÜZGARLA SALINAN AĞAÇLAR (WIND SWAY) ---
 
-  /// Standart Meşe Ağacı (Geniş Yapraklı)
-  static void drawVoxelTree(Canvas canvas, Offset baseCenter, {double scale = 1.0, Color? foliageTint}) {
+  /// Rüzgarla hafifçe salınan Meşe Ağacı
+  static void drawVoxelTree(
+    Canvas canvas,
+    Offset baseCenter, {
+    double scale = 1.0,
+    Color? foliageTint,
+    double animTime = 0.0,
+    double windFactor = 1.0,
+  }) {
+    final double windSway = math.sin(animTime * 2.5 + baseCenter.dx * 0.04) * (2.2 * windFactor * scale);
+
     final double trunkW = 6.0 * scale;
     final double trunkH = 16.0 * scale;
     drawIsoCube(
@@ -97,7 +106,7 @@ class VoxelIsometricRenderer {
       drawShadow: true,
     );
 
-    final Offset foliageCenter = Offset(baseCenter.dx, baseCenter.dy - trunkH + 4 * scale);
+    final Offset foliageCenter = Offset(baseCenter.dx + windSway * 0.5, baseCenter.dy - trunkH + 4 * scale);
     final Color top = foliageTint ?? const Color(0xFF86EFAC);
     final Color mid = foliageTint != null ? foliageTint.withValues(alpha: 0.85) : const Color(0xFF22C55E);
     final Color dark = foliageTint != null ? foliageTint.withValues(alpha: 0.65) : const Color(0xFF15803D);
@@ -115,7 +124,7 @@ class VoxelIsometricRenderer {
 
     drawIsoCube(
       canvas,
-      Offset(foliageCenter.dx, foliageCenter.dy - 10 * scale),
+      Offset(foliageCenter.dx + windSway * 0.3, foliageCenter.dy - 10 * scale),
       w: 16.0 * scale,
       d: 16.0 * scale,
       h: 10.0 * scale,
@@ -126,7 +135,7 @@ class VoxelIsometricRenderer {
 
     drawIsoCube(
       canvas,
-      Offset(foliageCenter.dx, foliageCenter.dy - 18 * scale),
+      Offset(foliageCenter.dx + windSway * 0.6, foliageCenter.dy - 18 * scale),
       w: 10.0 * scale,
       d: 10.0 * scale,
       h: 8.0 * scale,
@@ -136,9 +145,16 @@ class VoxelIsometricRenderer {
     );
   }
 
-  /// Beyaz Huş Ağacı (Birch Tree - Açık Renk Gövde & Sarımsı/Açık Yeşil Yapraklar)
-  static void drawVoxelBirchTree(Canvas canvas, Offset baseCenter, {double scale = 1.0}) {
-    // Açık Beyaz/Gri Gövde
+  /// Rüzgarla salınan Beyaz Huş Ağacı
+  static void drawVoxelBirchTree(
+    Canvas canvas,
+    Offset baseCenter, {
+    double scale = 1.0,
+    double animTime = 0.0,
+    double windFactor = 1.0,
+  }) {
+    final double windSway = math.sin(animTime * 3.0 + baseCenter.dx * 0.05) * (2.8 * windFactor * scale);
+
     final double trunkW = 5.0 * scale;
     final double trunkH = 20.0 * scale;
     drawIsoCube(
@@ -153,8 +169,7 @@ class VoxelIsometricRenderer {
       drawShadow: true,
     );
 
-    // İnce Yüksek Yaprak Kümesi
-    final Offset folBase = Offset(baseCenter.dx, baseCenter.dy - trunkH + 4 * scale);
+    final Offset folBase = Offset(baseCenter.dx + windSway * 0.5, baseCenter.dy - trunkH + 4 * scale);
     drawIsoCube(
       canvas,
       folBase,
@@ -168,7 +183,7 @@ class VoxelIsometricRenderer {
 
     drawIsoCube(
       canvas,
-      Offset(folBase.dx, folBase.dy - 12 * scale),
+      Offset(folBase.dx + windSway * 0.5, folBase.dy - 12 * scale),
       w: 10.0 * scale,
       d: 10.0 * scale,
       h: 10.0 * scale,
@@ -178,8 +193,16 @@ class VoxelIsometricRenderer {
     );
   }
 
-  /// 3D Voxel Çam Ağacı (Kademeli Piramit)
-  static void drawVoxelPine(Canvas canvas, Offset baseCenter, {double scale = 1.0}) {
+  /// Rüzgarla hafif salınan Çam Ağacı
+  static void drawVoxelPine(
+    Canvas canvas,
+    Offset baseCenter, {
+    double scale = 1.0,
+    double animTime = 0.0,
+    double windFactor = 1.0,
+  }) {
+    final double windSway = math.sin(animTime * 2.0 + baseCenter.dy * 0.04) * (1.6 * windFactor * scale);
+
     drawIsoCube(
       canvas,
       baseCenter,
@@ -196,7 +219,8 @@ class VoxelIsometricRenderer {
     for (int i = 0; i < 3; i++) {
       final double size = (20.0 - i * 6.0) * scale;
       final double h = 8.0 * scale;
-      final Offset c = Offset(baseCenter.dx, startY - (i * 7.0 * scale));
+      final double sway = windSway * (i + 1) * 0.35;
+      final Offset c = Offset(baseCenter.dx + sway, startY - (i * 7.0 * scale));
 
       drawIsoCube(
         canvas,
@@ -211,13 +235,84 @@ class VoxelIsometricRenderer {
     }
   }
 
-  // --- HAYVANLAR & YABAN HAYATI (WILDLIFE) ---
+  // --- HAYVANLAR, BALIKLAR & ATEŞBÖCEKLERİ ---
 
-  /// Sevimli 3D Voxel Koyun (Otlayan Beyaz Yünlü Küp & Siyah Baş)
+  /// Sıçrayan 3D Voxel Balık & Su Köpükleri
+  static void drawVoxelLeapingFish(Canvas canvas, Offset seaCenter, {required double animTime, required int seed}) {
+    final double cycle = (animTime * 0.8 + seed * 1.7) % 4.0;
+    if (cycle > 1.2) return; // Arada bir sıçrar
+
+    final double progress = cycle / 1.2; // 0.0 -> 1.0
+    final double jumpHeight = math.sin(progress * math.pi) * 22.0;
+    final double jumpX = (progress - 0.5) * 26.0;
+
+    final Offset fishPos = Offset(seaCenter.dx + jumpX, seaCenter.dy - jumpHeight);
+
+    // Su Halka Köpüğü (Splash ring)
+    if (progress < 0.2 || progress > 0.8) {
+      final Paint splashPaint = Paint()
+        ..color = Colors.white.withValues(alpha: 0.6)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5;
+      canvas.drawOval(
+        Rect.fromCenter(center: Offset(seaCenter.dx + jumpX, seaCenter.dy), width: 14.0, height: 7.0),
+        splashPaint,
+      );
+    }
+
+    // Minik Gümüş Voxel Balık
+    drawIsoCube(
+      canvas,
+      fishPos,
+      w: 4.0,
+      d: 7.0,
+      h: 3.0,
+      topColor: const Color(0xFFF1F5F9),
+      leftColor: const Color(0xFF38BDF8),
+      rightColor: const Color(0xFF0284C7),
+      drawShadow: true,
+      shadowOpacity: 0.15,
+    );
+  }
+
+  /// Geceleyin Parıldayan 3D Voxel Ateşböcekleri
+  static void drawVoxelFireflies(Canvas canvas, Offset center, {required double animTime, required int seed}) {
+    for (int i = 0; i < 3; i++) {
+      final double t = animTime * 2.0 + (seed * 1.5) + (i * 2.1);
+      final double fx = center.dx + math.cos(t * 1.2) * 16.0;
+      final double fy = center.dy - 12.0 + math.sin(t * 1.5) * 10.0;
+      final double glow = (math.sin(t * 3.0) + 1.0) * 0.5;
+
+      final Color fireflyColor = Color.lerp(
+        const Color(0xFF84CC16),
+        const Color(0xFFFEF08A),
+        glow,
+      )!;
+
+      // Glow aurası
+      final Paint glowPaint = Paint()
+        ..color = fireflyColor.withValues(alpha: 0.4 * glow)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset(fx, fy), 4.0, glowPaint);
+
+      // Çekirdek Voxel
+      drawIsoCube(
+        canvas,
+        Offset(fx, fy),
+        w: 2.0,
+        d: 2.0,
+        h: 2.0,
+        topColor: Colors.white,
+        leftColor: fireflyColor,
+        rightColor: fireflyColor.withValues(alpha: 0.8),
+      );
+    }
+  }
+
+  /// Sevimli 3D Voxel Koyun
   static void drawVoxelSheep(Canvas canvas, Offset pos, {double animTime = 0.0, double scale = 1.0}) {
     final double bobY = math.sin(animTime * 3.0).abs() * 1.5;
 
-    // Yün Gövde
     drawIsoCube(
       canvas,
       Offset(pos.dx, pos.dy - 3 * scale - bobY),
@@ -231,7 +326,6 @@ class VoxelIsometricRenderer {
       shadowOpacity: 0.2,
     );
 
-    // Kafa
     drawIsoCube(
       canvas,
       Offset(pos.dx - 6 * cosIso * scale, pos.dy - 5 * scale - bobY + 3 * sinIso * scale),
@@ -243,7 +337,6 @@ class VoxelIsometricRenderer {
       rightColor: const Color(0xFF0F172A),
     );
 
-    // Küçük Pembe Burun Voxel
     drawIsoCube(
       canvas,
       Offset(pos.dx - 9 * cosIso * scale, pos.dy - 5 * scale - bobY + 4 * sinIso * scale),
@@ -256,11 +349,10 @@ class VoxelIsometricRenderer {
     );
   }
 
-  /// Sevimli 3D Voxel Karaca / Geyik (Kahverengi Gövde & Minik Boynuzlar)
+  /// Sevimli 3D Voxel Karaca / Geyik
   static void drawVoxelDeer(Canvas canvas, Offset pos, {double animTime = 0.0, double scale = 1.0}) {
     final double bobY = math.sin(animTime * 2.5).abs() * 1.2;
 
-    // Gövde
     drawIsoCube(
       canvas,
       Offset(pos.dx, pos.dy - 5 * scale - bobY),
@@ -274,7 +366,6 @@ class VoxelIsometricRenderer {
       shadowOpacity: 0.25,
     );
 
-    // Boyun & Kafa
     drawIsoCube(
       canvas,
       Offset(pos.dx - 6 * cosIso * scale, pos.dy - 10 * scale - bobY + 2 * sinIso * scale),
@@ -286,7 +377,6 @@ class VoxelIsometricRenderer {
       rightColor: const Color(0xFFD97706),
     );
 
-    // Minik Boynuzlar
     drawIsoCube(
       canvas,
       Offset(pos.dx - 6 * cosIso * scale, pos.dy - 18 * scale - bobY + 2 * sinIso * scale),
@@ -299,11 +389,10 @@ class VoxelIsometricRenderer {
     );
   }
 
-  /// 3D Voxel Uçan Kuş / Martı (Kanat Çırpan Geometrik Voxel Kuş)
+  /// 3D Voxel Uçan Kuş
   static void drawVoxelBird(Canvas canvas, Offset pos, {required double wingAnim, double scale = 1.0}) {
     final double wingAngle = math.sin(wingAnim) * 0.5;
 
-    // Kuş Gövdesi
     drawIsoCube(
       canvas,
       pos,
@@ -315,7 +404,6 @@ class VoxelIsometricRenderer {
       rightColor: const Color(0xFFCBD5E1),
     );
 
-    // Sol Kanat
     final Offset leftWing = Offset(pos.dx - 4 * cosIso * scale, pos.dy - 1 * scale + wingAngle * 4);
     drawIsoCube(
       canvas,
@@ -328,7 +416,6 @@ class VoxelIsometricRenderer {
       rightColor: const Color(0xFF94A3B8),
     );
 
-    // Sağ Kanat
     final Offset rightWing = Offset(pos.dx + 4 * cosIso * scale, pos.dy - 1 * scale + wingAngle * 4);
     drawIsoCube(
       canvas,
@@ -342,9 +429,32 @@ class VoxelIsometricRenderer {
     );
   }
 
-  // --- DOĞAL PEYZAJ DETAYLARI (Çakıllar, Çiçekler, Mantarlar) ---
+  // --- PATİKA YOLLAR (ROADS) ---
 
-  /// Minik 3D Voxel Çakıl / Kaya Parçaları
+  /// Karolar Arası 3D Taş Patika Çizer
+  static void drawVoxelRoadSegment(Canvas canvas, Offset start, Offset end) {
+    const int steps = 4;
+    for (int i = 0; i <= steps; i++) {
+      final double t = i / steps;
+      final Offset pt = Offset.lerp(start, end, t)!;
+
+      drawIsoCube(
+        canvas,
+        pt,
+        w: 6.0,
+        d: 6.0,
+        h: 1.2,
+        topColor: const Color(0xFFE2E8F0),
+        leftColor: const Color(0xFFCBD5E1),
+        rightColor: const Color(0xFF94A3B8),
+        drawShadow: true,
+        shadowOpacity: 0.1,
+      );
+    }
+  }
+
+  // --- ÇİÇEKLER, ÇAKILLAR & MANTARLAR ---
+
   static void drawVoxelPebbles(Canvas canvas, Offset pos, {double scale = 1.0}) {
     drawIsoCube(
       canvas,
@@ -371,9 +481,7 @@ class VoxelIsometricRenderer {
     );
   }
 
-  /// Renkli Kır Çiçekleri (Kırmızı, Sarı, Mavi Noktalar)
   static void drawVoxelFlowers(Canvas canvas, Offset pos, {required Color flowerColor, double scale = 1.0}) {
-    // Sap
     drawIsoCube(
       canvas,
       pos,
@@ -385,7 +493,6 @@ class VoxelIsometricRenderer {
       rightColor: const Color(0xFF16A34A),
     );
 
-    // Çiçek Taç Yaprağı Voxel
     drawIsoCube(
       canvas,
       Offset(pos.dx, pos.dy - 5.0 * scale),
@@ -398,9 +505,7 @@ class VoxelIsometricRenderer {
     );
   }
 
-  /// Kırmızı Şapkalı Orman Mantarı (Mushroom)
   static void drawVoxelMushroom(Canvas canvas, Offset pos, {double scale = 1.0}) {
-    // Beyaz Sap
     drawIsoCube(
       canvas,
       pos,
@@ -412,7 +517,6 @@ class VoxelIsometricRenderer {
       rightColor: const Color(0xFFCBD5E1),
     );
 
-    // Kırmızı Şapka
     drawIsoCube(
       canvas,
       Offset(pos.dx, pos.dy - 5.0 * scale),
@@ -425,10 +529,10 @@ class VoxelIsometricRenderer {
     );
   }
 
-  // --- MEVCUT BİNALAR & EKİN VE BULUT ---
+  // --- BİNALAR & GECE IŞIKLANDIRMASI (GLOWING WINDOWS) ---
 
-  /// 3D Voxel Ekin / Buğday Tarlası
-  static void drawVoxelCropField(Canvas canvas, Offset baseCenter) {
+  /// 3D Voxel Ekin / Buğday Tarlası (Rüzgar Salınımlı)
+  static void drawVoxelCropField(Canvas canvas, Offset baseCenter, {double animTime = 0.0}) {
     drawIsoCube(
       canvas,
       baseCenter,
@@ -447,7 +551,8 @@ class VoxelIsometricRenderer {
 
     for (int r = 0; r < rows; r++) {
       for (int c = 0; c < cols; c++) {
-        final double offX = (c - 1) * 8.0 * cosIso - (r - 1) * 8.0 * cosIso;
+        final double windSway = math.sin(animTime * 3.0 + (r * 0.8) + (c * 0.6)) * 1.5;
+        final double offX = (c - 1) * 8.0 * cosIso - (r - 1) * 8.0 * cosIso + windSway;
         final double offY = (c - 1) * 8.0 * sinIso + (r - 1) * 8.0 * sinIso;
         final Offset cropPos = Offset(fieldTop.dx + offX, fieldTop.dy + offY);
 
@@ -465,8 +570,8 @@ class VoxelIsometricRenderer {
     }
   }
 
-  /// 3D Voxel Şato / Kale
-  static void drawVoxelCastle(Canvas canvas, Offset baseCenter, int level) {
+  /// 3D Voxel Şato / Kale (Gece Pencereleri & Fenerler)
+  static void drawVoxelCastle(Canvas canvas, Offset baseCenter, int level, {bool isNight = false}) {
     drawIsoCube(
       canvas,
       baseCenter,
@@ -479,6 +584,7 @@ class VoxelIsometricRenderer {
       drawShadow: true,
     );
 
+    // Kapı
     drawIsoCube(
       canvas,
       Offset(baseCenter.dx, baseCenter.dy + 8),
@@ -490,6 +596,7 @@ class VoxelIsometricRenderer {
       rightColor: const Color(0xFF020617),
     );
 
+    // Kuleler
     for (final xSign in [-1.0, 1.0]) {
       final double tx = baseCenter.dx + xSign * 16.0 * cosIso;
       final double ty = baseCenter.dy - 18.0 + xSign * 16.0 * sinIso;
@@ -504,6 +611,20 @@ class VoxelIsometricRenderer {
         leftColor: const Color(0xFF94A3B8),
         rightColor: const Color(0xFF475569),
       );
+
+      // Gece Kule Penceresi Işığı
+      if (isNight) {
+        drawIsoCube(
+          canvas,
+          Offset(tx, ty + 2),
+          w: 4.0,
+          d: 4.0,
+          h: 4.0,
+          topColor: const Color(0xFFFEF08A),
+          leftColor: const Color(0xFFFBBF24),
+          rightColor: const Color(0xFFF59E0B),
+        );
+      }
 
       drawIsoCube(
         canvas,
@@ -531,7 +652,7 @@ class VoxelIsometricRenderer {
   }
 
   /// 3D Voxel Dönen Değirmen
-  static void drawVoxelWindmill(Canvas canvas, Offset baseCenter, double animTime) {
+  static void drawVoxelWindmill(Canvas canvas, Offset baseCenter, double animTime, {bool isNight = false}) {
     drawIsoCube(
       canvas,
       baseCenter,
@@ -543,6 +664,19 @@ class VoxelIsometricRenderer {
       rightColor: const Color(0xFF94A3B8),
       drawShadow: true,
     );
+
+    if (isNight) {
+      drawIsoCube(
+        canvas,
+        Offset(baseCenter.dx + 4 * cosIso, baseCenter.dy - 10),
+        w: 4.0,
+        d: 3.0,
+        h: 4.0,
+        topColor: const Color(0xFFFEF08A),
+        leftColor: const Color(0xFFFBBF24),
+        rightColor: const Color(0xFFF59E0B),
+      );
+    }
 
     final Offset roofBase = Offset(baseCenter.dx, baseCenter.dy - 26.0);
     drawIsoCube(
@@ -579,8 +713,8 @@ class VoxelIsometricRenderer {
     canvas.drawCircle(rotorHub, 3.5, Paint()..color = const Color(0xFF451A03));
   }
 
-  /// 3D Voxel Fırın
-  static void drawVoxelBakery(Canvas canvas, Offset baseCenter, double animTime) {
+  /// 3D Voxel Fırın (Duman Pufu & Gece Işığı)
+  static void drawVoxelBakery(Canvas canvas, Offset baseCenter, double animTime, {bool isNight = false}) {
     drawIsoCube(
       canvas,
       baseCenter,
@@ -660,7 +794,7 @@ class VoxelIsometricRenderer {
     );
   }
 
-  /// 3D Voxel Oduncu
+  /// 3D Voxel Oduncu Kulübesi
   static void drawVoxelLumberjack(Canvas canvas, Offset baseCenter) {
     drawIsoCube(
       canvas,
@@ -775,8 +909,8 @@ class VoxelIsometricRenderer {
     );
   }
 
-  /// 3D Voxel Kule
-  static void drawVoxelWatchtower(Canvas canvas, Offset baseCenter) {
+  /// 3D Voxel Kule (Gece Feneri)
+  static void drawVoxelWatchtower(Canvas canvas, Offset baseCenter, {bool isNight = false}) {
     drawIsoCube(
       canvas,
       baseCenter,
@@ -795,9 +929,9 @@ class VoxelIsometricRenderer {
       w: 18.0,
       d: 18.0,
       h: 8.0,
-      topColor: const Color(0xFFFEF08A),
-      leftColor: const Color(0xFFFDE047),
-      rightColor: const Color(0xFFCA8A04),
+      topColor: isNight ? const Color(0xFFFDE047) : const Color(0xFFFEF08A),
+      leftColor: isNight ? const Color(0xFFEAB308) : const Color(0xFFFDE047),
+      rightColor: isNight ? const Color(0xFFCA8A04) : const Color(0xFFCA8A04),
     );
   }
 
@@ -840,7 +974,7 @@ class VoxelIsometricRenderer {
     );
   }
 
-  /// 3D Voxel İşçi
+  /// 3D Voxel İşçi (Sırtında Kargo & Yürüme Yaylanması)
   static void drawVoxelWorker(Canvas canvas, Offset pos, {required Color cargoColor, required double walkAnim}) {
     final double bobY = math.sin(walkAnim).abs() * 2.5;
 

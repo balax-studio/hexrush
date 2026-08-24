@@ -1,14 +1,17 @@
 import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
+import 'package:flutter/material.dart' show Colors, Color;
 import '../../core/hex/hex_coordinates.dart';
 import '../../core/hex/hex_math.dart';
 import '../../domain/models/building_model.dart';
 import '../../domain/models/game_state.dart';
+import 'components/floating_resource_number_component.dart';
 import 'components/floating_voxel_cloud_component.dart';
 import 'components/flying_voxel_bird_component.dart';
 import 'components/hex_tile_component.dart';
 import 'components/snow_particle_emitter.dart';
+import 'components/tile_conquer_poof_emitter.dart';
 import 'components/worker_agent_component.dart';
 
 class HexMapGame extends FlameGame {
@@ -24,11 +27,17 @@ class HexMapGame extends FlameGame {
 
   GameState? _lastState;
   double _currentZoom = 1.0;
+  double _dayNightClock = 0.0;
+  bool _isNight = false;
+
+  // Kamera sürtünmesi / sönümleme (Smooth Pan Inertia)
+  Vector2 _panVelocity = Vector2.zero();
 
   HexMapGame({required this.onTileSelected});
 
   double get currentZoom => _currentZoom;
   Vector2 get cameraPosition => gameCamera.viewfinder.position;
+  bool get isNight => _isNight;
 
   @override
   Future<void> onLoad() async {
@@ -59,6 +68,32 @@ class HexMapGame extends FlameGame {
     }
   }
 
+  @override
+  void update(double dt) {
+    super.update(dt);
+
+    // Dinamik Gün/Gece Döngüsü (120 saniyede bir tam gün/gece turu)
+    _dayNightClock += dt;
+    final double cycle = (_dayNightClock % 120.0) / 120.0;
+    final bool newIsNight = cycle > 0.65; // %65'ten sonrası gece
+
+    if (newIsNight != _isNight) {
+      _isNight = newIsNight;
+      // Tüm karolara gece durumunu ilet
+      for (final comp in _tileComponents.values) {
+        comp.isNight = _isNight;
+      }
+    }
+
+    // Pürüzsüz kamera sürükleme sönümlemesi (Pan Inertia)
+    if (_panVelocity.length2 > 1.0) {
+      gameCamera.viewfinder.position += _panVelocity * dt;
+      _panVelocity *= 0.90; // Sönümleme katsayısı
+    } else {
+      _panVelocity = Vector2.zero();
+    }
+  }
+
   void _initFloatingClouds() {
     final clouds = [
       FloatingVoxelCloudComponent(initialPosition: Vector2(-180, -140), speed: 10.0, cloudScale: 1.1),
@@ -86,12 +121,42 @@ class HexMapGame extends FlameGame {
     );
 
     if (_lastState != null && _lastState!.tiles.containsKey(tappedCoord)) {
+      final tile = _lastState!.tiles[tappedCoord]!;
+
+      // Dokunulan karoyu zıplat (Bounce)
+      if (_tileComponents.containsKey(tappedCoord)) {
+        _tileComponents[tappedCoord]!.triggerTapBounce();
+      }
+
+      // Juicy Floating Number Efekti
+      final tilePixel = HexMath.hexToPixel(tappedCoord, hexSize: HexTileComponent.hexRadius);
+      final tileVec = Vector2(tilePixel.dx, tilePixel.dy - 20);
+
+      if (tile.hasBuilding) {
+        final b = tile.building!;
+        if (b.accumulatedResource > 0) {
+          gameWorld.add(
+            FloatingResourceNumberComponent(
+              position: tileVec,
+              text: '+${b.accumulatedResource.toInt()}',
+              bgColor: const Color(0xFF10B981),
+              textColor: Colors.black,
+            ),
+          );
+        }
+      } else if (!tile.isOwned && !tile.isFog) {
+        // Fetih / İnşaat Puf Partikülü
+        gameWorld.add(TileConquerPoofEmitter(centerPosition: tileVec));
+      }
+
       onTileSelected(tappedCoord);
     }
   }
 
   void panCamera(Offset delta) {
-    gameCamera.viewfinder.position -= Vector2(delta.dx, delta.dy) / _currentZoom;
+    final panDelta = Vector2(-delta.dx, -delta.dy) / _currentZoom;
+    gameCamera.viewfinder.position += panDelta;
+    _panVelocity = panDelta * 8.0; // Harekete atalet momentumu ekle
   }
 
   void zoomCamera(double delta) {
@@ -120,7 +185,6 @@ class HexMapGame extends FlameGame {
   }
 
   void _updateTiles(GameState state) {
-    // Y-eksenine göre derinlik sıralaması (İzometrik Z-Sorting)
     final sortedEntries = state.tiles.entries.toList()
       ..sort((a, b) {
         final posA = HexMath.hexToPixel(a.key, hexSize: HexTileComponent.hexRadius);
@@ -139,6 +203,7 @@ class HexMapGame extends FlameGame {
           newIsSelected: isSel,
           newSeason: state.season.current,
           newIsZud: state.season.isZud,
+          newIsNight: _isNight,
         );
       } else {
         final comp = HexTileComponent(
@@ -147,6 +212,7 @@ class HexMapGame extends FlameGame {
           isSelected: isSel,
           season: state.season.current,
           isZud: state.season.isZud,
+          isNight: _isNight,
         );
         final pixelPos = HexMath.hexToPixel(coord, hexSize: HexTileComponent.hexRadius);
         comp.priority = (pixelPos.dy + 1000).toInt();
@@ -163,7 +229,6 @@ class HexMapGame extends FlameGame {
     }
     _workerComponents.clear();
 
-    // Üretim binalarından şatoya lojistik işçileri
     final castlePos = HexMath.hexToPixel(const HexAxial(0, 0), hexSize: HexTileComponent.hexRadius);
     final castleVec = Vector2(castlePos.dx, castlePos.dy);
 
