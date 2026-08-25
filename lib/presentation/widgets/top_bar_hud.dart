@@ -305,8 +305,6 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
         child: icon,
       ),
     );
-      ),
-    );
   }
 
   Widget _buildLandChip(int count) {
