@@ -36,35 +36,28 @@ class GameStateNotifier extends StateNotifier<GameState> {
       building: BuildingModel(type: BuildingType.castle, level: 1),
     );
 
-    // Çevresindeki 6 ilk komşu (keşfedilmiş)
-    final immediateTypes = [
-      TileBiome.meadow,
-      TileBiome.meadow,
-      TileBiome.meadow,
-      TileBiome.forest,
-      TileBiome.forest,
-      TileBiome.mountain,
-    ];
-
-    int idx = 0;
-    for (final neighbor in centerCoord.neighbors) {
-      map[neighbor] = HexTileModel(
-        coord: neighbor,
-        biome: immediateTypes[idx % immediateTypes.length],
-        state: TileState.discovered,
-      );
-      idx++;
+    // Çevresindeki 4 radius ızgarayı oluştur (Başlangıç keşfi)
+    final initialRange = centerCoord.getRange(4);
+    for (final coord in initialRange) {
+      if (!map.containsKey(coord)) {
+        final biome = TileBiome.values[random.nextInt(TileBiome.values.length)];
+        map[coord] = HexTileModel(
+          coord: coord,
+          biome: biome,
+          state: TileState.discovered,
+        );
+      }
     }
 
-    // Radius 3 ızgarayı oluştur (fog)
-    for (int q = -radius; q <= radius; q++) {
-      final int r1 = math.max(-radius, -q - radius);
-      final int r2 = math.min(radius, -q + radius);
+    // Radius 8 (veya daha büyük) ızgarayı oluştur (fog)
+    const int gridRadius = 8;
+    for (int q = -gridRadius; q <= gridRadius; q++) {
+      final int r1 = math.max(-gridRadius, -q - gridRadius);
+      final int r2 = math.min(gridRadius, -q + gridRadius);
       for (int r = r1; r <= r2; r++) {
         final coord = HexAxial(q, r);
         if (!map.containsKey(coord)) {
-          final biome =
-              TileBiome.values[random.nextInt(TileBiome.values.length)];
+          final biome = TileBiome.values[random.nextInt(TileBiome.values.length)];
           map[coord] = HexTileModel(
             coord: coord,
             biome: biome,
@@ -172,14 +165,16 @@ class GameStateNotifier extends StateNotifier<GameState> {
       toreTalents: state.toreTalents,
     );
 
-    // Sezon güncellemesi (120 saniyede bir sezon değişir)
+    // Sezon güncellemesi (300 saniyede bir sezon değişir - 5 Dakika)
     double newSeasonTimer = state.season.timer + 1.0;
     String newSeason = state.season.current;
     int newYear = state.season.year;
     bool newIsZud = state.season.isZud;
+    double newLerp = math.min(1.0, state.seasonLerpProgress + (1.0 / 60.0));
 
-    if (newSeasonTimer >= 120.0) {
+    if (newSeasonTimer >= 300.0) {
       newSeasonTimer = 0.0;
+      newLerp = 0.0; // Yeni mevsim başladığında lerp sıfırlanır
       if (newSeason == 'SPRING') {
         newSeason = 'SUMMER';
       } else if (newSeason == 'SUMMER') {
@@ -202,12 +197,19 @@ class GameStateNotifier extends StateNotifier<GameState> {
     double newFrenzyTimer = math.max(0.0, state.frenzyTimer - 1.0);
     int newFrenzyMultiplier = newFrenzyTimer > 0 ? state.frenzyMultiplier : 1;
 
-    // İşçi var mı kontrol et
-    final bool hasWorkers = state.tiles.values
-        .any((t) => t.isOwned && t.building?.type == BuildingType.worker);
+    // Toplam İşçi Taşıma Kapasitesi Hesapla
+    double totalWorkerCapacity = 0.0;
+    for (final t in state.tiles.values) {
+      if (t.isOwned && t.building != null) {
+        totalWorkerCapacity += t.building!.currentCarryingCapacity;
+      }
+    }
+    // Yeteneklerden gelen hız bonusunu kapasiteye uygula
+    totalWorkerCapacity *= workerTransferMult;
 
     double addedFood = 0.0;
     double addedWood = 0.0;
+    double addedFish = 0.0;
     double addedFlour = 0.0;
     double addedPlank = 0.0;
     double addedBread = 0.0;
@@ -216,6 +218,11 @@ class GameStateNotifier extends StateNotifier<GameState> {
     double addedIron = 0.0;
 
     final updatedTiles = Map<HexAxial, HexTileModel>.from(state.tiles);
+    // Kaynakların bir kopyasını al (tüketim kontrolü için)
+    double currentFood = state.resources.food;
+    double currentWood = state.resources.wood;
+    double currentFlour = state.resources.flour;
+    double currentPlank = state.resources.plank;
 
     for (final entry in state.tiles.entries) {
       final tile = entry.value;
@@ -225,7 +232,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
       if (b.type == BuildingType.castle ||
           b.type == BuildingType.worker ||
           b.type == BuildingType.watchtower ||
-          b.type == BuildingType.bridge) {
+          b.type == BuildingType.bridge ||
+          b.type == BuildingType.fishermanHut) {
         continue;
       }
 
@@ -269,66 +277,105 @@ class GameStateNotifier extends StateNotifier<GameState> {
         titles: state.titles,
       );
 
-      final double rate = b.currentProductionRate *
-          globalMult *
-          seasonMult *
-          synergy *
-          (hasWorkers ? workerTransferMult : 1.0);
+      final double rate = EconomyCalculator.calculateBuildingProduction(
+        type: b.type,
+        level: b.level,
+        baseRate: b.baseProductionRate,
+        globalMultiplier: globalMult,
+        seasonMultiplier: seasonMult,
+        synergyMultiplier: synergy,
+        workerMultiplier: 1.0, // Kapasite sistemi geldiği için oran sabitlendi
+        shrineMultiplier: state.shrineMultiplier,
+      );
 
-      if (hasWorkers) {
+      // Üretim ve Tüketim Mantığı
+      bool canProduce = true;
+      double consumeFood = 0;
+      double consumeWood = 0;
+      double consumeFlour = 0;
+      double consumePlank = 0;
+
+      if (b.type == BuildingType.windmill) {
+        if (currentFood >= rate * 0.5) consumeFood = rate * 0.5;
+        else canProduce = false;
+      } else if (b.type == BuildingType.sawmill) {
+        if (currentWood >= rate * 0.5) consumeWood = rate * 0.5;
+        else canProduce = false;
+      } else if (b.type == BuildingType.bakery) {
+        if (currentFlour >= rate * 0.4 && currentFood >= rate * 0.4) {
+          consumeFlour = rate * 0.4;
+          consumeFood = rate * 0.4;
+        } else canProduce = false;
+      } else if (b.type == BuildingType.furniture) {
+        if (currentPlank >= rate * 0.4 && currentWood >= rate * 0.4) {
+          consumePlank = rate * 0.4;
+          consumeWood = rate * 0.4;
+        } else canProduce = false;
+      }
+
+      if (canProduce) {
+        // Tüketimi uygula
+        addedFood -= consumeFood;
+        currentFood -= consumeFood;
+        addedWood -= consumeWood;
+        currentWood -= consumeWood;
+        addedFlour -= consumeFlour;
+        currentFlour -= consumeFlour;
+        addedPlank -= consumePlank;
+        currentPlank -= consumePlank;
+
+        // Taşıma Kapasitesi Kontrolü
+        double carriedAmount = math.min(rate, totalWorkerCapacity);
+        totalWorkerCapacity -= carriedAmount;
+        double storedAmount = rate - carriedAmount;
+
+        // Taşınanları ekle
         switch (b.type) {
           case BuildingType.corn:
-            addedFood += rate;
+            addedFood += carriedAmount;
+            currentFood += carriedAmount;
             break;
           case BuildingType.lumberjack:
-            addedWood += rate;
+            addedWood += carriedAmount;
+            currentWood += carriedAmount;
             break;
           case BuildingType.windmill:
-            if (state.resources.food >= rate * 0.5) {
-              addedFood -= rate * 0.5;
-              addedFlour += rate;
-            }
+            addedFlour += carriedAmount;
+            currentFlour += carriedAmount;
             break;
           case BuildingType.sawmill:
-            if (state.resources.wood >= rate * 0.5) {
-              addedWood -= rate * 0.5;
-              addedPlank += rate;
-            }
+            addedPlank += carriedAmount;
+            currentPlank += carriedAmount;
             break;
           case BuildingType.bakery:
-            if (state.resources.flour >= rate * 0.4 &&
-                state.resources.food >= rate * 0.4) {
-              addedFlour -= rate * 0.4;
-              addedFood -= rate * 0.4;
-              addedBread += rate;
-            }
+            addedBread += carriedAmount;
             break;
           case BuildingType.furniture:
-            if (state.resources.plank >= rate * 0.4 &&
-                state.resources.wood >= rate * 0.4) {
-              addedPlank -= rate * 0.4;
-              addedWood -= rate * 0.4;
-              addedFurniture += rate;
-            }
+            addedFurniture += carriedAmount;
             break;
           case BuildingType.mine:
-            addedStone += rate;
+            addedStone += carriedAmount;
             if (state.progression.castleLevel >= 3) {
-              addedIron += rate * 0.3;
+              addedIron += carriedAmount * 0.3;
             }
+            break;
+          case BuildingType.fisherman:
+            addedFish += carriedAmount;
             break;
           default:
             break;
         }
+
+        // Taşınamayanları binada biriktir
+        final double newAccum = math.min(b.maxCapacity, b.accumulatedResource + storedAmount);
         updatedTiles[entry.key] = tile.copyWith(
+          building: b.copyWith(accumulatedResource: newAccum),
           isWarmed: isWarmed,
           warmTimer: warmTimer,
         );
       } else {
-        final double newAccum =
-            math.min(b.maxCapacity, b.accumulatedResource + rate);
+        // Üretim yapılamadı (kaynak yok), sadece ısıtma timerı güncellensin
         updatedTiles[entry.key] = tile.copyWith(
-          building: b.copyWith(accumulatedResource: newAccum),
           isWarmed: isWarmed,
           warmTimer: warmTimer,
         );
@@ -340,6 +387,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       resources: state.resources.copyWith(
         food: math.max(0.0, state.resources.food + addedFood),
         wood: math.max(0.0, state.resources.wood + addedWood),
+        fish: math.max(0.0, state.resources.fish + addedFish),
         flour: math.max(0.0, state.resources.flour + addedFlour),
         plank: math.max(0.0, state.resources.plank + addedPlank),
         bread: math.max(0.0, state.resources.bread + addedBread),
@@ -355,6 +403,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       ),
       frenzyTimer: newFrenzyTimer,
       frenzyMultiplier: newFrenzyMultiplier,
+      seasonLerpProgress: newLerp,
     );
   }
 
@@ -379,26 +428,20 @@ class GameStateNotifier extends StateNotifier<GameState> {
   }
 
   double calculateExpansionCost(TileBiome biome) {
-    final discount = EconomyCalculator.getExpansionDiscount(
+    final Map<String, int> biomeCounts = {
+      'meadow': state.progression.purchasedMeadowCount,
+      'forest': state.progression.purchasedForestCount,
+      'sea': state.progression.purchasedSeaCount,
+      'mountain': state.progression.purchasedMountainCount,
+    };
+
+    return EconomyCalculator.getExpansionCost(
+      biome: biome,
+      ownedCount: state.progression.ownedCount,
+      biomeCounts: biomeCounts,
       toreTalents: state.toreTalents,
       titles: state.titles,
     );
-
-    double base = 5.0;
-    int count = state.progression.purchasedMeadowCount;
-    if (biome == TileBiome.forest) {
-      base = 10.0;
-      count = state.progression.purchasedForestCount;
-    } else if (biome == TileBiome.sea) {
-      base = 15.0;
-      count = state.progression.purchasedSeaCount;
-    } else if (biome == TileBiome.mountain) {
-      base = 20.0;
-      count = state.progression.purchasedMountainCount;
-    }
-
-    final double cost = base * math.pow(1.15, count) * (1.0 - discount);
-    return math.max(1.0, cost.roundToDouble());
   }
 
   bool conquerTile(HexAxial coord) {
@@ -425,6 +468,18 @@ class GameStateNotifier extends StateNotifier<GameState> {
           '🔒 Orman Kilitli! Odunculuk için Şatoyu Seviye 2\'ye yükselt.');
       return false;
     }
+    // Dağ kilit kontrolü: Şato Seviye >= 3
+    if (tile.biome == TileBiome.mountain && state.progression.castleLevel < 3) {
+      showToast(
+          '🔒 Dağ Kilitli! Madencilik için Şatoyu Seviye 3\'e yükselt.');
+      return false;
+    }
+    // Deniz kilit kontrolü: Şato Seviye >= 4
+    if (tile.biome == TileBiome.sea && state.progression.castleLevel < 4) {
+      showToast(
+          '🔒 Deniz Kilitli! Balıkçılık ve Köprüler için Şatoyu Seviye 4\'e yükselt.');
+      return false;
+    }
 
     final double cost = calculateExpansionCost(tile.biome);
     if (state.resources.food < cost) {
@@ -436,28 +491,43 @@ class GameStateNotifier extends StateNotifier<GameState> {
     final updatedTiles = Map<HexAxial, HexTileModel>.from(state.tiles);
     updatedTiles[coord] = tile.copyWith(state: TileState.owned);
 
-    // Çevresindeki fog karoları açığa çıkar
-    final int revealRadius = tile.biome == TileBiome.mountain ? 2 : 1;
-    for (int q = -revealRadius; q <= revealRadius; q++) {
-      final int r1 = math.max(-revealRadius, -q - revealRadius);
-      final int r2 = math.min(revealRadius, -q + revealRadius);
-      for (int r = r1; r <= r2; r++) {
-        final targetCoord = coord + HexAxial(q, r);
-        if (updatedTiles.containsKey(targetCoord)) {
-          final t = updatedTiles[targetCoord]!;
-          if (t.isFog) {
-            updatedTiles[targetCoord] = t.copyWith(state: TileState.discovered);
-          }
-        } else {
-          final randomBiome = TileBiome
-              .values[math.Random().nextInt(TileBiome.values.length)];
-          updatedTiles[targetCoord] = HexTileModel(
-            coord: targetCoord,
-            biome: randomBiome,
+    // Çevresindeki fog karoları açığa çıkar (4 Radius Disk)
+    final revealRange = coord.getRange(4);
+    for (final targetCoord in revealRange) {
+      if (updatedTiles.containsKey(targetCoord)) {
+        final t = updatedTiles[targetCoord]!;
+        if (t.isFog) {
+          // Yeni keşfedilen karolarda sunak şansı
+          final bool willHaveShrine = math.Random().nextDouble() < 0.10;
+          final sType = willHaveShrine
+              ? ShrineType.values[1 + math.Random().nextInt(ShrineType.values.length - 1)]
+              : ShrineType.none;
+          updatedTiles[targetCoord] = t.copyWith(
             state: TileState.discovered,
+            shrine: sType,
           );
         }
+      } else {
+        final randomBiome = TileBiome
+            .values[math.Random().nextInt(TileBiome.values.length)];
+        // Yeni üretilen karolarda sunak şansı
+        final bool willHaveShrine = math.Random().nextDouble() < 0.10;
+        final sType = willHaveShrine
+            ? ShrineType.values[1 + math.Random().nextInt(ShrineType.values.length - 1)]
+            : ShrineType.none;
+        updatedTiles[targetCoord] = HexTileModel(
+          coord: targetCoord,
+          biome: randomBiome,
+          state: TileState.discovered,
+          shrine: sType,
+        );
       }
+    }
+
+    double newShrineMult = state.shrineMultiplier;
+    if (tile.hasShrine) {
+      newShrineMult += 0.5; // Her sunak +%50 toplamsal bonus
+      showToast('✨ Kadim Sunak Fethedildi! Üretim Bonusu: +%50');
     }
 
     int mCount = state.progression.purchasedMeadowCount;
@@ -479,8 +549,10 @@ class GameStateNotifier extends StateNotifier<GameState> {
         purchasedSeaCount: sCount,
         purchasedMountainCount: mtCount,
       ),
-      activeToast:
-          '🏰 ${cost.toInt()} 🥡 Gıda karşılığında yeni arsa fethedildi!',
+      shrineMultiplier: newShrineMult,
+      activeToast: tile.hasShrine
+          ? '✨ Sunak Gücüyle beraber yeni arsa fethedildi!'
+          : '🏰 ${cost.toInt()} 🥡 Gıda karşılığında yeni arsa fethedildi!',
     );
 
     saveGame();
@@ -503,7 +575,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
     if ((type == BuildingType.windmill ||
             type == BuildingType.bakery ||
             type == BuildingType.mine ||
-            type == BuildingType.bridge) &&
+            type == BuildingType.bridge ||
+            type == BuildingType.fisherman ||
+            type == BuildingType.fishermanHut) &&
         castleLvl < 3) {
       showToast('🔒 Bu yapı için Şato Seviye 3 gereklidir!');
       return false;
@@ -521,13 +595,43 @@ class GameStateNotifier extends StateNotifier<GameState> {
       showToast('⚠️ Oduncu Kulübesi yalnızca Orman biyomuna inşa edilebilir!');
       return false;
     }
-    if (type == BuildingType.bridge && tile.biome != TileBiome.sea) {
-      showToast('⚠️ Köprü yalnızca Deniz biyomuna inşa edilebilir!');
-      return false;
+    if (type == BuildingType.bridge) {
+      if (tile.biome != TileBiome.sea) {
+        showToast('⚠️ Köprü yalnızca Deniz biyomuna inşa edilebilir!');
+        return false;
+      }
+      // Köprü için iki kara biyomu arasında olma kontrolü
+      final landNeighbors = coord.neighbors.where((n) {
+        final t = state.tiles[n];
+        return t != null && t.biome != TileBiome.sea;
+      }).length;
+      if (landNeighbors < 2) {
+        showToast('⚠️ Köprü yalnızca iki kara parçası arasına inşa edilebilir!');
+        return false;
+      }
     }
     if (type == BuildingType.mine && tile.biome != TileBiome.mountain) {
       showToast('⚠️ Maden Ocağı yalnızca Dağ biyomuna inşa edilebilir!');
       return false;
+    }
+    if (type == BuildingType.fisherman && tile.biome != TileBiome.sea) {
+      showToast('⚠️ Balıkçı yalnızca Deniz biyomuna inşa edilebilir!');
+      return false;
+    }
+    if (type == BuildingType.fishermanHut) {
+      if (tile.biome != TileBiome.sea) {
+        showToast('⚠️ Balıkçı Barınağı yalnızca Deniz biyomuna inşa edilebilir!');
+        return false;
+      }
+      // Kıyı kontrolü: En az bir kara komşusu olmalı
+      final hasLandNeighbor = coord.neighbors.any((n) {
+        final t = state.tiles[n];
+        return t != null && t.biome != TileBiome.sea;
+      });
+      if (!hasLandNeighbor) {
+        showToast('⚠️ Balıkçı Barınağı kıyıya (kara yanına) inşa edilmelidir!');
+        return false;
+      }
     }
 
     final dummy = BuildingModel(type: type);
@@ -617,6 +721,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
       res = res.copyWith(food: res.food + accum);
     } else if (b.type == BuildingType.lumberjack) {
       res = res.copyWith(wood: res.wood + accum);
+    } else if (b.type == BuildingType.fisherman) {
+      res = res.copyWith(fish: res.fish + accum);
     } else if (b.type == BuildingType.windmill) {
       res = res.copyWith(flour: res.flour + accum);
     } else if (b.type == BuildingType.sawmill) {
@@ -787,11 +893,14 @@ class GameStateNotifier extends StateNotifier<GameState> {
   bool upgradeCastle() {
     final int nextLvl = state.progression.castleLevel + 1;
     final double foodCost = 50.0 * math.pow(1.5, nextLvl - 2);
-    final double woodCost = 25.0 * math.pow(1.5, nextLvl - 2);
+    // İlk bir kaç seviye (Lvl 2 ve 3) odun istemesin
+    final double woodCost = nextLvl <= 3 ? 0.0 : 25.0 * math.pow(1.5, nextLvl - 4);
 
     if (state.resources.food < foodCost || state.resources.wood < woodCost) {
-      showToast(
-          '⚠️ Şato yükseltme için ${foodCost.toInt()} 🥡 ve ${woodCost.toInt()} 🪵 gerekli!');
+      String costMsg = '⚠️ Şato yükseltme için ${foodCost.toInt()} 🥡';
+      if (woodCost > 0) costMsg += ' ve ${woodCost.toInt()} 🪵';
+      costMsg += ' gerekli!';
+      showToast(costMsg);
       return false;
     }
 
@@ -850,7 +959,25 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
   void resetGame() {
     SaveRepository.deleteSave();
+
+    // Prestige (Tamga) Hesaplama: (Hex Sayısı + Sunak Sayısı) / 2
+    final int ownedHexes = state.progression.ownedCount;
+    final int shrines = state.tiles.values.where((t) => t.isOwned && t.hasShrine).length;
+    final int newTamgas = (ownedHexes + (shrines * 5)) ~/ 2;
+
+    final int currentTamgas = state.resources.tamgas;
+    final int totalTamgas = currentTamgas + newTamgas;
+
     state = _createInitialState();
-    showToast('🔄 Oyun sıfırlandı ve yeni krallık kuruldu!');
+
+    // Yeni oyuna Tamga ve Global Multiplier ile başla
+    final double tamgaMult = EconomyCalculator.getTamgaMultiplier(totalTamgas);
+
+    state = state.copyWith(
+      resources: state.resources.copyWith(tamgas: totalTamgas),
+      activeToast: '🌅 Göç Tamamlandı! +$newTamgas Tamga Kazanıldı. Yeni Çarpan: x${tamgaMult.toStringAsFixed(1)}',
+    );
+
+    saveGame();
   }
 }

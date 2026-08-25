@@ -14,6 +14,13 @@ enum TileState {
   owned,
 }
 
+enum ShrineType {
+  none,
+  foodBoost,
+  woodBoost,
+  speedBoost,
+}
+
 class HexTileModel {
   final HexAxial coord;
   final TileBiome biome;
@@ -21,6 +28,7 @@ class HexTileModel {
   final BuildingModel? building;
   final bool isWarmed;
   final double warmTimer;
+  final ShrineType shrine;
 
   const HexTileModel({
     required this.coord,
@@ -29,12 +37,14 @@ class HexTileModel {
     this.building,
     this.isWarmed = false,
     this.warmTimer = 0.0,
+    this.shrine = ShrineType.none,
   });
 
   bool get hasBuilding => building != null;
   bool get isOwned => state == TileState.owned;
   bool get isDiscovered => state == TileState.discovered;
   bool get isFog => state == TileState.fog;
+  bool get hasShrine => shrine != ShrineType.none;
 
   HexTileModel copyWith({
     HexAxial? coord,
@@ -44,6 +54,7 @@ class HexTileModel {
     bool? clearBuilding,
     bool? isWarmed,
     double? warmTimer,
+    ShrineType? shrine,
   }) {
     return HexTileModel(
       coord: coord ?? this.coord,
@@ -52,6 +63,7 @@ class HexTileModel {
       building: clearBuilding == true ? null : (building ?? this.building),
       isWarmed: isWarmed ?? this.isWarmed,
       warmTimer: warmTimer ?? this.warmTimer,
+      shrine: shrine ?? this.shrine,
     );
   }
 
@@ -64,6 +76,7 @@ class HexTileModel {
       'building': building?.toJson(),
       'is_warmed': isWarmed,
       'warm_timer': warmTimer,
+      'shrine': shrine.index,
     };
   }
 
@@ -72,6 +85,7 @@ class HexTileModel {
     final int r = json['y'] as int? ?? json['r'] as int? ?? 0;
     final int biomeIdx = json['type'] as int? ?? 0;
     final int stateIdx = json['state'] as int? ?? 0;
+    final int shrineIdx = json['shrine'] as int? ?? 0;
 
     BuildingModel? b;
     if (json.containsKey('building') && json['building'] != null) {
@@ -91,6 +105,7 @@ class HexTileModel {
       building: b,
       isWarmed: json['is_warmed'] as bool? ?? false,
       warmTimer: (json['warm_timer'] as num?)?.toDouble() ?? 0.0,
+      shrine: ShrineType.values[shrineIdx.clamp(0, ShrineType.values.length - 1)],
     );
   }
 }

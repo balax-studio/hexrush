@@ -1,6 +1,7 @@
 class ResourcesModel {
   final double food;
   final double wood;
+  final double fish;
   final double flour;
   final double plank;
   final double bread;
@@ -15,6 +16,7 @@ class ResourcesModel {
   const ResourcesModel({
     this.food = 0.0,
     this.wood = 0.0,
+    this.fish = 0.0,
     this.flour = 0.0,
     this.plank = 0.0,
     this.bread = 0.0,
@@ -30,6 +32,7 @@ class ResourcesModel {
   ResourcesModel copyWith({
     double? food,
     double? wood,
+    double? fish,
     double? flour,
     double? plank,
     double? bread,
@@ -44,6 +47,7 @@ class ResourcesModel {
     return ResourcesModel(
       food: food ?? this.food,
       wood: wood ?? this.wood,
+      fish: fish ?? this.fish,
       flour: flour ?? this.flour,
       plank: plank ?? this.plank,
       bread: bread ?? this.bread,
@@ -60,6 +64,7 @@ class ResourcesModel {
   Map<String, dynamic> toJson() => {
         'food': food,
         'wood': wood,
+        'fish': fish,
         'flour': flour,
         'plank': plank,
         'bread': bread,
@@ -76,6 +81,7 @@ class ResourcesModel {
     return ResourcesModel(
       food: (json['food'] as num?)?.toDouble() ?? 0.0,
       wood: (json['wood'] as num?)?.toDouble() ?? 0.0,
+      fish: (json['fish'] as num?)?.toDouble() ?? 0.0,
       flour: (json['flour'] as num?)?.toDouble() ?? 0.0,
       plank: (json['plank'] as num?)?.toDouble() ?? 0.0,
       bread: (json['bread'] as num?)?.toDouble() ?? 0.0,

@@ -253,6 +253,12 @@ class HexTileComponent extends PositionComponent {
         case BuildingType.bridge:
           VoxelIsometricRenderer.drawVoxelBridge(canvas, center);
           break;
+        case BuildingType.fisherman:
+          VoxelIsometricRenderer.drawVoxelLumberjack(canvas, center); // Geçici olarak oduncu görseli
+          break;
+        case BuildingType.fishermanHut:
+          VoxelIsometricRenderer.drawVoxelBakery(canvas, center, _animTimer, isNight: isNight); // Geçici olarak fırın görseli
+          break;
       }
     } else {
       switch (tileModel.biome) {

@@ -451,6 +451,8 @@ class TileActionSheet extends ConsumerWidget {
       case BuildingType.bakery:
       case BuildingType.mine:
       case BuildingType.bridge:
+      case BuildingType.fisherman:
+      case BuildingType.fishermanHut:
         return 3;
       case BuildingType.furniture:
         return 4;
@@ -484,6 +486,8 @@ class TileActionSheet extends ConsumerWidget {
       case TileBiome.sea:
         return [
           BuildingType.bridge,
+          BuildingType.fisherman,
+          BuildingType.fishermanHut,
         ];
     }
   }
@@ -528,6 +532,10 @@ class TileActionSheet extends ConsumerWidget {
         return const GameVectorIcon(type: GameIconType.iron, size: 14);
       case BuildingType.bridge:
         return const GameVectorIcon(type: GameIconType.land, size: 14);
+      case BuildingType.fisherman:
+        return const GameVectorIcon(type: GameIconType.food, size: 14);
+      case BuildingType.fishermanHut:
+        return const GameVectorIcon(type: GameIconType.land, size: 14);
     }
   }
 
@@ -568,6 +576,10 @@ class TileActionSheet extends ConsumerWidget {
         return GameLocalization.get('mine_name', lang: lang);
       case BuildingType.bridge:
         return GameLocalization.get('bridge_name', lang: lang);
+      case BuildingType.fisherman:
+        return 'Balıkçı';
+      case BuildingType.fishermanHut:
+        return 'Balıkçı Barınağı';
     }
   }
 }

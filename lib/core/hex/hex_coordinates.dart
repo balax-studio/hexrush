@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 /// Pointy-top altıgen ızgara için axial (q, r) koordinat sınıfı.
 class HexAxial {
   final int q;
@@ -23,6 +25,19 @@ class HexAxial {
   HexAxial operator *(int scale) => HexAxial(q * scale, r * scale);
 
   List<HexAxial> get neighbors => directions.map((d) => this + d).toList();
+
+  /// Belirli bir yarıçap içindeki tüm koordinatları döndürür (Disk)
+  List<HexAxial> getRange(int radius) {
+    final List<HexAxial> results = [];
+    for (int q = -radius; q <= radius; q++) {
+      for (int r = math.max(-radius, -q - radius);
+          r <= math.min(radius, -q + radius);
+          r++) {
+        results.add(this + HexAxial(q, r));
+      }
+    }
+    return results;
+  }
 
   @override
   bool operator ==(Object other) =>

@@ -12,9 +12,14 @@ enum BuildingType {
   watchtower,
   mine,
   bridge,
+  fisherman,
+  fishermanHut,
 }
 
 class BuildingModel {
+// ... (omitting fields for brevity in replacementContent, but I should be careful)
+// Actually I'll provide the full class content with changes to methods.
+
   final BuildingType type;
   final int level;
   final double accumulatedResource;
@@ -66,6 +71,10 @@ class BuildingModel {
         return 55.0;
       case BuildingType.bridge:
         return 20.0;
+      case BuildingType.fisherman:
+        return 30.0;
+      case BuildingType.fishermanHut:
+        return 45.0;
     }
   }
 
@@ -91,14 +100,105 @@ class BuildingModel {
         return 0.20;
       case BuildingType.mine:
         return 0.30;
+      case BuildingType.fisherman:
+        return 0.35;
+      default:
+        return 0.0;
+    }
+  }
+
+  /// Temel taşıma kapasitesi (İşçiler için)
+  double get baseCarryingCapacity {
+    switch (type) {
+      case BuildingType.worker:
+        return 1.68; // 4 * 0.42 (Corn rate)
+      case BuildingType.fishermanHut:
+        return 1.40; // 4 * 0.35 (Fisherman rate)
       default:
         return 0.0;
     }
   }
 
   /// Seviyeye göre anlık üretim hızı
-  double get currentProductionRate =>
-      baseProductionRate * math.pow(1.5, level - 1);
+  double get currentProductionRate {
+    // Eşik Çarpanı (k)
+    int k = 0;
+    if (level >= 200) {
+      k = 5;
+    } else if (level >= 100) {
+      k = 4;
+    } else if (level >= 50) {
+      k = 3;
+    } else if (level >= 25) {
+      k = 2;
+    } else if (level >= 10) {
+      k = 1;
+    }
+
+    final double milestoneBoost = math.pow(2.0, k).toDouble();
+    return baseProductionRate * level * milestoneBoost;
+  }
+
+  /// Seviyeye göre anlık taşıma kapasitesi
+  double get currentCarryingCapacity {
+    int k = 0;
+    if (level >= 200) {
+      k = 5;
+    } else if (level >= 100) {
+      k = 4;
+    } else if (level >= 50) {
+      k = 3;
+    } else if (level >= 25) {
+      k = 2;
+    } else if (level >= 10) {
+      k = 1;
+    }
+
+    final double milestoneBoost = math.pow(2.0, k).toDouble();
+    return baseCarryingCapacity * level * milestoneBoost;
+  }
+
+  /// ROI / F/K Oranı (Saniye bazında)
+  double get roiSeconds {
+    final double nextLevelRate = _calculateRateForLevel(level + 1);
+    final double deltaP = nextLevelRate - currentProductionRate;
+    if (deltaP <= 0) {
+      return 0;
+    }
+    return upgradeCost / deltaP;
+  }
+
+  double _calculateRateForLevel(int targetLevel) {
+    int k = 0;
+    if (targetLevel >= 200) {
+      k = 5;
+    } else if (targetLevel >= 100) {
+      k = 4;
+    } else if (targetLevel >= 50) {
+      k = 3;
+    } else if (targetLevel >= 25) {
+      k = 2;
+    } else if (targetLevel >= 10) {
+      k = 1;
+    }
+    final double milestoneBoost = math.pow(2.0, k).toDouble();
+    return baseProductionRate * targetLevel * milestoneBoost;
+  }
+
+  bool get isNextLevelMilestone {
+    final int next = level + 1;
+    return next == 10 || next == 25 || next == 50 || next == 100 || next == 200;
+  }
+
+  /// Bir sonraki eşiğe kalan seviye
+  int get levelsToNextMilestone {
+    if (level < 10) return 10 - level;
+    if (level < 25) return 25 - level;
+    if (level < 50) return 50 - level;
+    if (level < 100) return 100 - level;
+    if (level < 200) return 200 - level;
+    return 0;
+  }
 
   /// Maksimum birikim kapasitesi (otomasyonsuz durumda)
   double get maxCapacity => currentProductionRate * 30.0;
@@ -138,6 +238,8 @@ class BuildingModel {
     if (bType == 'watchtower') type = BuildingType.watchtower;
     if (bType == 'mine') type = BuildingType.mine;
     if (bType == 'bridge') type = BuildingType.bridge;
+    if (bType == 'fisherman') type = BuildingType.fisherman;
+    if (bType == 'fishermanHut') type = BuildingType.fishermanHut;
 
     return BuildingModel(
       type: type,

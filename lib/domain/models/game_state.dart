@@ -15,6 +15,8 @@ class GameState {
   final Map<String, dynamic> toreTalents;
   final Map<String, dynamic> titles;
   final Map<String, dynamic> stats;
+  final double seasonLerpProgress; // 0.0 to 1.0 (60s lerp)
+  final double shrineMultiplier;
 
   const GameState({
     required this.tiles,
@@ -29,6 +31,8 @@ class GameState {
     this.toreTalents = const {},
     this.titles = const {},
     this.stats = const {},
+    this.seasonLerpProgress = 1.0,
+    this.shrineMultiplier = 1.0,
   });
 
   GameState copyWith({
@@ -46,6 +50,8 @@ class GameState {
     Map<String, dynamic>? toreTalents,
     Map<String, dynamic>? titles,
     Map<String, dynamic>? stats,
+    double? seasonLerpProgress,
+    double? shrineMultiplier,
   }) {
     return GameState(
       tiles: tiles ?? this.tiles,
@@ -60,6 +66,8 @@ class GameState {
       toreTalents: toreTalents ?? this.toreTalents,
       titles: titles ?? this.titles,
       stats: stats ?? this.stats,
+      seasonLerpProgress: seasonLerpProgress ?? this.seasonLerpProgress,
+      shrineMultiplier: shrineMultiplier ?? this.shrineMultiplier,
     );
   }
 }

@@ -24,6 +24,7 @@ class OfflineGainsResult {
   final double furniture;
   final double stone;
   final double iron;
+  final double fish;
 
   const OfflineGainsResult({
     required this.seconds,
@@ -35,6 +36,7 @@ class OfflineGainsResult {
     this.furniture = 0.0,
     this.stone = 0.0,
     this.iron = 0.0,
+    this.fish = 0.0,
   });
 
   bool get hasGains =>
@@ -45,7 +47,8 @@ class OfflineGainsResult {
       bread > 0 ||
       furniture > 0 ||
       stone > 0 ||
-      iron > 0;
+      iron > 0 ||
+      fish > 0;
 }
 
 /// Krallık Ekonomisi, Töre Ağacı & Yetenek Hesaplayıcı (Pure Dart Engine)
@@ -115,6 +118,88 @@ class EconomyCalculator {
       discount += 0.10;
     }
     return math.min(0.60, discount);
+  }
+
+  static double getExpansionCost({
+    required TileBiome biome,
+    required int ownedCount,
+    required Map<String, int> biomeCounts,
+    Map<String, dynamic> toreTalents = const {},
+    Map<String, dynamic> titles = const {},
+  }) {
+    final discount = getExpansionDiscount(
+      toreTalents: toreTalents,
+      titles: titles,
+    );
+
+    double base = 5.0;
+    if (biome == TileBiome.forest) {
+      base = 10.0;
+    } else if (biome == TileBiome.sea) {
+      base = 15.0;
+    } else if (biome == TileBiome.mountain) {
+      base = 20.0;
+    }
+
+    // C(n) = C_base * 1.6^n * W(n)
+    double wallMult = 1.0;
+    if (ownedCount >= 50) {
+      wallMult = 50.0;
+    } else if (ownedCount >= 20) {
+      wallMult = 10.0;
+    } else if (ownedCount >= 10) {
+      wallMult = 5.0;
+    }
+
+    final double cost = base * math.pow(1.6, ownedCount) * wallMult * (1.0 - discount);
+    return math.max(1.0, cost.roundToDouble());
+  }
+
+  static double calculateBuildingProduction({
+    required BuildingType type,
+    required int level,
+    required double baseRate,
+    double globalMultiplier = 1.0,
+    double seasonMultiplier = 1.0,
+    double synergyMultiplier = 1.0,
+    double workerMultiplier = 1.0,
+    double shrineMultiplier = 1.0,
+  }) {
+    // Eşik Çarpanı (k)
+    int k = 0;
+    if (level >= 200) {
+      k = 5;
+    } else if (level >= 100) {
+      k = 4;
+    } else if (level >= 50) {
+      k = 3;
+    } else if (level >= 25) {
+      k = 2;
+    } else if (level >= 10) {
+      k = 1;
+    }
+
+    // P_net = (P_base * Level * 2^k) * (1 + sum S_boost) * modifiers
+    final double milestoneBoost = math.pow(2.0, k).toDouble();
+
+    return (baseRate * level * milestoneBoost) *
+           globalMultiplier *
+           seasonMultiplier *
+           synergyMultiplier *
+           workerMultiplier *
+           shrineMultiplier;
+  }
+
+  static double getTamgaMultiplier(int tamga) {
+    if (tamga <= 0) return 1.0;
+
+    if (tamga <= 100) {
+      // 0-100 Tamga: 1.0 + (Tamga * 0.1)
+      return 1.0 + (tamga * 0.1);
+    } else {
+      // 100+ Tamga: 11.0 + log10(Tamga - 99)
+      return 11.0 + (math.log(tamga - 99.0) / math.ln10);
+    }
   }
 
   static double getSeasonProductionMultiplier({
@@ -201,8 +286,9 @@ class EconomyCalculator {
       return OfflineGainsResult(seconds: cappedSeconds.toInt());
     }
 
-    final bool hasWorkers =
-        tiles.any((t) => t.building?.type == BuildingType.worker);
+    final bool hasWorkers = tiles.any((t) =>
+        t.building?.type == BuildingType.worker ||
+        t.building?.type == BuildingType.fishermanHut);
 
     double gainedFood = 0.0;
     double gainedWood = 0.0;
@@ -212,6 +298,7 @@ class EconomyCalculator {
     double gainedFurniture = 0.0;
     double gainedStone = 0.0;
     double gainedIron = 0.0;
+    double gainedFish = 0.0;
 
     for (final t in tiles) {
       final b = t.building;
@@ -257,6 +344,11 @@ class EconomyCalculator {
               ? rate * cappedSeconds
               : math.min(maxCap, rate * cappedSeconds);
           break;
+        case BuildingType.fisherman:
+          gainedFish += hasWorkers
+              ? rate * cappedSeconds
+              : math.min(maxCap, rate * cappedSeconds);
+          break;
         default:
           break;
       }
@@ -272,6 +364,7 @@ class EconomyCalculator {
       furniture: gainedFurniture,
       stone: gainedStone,
       iron: gainedIron,
+      fish: gainedFish,
     );
   }
 }
