@@ -1,4 +1,4 @@
-package com.example.hex_idle
+package com.balax.hexrush
 
 import io.flutter.embedding.android.FlutterActivity
 

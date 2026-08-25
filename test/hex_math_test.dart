@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hex_idle/core/hex/hex_coordinates.dart';
-import 'package:hex_idle/core/hex/hex_math.dart';
+import 'package:hex_rush/core/hex/hex_coordinates.dart';
+import 'package:hex_rush/core/hex/hex_math.dart';
 
 void main() {
   group('HexMath & HexAxial Tests', () {

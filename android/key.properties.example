@@ -1,0 +1,6 @@
+# Keystore configuration template for Google Play Release Builds
+# Copy this file to `android/key.properties` (do not commit key.properties to git)
+storePassword=your_store_password_here
+keyPassword=your_key_password_here
+keyAlias=hexrush_key
+storeFile=/path/to/your/upload-keystore.jks

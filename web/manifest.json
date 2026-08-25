@@ -1,6 +1,6 @@
 {
-    "name": "hex_idle",
-    "short_name": "hex_idle",
+    "name": "HexRush",
+    "short_name": "HexRush",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

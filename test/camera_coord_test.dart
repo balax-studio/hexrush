@@ -1,7 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hex_idle/core/hex/hex_coordinates.dart';
-import 'package:hex_idle/core/hex/hex_math.dart';
+import 'package:hex_rush/core/hex/hex_coordinates.dart';
+import 'package:hex_rush/core/hex/hex_math.dart';
 
 void main() {
   test('exact screen tap to hex conversion with camera pan and zoom', () {

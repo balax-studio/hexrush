@@ -23,6 +23,11 @@ Thumbs.db
 *.tmp
 scratch/
 
+# Android Keystore & Secrets
+android/key.properties
+*.jks
+*.keystore
+
 # Legacy Godot
 .godot/
 *.import

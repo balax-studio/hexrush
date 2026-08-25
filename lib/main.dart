@@ -6,18 +6,18 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
     const ProviderScope(
-      child: HexIdleApp(),
+      child: HexRushApp(),
     ),
   );
 }
 
-class HexIdleApp extends StatelessWidget {
-  const HexIdleApp({super.key});
+class HexRushApp extends StatelessWidget {
+  const HexRushApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Hex Idle',
+      title: 'HexRush',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
