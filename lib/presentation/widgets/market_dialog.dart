@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/tactile_audio_service.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
+import '../../domain/economy/economy_calculator.dart';
 import '../providers/game_state_notifier.dart';
 import 'icons/game_vector_icons.dart';
 import 'tactile_neo_button.dart';
@@ -18,44 +19,34 @@ class MarketDialog extends ConsumerWidget {
     final lang = gameState.settings.language;
     final isMerchant = gameState.titles['merchant'] == true;
 
-    final recipes = [
-      {
-        'key': 'flour_to_stone',
-        'fromIcon': GameIconType.flour,
-        'fromAmount': '15 Un',
-        'toIcon': GameIconType.stone,
-        'toAmount': isMerchant ? '10 Taş' : '8 Taş',
-        'desc': isMerchant ? 'Tüccar Unvanı ile +%20 Bonus Taş!' : 'Değirmende öğütülen un ile taş takası.',
-        'canAfford': resources.flour >= 15.0,
-      },
-      {
-        'key': 'bread_to_iron',
-        'fromIcon': GameIconType.bread,
-        'fromAmount': '10 Ekmek',
-        'toIcon': GameIconType.iron,
-        'toAmount': isMerchant ? '6 Demir' : '5 Demir',
-        'desc': isMerchant ? 'Tüccar Unvanı ile +%20 Bonus Demir!' : 'Fırından çıkan taze ekmekle maden takası.',
-        'canAfford': resources.bread >= 10.0,
-      },
-      {
-        'key': 'furniture_to_stone',
-        'fromIcon': GameIconType.furniture,
-        'fromAmount': '10 Mobilya',
-        'toIcon': GameIconType.stone,
-        'toAmount': isMerchant ? '18 Taş' : '15 Taş',
-        'desc': 'İşlenmiş mobilya karşılığında zengin taş kütleleri.',
-        'canAfford': resources.furniture >= 10.0,
-      },
-      {
-        'key': 'iron_stone_to_crown',
-        'fromIcon': GameIconType.iron,
-        'fromAmount': '25 Demir + 25 Taş',
-        'toIcon': GameIconType.crown,
-        'toAmount': '1 Taç',
-        'desc': 'Değerli madenleri birleştirerek hanlık şanı ve kutlu tamga döv.',
-        'canAfford': resources.iron >= 25.0 && resources.stone >= 25.0,
-      },
-    ];
+    final recipes = EconomyCalculator.getMarketRecipes(
+      season: gameState.season.current,
+      isZud: gameState.season.isZud,
+      isMerchant: isMerchant,
+      resources: resources,
+    );
+
+    final GameIconType seasonIcon;
+    final String seasonNameTr;
+    switch (gameState.season.current) {
+      case 'SPRING':
+        seasonIcon = GameIconType.spring;
+        seasonNameTr = 'İLKBAHAR';
+        break;
+      case 'SUMMER':
+        seasonIcon = GameIconType.summer;
+        seasonNameTr = 'YAZ';
+        break;
+      case 'AUTUMN':
+        seasonIcon = GameIconType.autumn;
+        seasonNameTr = 'SONBAHAR';
+        break;
+      case 'WINTER':
+      default:
+        seasonIcon = gameState.season.isZud ? GameIconType.zud : GameIconType.winter;
+        seasonNameTr = gameState.season.isZud ? 'ZUD (AFET)' : 'KIŞ';
+        break;
+    }
 
     return Dialog(
       backgroundColor: NeoBrutalistTheme.surface,
@@ -96,9 +87,48 @@ class MarketDialog extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
+            // Mevsimsel Piyasa Göstergesi
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: NeoBrutalistTheme.sharpRadius,
+                border: Border.all(color: const Color(0xFF334155), width: 1.2),
+                boxShadow: NeoBrutalistTheme.hardShadowSmall,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      GameVectorIcon(type: seasonIcon, size: 14),
+                      const SizedBox(width: 6),
+                      Text(
+                        'BOZKIR PİYASASI: $seasonNameTr',
+                        style: const TextStyle(
+                          color: Color(0xFFFFC700),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    'YIL ${gameState.season.year}',
+                    style: const TextStyle(
+                      color: Color(0xFF94A3B8),
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
             const Divider(color: Colors.black, thickness: 1.5, height: 1.5),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
             Flexible(
               child: ListView.separated(
                 shrinkWrap: true,
@@ -108,6 +138,7 @@ class MarketDialog extends ConsumerWidget {
                   final r = recipes[i];
                   final bool canAfford = r['canAfford'] as bool;
                   final String key = r['key'] as String;
+                  final String seasonTag = r['seasonTag'] as String;
 
                   return Container(
                     padding: const EdgeInsets.all(12),
@@ -129,7 +160,7 @@ class MarketDialog extends ConsumerWidget {
                             children: [
                               Row(
                                 children: [
-                                  GameVectorIcon(type: r['fromIcon'] as GameIconType, size: 14),
+                                  GameVectorIcon(type: _getIconType(r['fromIcon']), size: 14),
                                   const SizedBox(width: 4),
                                   Text(
                                     r['fromAmount'] as String,
@@ -142,7 +173,7 @@ class MarketDialog extends ConsumerWidget {
                                   const SizedBox(width: 6),
                                   const Icon(Icons.arrow_forward, size: 12, color: Colors.white54),
                                   const SizedBox(width: 6),
-                                  GameVectorIcon(type: r['toIcon'] as GameIconType, size: 14),
+                                  GameVectorIcon(type: _getIconType(r['toIcon']), size: 14),
                                   const SizedBox(width: 4),
                                   Text(
                                     r['toAmount'] as String,
@@ -154,6 +185,26 @@ class MarketDialog extends ConsumerWidget {
                                   ),
                                 ],
                               ),
+                              if (seasonTag.isNotEmpty) ...[
+                                const SizedBox(height: 3),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF1E1B4B),
+                                    borderRadius: NeoBrutalistTheme.sharpRadius,
+                                    border: Border.all(color: const Color(0xFFA855F7), width: 1.0),
+                                  ),
+                                  child: Text(
+                                    seasonTag,
+                                    style: const TextStyle(
+                                      color: Color(0xFFC084FC),
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                ),
+                              ],
                               const SizedBox(height: 4),
                               Text(
                                 r['desc'] as String,
@@ -192,5 +243,29 @@ class MarketDialog extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  GameIconType _getIconType(dynamic key) {
+    if (key is GameIconType) return key;
+    switch (key.toString()) {
+      case 'flour':
+        return GameIconType.flour;
+      case 'stone':
+        return GameIconType.stone;
+      case 'bread':
+        return GameIconType.bread;
+      case 'iron':
+        return GameIconType.iron;
+      case 'furniture':
+        return GameIconType.furniture;
+      case 'crown':
+        return GameIconType.crown;
+      case 'food':
+        return GameIconType.food;
+      case 'wood':
+        return GameIconType.wood;
+      default:
+        return GameIconType.market;
+    }
   }
 }

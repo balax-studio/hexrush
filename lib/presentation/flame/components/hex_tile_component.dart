@@ -389,6 +389,7 @@ class HexTileComponent extends PositionComponent {
       }
     } else if (tileModel.hasBuilding) {
       final b = tileModel.building!;
+      final int bVar = b.variant != 0 ? b.variant : ((tileModel.coord.q * 17 + tileModel.coord.r * 31).abs() % 3);
       if (b.type != BuildingType.bridge &&
           b.type != BuildingType.fisherman &&
           b.type != BuildingType.fishermanHut) {
@@ -403,31 +404,46 @@ class HexTileComponent extends PositionComponent {
           VoxelIsometricRenderer.drawVoxelCastle(canvas, center, b.level, isNight: isNight);
           break;
         case BuildingType.corn:
-          VoxelIsometricRenderer.drawVoxelCropField(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelCropField(canvas, center, animTime: tTime, variant: bVar);
+          break;
+        case BuildingType.barley:
+          VoxelIsometricRenderer.drawVoxelBarleyField(canvas, center, animTime: tTime, variant: bVar);
+          break;
+        case BuildingType.pasture:
+          VoxelIsometricRenderer.drawVoxelPasture(canvas, center, animTime: tTime, variant: bVar);
+          break;
+        case BuildingType.orchard:
+          VoxelIsometricRenderer.drawVoxelOrchard(canvas, center, animTime: tTime, variant: bVar);
+          break;
+        case BuildingType.quarry:
+          VoxelIsometricRenderer.drawVoxelQuarry(canvas, center, variant: bVar);
+          break;
+        case BuildingType.resinCamp:
+          VoxelIsometricRenderer.drawVoxelResinCamp(canvas, center, animTime: tTime, variant: bVar);
           break;
         case BuildingType.lumberjack:
-          VoxelIsometricRenderer.drawVoxelLumberjack(canvas, center);
+          VoxelIsometricRenderer.drawVoxelLumberjack(canvas, center, variant: bVar);
           break;
         case BuildingType.windmill:
-          VoxelIsometricRenderer.drawVoxelWindmill(canvas, center, tTime, isNight: isNight);
+          VoxelIsometricRenderer.drawVoxelWindmill(canvas, center, tTime, isNight: isNight, variant: bVar);
           break;
         case BuildingType.sawmill:
-          VoxelIsometricRenderer.drawVoxelSawmill(canvas, center);
+          VoxelIsometricRenderer.drawVoxelSawmill(canvas, center, variant: bVar);
           break;
         case BuildingType.bakery:
-          VoxelIsometricRenderer.drawVoxelBakery(canvas, center, tTime, isNight: isNight);
+          VoxelIsometricRenderer.drawVoxelBakery(canvas, center, tTime, isNight: isNight, variant: bVar);
           break;
         case BuildingType.furniture:
-          VoxelIsometricRenderer.drawVoxelFurniture(canvas, center);
+          VoxelIsometricRenderer.drawVoxelFurniture(canvas, center, variant: bVar);
           break;
         case BuildingType.worker:
-          VoxelIsometricRenderer.drawVoxelLumberjack(canvas, center);
+          VoxelIsometricRenderer.drawVoxelLumberjack(canvas, center, variant: bVar);
           break;
         case BuildingType.watchtower:
           VoxelIsometricRenderer.drawVoxelWatchtower(canvas, center, isNight: isNight, animTime: tTime);
           break;
         case BuildingType.mine:
-          VoxelIsometricRenderer.drawVoxelMine(canvas, center, animTime: tTime, isNight: isNight);
+          VoxelIsometricRenderer.drawVoxelMine(canvas, center, animTime: tTime, isNight: isNight, variant: bVar);
           break;
         case BuildingType.bridge:
           VoxelIsometricRenderer.drawVoxelBridge(canvas, center);

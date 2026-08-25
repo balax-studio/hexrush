@@ -850,8 +850,8 @@ class VoxelIsometricRenderer {
 
   // --- BİNALAR & GECE IŞIKLANDIRMASI (GLOWING WINDOWS) ---
 
-  /// 3D Voxel Ekin / Buğday Tarlası (Rüzgar Salınımlı)
-  static void drawVoxelCropField(Canvas canvas, Offset baseCenter, {double animTime = 0.0}) {
+  /// 3D Voxel Ekin / Buğday Tarlası (Çoklu Görsel Varyantlar & Rüzgar Salınımlı)
+  static void drawVoxelCropField(Canvas canvas, Offset baseCenter, {double animTime = 0.0, int variant = 0}) {
     drawIsoCube(
       canvas,
       baseCenter,
@@ -865,27 +865,995 @@ class VoxelIsometricRenderer {
     );
 
     final Offset fieldTop = Offset(baseCenter.dx, baseCenter.dy - 4.0);
-    const int rows = 3;
-    const int cols = 3;
+    final int v = variant % 3;
 
-    for (int r = 0; r < rows; r++) {
-      for (int c = 0; c < cols; c++) {
-        final double windSway = math.sin(animTime * 3.0 + (r * 0.8) + (c * 0.6)) * 1.5;
-        final double offX = (c - 1) * 8.0 * cosIso - (r - 1) * 8.0 * cosIso + windSway;
-        final double offY = (c - 1) * 8.0 * sinIso + (r - 1) * 8.0 * sinIso;
-        final Offset cropPos = Offset(fieldTop.dx + offX, fieldTop.dy + offY);
+    if (v == 1) {
+      // Varyant 1: Çapraz Ekinler & Saman Balyaları
+      // 2 Köşede Saman Balyası
+      drawIsoCube(
+        canvas,
+        Offset(fieldTop.dx - 12.0 * cosIso, fieldTop.dy - 12.0 * sinIso),
+        w: 7.0,
+        d: 7.0,
+        h: 6.0,
+        topColor: const Color(0xFFFACC15),
+        leftColor: const Color(0xFFEAB308),
+        rightColor: const Color(0xFFCA8A04),
+      );
+      drawIsoCube(
+        canvas,
+        Offset(fieldTop.dx + 12.0 * cosIso, fieldTop.dy + 8.0 * sinIso),
+        w: 6.0,
+        d: 6.0,
+        h: 5.0,
+        topColor: const Color(0xFFFEF08A),
+        leftColor: const Color(0xFFFACC15),
+        rightColor: const Color(0xFFCA8A04),
+      );
+
+      // Çapraz ekin sıraları
+      for (int i = -1; i <= 1; i++) {
+        for (int j = -1; j <= 1; j++) {
+          if (i == -1 && j == -1) continue; // Saman balyası yeri
+          final double windSway = math.sin(animTime * 3.0 + i * 1.1 + j * 0.7) * 1.6;
+          final double offX = (i * 9.0 * cosIso) - (j * 7.0 * cosIso) + windSway;
+          final double offY = (i * 9.0 * sinIso) + (j * 7.0 * sinIso);
+          drawIsoCube(
+            canvas,
+            Offset(fieldTop.dx + offX, fieldTop.dy + offY),
+            w: 4.5,
+            d: 4.5,
+            h: 8.0 + ((i + j + 3) % 2) * 2.5,
+            topColor: const Color(0xFFFEF08A),
+            leftColor: const Color(0xFFFACC15),
+            rightColor: const Color(0xFFCA8A04),
+          );
+        }
+      }
+    } else if (v == 2) {
+      // Varyant 2: Sulama Arkı & İkiz Ekin Yatağı
+      // Ortadan geçen mavi sulama arkı
+      drawIsoCube(
+        canvas,
+        Offset(fieldTop.dx, fieldTop.dy),
+        w: 36.0,
+        d: 5.0,
+        h: 1.0,
+        topColor: const Color(0xFF38BDF8),
+        leftColor: const Color(0xFF0284C7),
+        rightColor: const Color(0xFF0369A1),
+      );
+
+      // Sağ ve Sol yakadaki ekin dizileri
+      for (int side in [-1, 1]) {
+        for (int c = -1; c <= 1; c++) {
+          final double windSway = math.sin(animTime * 2.8 + side * 1.5 + c * 0.9) * 1.4;
+          final double offX = (c * 9.0 * cosIso) + (side * 8.0 * sinIso) + windSway;
+          final double offY = (c * 9.0 * sinIso) + (side * 8.0 * cosIso);
+          drawIsoCube(
+            canvas,
+            Offset(fieldTop.dx + offX, fieldTop.dy + offY),
+            w: 4.0,
+            d: 4.0,
+            h: 8.5 + ((c + 2) % 2) * 2.0,
+            topColor: side == 1 ? const Color(0xFFFEF08A) : const Color(0xFF86EFAC),
+            leftColor: side == 1 ? const Color(0xFFFACC15) : const Color(0xFF4ADE80),
+            rightColor: side == 1 ? const Color(0xFFCA8A04) : const Color(0xFF22C55E),
+          );
+        }
+      }
+    } else {
+      // Varyant 0: 3x3 Klasik Sıralar & Ahşap Korkuluk Haçı
+      const int rows = 3;
+      const int cols = 3;
+
+      for (int r = 0; r < rows; r++) {
+        for (int c = 0; c < cols; c++) {
+          if (r == 1 && c == 1) continue; // Ortada korkuluk
+          final double windSway = math.sin(animTime * 3.0 + (r * 0.8) + (c * 0.6)) * 1.5;
+          final double offX = (c - 1) * 8.0 * cosIso - (r - 1) * 8.0 * cosIso + windSway;
+          final double offY = (c - 1) * 8.0 * sinIso + (r - 1) * 8.0 * sinIso;
+          final Offset cropPos = Offset(fieldTop.dx + offX, fieldTop.dy + offY);
+
+          drawIsoCube(
+            canvas,
+            cropPos,
+            w: 4.0,
+            d: 4.0,
+            h: 8.0 + ((r + c) % 2) * 2.0,
+            topColor: const Color(0xFFFEF08A),
+            leftColor: const Color(0xFFFACC15),
+            rightColor: const Color(0xFFCA8A04),
+          );
+        }
+      }
+
+      // Ortada Korkuluk Haçı
+      drawIsoCube(
+        canvas,
+        fieldTop,
+        w: 2.5,
+        d: 2.5,
+        h: 11.0,
+        topColor: const Color(0xFF92400E),
+        leftColor: const Color(0xFF78350F),
+        rightColor: const Color(0xFF451A03),
+      );
+      drawIsoCube(
+        canvas,
+        Offset(fieldTop.dx, fieldTop.dy - 7.0),
+        w: 8.0,
+        d: 2.0,
+        h: 2.0,
+        topColor: const Color(0xFFB45309),
+        leftColor: const Color(0xFF92400E),
+        rightColor: const Color(0xFF78350F),
+      );
+      drawIsoCube(
+        canvas,
+        Offset(fieldTop.dx, fieldTop.dy - 11.0),
+        w: 3.5,
+        d: 3.5,
+        h: 3.0,
+        topColor: const Color(0xFFFEF08A),
+        leftColor: const Color(0xFFFACC15),
+        rightColor: const Color(0xFFCA8A04),
+      );
+    }
+  }
+
+  /// 3D Voxel Arpa / Darı Tarlası (Çoklu Görsel Varyantlar)
+  static void drawVoxelBarleyField(Canvas canvas, Offset baseCenter, {double animTime = 0.0, int variant = 0}) {
+    drawIsoCube(
+      canvas,
+      baseCenter,
+      w: 38.0,
+      d: 38.0,
+      h: 4.0,
+      topColor: const Color(0xFF78350F),
+      leftColor: const Color(0xFF5A2508),
+      rightColor: const Color(0xFF451A03),
+      drawShadow: true,
+    );
+
+    final Offset fieldTop = Offset(baseCenter.dx, baseCenter.dy - 4.0);
+    final int v = variant % 3;
+
+    if (v == 1) {
+      // Varyant 1: Ahşap Çitler & Rüzgar Flama Direği
+      // Kenar ahşap çitler
+      for (double side in [-1.0, 1.0]) {
+        drawIsoCube(
+          canvas,
+          Offset(fieldTop.dx + side * 14.0 * cosIso, fieldTop.dy + side * 14.0 * sinIso),
+          w: 26.0,
+          d: 2.5,
+          h: 4.0,
+          topColor: const Color(0xFFB45309),
+          leftColor: const Color(0xFF92400E),
+          rightColor: const Color(0xFF78350F),
+        );
+      }
+
+      // Rüzgar Flama Direği
+      final Offset flagPos = Offset(fieldTop.dx - 12.0 * cosIso, fieldTop.dy - 12.0 * sinIso);
+      drawIsoCube(
+        canvas,
+        flagPos,
+        w: 2.5,
+        d: 2.5,
+        h: 14.0,
+        topColor: const Color(0xFFCBD5E1),
+        leftColor: const Color(0xFF94A3B8),
+        rightColor: const Color(0xFF64748B),
+      );
+      final double flagWave = math.sin(animTime * 4.0) * 1.5;
+      drawIsoCube(
+        canvas,
+        Offset(flagPos.dx + 4.0 + flagWave, flagPos.dy - 12.0),
+        w: 6.0,
+        d: 1.5,
+        h: 3.5,
+        topColor: const Color(0xFFDC2626),
+        leftColor: const Color(0xFFB91C1C),
+        rightColor: const Color(0xFF991B1B),
+      );
+
+      // Gür arpa başakları
+      for (int r = -1; r <= 1; r++) {
+        for (int c = -1; c <= 1; c++) {
+          final double windSway = math.sin(animTime * 2.6 + r * 1.0 + c * 0.8) * 1.6;
+          final double offX = (c * 7.5 * cosIso) - (r * 7.5 * cosIso) + windSway;
+          final double offY = (c * 7.5 * sinIso) + (r * 7.5 * sinIso);
+          drawIsoCube(
+            canvas,
+            Offset(fieldTop.dx + offX, fieldTop.dy + offY),
+            w: 3.5,
+            d: 3.5,
+            h: 9.5 + ((r * 2 + c + 4) % 3) * 1.5,
+            topColor: const Color(0xFFFDE047),
+            leftColor: const Color(0xFFEAB308),
+            rightColor: const Color(0xFFB45309),
+          );
+        }
+      }
+    } else if (v == 2) {
+      // Varyant 2: Keten Tahıl Çuvalları & Eğimli Arpa Demetleri
+      // 2 Keten Çuval
+      final Offset sackPos = Offset(fieldTop.dx + 11.0 * cosIso, fieldTop.dy - 10.0 * sinIso);
+      drawIsoCube(
+        canvas,
+        sackPos,
+        w: 6.0,
+        d: 6.0,
+        h: 6.0,
+        topColor: const Color(0xFFD97706),
+        leftColor: const Color(0xFFB45309),
+        rightColor: const Color(0xFF92400E),
+      );
+      drawIsoCube(
+        canvas,
+        Offset(sackPos.dx - 4.0 * cosIso, sackPos.dy + 4.0 * sinIso),
+        w: 5.0,
+        d: 5.0,
+        h: 5.0,
+        topColor: const Color(0xFFF59E0B),
+        leftColor: const Color(0xFFD97706),
+        rightColor: const Color(0xFFB45309),
+      );
+
+      // Eğimli arpa demetleri
+      for (int i = 0; i < 7; i++) {
+        final double a = i * (math.pi / 3.5);
+        final double windSway = math.sin(animTime * 2.5 + i) * 1.5;
+        final double px = fieldTop.dx + math.cos(a) * 10.0 * cosIso + windSway;
+        final double py = fieldTop.dy + math.sin(a) * 10.0 * sinIso;
+        drawIsoCube(
+          canvas,
+          Offset(px, py),
+          w: 4.0,
+          d: 4.0,
+          h: 9.0 + (i % 3) * 1.5,
+          topColor: const Color(0xFFFDE047),
+          leftColor: const Color(0xFFEAB308),
+          rightColor: const Color(0xFFB45309),
+        );
+      }
+    } else {
+      // Varyant 0: 4 Köşede Dikili Yontma Taş Sınır İşaretleri & Kehribar Başaklar
+      for (final signX in [-1.0, 1.0]) {
+        for (final signY in [-1.0, 1.0]) {
+          final double sx = baseCenter.dx + (signX * 14.0 * cosIso) - (signY * 14.0 * cosIso);
+          final double sy = baseCenter.dy + (signX * 14.0 * sinIso) + (signY * 14.0 * sinIso) - 4.0;
+          drawIsoCube(
+            canvas,
+            Offset(sx, sy),
+            w: 4.0,
+            d: 4.0,
+            h: 6.0,
+            topColor: const Color(0xFF94A3B8),
+            leftColor: const Color(0xFF64748B),
+            rightColor: const Color(0xFF475569),
+          );
+        }
+      }
+
+      const int rows = 3;
+      const int cols = 3;
+      for (int r = 0; r < rows; r++) {
+        for (int c = 0; c < cols; c++) {
+          final double windSway = math.sin(animTime * 2.5 + (r * 0.9) + (c * 0.7)) * 1.8;
+          final double offX = (c - 1) * 7.5 * cosIso - (r - 1) * 7.5 * cosIso + windSway;
+          final double offY = (c - 1) * 7.5 * sinIso + (r - 1) * 7.5 * sinIso;
+          final Offset cropPos = Offset(fieldTop.dx + offX, fieldTop.dy + offY);
+
+          drawIsoCube(
+            canvas,
+            cropPos,
+            w: 3.5,
+            d: 3.5,
+            h: 9.0 + ((r * 2 + c) % 3) * 1.5,
+            topColor: const Color(0xFFFDE047),
+            leftColor: const Color(0xFFEAB308),
+            rightColor: const Color(0xFFB45309),
+          );
+        }
+      }
+    }
+  }
+
+  /// 3D Voxel Bozkır Otlağı / At Harası (Çoklu Görsel Varyantlar)
+  static void drawVoxelPasture(Canvas canvas, Offset baseCenter, {double animTime = 0.0, int variant = 0}) {
+    // Çim zemin
+    drawIsoCube(
+      canvas,
+      baseCenter,
+      w: 40.0,
+      d: 40.0,
+      h: 3.0,
+      topColor: const Color(0xFF15803D),
+      leftColor: const Color(0xFF166534),
+      rightColor: const Color(0xFF14532D),
+      drawShadow: true,
+    );
+
+    final Offset topCenter = Offset(baseCenter.dx, baseCenter.dy - 3.0);
+    final int v = variant % 3;
+
+    if (v == 1) {
+      // Varyant 1: Alçak Taş Örgü Ağıl & İkili Otlayan Koyun Sürüsü
+      // Taş örgü ağıl duvarları
+      for (double side in [-1.0, 1.0]) {
+        drawIsoCube(
+          canvas,
+          Offset(topCenter.dx + side * 14.0 * cosIso, topCenter.dy - 6.0 * sinIso),
+          w: 22.0,
+          d: 3.0,
+          h: 4.5,
+          topColor: const Color(0xFF94A3B8),
+          leftColor: const Color(0xFF64748B),
+          rightColor: const Color(0xFF475569),
+        );
+      }
+
+      // Kuru ot yığını
+      drawIsoCube(
+        canvas,
+        Offset(topCenter.dx - 10.0 * cosIso, topCenter.dy - 10.0 * sinIso),
+        w: 8.0,
+        d: 8.0,
+        h: 5.0,
+        topColor: const Color(0xFFFEF08A),
+        leftColor: const Color(0xFFFACC15),
+        rightColor: const Color(0xFFCA8A04),
+      );
+
+      // 2 Otlayan Koyun
+      final double sheepBob = math.sin(animTime * 2.5) * 0.8;
+      // Koyun 1
+      drawIsoCube(
+        canvas,
+        Offset(topCenter.dx + 2.0 * cosIso, topCenter.dy + 4.0 * sinIso + sheepBob),
+        w: 6.0,
+        d: 5.0,
+        h: 4.5,
+        topColor: const Color(0xFFF8FAFC),
+        leftColor: const Color(0xFFE2E8F0),
+        rightColor: const Color(0xFFCBD5E1),
+      );
+      // Koyun 2
+      drawIsoCube(
+        canvas,
+        Offset(topCenter.dx + 10.0 * cosIso, topCenter.dy + 8.0 * sinIso - sheepBob),
+        w: 5.0,
+        d: 4.0,
+        h: 4.0,
+        topColor: const Color(0xFFF1F5F9),
+        leftColor: const Color(0xFFCBD5E1),
+        rightColor: const Color(0xFF94A3B8),
+      );
+    } else if (v == 2) {
+      // Varyant 2: Kubbeli Keçe Çoban Barınağı Otağı & Dinlenen At
+      // Küçük Keçe Çadır
+      final Offset tentPos = Offset(topCenter.dx - 8.0 * cosIso, topCenter.dy - 8.0 * sinIso);
+      drawIsoCube(
+        canvas,
+        tentPos,
+        w: 12.0,
+        d: 12.0,
+        h: 7.0,
+        topColor: const Color(0xFFF1F5F9),
+        leftColor: const Color(0xFFE2E8F0),
+        rightColor: const Color(0xFFCBD5E1),
+      );
+      drawIsoCube(
+        canvas,
+        Offset(tentPos.dx, tentPos.dy - 7.0),
+        w: 7.0,
+        d: 7.0,
+        h: 4.0,
+        topColor: const Color(0xFFE2E8F0),
+        leftColor: const Color(0xFFCBD5E1),
+        rightColor: const Color(0xFF94A3B8),
+      );
+
+      // Yalama Tuz Taşı Bloğu
+      drawIsoCube(
+        canvas,
+        Offset(topCenter.dx + 8.0 * cosIso, topCenter.dy - 8.0 * sinIso),
+        w: 4.5,
+        d: 4.5,
+        h: 4.0,
+        topColor: const Color(0xFFE0F2FE),
+        leftColor: const Color(0xFFBAE6FD),
+        rightColor: const Color(0xFF7DD3FC),
+      );
+
+      // Dinlenen Bozkır Atı
+      final Offset horsePos = Offset(topCenter.dx + 6.0 * cosIso, topCenter.dy + 6.0 * sinIso);
+      drawIsoCube(
+        canvas,
+        horsePos,
+        w: 9.0,
+        d: 5.0,
+        h: 4.5,
+        topColor: const Color(0xFF92400E),
+        leftColor: const Color(0xFF78350F),
+        rightColor: const Color(0xFF451A03),
+      );
+    } else {
+      // Varyant 0: Ahşap Çitler, Su Yalağı & Otlayan Bozkır Atı
+      for (int i = 0; i < 4; i++) {
+        final double angle = i * (math.pi / 2.0) + (math.pi / 4.0);
+        final double px = topCenter.dx + math.cos(angle) * 16.0 * cosIso;
+        final double py = topCenter.dy + math.sin(angle) * 16.0 * sinIso;
+        drawIsoCube(
+          canvas,
+          Offset(px, py),
+          w: 3.0,
+          d: 3.0,
+          h: 7.0,
+          topColor: const Color(0xFFB45309),
+          leftColor: const Color(0xFF92400E),
+          rightColor: const Color(0xFF78350F),
+        );
+      }
+
+      // Su yalağı
+      final Offset troughPos = Offset(topCenter.dx - 10.0 * cosIso, topCenter.dy - 10.0 * sinIso);
+      drawIsoCube(
+        canvas,
+        troughPos,
+        w: 8.0,
+        d: 5.0,
+        h: 4.0,
+        topColor: const Color(0xFF38BDF8),
+        leftColor: const Color(0xFF78350F),
+        rightColor: const Color(0xFF451A03),
+      );
+
+      // Otlayan bozkır atı
+      final double grazeBob = math.sin(animTime * 2.0) * 1.0;
+      final Offset animalPos = Offset(topCenter.dx + 4.0 * cosIso, topCenter.dy + 4.0 * sinIso);
+
+      drawIsoCube(
+        canvas,
+        animalPos,
+        w: 8.0,
+        d: 5.0,
+        h: 6.0,
+        topColor: const Color(0xFFF1F5F9),
+        leftColor: const Color(0xFFCBD5E1),
+        rightColor: const Color(0xFF94A3B8),
+      );
+      drawIsoCube(
+        canvas,
+        Offset(animalPos.dx + 4.0 * cosIso, animalPos.dy + 4.0 * sinIso + grazeBob),
+        w: 4.0,
+        d: 4.0,
+        h: 4.0,
+        topColor: const Color(0xFFE2E8F0),
+        leftColor: const Color(0xFFCBD5E1),
+        rightColor: const Color(0xFF64748B),
+      );
+    }
+  }
+
+  /// 3D Voxel Yemişlik / Meyve Bahçesi (Çoklu Görsel Varyantlar)
+  static void drawVoxelOrchard(Canvas canvas, Offset baseCenter, {double animTime = 0.0, int variant = 0}) {
+    drawIsoCube(
+      canvas,
+      baseCenter,
+      w: 38.0,
+      d: 38.0,
+      h: 3.5,
+      topColor: const Color(0xFF166534),
+      leftColor: const Color(0xFF14532D),
+      rightColor: const Color(0xFF0F3D20),
+      drawShadow: true,
+    );
+
+    final Offset fieldTop = Offset(baseCenter.dx, baseCenter.dy - 3.5);
+    final int v = variant % 3;
+
+    if (v == 1) {
+      // Varyant 1: Ahşap Çardak / Asma Düzeni & Turuncu Kayısılar + Hasat Sepeti
+      // Ahşap Çardak Sırıkları
+      for (double side in [-1.0, 1.0]) {
+        drawIsoCube(
+          canvas,
+          Offset(fieldTop.dx + side * 10.0 * cosIso, fieldTop.dy - 4.0),
+          w: 20.0,
+          d: 2.5,
+          h: 9.0,
+          topColor: const Color(0xFF78350F),
+          leftColor: const Color(0xFF5A2508),
+          rightColor: const Color(0xFF451A03),
+        );
+      }
+
+      // 2 Yayvan Ağaç
+      final List<Offset> treeOffsets = [
+        Offset(-8.0 * cosIso, -4.0 * sinIso),
+        Offset(8.0 * cosIso, 4.0 * sinIso),
+      ];
+      for (int i = 0; i < treeOffsets.length; i++) {
+        final double sway = math.sin(animTime * 2.2 + i * 2.0) * 1.2;
+        final Offset crownPos = Offset(fieldTop.dx + treeOffsets[i].dx + sway, fieldTop.dy + treeOffsets[i].dy - 9.0);
+        drawIsoCube(
+          canvas,
+          crownPos,
+          w: 14.0,
+          d: 14.0,
+          h: 8.0,
+          topColor: const Color(0xFF22C55E),
+          leftColor: const Color(0xFF16A34A),
+          rightColor: const Color(0xFF15803D),
+        );
+        // Turuncu Meyveler
+        drawIsoCube(
+          canvas,
+          Offset(crownPos.dx + 2.0, crownPos.dy - 2.0),
+          w: 3.0,
+          d: 3.0,
+          h: 3.0,
+          topColor: const Color(0xFFF97316),
+          leftColor: const Color(0xFFEA580C),
+          rightColor: const Color(0xFFC2410C),
+        );
+      }
+
+      // Hasat Sepeti
+      drawIsoCube(
+        canvas,
+        Offset(fieldTop.dx + 10.0 * cosIso, fieldTop.dy + 8.0 * sinIso),
+        w: 5.0,
+        d: 5.0,
+        h: 4.5,
+        topColor: const Color(0xFFD97706),
+        leftColor: const Color(0xFFB45309),
+        rightColor: const Color(0xFF92400E),
+      );
+    } else if (v == 2) {
+      // Varyant 2: Heybetli Ulu Meyve Ağacı & Ahşap Meyve Kasaları
+      final double sway = math.sin(animTime * 1.8) * 1.5;
+      final Offset trunkPos = Offset(fieldTop.dx - 2.0 * cosIso, fieldTop.dy - 2.0 * sinIso);
+
+      // Kalın Ağaç Gövdesi
+      drawIsoCube(
+        canvas,
+        trunkPos,
+        w: 6.0,
+        d: 6.0,
+        h: 9.0,
+        topColor: const Color(0xFF78350F),
+        leftColor: const Color(0xFF5A2508),
+        rightColor: const Color(0xFF451A03),
+      );
+
+      // Geniş Heybetli Taç
+      final Offset bigCrown = Offset(trunkPos.dx + sway, trunkPos.dy - 9.0);
+      drawIsoCube(
+        canvas,
+        bigCrown,
+        w: 18.0,
+        d: 18.0,
+        h: 12.0,
+        topColor: const Color(0xFF16A34A),
+        leftColor: const Color(0xFF15803D),
+        rightColor: const Color(0xFF14532D),
+      );
+
+      // Meyveler
+      for (int f = 0; f < 3; f++) {
+        final double fx = (f - 1) * 5.0;
+        final Color fCol = f % 2 == 0 ? const Color(0xFFEF4444) : const Color(0xFFF59E0B);
+        drawIsoCube(
+          canvas,
+          Offset(bigCrown.dx + fx, bigCrown.dy - 2.0 - (f % 2) * 3.0),
+          w: 3.0,
+          d: 3.0,
+          h: 3.0,
+          topColor: fCol,
+          leftColor: fCol,
+          rightColor: fCol,
+        );
+      }
+
+      // 2 Ahşap Meyve Kasası
+      final Offset cratePos = Offset(fieldTop.dx + 10.0 * cosIso, fieldTop.dy + 8.0 * sinIso);
+      drawIsoCube(
+        canvas,
+        cratePos,
+        w: 7.0,
+        d: 6.0,
+        h: 4.5,
+        topColor: const Color(0xFFB45309),
+        leftColor: const Color(0xFF92400E),
+        rightColor: const Color(0xFF78350F),
+      );
+      drawIsoCube(
+        canvas,
+        Offset(cratePos.dx, cratePos.dy - 4.5),
+        w: 5.5,
+        d: 5.0,
+        h: 4.0,
+        topColor: const Color(0xFFD97706),
+        leftColor: const Color(0xFFB45309),
+        rightColor: const Color(0xFF92400E),
+      );
+    } else {
+      // Varyant 0: 3 Bodur Dağ Meyve Ağacı
+      final List<Offset> treeOffsets = [
+        Offset(-10.0 * cosIso + 6.0 * cosIso, -10.0 * sinIso - 6.0 * sinIso),
+        Offset(8.0 * cosIso - 8.0 * cosIso, 8.0 * sinIso + 8.0 * sinIso),
+        Offset(10.0 * cosIso + 6.0 * cosIso, 10.0 * sinIso - 6.0 * sinIso),
+      ];
+
+      for (int i = 0; i < treeOffsets.length; i++) {
+        final double sway = math.sin(animTime * 2.0 + i * 1.5) * 1.2;
+        final Offset trunkPos = Offset(fieldTop.dx + treeOffsets[i].dx, fieldTop.dy + treeOffsets[i].dy);
 
         drawIsoCube(
           canvas,
-          cropPos,
-          w: 4.0,
-          d: 4.0,
-          h: 8.0 + ((r + c) % 2) * 2.0,
-          topColor: const Color(0xFFFEF08A),
-          leftColor: const Color(0xFFFACC15),
-          rightColor: const Color(0xFFCA8A04),
+          trunkPos,
+          w: 3.5,
+          d: 3.5,
+          h: 6.0,
+          topColor: const Color(0xFF78350F),
+          leftColor: const Color(0xFF5A2508),
+          rightColor: const Color(0xFF451A03),
+        );
+
+        final Offset crownPos = Offset(trunkPos.dx + sway, trunkPos.dy - 6.0);
+        drawIsoCube(
+          canvas,
+          crownPos,
+          w: 12.0,
+          d: 12.0,
+          h: 9.0,
+          topColor: const Color(0xFF22C55E),
+          leftColor: const Color(0xFF16A34A),
+          rightColor: const Color(0xFF15803D),
+        );
+
+        final Color fruitColor = (i % 2 == 0) ? const Color(0xFFEF4444) : const Color(0xFFF97316);
+        drawIsoCube(
+          canvas,
+          Offset(crownPos.dx + 2.0, crownPos.dy - 3.0),
+          w: 3.0,
+          d: 3.0,
+          h: 3.0,
+          topColor: fruitColor,
+          leftColor: fruitColor,
+          rightColor: fruitColor,
+        );
+        drawIsoCube(
+          canvas,
+          Offset(crownPos.dx - 3.0, crownPos.dy + 1.0),
+          w: 2.5,
+          d: 2.5,
+          h: 2.5,
+          topColor: fruitColor,
+          leftColor: fruitColor,
+          rightColor: fruitColor,
         );
       }
+    }
+  }
+
+  /// 3D Voxel Taş Yonma Ocağı (Çoklu Görsel Varyantlar)
+  static void drawVoxelQuarry(Canvas canvas, Offset baseCenter, {int variant = 0}) {
+    // Taş Ocağı Basamağı 1
+    drawIsoCube(
+      canvas,
+      baseCenter,
+      w: 40.0,
+      d: 40.0,
+      h: 6.0,
+      topColor: const Color(0xFF475569),
+      leftColor: const Color(0xFF334155),
+      rightColor: const Color(0xFF1E293B),
+      drawShadow: true,
+    );
+
+    final int v = variant % 3;
+
+    if (v == 1) {
+      // Varyant 1: Ahşap Çıkrık Vinç / İskele & Dev Bazalt Kaya Kütlesi
+      // Dev Bazalt Kaya Kütlesi
+      final Offset rockPos = Offset(baseCenter.dx - 6.0 * cosIso, baseCenter.dy - 6.0 - 6.0 * sinIso);
+      drawIsoCube(
+        canvas,
+        rockPos,
+        w: 18.0,
+        d: 18.0,
+        h: 12.0,
+        topColor: const Color(0xFF334155),
+        leftColor: const Color(0xFF1E293B),
+        rightColor: const Color(0xFF0F172A),
+      );
+
+      // Ahşap Vinç Direği & Bom Kolu
+      final Offset cranePos = Offset(baseCenter.dx + 10.0 * cosIso, baseCenter.dy - 6.0 + 8.0 * sinIso);
+      drawIsoCube(
+        canvas,
+        cranePos,
+        w: 3.0,
+        d: 3.0,
+        h: 16.0,
+        topColor: const Color(0xFFB45309),
+        leftColor: const Color(0xFF92400E),
+        rightColor: const Color(0xFF78350F),
+      );
+      drawIsoCube(
+        canvas,
+        Offset(cranePos.dx - 6.0 * cosIso, cranePos.dy - 16.0 - 6.0 * sinIso),
+        w: 14.0,
+        d: 2.5,
+        h: 2.5,
+        topColor: const Color(0xFFD97706),
+        leftColor: const Color(0xFFB45309),
+        rightColor: const Color(0xFF92400E),
+      );
+
+      // Kırılmış Taş Yongaları
+      drawIsoCube(
+        canvas,
+        Offset(baseCenter.dx + 4.0 * cosIso, baseCenter.dy - 6.0),
+        w: 5.0,
+        d: 5.0,
+        h: 3.0,
+        topColor: const Color(0xFF94A3B8),
+        leftColor: const Color(0xFF64748B),
+        rightColor: const Color(0xFF475569),
+      );
+    } else if (v == 2) {
+      // Varyant 2: Kemerli Maden Tüneli Girişi & Taş Arabası
+      // Tünel Kemer Bloğu
+      final Offset tunnelPos = Offset(baseCenter.dx - 4.0 * cosIso, baseCenter.dy - 6.0 - 4.0 * sinIso);
+      drawIsoCube(
+        canvas,
+        tunnelPos,
+        w: 20.0,
+        d: 14.0,
+        h: 10.0,
+        topColor: const Color(0xFF64748B),
+        leftColor: const Color(0xFF475569),
+        rightColor: const Color(0xFF334155),
+      );
+      // Tünel Boşluğu (Kara Delik)
+      drawIsoCube(
+        canvas,
+        Offset(tunnelPos.dx + 2.0 * cosIso, tunnelPos.dy + 2.0 * sinIso),
+        w: 10.0,
+        d: 8.0,
+        h: 7.0,
+        topColor: const Color(0xFF0F172A),
+        leftColor: const Color(0xFF020617),
+        rightColor: const Color(0xFF000000),
+      );
+
+      // Taş Yüklü El Arabası / Vagon
+      final Offset cartPos = Offset(baseCenter.dx + 10.0 * cosIso, baseCenter.dy - 6.0 + 8.0 * sinIso);
+      drawIsoCube(
+        canvas,
+        cartPos,
+        w: 8.0,
+        d: 6.0,
+        h: 5.0,
+        topColor: const Color(0xFFCBD5E1),
+        leftColor: const Color(0xFF78350F),
+        rightColor: const Color(0xFF5A2508),
+      );
+    } else {
+      // Varyant 0: Kademeli Teras & İstiflenmiş Kesme Taş Blokları
+      final Offset step2 = Offset(baseCenter.dx - 4.0 * cosIso, baseCenter.dy - 6.0 - 4.0 * sinIso);
+      drawIsoCube(
+        canvas,
+        step2,
+        w: 24.0,
+        d: 24.0,
+        h: 8.0,
+        topColor: const Color(0xFF64748B),
+        leftColor: const Color(0xFF475569),
+        rightColor: const Color(0xFF334155),
+      );
+
+      final Offset stackPos = Offset(baseCenter.dx + 10.0 * cosIso, baseCenter.dy - 6.0 + 10.0 * sinIso);
+      drawIsoCube(
+        canvas,
+        stackPos,
+        w: 8.0,
+        d: 8.0,
+        h: 8.0,
+        topColor: const Color(0xFFCBD5E1),
+        leftColor: const Color(0xFF94A3B8),
+        rightColor: const Color(0xFF64748B),
+      );
+      drawIsoCube(
+        canvas,
+        Offset(stackPos.dx, stackPos.dy - 8.0),
+        w: 6.0,
+        d: 6.0,
+        h: 5.0,
+        topColor: const Color(0xFFE2E8F0),
+        leftColor: const Color(0xFFCBD5E1),
+        rightColor: const Color(0xFF94A3B8),
+      );
+    }
+  }
+
+  /// 3D Voxel Katran & Huş Otağı (Çoklu Görsel Varyantlar)
+  static void drawVoxelResinCamp(Canvas canvas, Offset baseCenter, {double animTime = 0.0, int variant = 0}) {
+    drawIsoCube(
+      canvas,
+      baseCenter,
+      w: 38.0,
+      d: 38.0,
+      h: 3.0,
+      topColor: const Color(0xFF14532D),
+      leftColor: const Color(0xFF0F3D20),
+      rightColor: const Color(0xFF0A2915),
+      drawShadow: true,
+    );
+
+    final Offset topCenter = Offset(baseCenter.dx, baseCenter.dy - 3.0);
+    final int v = variant % 3;
+
+    if (v == 1) {
+      // Varyant 1: 2 Beyaz Huş Ağacı & Taş Damıtma Fırını + Reçine Fıçıları
+      // 2 Huş Ağacı (Beyaz Gövde, Yeşil Taç)
+      final List<Offset> birchTrees = [
+        Offset(topCenter.dx - 10.0 * cosIso, topCenter.dy - 6.0 * sinIso),
+        Offset(topCenter.dx - 4.0 * cosIso, topCenter.dy - 12.0 * sinIso),
+      ];
+      for (final bp in birchTrees) {
+        drawIsoCube(
+          canvas,
+          bp,
+          w: 3.0,
+          d: 3.0,
+          h: 12.0,
+          topColor: const Color(0xFFF8FAFC),
+          leftColor: const Color(0xFFE2E8F0),
+          rightColor: const Color(0xFF94A3B8),
+        );
+        drawIsoCube(
+          canvas,
+          Offset(bp.dx, bp.dy - 12.0),
+          w: 10.0,
+          d: 10.0,
+          h: 8.0,
+          topColor: const Color(0xFF4ADE80),
+          leftColor: const Color(0xFF22C55E),
+          rightColor: const Color(0xFF16A34A),
+        );
+      }
+
+      // Taş Damıtma Fırını
+      final Offset kilnPos = Offset(topCenter.dx + 8.0 * cosIso, topCenter.dy + 6.0 * sinIso);
+      drawIsoCube(
+        canvas,
+        kilnPos,
+        w: 10.0,
+        d: 10.0,
+        h: 7.0,
+        topColor: const Color(0xFF64748B),
+        leftColor: const Color(0xFF475569),
+        rightColor: const Color(0xFF334155),
+      );
+      // Reçine Fıçısı
+      drawIsoCube(
+        canvas,
+        Offset(topCenter.dx + 11.0 * cosIso, topCenter.dy - 6.0 * sinIso),
+        w: 5.0,
+        d: 5.0,
+        h: 6.0,
+        topColor: const Color(0xFF78350F),
+        leftColor: const Color(0xFF5A2508),
+        rightColor: const Color(0xFF451A03),
+      );
+    } else if (v == 2) {
+      // Varyant 2: 4 Direkli Ahşap Hızar Sundurması & Kereste İstifi
+      // Ahşap Sundurma Direkleri & Çatı
+      final Offset shedPos = Offset(topCenter.dx - 4.0 * cosIso, topCenter.dy - 4.0 * sinIso);
+      for (double dx in [-6.0, 6.0]) {
+        for (double dy in [-6.0, 6.0]) {
+          drawIsoCube(
+            canvas,
+            Offset(shedPos.dx + dx * cosIso, shedPos.dy + dy * sinIso),
+            w: 2.0,
+            d: 2.0,
+            h: 9.0,
+            topColor: const Color(0xFF92400E),
+            leftColor: const Color(0xFF78350F),
+            rightColor: const Color(0xFF5A2508),
+          );
+        }
+      }
+      // Sundurma Çatısı
+      drawIsoCube(
+        canvas,
+        Offset(shedPos.dx, shedPos.dy - 9.0),
+        w: 16.0,
+        d: 16.0,
+        h: 2.5,
+        topColor: const Color(0xFFB45309),
+        leftColor: const Color(0xFF92400E),
+        rightColor: const Color(0xFF78350F),
+      );
+
+      // Huş Kereste Tomruk İstifi
+      final Offset logPos = Offset(topCenter.dx + 10.0 * cosIso, topCenter.dy + 8.0 * sinIso);
+      drawIsoCube(
+        canvas,
+        logPos,
+        w: 10.0,
+        d: 5.0,
+        h: 4.5,
+        topColor: const Color(0xFFF8FAFC),
+        leftColor: const Color(0xFFCBD5E1),
+        rightColor: const Color(0xFF94A3B8),
+      );
+    } else {
+      // Varyant 0: Beyaz Huş Kabuklu Yurt, Tüten Katran Kazanı & İstiflenmiş Huş Kütükleri
+      final Offset yurtPos = Offset(topCenter.dx - 6.0 * cosIso, topCenter.dy - 6.0 * sinIso);
+      drawIsoCube(
+        canvas,
+        yurtPos,
+        w: 18.0,
+        d: 18.0,
+        h: 8.0,
+        topColor: const Color(0xFFF1F5F9),
+        leftColor: const Color(0xFFE2E8F0),
+        rightColor: const Color(0xFFCBD5E1),
+      );
+      drawIsoCube(
+        canvas,
+        Offset(yurtPos.dx, yurtPos.dy - 8.0),
+        w: 12.0,
+        d: 12.0,
+        h: 5.0,
+        topColor: const Color(0xFFE2E8F0),
+        leftColor: const Color(0xFFCBD5E1),
+        rightColor: const Color(0xFF94A3B8),
+      );
+
+      final Offset cauldronPos = Offset(topCenter.dx + 8.0 * cosIso, topCenter.dy + 8.0 * sinIso);
+      final double emberGlow = 0.7 + 0.3 * math.sin(animTime * 5.0);
+      drawIsoCube(
+        canvas,
+        cauldronPos,
+        w: 6.0,
+        d: 6.0,
+        h: 5.0,
+        topColor: const Color(0xFF0F172A),
+        leftColor: const Color(0xFF020617),
+        rightColor: const Color(0xFF000000),
+      );
+      drawIsoCube(
+        canvas,
+        Offset(cauldronPos.dx, cauldronPos.dy + 2.0),
+        w: 7.0,
+        d: 7.0,
+        h: 1.5,
+        topColor: Color.fromRGBO(249, 115, 22, emberGlow),
+        leftColor: const Color(0xFFEA580C),
+        rightColor: const Color(0xFFC2410C),
+      );
+
+      final Offset logPos = Offset(topCenter.dx + 10.0 * cosIso, topCenter.dy - 8.0 * sinIso);
+      drawIsoCube(
+        canvas,
+        logPos,
+        w: 8.0,
+        d: 5.0,
+        h: 4.0,
+        topColor: const Color(0xFFF8FAFC),
+        leftColor: const Color(0xFF78350F),
+        rightColor: const Color(0xFF5A2508),
+      );
     }
   }
 
@@ -970,19 +1938,52 @@ class VoxelIsometricRenderer {
     );
   }
 
-  /// 3D Voxel Dönen Değirmen
-  static void drawVoxelWindmill(Canvas canvas, Offset baseCenter, double animTime, {bool isNight = false}) {
+  /// 3D Voxel Dönen Değirmen (Çoklu Görsel Varyantlar)
+  static void drawVoxelWindmill(Canvas canvas, Offset baseCenter, double animTime, {bool isNight = false, int variant = 0}) {
+    final int v = variant % 3;
+    final Color towerTop = v == 1 ? const Color(0xFF94A3B8) : const Color(0xFFF8FAFC);
+    final Color towerLeft = v == 1 ? const Color(0xFF64748B) : const Color(0xFFE2E8F0);
+    final Color towerRight = v == 1 ? const Color(0xFF475569) : const Color(0xFF94A3B8);
+
     drawIsoCube(
       canvas,
       baseCenter,
       w: 24.0,
       d: 24.0,
       h: 26.0,
-      topColor: const Color(0xFFF8FAFC),
-      leftColor: const Color(0xFFE2E8F0),
-      rightColor: const Color(0xFF94A3B8),
+      topColor: towerTop,
+      leftColor: towerLeft,
+      rightColor: towerRight,
       drawShadow: true,
     );
+
+    if (v == 1) {
+      // Varyant 1: Önünde un çuvalları
+      final Offset sackPos = Offset(baseCenter.dx + 12 * cosIso, baseCenter.dy + 8 * sinIso);
+      drawIsoCube(
+        canvas,
+        sackPos,
+        w: 6.0,
+        d: 6.0,
+        h: 5.0,
+        topColor: const Color(0xFFFEF08A),
+        leftColor: const Color(0xFFFACC15),
+        rightColor: const Color(0xFFCA8A04),
+      );
+    } else if (v == 2) {
+      // Varyant 2: Ahşap tahıl ambarı sundurması
+      final Offset shedPos = Offset(baseCenter.dx + 12 * cosIso, baseCenter.dy - 6 * sinIso);
+      drawIsoCube(
+        canvas,
+        shedPos,
+        w: 10.0,
+        d: 8.0,
+        h: 12.0,
+        topColor: const Color(0xFFB45309),
+        leftColor: const Color(0xFF92400E),
+        rightColor: const Color(0xFF78350F),
+      );
+    }
 
     if (isNight) {
       drawIsoCube(
@@ -998,22 +1999,27 @@ class VoxelIsometricRenderer {
     }
 
     final Offset roofBase = Offset(baseCenter.dx, baseCenter.dy - 26.0);
+    final Color roofTop = v == 1 ? const Color(0xFFB45309) : const Color(0xFFF87171);
+    final Color roofLeft = v == 1 ? const Color(0xFF92400E) : const Color(0xFFEF4444);
+    final Color roofRight = v == 1 ? const Color(0xFF78350F) : const Color(0xFFB91C1C);
+
     drawIsoCube(
       canvas,
       roofBase,
       w: 20.0,
       d: 20.0,
       h: 10.0,
-      topColor: const Color(0xFFF87171),
-      leftColor: const Color(0xFFEF4444),
-      rightColor: const Color(0xFFB91C1C),
+      topColor: roofTop,
+      leftColor: roofLeft,
+      rightColor: roofRight,
     );
 
     final Offset rotorHub = Offset(baseCenter.dx - 8 * cosIso, baseCenter.dy - 20.0 + 8 * sinIso);
-    final double angle = animTime * 2.8;
+    final double angle = animTime * (v == 2 ? 3.5 : 2.8);
+    final int bladeCount = v == 2 ? 6 : 4;
 
-    for (int i = 0; i < 4; i++) {
-      final double a = angle + i * (math.pi / 2);
+    for (int i = 0; i < bladeCount; i++) {
+      final double a = angle + i * (2 * math.pi / bladeCount);
       const double bLen = 16.0;
       final double bx = rotorHub.dx + bLen * math.cos(a);
       final double by = rotorHub.dy + bLen * math.sin(a) * 0.8;
@@ -1035,8 +2041,10 @@ class VoxelIsometricRenderer {
     canvas.drawCircle(rotorHub, 3.5, _sharedFillPaint);
   }
 
-  /// 3D Voxel Fırın (Duman Pufu & Gece Işığı)
-  static void drawVoxelBakery(Canvas canvas, Offset baseCenter, double animTime, {bool isNight = false}) {
+  /// 3D Voxel Fırın (Çoklu Görsel Varyantlar)
+  static void drawVoxelBakery(Canvas canvas, Offset baseCenter, double animTime, {bool isNight = false, int variant = 0}) {
+    final int v = variant % 3;
+
     drawIsoCube(
       canvas,
       baseCenter,
@@ -1048,6 +2056,34 @@ class VoxelIsometricRenderer {
       rightColor: const Color(0xFF64748B),
       drawShadow: true,
     );
+
+    if (v == 1) {
+      // Varyant 1: Ekmek sergileme tezgahı & odun yığını
+      final Offset benchPos = Offset(baseCenter.dx + 12 * cosIso, baseCenter.dy + 8 * sinIso);
+      drawIsoCube(
+        canvas,
+        benchPos,
+        w: 8.0,
+        d: 5.0,
+        h: 5.0,
+        topColor: const Color(0xFFF59E0B),
+        leftColor: const Color(0xFFD97706),
+        rightColor: const Color(0xFFB45309),
+      );
+    } else if (v == 2) {
+      // Varyant 2: Un deposu yan sundurması
+      final Offset flourPos = Offset(baseCenter.dx - 10 * cosIso, baseCenter.dy + 8 * sinIso);
+      drawIsoCube(
+        canvas,
+        flourPos,
+        w: 7.0,
+        d: 7.0,
+        h: 6.0,
+        topColor: const Color(0xFFFEF08A),
+        leftColor: const Color(0xFFFDE047),
+        rightColor: const Color(0xFFCA8A04),
+      );
+    }
 
     final Offset chimneyBase = Offset(baseCenter.dx + 8 * cosIso, baseCenter.dy - 16.0 - 4 * sinIso);
     drawIsoCube(
@@ -1289,34 +2325,101 @@ class VoxelIsometricRenderer {
     }
   }
 
-  /// 3D Voxel Oduncu Kulübesi
-  static void drawVoxelLumberjack(Canvas canvas, Offset baseCenter) {
-    drawIsoCube(
-      canvas,
-      baseCenter,
-      w: 26.0,
-      d: 26.0,
-      h: 14.0,
-      topColor: const Color(0xFFB45309),
-      leftColor: const Color(0xFF92400E),
-      rightColor: const Color(0xFF78350F),
-      drawShadow: true,
-    );
+  /// 3D Voxel Oduncu Kulübesi (Çoklu Görsel Varyantlar)
+  static void drawVoxelLumberjack(Canvas canvas, Offset baseCenter, {int variant = 0}) {
+    final int v = variant % 3;
 
-    drawIsoCube(
-      canvas,
-      Offset(baseCenter.dx + 12 * cosIso, baseCenter.dy + 12 * sinIso),
-      w: 12.0,
-      d: 6.0,
-      h: 6.0,
-      topColor: const Color(0xFFFDE68A),
-      leftColor: const Color(0xFFD97706),
-      rightColor: const Color(0xFF92400E),
-    );
+    if (v == 1) {
+      // Varyant 1: Oduncu Çadırı & Dev Ulu Tomruk
+      final Offset tentPos = Offset(baseCenter.dx - 4 * cosIso, baseCenter.dy - 4 * sinIso);
+      drawIsoCube(
+        canvas,
+        tentPos,
+        w: 20.0,
+        d: 20.0,
+        h: 12.0,
+        topColor: const Color(0xFFD97706),
+        leftColor: const Color(0xFFB45309),
+        rightColor: const Color(0xFF92400E),
+        drawShadow: true,
+      );
+      // Dev Devrilmiş Tomruk
+      drawIsoCube(
+        canvas,
+        Offset(baseCenter.dx + 10 * cosIso, baseCenter.dy + 8 * sinIso),
+        w: 16.0,
+        d: 6.0,
+        h: 6.0,
+        topColor: const Color(0xFF92400E),
+        leftColor: const Color(0xFF78350F),
+        rightColor: const Color(0xFF451A03),
+      );
+    } else if (v == 2) {
+      // Varyant 2: Piramit Kütük İstifleri & Testere Sehpası
+      drawIsoCube(
+        canvas,
+        baseCenter,
+        w: 22.0,
+        d: 22.0,
+        h: 10.0,
+        topColor: const Color(0xFF92400E),
+        leftColor: const Color(0xFF78350F),
+        rightColor: const Color(0xFF451A03),
+        drawShadow: true,
+      );
+      // Piramit Tomruk Yığını
+      final Offset stackPos = Offset(baseCenter.dx + 10 * cosIso, baseCenter.dy + 10 * sinIso);
+      drawIsoCube(
+        canvas,
+        stackPos,
+        w: 12.0,
+        d: 8.0,
+        h: 6.0,
+        topColor: const Color(0xFFFDE68A),
+        leftColor: const Color(0xFFD97706),
+        rightColor: const Color(0xFF92400E),
+      );
+      drawIsoCube(
+        canvas,
+        Offset(stackPos.dx, stackPos.dy - 6.0),
+        w: 8.0,
+        d: 6.0,
+        h: 5.0,
+        topColor: const Color(0xFFFEF3C7),
+        leftColor: const Color(0xFFFDE68A),
+        rightColor: const Color(0xFFD97706),
+      );
+    } else {
+      // Varyant 0: Klasik Kütük Kulübe & Kütük Üzerinde Balta
+      drawIsoCube(
+        canvas,
+        baseCenter,
+        w: 26.0,
+        d: 26.0,
+        h: 14.0,
+        topColor: const Color(0xFFB45309),
+        leftColor: const Color(0xFF92400E),
+        rightColor: const Color(0xFF78350F),
+        drawShadow: true,
+      );
+
+      drawIsoCube(
+        canvas,
+        Offset(baseCenter.dx + 12 * cosIso, baseCenter.dy + 12 * sinIso),
+        w: 12.0,
+        d: 6.0,
+        h: 6.0,
+        topColor: const Color(0xFFFDE68A),
+        leftColor: const Color(0xFFD97706),
+        rightColor: const Color(0xFF92400E),
+      );
+    }
   }
 
-  /// 3D Voxel Hızarhane
-  static void drawVoxelSawmill(Canvas canvas, Offset baseCenter) {
+  /// 3D Voxel Hızarhane (Çoklu Görsel Varyantlar)
+  static void drawVoxelSawmill(Canvas canvas, Offset baseCenter, {int variant = 0}) {
+    final int v = variant % 3;
+
     drawIsoCube(
       canvas,
       baseCenter,
@@ -1329,20 +2432,70 @@ class VoxelIsometricRenderer {
       drawShadow: true,
     );
 
-    drawIsoCube(
-      canvas,
-      Offset(baseCenter.dx + 6, baseCenter.dy - 14.0),
-      w: 4.0,
-      d: 12.0,
-      h: 8.0,
-      topColor: const Color(0xFFF1F5F9),
-      leftColor: const Color(0xFFCBD5E1),
-      rightColor: const Color(0xFF94A3B8),
-    );
+    if (v == 1) {
+      // Varyant 1: Çift Bıçaklı Açık Kesim Tezgahı & Kalas İstifleri
+      drawIsoCube(
+        canvas,
+        Offset(baseCenter.dx - 4, baseCenter.dy - 14.0),
+        w: 4.0,
+        d: 12.0,
+        h: 9.0,
+        topColor: const Color(0xFFF1F5F9),
+        leftColor: const Color(0xFFCBD5E1),
+        rightColor: const Color(0xFF94A3B8),
+      );
+      drawIsoCube(
+        canvas,
+        Offset(baseCenter.dx + 8, baseCenter.dy - 14.0),
+        w: 4.0,
+        d: 12.0,
+        h: 9.0,
+        topColor: const Color(0xFFF1F5F9),
+        leftColor: const Color(0xFFCBD5E1),
+        rightColor: const Color(0xFF94A3B8),
+      );
+      // Kalas İstifi
+      drawIsoCube(
+        canvas,
+        Offset(baseCenter.dx + 12 * cosIso, baseCenter.dy + 8 * sinIso),
+        w: 12.0,
+        d: 6.0,
+        h: 6.0,
+        topColor: const Color(0xFFFDE68A),
+        leftColor: const Color(0xFFD97706),
+        rightColor: const Color(0xFFB45309),
+      );
+    } else if (v == 2) {
+      // Varyant 2: Hızar Kulesi Sundurması
+      drawIsoCube(
+        canvas,
+        Offset(baseCenter.dx - 6 * cosIso, baseCenter.dy - 14.0 - 6 * sinIso),
+        w: 12.0,
+        d: 12.0,
+        h: 12.0,
+        topColor: const Color(0xFFB45309),
+        leftColor: const Color(0xFF92400E),
+        rightColor: const Color(0xFF78350F),
+      );
+    } else {
+      // Varyant 0: Tek Bıçaklı Hızar
+      drawIsoCube(
+        canvas,
+        Offset(baseCenter.dx + 6, baseCenter.dy - 14.0),
+        w: 4.0,
+        d: 12.0,
+        h: 8.0,
+        topColor: const Color(0xFFF1F5F9),
+        leftColor: const Color(0xFFCBD5E1),
+        rightColor: const Color(0xFF94A3B8),
+      );
+    }
   }
 
-  /// 3D Voxel Mobilya Atölyesi
-  static void drawVoxelFurniture(Canvas canvas, Offset baseCenter) {
+  /// 3D Voxel Mobilya Atölyesi (Çoklu Görsel Varyantlar)
+  static void drawVoxelFurniture(Canvas canvas, Offset baseCenter, {int variant = 0}) {
+    final int v = variant % 3;
+
     drawIsoCube(
       canvas,
       baseCenter,
@@ -1355,20 +2508,60 @@ class VoxelIsometricRenderer {
       drawShadow: true,
     );
 
-    drawIsoCube(
-      canvas,
-      Offset(baseCenter.dx, baseCenter.dy - 14.0),
-      w: 8.0,
-      d: 8.0,
-      h: 10.0,
-      topColor: const Color(0xFFFEF3C7),
-      leftColor: const Color(0xFFFDE68A),
-      rightColor: const Color(0xFFD97706),
-    );
+    if (v == 1) {
+      // Varyant 1: Ahşap Oyma Tezgahı & Vernik Fıçısı
+      drawIsoCube(
+        canvas,
+        Offset(baseCenter.dx + 4, baseCenter.dy - 14.0),
+        w: 12.0,
+        d: 6.0,
+        h: 6.0,
+        topColor: const Color(0xFFFEF3C7),
+        leftColor: const Color(0xFFFDE68A),
+        rightColor: const Color(0xFFD97706),
+      );
+      // Vernik Fıçısı
+      drawIsoCube(
+        canvas,
+        Offset(baseCenter.dx + 12 * cosIso, baseCenter.dy + 8 * sinIso),
+        w: 5.0,
+        d: 5.0,
+        h: 6.0,
+        topColor: const Color(0xFF78350F),
+        leftColor: const Color(0xFF5A2508),
+        rightColor: const Color(0xFF451A03),
+      );
+    } else if (v == 2) {
+      // Varyant 2: Otağ Sandığı & Oyma Taht
+      drawIsoCube(
+        canvas,
+        Offset(baseCenter.dx - 2, baseCenter.dy - 14.0),
+        w: 10.0,
+        d: 10.0,
+        h: 12.0,
+        topColor: const Color(0xFFFBBF24),
+        leftColor: const Color(0xFFF59E0B),
+        rightColor: const Color(0xFFD97706),
+      );
+    } else {
+      // Varyant 0: Bitmiş Dolap & Tezgah
+      drawIsoCube(
+        canvas,
+        Offset(baseCenter.dx, baseCenter.dy - 14.0),
+        w: 8.0,
+        d: 8.0,
+        h: 10.0,
+        topColor: const Color(0xFFFEF3C7),
+        leftColor: const Color(0xFFFDE68A),
+        rightColor: const Color(0xFFD97706),
+      );
+    }
   }
 
-  /// 3D Voxel Maden ve Demir Döküm Ocağı (Duman ve Kıvılcımlar)
-  static void drawVoxelMine(Canvas canvas, Offset baseCenter, {double animTime = 0.0, bool isNight = false}) {
+  /// 3D Voxel Maden ve Demir Döküm Ocağı (Çoklu Görsel Varyantlar)
+  static void drawVoxelMine(Canvas canvas, Offset baseCenter, {double animTime = 0.0, bool isNight = false, int variant = 0}) {
+    final int v = variant % 3;
+
     drawIsoCube(
       canvas,
       baseCenter,
@@ -1381,17 +2574,54 @@ class VoxelIsometricRenderer {
       drawShadow: true,
     );
 
-    // Maden Giriş Tüneli
-    drawIsoCube(
-      canvas,
-      Offset(baseCenter.dx, baseCenter.dy + 4),
-      w: 12.0,
-      d: 6.0,
-      h: 10.0,
-      topColor: const Color(0xFF0F172A),
-      leftColor: Colors.black,
-      rightColor: Colors.black,
-    );
+    if (v == 1) {
+      // Varyant 1: Ahşap Tahkimatlı Asansör Kulesi & Ray
+      final Offset towerPos = Offset(baseCenter.dx - 4 * cosIso, baseCenter.dy - 16.0 - 4 * sinIso);
+      drawIsoCube(
+        canvas,
+        towerPos,
+        w: 10.0,
+        d: 10.0,
+        h: 16.0,
+        topColor: const Color(0xFFB45309),
+        leftColor: const Color(0xFF92400E),
+        rightColor: const Color(0xFF78350F),
+      );
+    } else if (v == 2) {
+      // Varyant 2: İkiz Maden Tüneli Girişi
+      drawIsoCube(
+        canvas,
+        Offset(baseCenter.dx - 4 * cosIso, baseCenter.dy + 4),
+        w: 8.0,
+        d: 5.0,
+        h: 8.0,
+        topColor: const Color(0xFF0F172A),
+        leftColor: Colors.black,
+        rightColor: Colors.black,
+      );
+      drawIsoCube(
+        canvas,
+        Offset(baseCenter.dx + 6 * cosIso, baseCenter.dy + 4),
+        w: 8.0,
+        d: 5.0,
+        h: 8.0,
+        topColor: const Color(0xFF0F172A),
+        leftColor: Colors.black,
+        rightColor: Colors.black,
+      );
+    } else {
+      // Varyant 0: Maden Giriş Tüneli
+      drawIsoCube(
+        canvas,
+        Offset(baseCenter.dx, baseCenter.dy + 4),
+        w: 12.0,
+        d: 6.0,
+        h: 10.0,
+        topColor: const Color(0xFF0F172A),
+        leftColor: Colors.black,
+        rightColor: Colors.black,
+      );
+    }
 
     // Altın / Demir Cevheri Yığını
     drawIsoCube(

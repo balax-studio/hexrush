@@ -595,12 +595,19 @@ class GameStateNotifier extends StateNotifier<GameState> {
         // Taşınanları ekle
         switch (b.type) {
           case BuildingType.corn:
+          case BuildingType.barley:
+          case BuildingType.pasture:
+          case BuildingType.orchard:
             addedFood += carriedAmount;
             currentFood += carriedAmount;
             break;
           case BuildingType.lumberjack:
+          case BuildingType.resinCamp:
             addedWood += carriedAmount;
             currentWood += carriedAmount;
+            break;
+          case BuildingType.quarry:
+            addedStone += carriedAmount;
             break;
           case BuildingType.windmill:
             addedFlour += carriedAmount;
@@ -915,6 +922,10 @@ class GameStateNotifier extends StateNotifier<GameState> {
       case TileBiome.meadow:
         return const [
           BuildingType.corn,
+          BuildingType.barley,
+          BuildingType.pasture,
+          BuildingType.orchard,
+          BuildingType.quarry,
           BuildingType.windmill,
           BuildingType.bakery,
           BuildingType.worker,
@@ -923,6 +934,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       case TileBiome.forest:
         return const [
           BuildingType.lumberjack,
+          BuildingType.resinCamp,
           BuildingType.sawmill,
           BuildingType.furniture,
           BuildingType.worker,
@@ -930,6 +942,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       case TileBiome.mountain:
         return const [
           BuildingType.mine,
+          BuildingType.quarry,
           BuildingType.watchtower,
         ];
       case TileBiome.sea:
@@ -1022,8 +1035,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
       return false;
     }
 
+    final int bVariant = (coord.q * 17 + coord.r * 31 + DateTime.now().millisecond).abs() % 3;
     final updatedTiles = Map<HexAxial, HexTileModel>.from(state.tiles);
-    updatedTiles[coord] = tile.copyWith(building: BuildingModel(type: type));
+    updatedTiles[coord] = tile.copyWith(building: BuildingModel(type: type, variant: bVariant));
 
     // Gözcü Kulesi ise etrafındaki görüş hattı (Bresenham raycast) boyunca sisi aç
     if (type == BuildingType.watchtower) {
@@ -1148,12 +1162,17 @@ class GameStateNotifier extends StateNotifier<GameState> {
     if (b.type == BuildingType.corn && nextTutorial == 4) nextTutorial = 6; // Skip to forest tutorial
 
     if (b.type == BuildingType.corn ||
+        b.type == BuildingType.barley ||
+        b.type == BuildingType.pasture ||
+        b.type == BuildingType.orchard ||
         b.type == BuildingType.reindeerSanctuary ||
         b.type == BuildingType.herbalistYurt ||
         b.type == BuildingType.oasisCistern) {
       res = res.copyWith(food: res.food + accum);
-    } else if (b.type == BuildingType.lumberjack) {
+    } else if (b.type == BuildingType.lumberjack || b.type == BuildingType.resinCamp) {
       res = res.copyWith(wood: res.wood + accum);
+    } else if (b.type == BuildingType.quarry) {
+      res = res.copyWith(stone: res.stone + accum);
     } else if (b.type == BuildingType.fisherman) {
       res = res.copyWith(fish: res.fish + accum);
     } else if (b.type == BuildingType.windmill) {
@@ -1246,6 +1265,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
       recipeKey: recipeKey,
       resources: resMap,
       titles: state.titles,
+      season: state.season.current,
+      isZud: state.season.isZud,
     );
 
     if (!result.success) {

@@ -3,6 +3,11 @@ import 'dart:math' as math;
 enum BuildingType {
   castle,
   corn,
+  barley,
+  pasture,
+  orchard,
+  quarry,
+  resinCamp,
   windmill,
   bakery,
   lumberjack,
@@ -41,11 +46,16 @@ extension BuildingTypeExtension on BuildingType {
     switch (this) {
       case BuildingType.castle:
       case BuildingType.corn:
+      case BuildingType.barley:
+      case BuildingType.quarry:
       case BuildingType.lumberjack:
       case BuildingType.worker:
       case BuildingType.shrine:
         return 1;
 
+      case BuildingType.pasture:
+      case BuildingType.orchard:
+      case BuildingType.resinCamp:
       case BuildingType.windmill:
       case BuildingType.sawmill:
       case BuildingType.watchtower:
@@ -84,12 +94,14 @@ class BuildingModel {
   final int level;
   final double accumulatedResource;
   final double totalGathered;
+  final int variant;
 
   const BuildingModel({
     required this.type,
     this.level = 1,
     this.accumulatedResource = 0.0,
     this.totalGathered = 0.0,
+    this.variant = 0,
   });
 
   BuildingModel copyWith({
@@ -97,12 +109,14 @@ class BuildingModel {
     int? level,
     double? accumulatedResource,
     double? totalGathered,
+    int? variant,
   }) {
     return BuildingModel(
       type: type ?? this.type,
       level: level ?? this.level,
       accumulatedResource: accumulatedResource ?? this.accumulatedResource,
       totalGathered: totalGathered ?? this.totalGathered,
+      variant: variant ?? this.variant,
     );
   }
 
@@ -113,6 +127,16 @@ class BuildingModel {
         return 50.0;
       case BuildingType.corn:
         return 10.0;
+      case BuildingType.barley:
+        return 12.0;
+      case BuildingType.pasture:
+        return 28.0;
+      case BuildingType.orchard:
+        return 30.0;
+      case BuildingType.quarry:
+        return 25.0;
+      case BuildingType.resinCamp:
+        return 35.0;
       case BuildingType.lumberjack:
         return 15.0;
       case BuildingType.windmill:
@@ -184,6 +208,16 @@ class BuildingModel {
         return 0.10;
       case BuildingType.corn:
         return 0.42;
+      case BuildingType.barley:
+        return 0.40;
+      case BuildingType.pasture:
+        return 0.48;
+      case BuildingType.orchard:
+        return 0.52;
+      case BuildingType.quarry:
+        return 0.35;
+      case BuildingType.resinCamp:
+        return 0.32;
       case BuildingType.lumberjack:
         return 0.35;
       case BuildingType.windmill:
@@ -289,6 +323,7 @@ class BuildingModel {
         'level': level,
         'accumulated_resource': accumulatedResource,
         'total_gathered': totalGathered,
+        'variant': variant,
       };
 
   factory BuildingModel.fromJson(Map<String, dynamic> json) {
@@ -303,6 +338,7 @@ class BuildingModel {
       accumulatedResource:
           (json['accumulated_resource'] as num?)?.toDouble() ?? 0.0,
       totalGathered: (json['total_gathered'] as num?)?.toDouble() ?? 0.0,
+      variant: json['variant'] as int? ?? 0,
     );
   }
 

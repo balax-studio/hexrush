@@ -313,6 +313,11 @@ class HexMapGame extends FlameGame {
 
           Color cargoColor = const Color(0xFFFBBF24);
           if (tile.building!.type == BuildingType.corn) cargoColor = const Color(0xFFFBBF24);
+          if (tile.building!.type == BuildingType.barley) cargoColor = const Color(0xFFFDE047);
+          if (tile.building!.type == BuildingType.pasture) cargoColor = const Color(0xFF10B981);
+          if (tile.building!.type == BuildingType.orchard) cargoColor = const Color(0xFFF43F5E);
+          if (tile.building!.type == BuildingType.quarry) cargoColor = const Color(0xFF94A3B8);
+          if (tile.building!.type == BuildingType.resinCamp) cargoColor = const Color(0xFFB45309);
           if (tile.building!.type == BuildingType.lumberjack) cargoColor = const Color(0xFFB45309);
           if (tile.building!.type == BuildingType.sawmill) cargoColor = const Color(0xFFD97706);
           if (tile.building!.type == BuildingType.windmill) cargoColor = const Color(0xFFFEF08A);

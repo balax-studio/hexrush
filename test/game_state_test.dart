@@ -72,7 +72,7 @@ void main() {
       final success = notifier.executeMarketTrade('flour_to_stone');
       expect(success, isTrue);
       expect(notifier.state.resources.flour, equals(15.0));
-      expect(notifier.state.resources.stone, equals(8.0));
+      expect(notifier.state.resources.stone, equals(10.0));
       notifier.dispose();
     });
 

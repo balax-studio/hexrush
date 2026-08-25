@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import '../../core/hex/hex_coordinates.dart';
 import '../models/building_model.dart';
 import '../models/doctrine_model.dart';
+import '../models/game_state_model.dart';
 import '../models/hex_tile_model.dart';
 
 class MarketTradeResult {
@@ -252,6 +253,8 @@ class EconomyCalculator {
     switch (season.toUpperCase()) {
       case 'SPRING':
         if (buildingType == BuildingType.corn ||
+            buildingType == BuildingType.barley ||
+            buildingType == BuildingType.pasture ||
             buildingType == BuildingType.windmill ||
             buildingType == BuildingType.bakery ||
             buildingType == BuildingType.fisherman) {
@@ -259,16 +262,24 @@ class EconomyCalculator {
         }
         return 1.0;
       case 'SUMMER':
+        if (buildingType == BuildingType.orchard) return 1.50;
         if (buildingType == BuildingType.lumberjack ||
             buildingType == BuildingType.sawmill ||
-            buildingType == BuildingType.furniture) {
+            buildingType == BuildingType.furniture ||
+            buildingType == BuildingType.resinCamp) {
           return 1.15;
         }
         return 1.0;
       case 'AUTUMN':
-        if (buildingType == BuildingType.mine) {
+        if (buildingType == BuildingType.orchard) return 1.30;
+        if (buildingType == BuildingType.pasture) return 1.25;
+        if (buildingType == BuildingType.mine || buildingType == BuildingType.quarry) {
           return 1.15;
         }
+        return 1.0;
+      case 'WINTER':
+        if (buildingType == BuildingType.barley) return 1.15; // Soğuğa dayanıklı
+        if (buildingType == BuildingType.orchard) return 0.65; // Kış uykusu
         return 1.0;
       default:
         return 1.0;
@@ -354,43 +365,170 @@ class EconomyCalculator {
     }
   }
 
+  static List<Map<String, dynamic>> getMarketRecipes({
+    required String season,
+    bool isZud = false,
+    bool isMerchant = false,
+    required ResourcesModel resources,
+  }) {
+    final double merchantBonus = isMerchant ? 1.20 : 1.0;
+
+    // 1. Un -> Taş (İlkbahar İnşaat Talebi)
+    double flourToStoneGain = 8.0;
+    String flourSeasonalTag = '';
+    if (season == 'SPRING') {
+      flourToStoneGain = 10.0; // +25%
+      flourSeasonalTag = 'İLKBAHAR: +%25 TAŞ TALEBİ';
+    } else if (season == 'WINTER' || isZud) {
+      flourToStoneGain = 10.0;
+      flourSeasonalTag = isZud ? 'ZUD: +%25 ERZAK TALEBİ' : 'KIŞ: +%25 ERZAK DEĞERİ';
+    }
+    final double finalFlourStone = (flourToStoneGain * merchantBonus).roundToDouble();
+
+    // 2. Ekmek -> Demir (Kış Kıtlığı & Yaz Seferi)
+    double breadToIronGain = 5.0;
+    String breadSeasonalTag = '';
+    if (isZud) {
+      breadToIronGain = 10.0; // +100%
+      breadSeasonalTag = 'ZUD BORANI: +%100 DEMİR KAZANCI!';
+    } else if (season == 'WINTER') {
+      breadToIronGain = 8.0; // +60%
+      breadSeasonalTag = 'KARA KIŞ: +%60 DEMİR KAZANCI';
+    } else if (season == 'SUMMER') {
+      breadToIronGain = 6.0; // +20%
+      breadSeasonalTag = 'YAZ SEFERİ: +%20 DEMİR KAZANCI';
+    }
+    final double finalBreadIron = (breadToIronGain * merchantBonus).roundToDouble();
+
+    // 3. Mobilya -> Taş (Sonbahar Barınak / Otağ Yalıtımı)
+    double furnitureToStoneGain = 15.0;
+    String furnitureSeasonalTag = '';
+    if (season == 'AUTUMN') {
+      furnitureToStoneGain = 21.0; // +40%
+      furnitureSeasonalTag = 'SONBAHAR: +%40 YURT YALITIM TALEBİ';
+    }
+    final double finalFurnitureStone = (furnitureToStoneGain * merchantBonus).roundToDouble();
+
+    // 4. Demir + Taş -> Şan / Kutlu Tamga (Sonbahar Kurultay İndirimi)
+    final double crownCost = (season == 'AUTUMN') ? 20.0 : 25.0;
+    final String crownSeasonalTag = (season == 'AUTUMN') ? 'KURULTAY SEZONU: %20 İNDİRİM' : '';
+
+    return [
+      {
+        'key': 'flour_to_stone',
+        'fromIcon': 'flour',
+        'fromAmount': '15 Un',
+        'toIcon': 'stone',
+        'toAmount': '${finalFlourStone.toInt()} Taş',
+        'seasonTag': flourSeasonalTag,
+        'desc': isMerchant
+            ? 'Tüccar Unvanı (+%20) ve mevsimsel pazar kuru aktif.'
+            : 'Değirmende öğütülen un ile taş takası.',
+        'canAfford': resources.flour >= 15.0,
+        'costFlour': 15.0,
+        'gainStone': finalFlourStone,
+      },
+      {
+        'key': 'bread_to_iron',
+        'fromIcon': 'bread',
+        'fromAmount': '10 Ekmek',
+        'toIcon': 'iron',
+        'toAmount': '${finalBreadIron.toInt()} Demir',
+        'seasonTag': breadSeasonalTag,
+        'desc': isMerchant
+            ? 'Tüccar Unvanı (+%20) ve mevsimsel pazar kuru aktif.'
+            : 'Taze pişmiş ekmek karşılığında demir madeni.',
+        'canAfford': resources.bread >= 10.0,
+        'costBread': 10.0,
+        'gainIron': finalBreadIron,
+      },
+      {
+        'key': 'furniture_to_stone',
+        'fromIcon': 'furniture',
+        'fromAmount': '10 Mobilya',
+        'toIcon': 'stone',
+        'toAmount': '${finalFurnitureStone.toInt()} Taş',
+        'seasonTag': furnitureSeasonalTag,
+        'desc': isMerchant
+            ? 'Tüccar Unvanı (+%20) ve mevsimsel pazar kuru aktif.'
+            : 'İşlenmiş otağ mobilyası karşılığında zengin taş kütleleri.',
+        'canAfford': resources.furniture >= 10.0,
+        'costFurniture': 10.0,
+        'gainStone': finalFurnitureStone,
+      },
+      {
+        'key': 'iron_stone_to_crown',
+        'fromIcon': 'iron',
+        'fromAmount': '${crownCost.toInt()} Demir + ${crownCost.toInt()} Taş',
+        'toIcon': 'crown',
+        'toAmount': '1 Şan',
+        'seasonTag': crownSeasonalTag,
+        'desc': 'Değerli madenleri birleştirerek hanlık şanı ve kutlu tamga döv.',
+        'canAfford': resources.iron >= crownCost && resources.stone >= crownCost,
+        'costIron': crownCost,
+        'costStone': crownCost,
+        'gainCrowns': 1.0,
+      },
+    ];
+  }
+
   static MarketTradeResult calculateMarketTrade({
     required String recipeKey,
     required Map<String, double> resources,
     Map<String, dynamic> titles = const {},
+    String season = 'SPRING',
+    bool isZud = false,
   }) {
-    final double merchantBonus = titles['merchant'] == true ? 1.20 : 1.0;
+    final bool isMerchant = titles['merchant'] == true;
+    final double merchantBonus = isMerchant ? 1.20 : 1.0;
 
     if (recipeKey == 'flour_to_stone') {
       if ((resources['flour'] ?? 0.0) >= 15.0) {
+        double gain = 8.0;
+        if (season == 'SPRING' || season == 'WINTER' || isZud) {
+          gain = 10.0;
+        }
         return MarketTradeResult(
           success: true,
           consumed: {'flour': 15.0},
-          gained: {'stone': (8.0 * merchantBonus).roundToDouble()},
+          gained: {'stone': (gain * merchantBonus).roundToDouble()},
         );
       }
     } else if (recipeKey == 'bread_to_iron') {
       if ((resources['bread'] ?? 0.0) >= 10.0) {
+        double gain = 5.0;
+        if (isZud) {
+          gain = 10.0;
+        } else if (season == 'WINTER') {
+          gain = 8.0;
+        } else if (season == 'SUMMER') {
+          gain = 6.0;
+        }
         return MarketTradeResult(
           success: true,
           consumed: {'bread': 10.0},
-          gained: {'iron': (5.0 * merchantBonus).roundToDouble()},
+          gained: {'iron': (gain * merchantBonus).roundToDouble()},
         );
       }
     } else if (recipeKey == 'furniture_to_stone') {
       if ((resources['furniture'] ?? 0.0) >= 10.0) {
+        double gain = 15.0;
+        if (season == 'AUTUMN') {
+          gain = 21.0;
+        }
         return MarketTradeResult(
           success: true,
           consumed: {'furniture': 10.0},
-          gained: {'stone': (15.0 * merchantBonus).roundToDouble()},
+          gained: {'stone': (gain * merchantBonus).roundToDouble()},
         );
       }
     } else if (recipeKey == 'iron_stone_to_crown') {
-      if ((resources['iron'] ?? 0.0) >= 25.0 &&
-          (resources['stone'] ?? 0.0) >= 25.0) {
-        return const MarketTradeResult(
+      final double cost = (season == 'AUTUMN') ? 20.0 : 25.0;
+      if ((resources['iron'] ?? 0.0) >= cost &&
+          (resources['stone'] ?? 0.0) >= cost) {
+        return MarketTradeResult(
           success: true,
-          consumed: {'iron': 25.0, 'stone': 25.0},
+          consumed: {'iron': cost, 'stone': cost},
           gained: {'crowns': 1.0},
         );
       }
@@ -434,12 +572,21 @@ class EconomyCalculator {
 
       switch (b.type) {
         case BuildingType.corn:
+        case BuildingType.barley:
+        case BuildingType.pasture:
+        case BuildingType.orchard:
           gainedFood += hasWorkers
               ? rate * cappedSeconds
               : math.min(maxCap, rate * cappedSeconds);
           break;
         case BuildingType.lumberjack:
+        case BuildingType.resinCamp:
           gainedWood += hasWorkers
+              ? rate * cappedSeconds
+              : math.min(maxCap, rate * cappedSeconds);
+          break;
+        case BuildingType.quarry:
+          gainedStone += hasWorkers
               ? rate * cappedSeconds
               : math.min(maxCap, rate * cappedSeconds);
           break;
@@ -599,10 +746,17 @@ class EconomyCalculator {
 
       switch (b.type) {
         case BuildingType.corn:
+        case BuildingType.barley:
+        case BuildingType.pasture:
+        case BuildingType.orchard:
           netFood += rate;
           break;
         case BuildingType.lumberjack:
+        case BuildingType.resinCamp:
           netWood += rate;
+          break;
+        case BuildingType.quarry:
+          netStone += rate;
           break;
         case BuildingType.windmill:
           netFlour += rate;
@@ -707,8 +861,14 @@ class EconomyCalculator {
         case TileBiome.wetland:
         case TileBiome.sea:
           // Sazlık / Deniz: Çiftliklere ve Değirmenlere +%30 Sulama Bereketi
-          if (bType == BuildingType.corn || bType == BuildingType.windmill) {
+          if (bType == BuildingType.corn ||
+              bType == BuildingType.barley ||
+              bType == BuildingType.orchard ||
+              bType == BuildingType.windmill) {
             synergy += 0.30;
+          }
+          if (bType == BuildingType.pasture) {
+            synergy += 0.25;
           }
           // Deniz: Fırın ve Balıkçılara +%20 Lojistik Kolaylığı
           if (bType == BuildingType.bakery ||
@@ -720,11 +880,13 @@ class EconomyCalculator {
 
         case TileBiome.volcano:
           // Volkan: Madenlere +%50 Jeotermal Isı & Dökümhane Bonusu
-          if (bType == BuildingType.mine) {
+          if (bType == BuildingType.mine || bType == BuildingType.quarry || bType == BuildingType.obsidianForge) {
             synergy += 0.50;
           }
           // Orman binalarına kuruma/kül riski (-%15)
-          if (bType == BuildingType.lumberjack || bType == BuildingType.sawmill) {
+          if (bType == BuildingType.lumberjack ||
+              bType == BuildingType.sawmill ||
+              bType == BuildingType.resinCamp) {
             synergy -= 0.15;
           }
           break;
@@ -735,14 +897,14 @@ class EconomyCalculator {
             synergy += 0.40;
           }
           // Çiftliklere kuraklık cezası (-%20), eğer komşuda Vaha Sarnıcı yoksa
-          if (bType == BuildingType.corn && !hasOasisCisternNeighbor) {
+          if ((bType == BuildingType.corn || bType == BuildingType.orchard) && !hasOasisCisternNeighbor) {
             synergy -= 0.20;
           }
           break;
 
         case TileBiome.mountain:
-          // Dağ: Madenlere +%35 Zengin Damar Bonusu
-          if (bType == BuildingType.mine) {
+          // Dağ: Maden ve Taş Ocağına +%35 Zengin Damar Bonusu
+          if (bType == BuildingType.mine || bType == BuildingType.quarry) {
             synergy += 0.35;
           }
           // Gözetleme Kulesine +%50 Rüzgar Siperi & Görüş
@@ -752,8 +914,11 @@ class EconomyCalculator {
           break;
 
         case TileBiome.forest:
-          // Orman: Marangoz & Mobilyacıya +%25 Kereste Yakınlığı
-          if (bType == BuildingType.sawmill || bType == BuildingType.furniture) {
+          // Orman: Marangoz, Mobilyacı ve Katran Otağına +%25 Kereste Yakınlığı
+          if (bType == BuildingType.sawmill ||
+              bType == BuildingType.furniture ||
+              bType == BuildingType.resinCamp ||
+              bType == BuildingType.orchard) {
             synergy += 0.25;
           }
           break;
@@ -771,17 +936,23 @@ class EconomyCalculator {
           break;
 
         case TileBiome.tundra:
-          // Tundra: Kışın soğuk cezası (-%25), ancak Madenlere +%20 Permafrost Taş Bonusu
+          // Tundra: Kışın soğuk cezası (-%25), ancak Arpa ve Madenlere dayanıklılık
           if (season.toUpperCase() == 'WINTER' || isZud) {
-            if (bType == BuildingType.corn) synergy -= 0.25;
+            if (bType == BuildingType.corn || bType == BuildingType.orchard) synergy -= 0.25;
+            if (bType == BuildingType.barley) synergy += 0.15; // Soğuk dayanıklılığı
           }
-          if (bType == BuildingType.mine || bType == BuildingType.permafrostDig) synergy += 0.25;
+          if (bType == BuildingType.mine || bType == BuildingType.quarry || bType == BuildingType.permafrostDig) {
+            synergy += 0.25;
+          }
           break;
 
         case TileBiome.meadow:
-          // Çayır: Çiftliklere +%10 Verimli Toprak
-          if (bType == BuildingType.corn) {
-            synergy += 0.10;
+          // Çayır: Çiftliklere ve Otlaklara Verimli Toprak
+          if (bType == BuildingType.corn || bType == BuildingType.barley) {
+            synergy += 0.15;
+          }
+          if (bType == BuildingType.pasture) {
+            synergy += 0.25;
           }
           break;
       }
@@ -796,9 +967,21 @@ class EconomyCalculator {
       }
       // Komşuda Obsidyen Dökümhanesi varsa alet dayanıklılığı ver
       if (neighbor.building?.type == BuildingType.obsidianForge &&
-          (bType == BuildingType.mine || bType == BuildingType.sawmill)) {
+          (bType == BuildingType.mine || bType == BuildingType.quarry || bType == BuildingType.sawmill)) {
         synergy += 0.35;
       }
+    }
+
+    // Mevsimsel özel bina çarpanları
+    if (bType == BuildingType.orchard) {
+      if (season.toUpperCase() == 'SUMMER') synergy += 0.50;
+      if (season.toUpperCase() == 'AUTUMN') synergy += 0.30;
+      if (season.toUpperCase() == 'WINTER') synergy -= 0.35;
+    } else if (bType == BuildingType.pasture) {
+      if (season.toUpperCase() == 'AUTUMN') synergy += 0.25;
+      if (season.toUpperCase() == 'SPRING') synergy += 0.15;
+    } else if (bType == BuildingType.barley) {
+      if (season.toUpperCase() == 'WINTER') synergy += 0.20;
     }
 
     return math.max(0.20, synergy);
@@ -852,8 +1035,14 @@ class EconomyCalculator {
 
         case TileBiome.wetland:
         case TileBiome.sea:
-          if (bType == BuildingType.corn || bType == BuildingType.windmill) {
+          if (bType == BuildingType.corn ||
+              bType == BuildingType.barley ||
+              bType == BuildingType.orchard ||
+              bType == BuildingType.windmill) {
             labels.add('+30% Sulama Bereketi (Su/Sazlık)');
+          }
+          if (bType == BuildingType.pasture) {
+            labels.add('+25% Su Yalağı Bereketi (Su)');
           }
           if (bType == BuildingType.bakery ||
               bType == BuildingType.fisherman ||
@@ -863,10 +1052,10 @@ class EconomyCalculator {
           break;
 
         case TileBiome.volcano:
-          if (bType == BuildingType.mine || bType == BuildingType.obsidianForge) {
+          if (bType == BuildingType.mine || bType == BuildingType.quarry || bType == BuildingType.obsidianForge) {
             labels.add('+50% Jeotermal Dökümhane (Volkan)');
           }
-          if (bType == BuildingType.lumberjack || bType == BuildingType.sawmill) {
+          if (bType == BuildingType.lumberjack || bType == BuildingType.sawmill || bType == BuildingType.resinCamp) {
             labels.add('-15% Kül Kuruması (Volkan)');
           }
           break;
@@ -877,14 +1066,14 @@ class EconomyCalculator {
               bType == BuildingType.caravanserai) {
             labels.add('+40% İpek Yolu Ticareti (Çöl)');
           }
-          if (bType == BuildingType.corn) {
+          if ((bType == BuildingType.corn || bType == BuildingType.orchard) && !hasOasisCisternNeighbor) {
             labels.add('-20% Kuraklık (Çöl)');
           }
           break;
 
         case TileBiome.mountain:
-          if (bType == BuildingType.mine || bType == BuildingType.astrolabe) {
-            labels.add('+35% Zengin Damar & İrtifa (Dağ)');
+          if (bType == BuildingType.mine || bType == BuildingType.quarry || bType == BuildingType.astrolabe) {
+            labels.add('+35% Zengin Damar & Taş (Dağ)');
           }
           if (bType == BuildingType.watchtower) {
             labels.add('+50% Rüzgar Siperi (Dağ)');
@@ -892,23 +1081,30 @@ class EconomyCalculator {
           break;
 
         case TileBiome.forest:
-          if (bType == BuildingType.sawmill || bType == BuildingType.furniture) {
-            labels.add('+25% Kereste Yakınlığı (Orman)');
+          if (bType == BuildingType.sawmill ||
+              bType == BuildingType.furniture ||
+              bType == BuildingType.resinCamp ||
+              bType == BuildingType.orchard) {
+            labels.add('+25% Kereste & Huş Yakınlığı (Orman)');
           }
           break;
 
         case TileBiome.tundra:
           if (season.toUpperCase() == 'WINTER' || isZud) {
-            if (bType == BuildingType.corn) labels.add('-25% Ayaz Şoku (Tundra)');
+            if (bType == BuildingType.corn || bType == BuildingType.orchard) labels.add('-25% Ayaz Şoku (Tundra)');
+            if (bType == BuildingType.barley) labels.add('+15% Soğuk Direnci (Arpa)');
           }
-          if (bType == BuildingType.mine || bType == BuildingType.permafrostDig) {
-            labels.add('+25% Permafrost Taş (Tundra)');
+          if (bType == BuildingType.mine || bType == BuildingType.quarry || bType == BuildingType.permafrostDig) {
+            labels.add('+25% Permafrost Damarı (Tundra)');
           }
           break;
 
         case TileBiome.meadow:
-          if (bType == BuildingType.corn) {
-            labels.add('+10% Verimli Çayır (Çayır)');
+          if (bType == BuildingType.corn || bType == BuildingType.barley) {
+            labels.add('+15% Verimli Toprak (Çayır)');
+          }
+          if (bType == BuildingType.pasture) {
+            labels.add('+25% Bozkır Otu Bereketi (Çayır)');
           }
           break;
       }
@@ -920,9 +1116,20 @@ class EconomyCalculator {
         labels.add('+35% Jeotermal Isı Aurası');
       }
       if (neighbor.building?.type == BuildingType.obsidianForge &&
-          (bType == BuildingType.mine || bType == BuildingType.sawmill)) {
+          (bType == BuildingType.mine || bType == BuildingType.quarry || bType == BuildingType.sawmill)) {
         labels.add('+35% Obsidyen Alet Gücü');
       }
+    }
+
+    if (bType == BuildingType.orchard) {
+      if (season.toUpperCase() == 'SUMMER') labels.add('+50% Yaz Meyve Coşkusu');
+      if (season.toUpperCase() == 'AUTUMN') labels.add('+30% Sonbahar Hasadı');
+      if (season.toUpperCase() == 'WINTER') labels.add('-35% Kış Uykusu');
+    } else if (bType == BuildingType.pasture) {
+      if (season.toUpperCase() == 'AUTUMN') labels.add('+25% Sonbahar Besi Dönemi');
+      if (season.toUpperCase() == 'SPRING') labels.add('+15% Bahar Yavrulama');
+    } else if (bType == BuildingType.barley) {
+      if (season.toUpperCase() == 'WINTER') labels.add('+20% Ayazda Dirençli Hasat');
     }
 
     return labels;

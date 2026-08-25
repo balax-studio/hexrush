@@ -433,7 +433,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '${b.type.name.toUpperCase()} (LV.${b.level})',
+              '${_getBuildingName(b.type, lang).toUpperCase()} (LV.${b.level})',
               style: const TextStyle(
                   color: Color(0xFFFFD700),
                   fontSize: 13,
@@ -941,6 +941,16 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         return GameLocalization.get('castle_desc', lang: lang);
       case BuildingType.corn:
         return GameLocalization.get('corn_desc', lang: lang);
+      case BuildingType.barley:
+        return GameLocalization.get('barley_desc', lang: lang);
+      case BuildingType.pasture:
+        return GameLocalization.get('pasture_desc', lang: lang);
+      case BuildingType.orchard:
+        return GameLocalization.get('orchard_desc', lang: lang);
+      case BuildingType.quarry:
+        return GameLocalization.get('quarry_desc', lang: lang);
+      case BuildingType.resinCamp:
+        return GameLocalization.get('resin_camp_desc', lang: lang);
       case BuildingType.lumberjack:
         return GameLocalization.get('lumberjack_desc', lang: lang);
       case BuildingType.windmill:
@@ -1043,6 +1053,16 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         return const GameVectorIcon(type: GameIconType.crown, size: 13);
       case BuildingType.corn:
         return const GameVectorIcon(type: GameIconType.food, size: 13);
+      case BuildingType.barley:
+        return const GameVectorIcon(type: GameIconType.food, size: 13, color: Color(0xFFFBBF24));
+      case BuildingType.pasture:
+        return const GameVectorIcon(type: GameIconType.land, size: 13, color: Color(0xFF10B981));
+      case BuildingType.orchard:
+        return const GameVectorIcon(type: GameIconType.food, size: 13, color: Color(0xFFF43F5E));
+      case BuildingType.quarry:
+        return const GameVectorIcon(type: GameIconType.stone, size: 13, color: Color(0xFF94A3B8));
+      case BuildingType.resinCamp:
+        return const GameVectorIcon(type: GameIconType.wood, size: 13, color: Color(0xFFB45309));
       case BuildingType.lumberjack:
         return const GameVectorIcon(type: GameIconType.wood, size: 13);
       case BuildingType.windmill:
@@ -1134,6 +1154,16 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         return GameLocalization.get('castle_title', lang: lang);
       case BuildingType.corn:
         return GameLocalization.get('corn_name', lang: lang);
+      case BuildingType.barley:
+        return GameLocalization.get('barley_name', lang: lang);
+      case BuildingType.pasture:
+        return GameLocalization.get('pasture_name', lang: lang);
+      case BuildingType.orchard:
+        return GameLocalization.get('orchard_name', lang: lang);
+      case BuildingType.quarry:
+        return GameLocalization.get('quarry_name', lang: lang);
+      case BuildingType.resinCamp:
+        return GameLocalization.get('resin_camp_name', lang: lang);
       case BuildingType.lumberjack:
         return GameLocalization.get('lumberjack_name', lang: lang);
       case BuildingType.windmill:
