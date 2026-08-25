@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/tactile_audio_service.dart';
 import '../../core/hex/hex_coordinates.dart';
+import '../../core/hex/hex_math.dart';
 import '../../data/save_repository.dart';
 import '../../domain/economy/economy_calculator.dart';
 import '../../domain/models/building_model.dart';
@@ -128,7 +129,27 @@ class GameStateNotifier extends StateNotifier<GameState> {
     final initialRange = centerCoord.getRange(4);
     for (final coord in initialRange) {
       if (!map.containsKey(coord)) {
-        final biome = TileBiome.values[random.nextInt(TileBiome.values.length)];
+        TileBiome biome;
+        final int dist = HexMath.hexDistance(centerCoord, coord);
+        if (dist == 1) {
+          // Radius 1: İlk halkanın (6 komşu) 4 tanesi Çayır, 1 tanesi Orman, 1 tanesi Çöl (Softlock Engelleme)
+          final int idx = centerCoord.neighbors.indexOf(coord);
+          if (idx <= 3) {
+            biome = TileBiome.meadow;
+          } else if (idx == 4) {
+            biome = TileBiome.forest;
+          } else {
+            biome = TileBiome.desert;
+          }
+        } else if (dist == 2) {
+          // Radius 2: Çayır, Orman, Dağ, Sazlık dengeli dağılım
+          final biomes = [TileBiome.meadow, TileBiome.forest, TileBiome.mountain, TileBiome.wetland, TileBiome.desert];
+          biome = biomes[random.nextInt(biomes.length)];
+        } else {
+          // Radius 3 ve 4: Tüm 8 biyom dengeli
+          biome = TileBiome.values[random.nextInt(TileBiome.values.length)];
+        }
+
         map[coord] = HexTileModel(
           coord: coord,
           biome: biome,
@@ -293,8 +314,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
     double newFrenzyTimer = math.max(0.0, state.frenzyTimer - 1.0);
     int newFrenzyMultiplier = newFrenzyTimer > 0 ? state.frenzyMultiplier : 1;
 
-    // Toplam İşçi Taşıma Kapasitesi Hesapla
-    double totalWorkerCapacity = 0.0;
+    // Toplam İşçi Taşıma Kapasitesi: Şatodan gelen 1.0 taban kapasite + İşçi Çadırları (Softlock Önleme)
+    double totalWorkerCapacity = 1.0;
     for (final t in state.tiles.values) {
       if (t.isOwned && t.building != null) {
         totalWorkerCapacity += t.building!.currentCarryingCapacity;
@@ -821,6 +842,16 @@ class GameStateNotifier extends StateNotifier<GameState> {
     if (tile == null || tile.building == null) return false;
 
     final b = tile.building!;
+    if (b.type == BuildingType.castle) {
+      // Şatodan Acil Durum İaşesi (Softlock Önleme: Her tıkta +1 Gıda)
+      state = state.copyWith(
+        resources: state.resources.copyWith(food: state.resources.food + 1.0),
+        activeToast: '+1.0 Gıda (Han Otağı İaşesi)',
+      );
+      TactileAudioService.instance.play(TactileSoundType.tap);
+      return true;
+    }
+
     final double accum = b.accumulatedResource;
     if (accum <= 0.0) return false;
 

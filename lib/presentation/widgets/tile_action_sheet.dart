@@ -285,33 +285,65 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
           style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 10),
-        SizedBox(
-          width: double.infinity,
-          child: TactileNeoButton(
-            onTap: canAfford ? () => notifier.upgradeCastle() : null,
-            isEnabled: canAfford,
-            backgroundColor: const Color(0xFF8B5CF6),
-            borderColor: Colors.black,
-            shadowColor: const Color(0xFF4C1D95),
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            soundType: TactileSoundType.upgrade,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const GameVectorIcon(type: GameIconType.crown, size: 16, color: Colors.white),
-                const SizedBox(width: 8),
-                Text(
-                  '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} (${nextFood.toInt()} GIDA + ${nextWood.toInt()} ODUN)',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 12,
-                    letterSpacing: 0.3,
-                  ),
+        Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: TactileNeoButton(
+                onTap: canAfford ? () => notifier.upgradeCastle() : null,
+                isEnabled: canAfford,
+                backgroundColor: const Color(0xFF8B5CF6),
+                borderColor: Colors.black,
+                shadowColor: const Color(0xFF4C1D95),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                soundType: TactileSoundType.upgrade,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const GameVectorIcon(type: GameIconType.crown, size: 14, color: Colors.white),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} (${nextFood.toInt()} GIDA${nextWood > 0 ? ' + ${nextWood.toInt()} ODUN' : ''})',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 11,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
+            const SizedBox(width: 8),
+            Expanded(
+              flex: 2,
+              child: TactileNeoButton(
+                onTap: () => notifier.collectFromTile(tile.coord),
+                backgroundColor: const Color(0xFF10B981),
+                borderColor: Colors.black,
+                shadowColor: const Color(0xFF065F46),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                soundType: TactileSoundType.tap,
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GameVectorIcon(type: GameIconType.food, size: 14, color: Colors.black),
+                    SizedBox(width: 4),
+                    Text(
+                      'İAŞE (+1)',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 11,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
