@@ -1,10 +1,19 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hex_rush/data/save_repository.dart';
 import 'package:hex_rush/domain/economy/economy_calculator.dart';
 import 'package:hex_rush/domain/models/building_model.dart';
 import 'package:hex_rush/domain/models/doctrine_model.dart';
+import 'package:hex_rush/domain/models/game_state_model.dart';
 import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   group('Civic Doctrines & Kurultay Tests', () {
     test('Initial doctrines contain preset cards with unlocked defaults', () {
       final doctrines = DoctrineCardModel.getInitialDoctrines();
@@ -99,6 +108,36 @@ void main() {
       // Equip again
       notifier.equipDoctrine(DoctrineSlotType.economic, 'doc_sulama_fermani');
       expect(notifier.state.activeDoctrineSlots[DoctrineSlotType.economic], 'doc_sulama_fermani');
+      notifier.dispose();
+    });
+
+    test('SaveRepository correctly persists and restores civic doctrines', () async {
+      final doctrines = DoctrineCardModel.getInitialDoctrines().map((d) {
+        if (d.id == 'doc_yurt_duzeni') return d.copyWith(isUnlocked: true);
+        return d;
+      }).toList();
+
+      final slots = {
+        DoctrineSlotType.economic: 'doc_sulama_fermani',
+        DoctrineSlotType.military: 'doc_bozkir_akincisi',
+        DoctrineSlotType.nomadic: 'doc_yurt_duzeni',
+        DoctrineSlotType.wildcard: null,
+      };
+
+      await SaveRepository.saveGame(
+        resources: const ResourcesModel(),
+        progression: const ProgressionModel(),
+        season: const SeasonModel(),
+        settings: const SettingsModel(),
+        tiles: const [],
+        doctrines: doctrines,
+        activeDoctrineSlots: slots,
+      );
+
+      final loaded = await SaveRepository.loadGame();
+      expect(loaded, isNotNull);
+      expect(loaded!.doctrines.where((d) => d.id == 'doc_yurt_duzeni').first.isUnlocked, isTrue);
+      expect(loaded.activeDoctrineSlots[DoctrineSlotType.nomadic], 'doc_yurt_duzeni');
     });
   });
 }

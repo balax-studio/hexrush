@@ -82,9 +82,13 @@ class LowPolyBuildingRenderer {
         _drawBridge(canvas, center);
         break;
       case BuildingType.fisherman:
+        _drawFishermanPier(canvas, center, animTime);
+        break;
       case BuildingType.fishermanHut:
+        _drawFishermanHut(canvas, center);
+        break;
       case BuildingType.shrine:
-        // Bu tipler için low-poly render henüz yok, boş geçiyoruz
+        _drawShrineMonolith(canvas, center, animTime);
         break;
     }
   }
@@ -535,5 +539,94 @@ class LowPolyBuildingRenderer {
       final double x = c.dx + i * 6.0;
       canvas.drawLine(Offset(x, c.dy - 4), Offset(x, c.dy - 8), _stroke);
     }
+  }
+
+  static void _drawFishermanPier(Canvas canvas, Offset c, double t) {
+    const wood = Color(0xFFB45309);
+    const boat = Color(0xFFD97706);
+    _stroke.strokeWidth = 1.3;
+    _stroke.color = Colors.black;
+
+    // Ahşap İskele Platformu
+    _fill.color = wood;
+    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx - 4, c.dy), width: 16, height: 6), _fill);
+    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx - 4, c.dy), width: 16, height: 6), _stroke);
+
+    // İskele Kazıkları
+    canvas.drawLine(Offset(c.dx - 10, c.dy + 3), Offset(c.dx - 10, c.dy + 9), _stroke);
+    canvas.drawLine(Offset(c.dx + 2, c.dy + 3), Offset(c.dx + 2, c.dy + 9), _stroke);
+
+    // Küçük Balıkçı Kayığı (Hafif Salınım)
+    final double bob = math.sin(t * 2.5) * 1.5;
+    _fill.color = boat;
+    _path
+      ..reset()
+      ..moveTo(c.dx + 6, c.dy + 2 + bob)
+      ..lineTo(c.dx + 16, c.dy + 2 + bob)
+      ..lineTo(c.dx + 14, c.dy + 7 + bob)
+      ..lineTo(c.dx + 8, c.dy + 7 + bob)
+      ..close();
+    canvas.drawPath(_path, _fill);
+    canvas.drawPath(_path, _stroke);
+
+    // Olta Direği
+    canvas.drawLine(Offset(c.dx + 12, c.dy + 2 + bob), Offset(c.dx + 17, c.dy - 5 + bob), _stroke);
+  }
+
+  static void _drawFishermanHut(Canvas canvas, Offset c) {
+    const woodWall = Color(0xFF78350F);
+    const roof = Color(0xFF0D9488);
+    _stroke.strokeWidth = 1.3;
+    _stroke.color = Colors.black;
+
+    // Kıyı Kulübesi Gövdesi
+    _fill.color = woodWall;
+    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy + 3), width: 16, height: 12), _fill);
+    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy + 3), width: 16, height: 12), _stroke);
+
+    // Üçgen Çatı
+    _fill.color = roof;
+    _path
+      ..reset()
+      ..moveTo(c.dx - 10, c.dy - 3)
+      ..lineTo(c.dx, c.dy - 12)
+      ..lineTo(c.dx + 10, c.dy - 3)
+      ..close();
+    canvas.drawPath(_path, _fill);
+    canvas.drawPath(_path, _stroke);
+
+    // Kurutma Tezgahı
+    canvas.drawLine(Offset(c.dx + 11, c.dy + 1), Offset(c.dx + 11, c.dy + 8), _stroke);
+    canvas.drawLine(Offset(c.dx + 16, c.dy + 1), Offset(c.dx + 16, c.dy + 8), _stroke);
+    canvas.drawLine(Offset(c.dx + 10, c.dy + 2), Offset(c.dx + 17, c.dy + 2), _stroke);
+  }
+
+  static void _drawShrineMonolith(Canvas canvas, Offset c, double t) {
+    const stone = Color(0xFF475569);
+    const runeGlow = Color(0xFF38BDF8);
+    _stroke.strokeWidth = 1.4;
+    _stroke.color = Colors.black;
+
+    // Antik Taş Dikilitaş (Monolith)
+    _fill.color = stone;
+    _path
+      ..reset()
+      ..moveTo(c.dx - 5, c.dy + 9)
+      ..lineTo(c.dx - 3, c.dy - 10)
+      ..lineTo(c.dx, c.dy - 14)
+      ..lineTo(c.dx + 3, c.dy - 10)
+      ..lineTo(c.dx + 5, c.dy + 9)
+      ..close();
+    canvas.drawPath(_path, _fill);
+    canvas.drawPath(_path, _stroke);
+
+    // Parıldayan Rünik Çizgi
+    final double pulse = 0.5 + 0.5 * math.sin(t * 3.0);
+    final runePaint = Paint()
+      ..color = runeGlow.withValues(alpha: 0.4 + 0.6 * pulse)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    canvas.drawLine(Offset(c.dx, c.dy - 7), Offset(c.dx, c.dy + 3), runePaint);
+    canvas.drawLine(Offset(c.dx - 2, c.dy - 2), Offset(c.dx + 2, c.dy - 2), runePaint);
   }
 }

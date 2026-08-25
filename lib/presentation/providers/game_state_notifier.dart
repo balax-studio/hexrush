@@ -265,6 +265,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
           titles: save.titles,
           stats: save.stats,
           quests: save.quests.isNotEmpty ? save.quests : _generateInitialQuests(),
+          doctrines: save.doctrines.isNotEmpty ? save.doctrines : DoctrineCardModel.getInitialDoctrines(),
+          activeDoctrineSlots: save.activeDoctrineSlots.isNotEmpty ? save.activeDoctrineSlots : state.activeDoctrineSlots,
         );
 
         _syncQuestProgress();
@@ -1351,6 +1353,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
       titles: state.titles,
       stats: state.stats,
       quests: state.quests,
+      doctrines: state.doctrines,
+      activeDoctrineSlots: state.activeDoctrineSlots,
     );
   }
 
@@ -1390,6 +1394,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     );
 
     TactileAudioService.instance.play(TactileSoundType.upgrade);
+    saveGame();
   }
 
   void equipDoctrine(DoctrineSlotType slot, String? id) {
@@ -1411,6 +1416,37 @@ class GameStateNotifier extends StateNotifier<GameState> {
     );
 
     TactileAudioService.instance.play(TactileSoundType.tap);
+    saveGame();
+  }
+
+  bool demolishBuilding(HexAxial coord) {
+    final tile = state.tiles[coord];
+    if (tile == null || !tile.isOwned || tile.building == null) return false;
+    if (tile.building!.type == BuildingType.castle) {
+      showToast('Han Otağı ve Merkez Şato yıkılamaz.');
+      return false;
+    }
+
+    final b = tile.building!;
+    final double refundFood = (b.baseCost * 0.5).roundToDouble();
+
+    final updatedTiles = Map<HexAxial, HexTileModel>.from(state.tiles);
+    updatedTiles[coord] = tile.copyWith(
+      clearBuilding: true,
+    );
+
+    state = state.copyWith(
+      tiles: updatedTiles,
+      resources: state.resources.copyWith(
+        food: state.resources.food + refundFood,
+      ),
+      activeToast: '${b.type.name.toUpperCase()} yıkıldı (+${refundFood.toInt()} Gıda iade edildi).',
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.tap);
+    _syncQuestProgress();
+    saveGame();
+    return true;
   }
 
   void resetGame() {
@@ -1423,6 +1459,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
     final int currentTamgas = state.resources.tamgas;
     final int totalTamgas = currentTamgas + newTamgas;
+    final int nextMigrations = state.progression.totalMigrations + 1;
 
     state = _createInitialState();
 
@@ -1431,6 +1468,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
     state = state.copyWith(
       resources: state.resources.copyWith(tamgas: totalTamgas),
+      progression: state.progression.copyWith(totalMigrations: nextMigrations),
       activeToast: 'Göç Tamamlandı. +$newTamgas Tamga Kazanıldı (Yeni Çarpan: x${tamgaMult.toStringAsFixed(1)}).',
     );
 

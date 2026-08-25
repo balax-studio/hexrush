@@ -357,9 +357,11 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                 _buildIconButton(
                   icon: Icon(
                     _isDrawerExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                    color: Colors.white,
+                    color: _isDrawerExpanded ? const Color(0xFFFFD700) : Colors.white,
                     size: 16,
                   ),
+                  backgroundColor: _isDrawerExpanded ? const Color(0xFF1E3A8A) : const Color(0xFF334155),
+                  borderColor: _isDrawerExpanded ? const Color(0xFFFFD700) : Colors.black,
                   onPressed: () {
                     setState(() {
                       _isDrawerExpanded = !_isDrawerExpanded;
@@ -676,11 +678,13 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
     required Widget icon,
     required VoidCallback onPressed,
     required String tooltip,
+    Color backgroundColor = const Color(0xFF334155),
+    Color borderColor = Colors.black,
   }) {
     return TactileNeoButton(
       onTap: onPressed,
-      backgroundColor: const Color(0xFF334155),
-      borderColor: Colors.black,
+      backgroundColor: backgroundColor,
+      borderColor: borderColor,
       shadowOffset: 2.0,
       padding: const EdgeInsets.all(6),
       child: Tooltip(

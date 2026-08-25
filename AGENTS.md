@@ -43,9 +43,21 @@ Bu dosya, projede çalışan tüm yapay zeka ajanları ve geliştiriciler için 
    - `GameState` ve tüm alt veri modelleri kesinlikle `immutable` (`copyWith`) kalmalıdır.
    - Formüller ve zamanlayıcılar UI katmanında değil, `EconomyCalculator` ve `GameStateNotifier` içinde izole edilmelidir.
 
-9. **Kayıt Güvenliği ve Migrasyon (Save Integrity):**
+9. **Kayıt Güvenliği, Migrasyon ve Eşzamanlama (Save & State Synchronization):**
    - Yerel depolamaya yazılan oyun durumlarında `schemaVersion` bulunmalı ve geriye dönük uyumlu migrasyon mekanizması korunmalıdır.
+   - `GameState` içine eklenen her yeni veri modeli alanı anında `SaveDataBundle`, `SaveRepository.saveGame` ve `SaveRepository.loadGame` serileştirmesine bağlanmalıdır.
+   - Doktrin açma, takma, prestij veya bina işlemlerinde 10 saniyelik otomatik kayıt beklenmeden anında `saveGame()` çağrılmalıdır.
 
 10. **Dokunsal Ses ve Haptik Standardı (Tactile Audio & Haptics):**
     - Sentetik/dijital sesler yerine taş, ahşap ve demir gibi organik sesler kullanılmalıdır.
     - Tıklanabilir tüm interaktif butonlarda hafif dokunsal titreşim (`HapticFeedback.lightImpact`) sağlanmalıdır.
+
+11. **Dinamik Ekonomi ve UI Mantık Ayrımı (Domain-Driven UI):**
+    - Arayüz bileşenleri (HUD, Action Sheet, Dialoglar) kaynak maliyetlerini, indirimleri veya buton etiketlerini asla sabit sayılarla hardcode edemez (`wood >= 5.0` vb. yasaktır).
+    - Tüm maliyetler ve metinler daima `EconomyCalculator` üzerinden dinamik hesaplanmalıdır.
+
+12. **Kalıcı İlerleme ve Prestij Koruma İlkesi (Prestige Cumulative Invariance):**
+    - Büyük Göç (`resetGame`) işleminde kümülatif sayaçlar (`totalMigrations`, `tamgas`) kesinlikle sıfırlanamaz; `totalMigrations + 1` olarak korunmalıdır.
+
+13. **Arazi Yönetimi ve Yeniden Yapılandırma Özgürlüğü (Hex Remodeling Agency):**
+    - Oyuncunun bina kurduğu arazilerde strateji değişikliği yapabilmesi için bina yıkma (`demolishBuilding`) ve kısmi iade mekanizması daima sunulmalıdır.

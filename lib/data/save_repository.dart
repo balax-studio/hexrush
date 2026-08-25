@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../domain/models/doctrine_model.dart';
 import '../domain/models/game_state_model.dart';
 import '../domain/models/hex_tile_model.dart';
 import '../domain/models/quest_model.dart';
@@ -15,6 +16,8 @@ class SaveDataBundle {
   final Map<String, dynamic> titles;
   final Map<String, dynamic> stats;
   final List<QuestModel> quests;
+  final List<DoctrineCardModel> doctrines;
+  final Map<DoctrineSlotType, String?> activeDoctrineSlots;
 
   const SaveDataBundle({
     required this.timestamp,
@@ -27,6 +30,8 @@ class SaveDataBundle {
     this.titles = const {},
     this.stats = const {},
     this.quests = const [],
+    this.doctrines = const [],
+    this.activeDoctrineSlots = const {},
   });
 }
 
@@ -87,6 +92,27 @@ class SaveRepository {
         }
       }
 
+      final List<DoctrineCardModel> doctrines = [];
+      if (data['doctrines'] is List) {
+        for (final item in (data['doctrines'] as List)) {
+          if (item is Map) {
+            try {
+              doctrines.add(DoctrineCardModel.fromJson(Map<String, dynamic>.from(item)));
+            } catch (_) {}
+          }
+        }
+      }
+
+      final Map<DoctrineSlotType, String?> activeSlots = {};
+      if (data['active_doctrine_slots'] is Map) {
+        final rawSlots = Map<String, dynamic>.from(data['active_doctrine_slots'] as Map);
+        for (final slot in DoctrineSlotType.values) {
+          if (rawSlots.containsKey(slot.name)) {
+            activeSlots[slot] = rawSlots[slot.name] as String?;
+          }
+        }
+      }
+
       final toreTalents = data['tore'] is Map && (data['tore'] as Map)['tore_talents'] is Map
           ? Map<String, dynamic>.from((data['tore'] as Map)['tore_talents'] as Map)
           : <String, dynamic>{};
@@ -108,6 +134,8 @@ class SaveRepository {
         titles: titles,
         stats: stats,
         quests: quests,
+        doctrines: doctrines,
+        activeDoctrineSlots: activeSlots,
       );
     } catch (e) {
       // JSON parse error fallback
@@ -126,8 +154,15 @@ class SaveRepository {
     Map<String, dynamic> titles = const {},
     Map<String, dynamic> stats = const {},
     List<QuestModel> quests = const [],
+    List<DoctrineCardModel> doctrines = const [],
+    Map<DoctrineSlotType, String?> activeDoctrineSlots = const {},
   }) async {
     final prefs = await SharedPreferences.getInstance();
+    final slotsJson = <String, String?>{};
+    activeDoctrineSlots.forEach((k, v) {
+      slotsJson[k.name] = v;
+    });
+
     final data = {
       'version': 2,
       'timestamp': DateTime.now().millisecondsSinceEpoch ~/ 1000,
@@ -140,6 +175,8 @@ class SaveRepository {
       'titles': titles,
       'stats': stats,
       'quests': quests.map((q) => q.toJson()).toList(),
+      'doctrines': doctrines.map((d) => d.toJson()).toList(),
+      'active_doctrine_slots': slotsJson,
     };
 
     return prefs.setString(_saveKey, jsonEncode(data));

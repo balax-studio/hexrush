@@ -54,7 +54,11 @@ class HexTileComponent extends PositionComponent {
     ..style = PaintingStyle.stroke
     ..strokeWidth = 3.0;
   static final Paint _warmPaint = Paint()
-    ..color = const Color(0x55F97316)
+    ..color = const Color(0xFFF97316)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2.5;
+  static final Paint _warmFillPaint = Paint()
+    ..color = const Color(0x22F97316)
     ..style = PaintingStyle.fill;
   static final Paint _badgeShadowPaint = Paint()..color = Colors.black;
 
@@ -327,6 +331,7 @@ class HexTileComponent extends PositionComponent {
     canvas.drawPath(_topPath, _highlightPaint);
 
     if (tileModel.isWarmed) {
+      canvas.drawPath(_topPath, _warmFillPaint);
       canvas.drawPath(_topPath, _warmPaint);
     }
 

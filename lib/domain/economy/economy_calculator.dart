@@ -203,7 +203,16 @@ class EconomyCalculator {
       distanceMult = 10000.0;
     }
 
-    final double cost = base * math.pow(1.6, ownedCount) * wallMult * (1.0 - discount) * distanceMult;
+    // Biyom Yoğunluğu Çarpanı: Aynı biyomdan daha fazla fethedildikçe hafif ölçeklenme
+    final int bCount = biomeCounts[biome.name] ?? 0;
+    final double biomeScaling = math.pow(1.05, bCount).toDouble();
+
+    final double cost = base *
+        math.pow(1.6, ownedCount) *
+        wallMult *
+        biomeScaling *
+        (1.0 - discount) *
+        distanceMult;
     return math.max(1.0, cost.roundToDouble());
   }
 

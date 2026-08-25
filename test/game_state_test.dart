@@ -128,9 +128,8 @@ void main() {
       );
 
       const target = HexAxial(1, 0);
-      notifier.conquerTile(target);
 
-      // Force tile biome to meadow for test predictability
+      // Force tile biome to meadow for test predictability before conquer
       notifier.state = notifier.state.copyWith(
         tiles: {
           ...notifier.state.tiles,
@@ -138,12 +137,50 @@ void main() {
         },
       );
 
+      notifier.conquerTile(target);
+
       final built = notifier.buildStructure(target, BuildingType.watchtower);
       expect(built, isTrue);
 
       // Verify that tiles in radius 2 around (1, 0) are discovered
       const checkCoord = HexAxial(3, 0);
       expect(notifier.state.tiles[checkCoord]?.state, equals(TileState.discovered));
+      notifier.dispose();
+    });
+
+    test('demolishBuilding clears building and refunds 50% food cost', () {
+      final notifier = GameStateNotifier();
+      const target = HexAxial(1, 0);
+
+      notifier.state = notifier.state.copyWith(
+        resources: const ResourcesModel(food: 100.0),
+        tiles: {
+          ...notifier.state.tiles,
+          target: notifier.state.tiles[target]!.copyWith(biome: TileBiome.meadow),
+        },
+      );
+
+      notifier.conquerTile(target);
+      notifier.buildStructure(target, BuildingType.corn);
+      expect(notifier.state.tiles[target]?.hasBuilding, isTrue);
+
+      final initialFood = notifier.state.resources.food;
+      final demolished = notifier.demolishBuilding(target);
+      expect(demolished, isTrue);
+      expect(notifier.state.tiles[target]?.hasBuilding, isFalse);
+      expect(notifier.state.resources.food, greaterThan(initialFood));
+      notifier.dispose();
+    });
+
+    test('resetGame prestige migration increments totalMigrations counter', () {
+      final notifier = GameStateNotifier();
+      expect(notifier.state.progression.totalMigrations, 0);
+
+      notifier.resetGame();
+      expect(notifier.state.progression.totalMigrations, 1);
+
+      notifier.resetGame();
+      expect(notifier.state.progression.totalMigrations, 2);
       notifier.dispose();
     });
   });

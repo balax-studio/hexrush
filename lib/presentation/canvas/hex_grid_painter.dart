@@ -3,6 +3,7 @@ import '../../core/hex/hex_coordinates.dart';
 import '../../core/hex/hex_math.dart';
 import '../../domain/models/building_model.dart';
 import '../../domain/models/hex_tile_model.dart';
+import '../flame/renderers/low_poly_building_renderer.dart';
 
 class HexGridPainter extends CustomPainter {
   final Map<HexAxial, HexTileModel> tiles;
@@ -122,84 +123,17 @@ class HexGridPainter extends CustomPainter {
   }
 
   void _drawBiomeIcon(Canvas canvas, TileBiome biome, Offset center, bool isOwned) {
-    String emoji = '';
-    switch (biome) {
-      case TileBiome.meadow:
-        emoji = isOwned ? '🌾' : '🌱';
-        break;
-      case TileBiome.forest:
-        emoji = '🌲';
-        break;
-      case TileBiome.mountain:
-        emoji = '🏔️';
-        break;
-      case TileBiome.sea:
-        emoji = '🌊';
-        break;
-      case TileBiome.desert:
-        emoji = '🏜️';
-        break;
-      case TileBiome.tundra:
-        emoji = '❄️';
-        break;
-      case TileBiome.volcano:
-        emoji = '🌋';
-        break;
-      case TileBiome.wetland:
-        emoji = '🌿';
-        break;
-    }
-    _drawText(canvas, emoji, center.translate(0, -2), fontSize: 18);
+    LowPolyBuildingRenderer.renderBiomeDecoration(canvas, center, biome, 0.0);
   }
 
   void _drawBuilding(Canvas canvas, BuildingModel building, Offset center) {
-    String emoji = '';
-    switch (building.type) {
-      case BuildingType.castle:
-        emoji = '🏰';
-        break;
-      case BuildingType.corn:
-        emoji = '🌽';
-        break;
-      case BuildingType.windmill:
-        emoji = '🌾';
-        break;
-      case BuildingType.bakery:
-        emoji = '🍞';
-        break;
-      case BuildingType.lumberjack:
-        emoji = '🪓';
-        break;
-      case BuildingType.sawmill:
-        emoji = '🪵';
-        break;
-      case BuildingType.furniture:
-        emoji = '🪑';
-        break;
-      case BuildingType.worker:
-        emoji = '🛖';
-        break;
-      case BuildingType.watchtower:
-        emoji = '🗼';
-        break;
-      case BuildingType.mine:
-        emoji = '⛏️';
-        break;
-      case BuildingType.bridge:
-        emoji = '🌉';
-        break;
-      case BuildingType.fisherman:
-        emoji = '🎣';
-        break;
-      case BuildingType.fishermanHut:
-        emoji = '🏠';
-        break;
-      case BuildingType.shrine:
-        emoji = '🗿';
-        break;
-    }
-
-    _drawText(canvas, emoji, center.translate(0, -6), fontSize: 20);
+    LowPolyBuildingRenderer.renderBuilding(
+      canvas,
+      center,
+      building.type,
+      building.level,
+      0.0,
+    );
 
     // Seviye rozeti
     if (building.type != BuildingType.bridge && building.type != BuildingType.shrine) {

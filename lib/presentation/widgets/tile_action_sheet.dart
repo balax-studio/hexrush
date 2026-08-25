@@ -409,7 +409,10 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
     final bool canUpgrade = gameState.resources.food >= cost;
     final bool hasAccum = b.accumulatedResource > 0;
     final bool isWinter = gameState.season.current == 'WINTER';
-    final bool canWarm = isWinter && !tile.isWarmed && gameState.resources.wood >= 5.0;
+    final double warmWoodCost =
+        EconomyCalculator.getWinterWarmWoodCost(notifier.getActiveDoctrines());
+    final bool canWarm =
+        isWinter && !tile.isWarmed && gameState.resources.wood >= warmWoodCost;
 
     final neighborTiles = tile.coord.neighbors
         .map((nc) => gameState.tiles[nc])
@@ -461,6 +464,8 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 ),
                 child: Text(
                   label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: isPositive ? const Color(0xFF6EE7B7) : const Color(0xFFFCA5A5),
                     fontSize: 9,
@@ -545,9 +550,9 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 shadowOffset: 2.5,
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 soundType: TactileSoundType.tap,
-                child: const Text(
-                  'ISIT (5 ODUN)',
-                  style: TextStyle(
+                child: Text(
+                  'ISIT (${warmWoodCost.toInt()} ODUN)',
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 10,
                     fontWeight: FontWeight.w900,
@@ -555,9 +560,108 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 ),
               ),
             ],
+            if (b.type != BuildingType.castle) ...[
+              const SizedBox(width: 8),
+              TactileNeoButton(
+                onTap: () => _confirmDemolish(context, notifier, tile, b),
+                backgroundColor: const Color(0xFFDC2626),
+                borderColor: Colors.black,
+                shadowOffset: 2.5,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                soundType: TactileSoundType.tap,
+                child: const Icon(Icons.delete_outline, color: Colors.white, size: 16),
+              ),
+            ],
           ],
         ),
       ],
+    );
+  }
+
+  void _confirmDemolish(BuildContext context, GameStateNotifier notifier,
+      HexTileModel tile, BuildingModel b) {
+    final double refund = (b.baseCost * 0.5).roundToDouble();
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.65),
+      builder: (ctx) => Dialog(
+        backgroundColor: NeoBrutalistTheme.surface,
+        shape: const RoundedRectangleBorder(
+          borderRadius: NeoBrutalistTheme.standardRadius,
+          side: BorderSide(color: Colors.black, width: 2.5),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          constraints: const BoxConstraints(maxWidth: 320),
+          decoration: BoxDecoration(
+            color: NeoBrutalistTheme.surface,
+            borderRadius: NeoBrutalistTheme.standardRadius,
+            boxShadow: NeoBrutalistTheme.hardShadow(offset: 4.0),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'BİNAYI YIK: ${b.type.name.toUpperCase()}',
+                style: NeoBrutalistTheme.fontHeaderMonolith,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Bu binayı yıkarak karoyu boşaltmak istiyor musunuz? Geri iade: +${refund.toInt()} Gıda.',
+                style: const TextStyle(color: Colors.white70, fontSize: 11),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: TactileNeoButton(
+                      onTap: () => Navigator.of(ctx).pop(),
+                      backgroundColor: const Color(0xFF334155),
+                      borderColor: Colors.black,
+                      shadowOffset: 2.0,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: const Center(
+                        child: Text(
+                          'VAZGEÇ',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TactileNeoButton(
+                      onTap: () {
+                        Navigator.of(ctx).pop();
+                        notifier.demolishBuilding(tile.coord);
+                      },
+                      backgroundColor: const Color(0xFFDC2626),
+                      borderColor: Colors.black,
+                      shadowOffset: 2.0,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: const Center(
+                        child: Text(
+                          'YIK',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

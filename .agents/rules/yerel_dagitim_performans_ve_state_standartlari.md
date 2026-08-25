@@ -30,10 +30,13 @@ Bu kural belgesi, HexRush projesinde yerel çalışma prensiplerini, Flame rende
 
 ---
 
-## 4. Kayıt Bütünlüğü ve Şema Sürümleme (Save Integrity)
+## 4. Kayıt Bütünlüğü, Şema Sürümleme ve Eşzamanlama (Save Integrity)
 - **Kayıt Şeması ve Migrasyon:**
   - `SharedPreferences` veya yerel JSON deposuna kaydedilen verilerde mutlaka bir `schemaVersion` (örn. `version: 2`) alanı tutulmalıdır.
   - Yeni bir veri alanı eklendiğinde eski kayıtların bozulmaması için varsayılan değerler atanmalı ve geriye dönük uyumlu `fromJson` / `toJson` migrasyonu işletilmelidir.
+- **Kayıt ve State Tam Eşzamanlaması:**
+  - `GameState` veri modeline eklenen her yeni alan (`doctrines`, `slots`, `stats`), `SaveDataBundle`, `SaveRepository.saveGame` ve `SaveRepository.loadGame` içine anında eklenmelidir.
+  - Oyuncu tarafından tetiklenen kritik veri mutasyonlarında (`unlockDoctrine`, `equipDoctrine`, `upgradeBuilding`, `demolishBuilding`, `resetGame`) anında `saveGame()` çağrılmalıdır.
 
 ---
 
@@ -42,3 +45,19 @@ Bu kural belgesi, HexRush projesinde yerel çalışma prensiplerini, Flame rende
   - Oyunun Arkeolojik Bozkır Neo-Brutalizm kimliğine uygun olarak dijital/bip sesleri yerine taş sürtünmesi, çekiç darbesi, ahşap tokmağı ve bozkır rüzgarı gibi taktil ses efektleri tercih edilmelidir.
 - **Fiziksel Haptik Geri Bildirim:**
   - Tıklanan tüm butonlar, inşa edilen binalar ve fethedilen karolarda `HapticFeedback.lightImpact()` veya `HapticFeedback.mediumImpact()` ile dokunsal onay sağlanmalıdır.
+
+---
+
+## 6. Dinamik Ekonomi ve Arayüz Ayrımı (Domain-Driven UI)
+- **Sabit Sayı Yasağı (No Hardcoded Costs):**
+  - Arayüz bileşenlerinde (örneğin buton etiketleri veya aktifleşme kontrollerinde) `wood >= 5.0` gibi sabit sayı kontrolleri kesinlikle yasaktır.
+  - Tüm maliyetler, indirimler ve formüller daima `EconomyCalculator` üzerinden dinamik olarak çekilmelidir.
+
+---
+
+## 7. Prestij İlerlemesi ve Arazi Yönetimi Kuralları
+- **Prestij Kümülatif Sayaç Koruması:**
+  - Büyük Göç (`resetGame`) sonrası oyun sıfırlanırken, `totalMigrations` sayacı `totalMigrations + 1` olarak korunmalıdır.
+- **Bina Yıkma ve Yeniden Yapılandırma Özgürlüğü:**
+  - Merkez Han Şatosu hariç tüm yapılarda oyuncunun karoyu boşaltabilmesi için yıkma (`demolishBuilding`) ve %50 gıda iadesi mekanizması sağlanmalıdır.
+
