@@ -131,7 +131,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                           ),
                           child: Text(
                             tile.building?.type == BuildingType.castle
-                                ? 'MERKEZ KALE'
+                                ? 'KAĞAN OTAĞI'
                                 : (tile.isOwned ? 'SAHİPLİ' : 'KEŞFEDİLDİ'),
                             style: NeoBrutalistTheme.fontBadge.copyWith(
                               color: tile.building?.type == BuildingType.castle ? Colors.white : Colors.black,
@@ -328,12 +328,12 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         const SizedBox(height: 4),
         Text(
           lvl == 1
-              ? 'Seviye 2\'de Oduncu Kulübesi & Kule açılır!'
+              ? 'Seviye 2\'de Hızar Otağı, Vaha Sarnıcı & Kule açılır!'
               : (lvl == 2
-                  ? 'Seviye 3\'te Değirmen, Fırın, Maden & Köprü açılır!'
+                  ? 'Seviye 3\'te Yel Değirmeni, Köz Fırını, Maden, Kervansaray & Köprü açılır!'
                   : (lvl == 3
-                      ? 'Seviye 4\'te Mobilyacı & Kağan Unvanı açılır!'
-                      : 'Maksimum Krallık Gücü!')),
+                      ? 'Seviye 4\'te Marangoz Otağı, Gök Gözlemevi & Kağan Unvanı açılır!'
+                      : 'Azami Otağ Kudreti!')),
           style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 10),
@@ -447,34 +447,124 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         ),
         if (activeSynergies.isNotEmpty) ...[
           const SizedBox(height: 6),
-          Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            children: activeSynergies.map((label) {
-              final isPositive = label.startsWith('+');
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: isPositive ? const Color(0xFF064E3B) : const Color(0xFF7F1D1D),
-                  border: Border.all(
-                    color: isPositive ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                    width: 1.5,
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F172A),
+              borderRadius: NeoBrutalistTheme.sharpRadius,
+              border: Border.all(
+                color: activeSynergies.any((s) => s.startsWith('+'))
+                    ? const Color(0xFFD97706)
+                    : const Color(0xFF334155),
+                width: 1.5,
+              ),
+              boxShadow: activeSynergies.any((s) => s.startsWith('+'))
+                  ? NeoBrutalistTheme.hardShadowSmall
+                  : null,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (activeSynergies.any((s) => s.startsWith('+')))
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 4),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GameVectorIcon(
+                          type: GameIconType.crown,
+                          size: 10,
+                          color: Color(0xFFD97706),
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          'SİNERJİ PARILTISI',
+                          style: TextStyle(
+                            color: Color(0xFFD97706),
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(3),
+                Wrap(
+                  spacing: 4,
+                  runSpacing: 4,
+                  children: activeSynergies.map((label) {
+                    final isPositive = label.startsWith('+');
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isPositive ? const Color(0xFF064E3B) : const Color(0xFF7F1D1D),
+                        border: Border.all(
+                          color: isPositive ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                          width: 1.5,
+                        ),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: isPositive ? const Color(0xFF6EE7B7) : const Color(0xFFFCA5A5),
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 ),
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: isPositive ? const Color(0xFF6EE7B7) : const Color(0xFFFCA5A5),
-                    fontSize: 9,
-                    fontWeight: FontWeight.w800,
+              ],
+            ),
+          ),
+        ],
+        // Arazi Uzmanlaşması Rozeti (Biome Mastery)
+        if (tile.isOwned) ...[
+          () {
+            final biomeCount = gameState.progression.cumulativeBiomeCounts[tile.biome.name] ?? 0;
+            if (biomeCount >= 5) {
+              final isLevel2 = biomeCount >= 10;
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: NeoBrutalistTheme.sharpRadius,
+                    border: Border.all(
+                      color: isLevel2 ? const Color(0xFFFFD700) : const Color(0xFF10B981),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GameVectorIcon(
+                        type: GameIconType.land,
+                        size: 11,
+                        color: isLevel2 ? const Color(0xFFFFD700) : const Color(0xFF10B981),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        isLevel2
+                            ? 'ARAZİ UZMANLIĞI: SEVİYE 2 (+%10 VERİM)'
+                            : 'ARAZİ UZMANLIĞI: SEVİYE 1 (+%5 VERİM)',
+                        style: TextStyle(
+                          color: isLevel2 ? const Color(0xFFFFD700) : const Color(0xFF10B981),
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               );
-            }).toList(),
-          ),
+            }
+            return const SizedBox.shrink();
+          }(),
         ],
         if (hasAccum) ...[
           const SizedBox(height: 6),
@@ -580,6 +670,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
 
   void _confirmDemolish(BuildContext context, GameStateNotifier notifier,
       HexTileModel tile, BuildingModel b) {
+    final lang = ref.read(gameStateProvider).settings.language;
     final double refund = (b.baseCost * 0.5).roundToDouble();
     showDialog<void>(
       context: context,
@@ -602,12 +693,12 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'BİNAYI YIK: ${b.type.name.toUpperCase()}',
+                'YAPIYI KALDIR: ${_getBuildingName(b.type, lang).toUpperCase()}',
                 style: NeoBrutalistTheme.fontHeaderMonolith,
               ),
               const SizedBox(height: 10),
               Text(
-                'Bu binayı yıkarak karoyu boşaltmak istiyor musunuz? Geri iade: +${refund.toInt()} Gıda.',
+                'Bu yapıyı kaldırarak toprağı boşaltmak istiyor musunuz? İade: +${refund.toInt()} Gıda.',
                 style: const TextStyle(color: Colors.white70, fontSize: 11),
                 textAlign: TextAlign.center,
               ),
@@ -709,7 +800,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                   ? () => notifier.buildStructure(tile.coord, type)
                   : () {
                       notifier.showToast(
-                          'Bu yapı için Kale Seviye $requiredLvl gereklidir!');
+                          'Bu yapı için Kağan Otağı Seviye $requiredLvl gereklidir!');
                     },
               backgroundColor: !isUnlocked
                   ? const Color(0xFF0F172A)
@@ -788,31 +879,31 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
     String hint = "";
     switch (step) {
       case 0:
-        hint = "HexRush'a hoş geldin! Öncelikle boş bir Çayır (Sarı) arazisi seç.";
+        hint = "Ötüken ovasında ilk obanı kurmak için bitişikteki boş bir Çayır arazisi seç.";
         break;
       case 1:
-        hint = "Harika! Şimdi 'FETHET' diyerek bu toprağı krallığına kat.";
+        hint = "Seçilen bozkır toprağını 'FETHET' emriyle obanın sınırlarına dahil et.";
         break;
       case 2:
-        hint = "Toprak artık senin! Şimdi buraya bir 'Mısır Tarlası' inşa et.";
+        hint = "Kutlu toprağa erzak ambarı kurmak için 'Buğday Tarlası' inşa et.";
         break;
       case 3:
-        hint = "Üretime başladık! Ürünleri otomatik toplamak için bir 'İşçi Kulübesi' inşa et.";
+        hint = "Hasadı düzenli toplamak için araziye 'İşçi Kulübesi' dik.";
         break;
       case 4:
-        hint = "İşçiler çalışıyor! Biriken ürünleri manuel toplamak için tarlaya tıkla.";
+        hint = "Biriken buğday ve erzakı doğrudan toplamak için tarlaya dokun.";
         break;
       case 5:
-        hint = "Harika! Şimdi odun lazım. Bir Orman (Yeşil) arazisi seç ve fethet.";
+        hint = "Otağı büyütmek ve kışa hazırlanmak için bir Orman arazisi belirle.";
         break;
       case 6:
-        hint = "Orman seçildi! Şimdi 'FETHET' butonuyla krallığına kat.";
+        hint = "Orman arazisini 'FETHET' emriyle obaya bağla.";
         break;
       case 7:
-        hint = "Şimdi de buraya bir 'Oduncu Kulübesi' inşa ederek odun üretimine başla.";
+        hint = "Kereste tedariği için ormana 'Oduncu Kulübesi' kur.";
         break;
       case 8:
-        hint = "Başlangıç eğitimini tamamladın! Şatoyu yükselterek yeni binalar açabilirsin. İyi oyunlar!";
+        hint = "İlk oba nizamı kuruldu. Kağan Otağını yükselterek töreleri ve yeni yapıları aç.";
         break;
     }
 
@@ -874,88 +965,46 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         return GameLocalization.get('fisherman_hut_desc', lang: lang);
       case BuildingType.shrine:
         return 'Kadim güçler barındıran gizemli yapı.';
+      // Çöl
+      case BuildingType.oasisCistern:
+        return GameLocalization.get('oasis_cistern_desc', lang: lang);
+      case BuildingType.caravanserai:
+        return GameLocalization.get('caravanserai_desc', lang: lang);
+      case BuildingType.astrolabe:
+        return GameLocalization.get('astrolabe_desc', lang: lang);
+      // Tundra
+      case BuildingType.reindeerSanctuary:
+        return GameLocalization.get('reindeer_sanctuary_desc', lang: lang);
+      case BuildingType.geothermalBath:
+        return GameLocalization.get('geothermal_bath_desc', lang: lang);
+      case BuildingType.permafrostDig:
+        return GameLocalization.get('permafrost_dig_desc', lang: lang);
+      // Volkan
+      case BuildingType.steamVent:
+        return GameLocalization.get('steam_vent_desc', lang: lang);
+      case BuildingType.obsidianForge:
+        return GameLocalization.get('obsidian_forge_desc', lang: lang);
+      // Sazlık
+      case BuildingType.herbalistYurt:
+        return GameLocalization.get('herbalist_yurt_desc', lang: lang);
+      case BuildingType.scribeWorkshop:
+        return GameLocalization.get('scribe_workshop_desc', lang: lang);
+      // Efsanevi
+      case BuildingType.celestialAnvil:
+        return GameLocalization.get('celestial_anvil_desc', lang: lang);
+      case BuildingType.ancestralTotem:
+        return GameLocalization.get('ancestral_totem_desc', lang: lang);
+      case BuildingType.prismaticResonator:
+        return GameLocalization.get('prismatic_resonator_desc', lang: lang);
     }
   }
 
   int _getRequiredCastleLevel(BuildingType type) {
-    switch (type) {
-      case BuildingType.corn:
-      case BuildingType.worker:
-        return 1;
-      case BuildingType.lumberjack:
-      case BuildingType.sawmill:
-      case BuildingType.watchtower:
-        return 2;
-      case BuildingType.windmill:
-      case BuildingType.bakery:
-      case BuildingType.mine:
-      case BuildingType.bridge:
-      case BuildingType.fisherman:
-      case BuildingType.fishermanHut:
-        return 3;
-      case BuildingType.furniture:
-        return 4;
-      case BuildingType.castle:
-        return 1;
-      case BuildingType.shrine:
-        return 1;
-    }
+    return type.requiredCastleLevel;
   }
 
   List<BuildingType> _getAvailableBuildingsForBiome(TileBiome biome) {
-    switch (biome) {
-      case TileBiome.meadow:
-        return [
-          BuildingType.corn,
-          BuildingType.windmill,
-          BuildingType.bakery,
-          BuildingType.worker,
-          BuildingType.watchtower,
-        ];
-      case TileBiome.forest:
-        return [
-          BuildingType.lumberjack,
-          BuildingType.sawmill,
-          BuildingType.furniture,
-          BuildingType.worker,
-        ];
-      case TileBiome.mountain:
-        return [
-          BuildingType.mine,
-          BuildingType.watchtower,
-        ];
-      case TileBiome.sea:
-        return [
-          BuildingType.bridge,
-          BuildingType.fisherman,
-          BuildingType.fishermanHut,
-        ];
-      case TileBiome.desert:
-        return [
-          BuildingType.windmill,
-          BuildingType.worker,
-          BuildingType.watchtower,
-        ];
-      case TileBiome.tundra:
-        return [
-          BuildingType.mine,
-          BuildingType.worker,
-          BuildingType.watchtower,
-        ];
-      case TileBiome.volcano:
-        return [
-          BuildingType.mine,
-          BuildingType.watchtower,
-          BuildingType.worker,
-        ];
-      case TileBiome.wetland:
-        return [
-          BuildingType.bridge,
-          BuildingType.fisherman,
-          BuildingType.fishermanHut,
-          BuildingType.worker,
-        ];
-    }
+    return GameStateNotifier.getAllowedBuildingsForBiome(biome);
   }
 
   Widget _getBiomeVectorIcon(TileBiome biome) {
@@ -976,6 +1025,12 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         return const GameVectorIcon(type: GameIconType.volcano, size: 16);
       case TileBiome.wetland:
         return const GameVectorIcon(type: GameIconType.wetland, size: 16);
+      case TileBiome.celestialCrater:
+        return const GameVectorIcon(type: GameIconType.frenzy, size: 16, color: Color(0xFF818CF8));
+      case TileBiome.kurganValley:
+        return const GameVectorIcon(type: GameIconType.crown, size: 16, color: Color(0xFFCBD5E1));
+      case TileBiome.crystalChasm:
+        return const GameVectorIcon(type: GameIconType.shrine, size: 16, color: Color(0xFFC084FC));
     }
   }
 
@@ -1012,6 +1067,37 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         return const GameVectorIcon(type: GameIconType.land, size: 13);
       case BuildingType.shrine:
         return const GameVectorIcon(type: GameIconType.shrine, size: 13);
+      // Çöl
+      case BuildingType.oasisCistern:
+        return const GameVectorIcon(type: GameIconType.food, size: 13, color: Color(0xFF38BDF8));
+      case BuildingType.caravanserai:
+        return const GameVectorIcon(type: GameIconType.crown, size: 13, color: Color(0xFFF59E0B));
+      case BuildingType.astrolabe:
+        return const GameVectorIcon(type: GameIconType.frenzy, size: 13, color: Color(0xFFFDE047));
+      // Tundra
+      case BuildingType.reindeerSanctuary:
+        return const GameVectorIcon(type: GameIconType.food, size: 13, color: Color(0xFF93C5FD));
+      case BuildingType.geothermalBath:
+        return const GameVectorIcon(type: GameIconType.frenzy, size: 13, color: Color(0xFFF97316));
+      case BuildingType.permafrostDig:
+        return const GameVectorIcon(type: GameIconType.iron, size: 13, color: Color(0xFF60A5FA));
+      // Volkan
+      case BuildingType.steamVent:
+        return const GameVectorIcon(type: GameIconType.stone, size: 13, color: Color(0xFFFB7185));
+      case BuildingType.obsidianForge:
+        return const GameVectorIcon(type: GameIconType.iron, size: 13, color: Color(0xFFDC2626));
+      // Sazlık
+      case BuildingType.herbalistYurt:
+        return const GameVectorIcon(type: GameIconType.food, size: 13, color: Color(0xFF34D399));
+      case BuildingType.scribeWorkshop:
+        return const GameVectorIcon(type: GameIconType.plank, size: 13, color: Color(0xFFA7F3D0));
+      // Efsanevi
+      case BuildingType.celestialAnvil:
+        return const GameVectorIcon(type: GameIconType.iron, size: 13, color: Color(0xFF818CF8));
+      case BuildingType.ancestralTotem:
+        return const GameVectorIcon(type: GameIconType.crown, size: 13, color: Color(0xFFFFD700));
+      case BuildingType.prismaticResonator:
+        return const GameVectorIcon(type: GameIconType.shrine, size: 13, color: Color(0xFFC084FC));
     }
   }
 
@@ -1033,6 +1119,12 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         return GameLocalization.get('biome_volcano', lang: lang).toUpperCase();
       case TileBiome.wetland:
         return GameLocalization.get('biome_wetland', lang: lang).toUpperCase();
+      case TileBiome.celestialCrater:
+        return GameLocalization.get('biome_celestial_crater', lang: lang).toUpperCase();
+      case TileBiome.kurganValley:
+        return GameLocalization.get('biome_kurgan_valley', lang: lang).toUpperCase();
+      case TileBiome.crystalChasm:
+        return GameLocalization.get('biome_crystal_chasm', lang: lang).toUpperCase();
     }
   }
 
@@ -1066,6 +1158,37 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         return GameLocalization.get('fisherman_hut_name', lang: lang);
       case BuildingType.shrine:
         return 'Kadim Sunak';
+      // Çöl
+      case BuildingType.oasisCistern:
+        return GameLocalization.get('oasis_cistern_name', lang: lang);
+      case BuildingType.caravanserai:
+        return GameLocalization.get('caravanserai_name', lang: lang);
+      case BuildingType.astrolabe:
+        return GameLocalization.get('astrolabe_name', lang: lang);
+      // Tundra
+      case BuildingType.reindeerSanctuary:
+        return GameLocalization.get('reindeer_sanctuary_name', lang: lang);
+      case BuildingType.geothermalBath:
+        return GameLocalization.get('geothermal_bath_name', lang: lang);
+      case BuildingType.permafrostDig:
+        return GameLocalization.get('permafrost_dig_name', lang: lang);
+      // Volkan
+      case BuildingType.steamVent:
+        return GameLocalization.get('steam_vent_name', lang: lang);
+      case BuildingType.obsidianForge:
+        return GameLocalization.get('obsidian_forge_name', lang: lang);
+      // Sazlık
+      case BuildingType.herbalistYurt:
+        return GameLocalization.get('herbalist_yurt_name', lang: lang);
+      case BuildingType.scribeWorkshop:
+        return GameLocalization.get('scribe_workshop_name', lang: lang);
+      // Efsanevi
+      case BuildingType.celestialAnvil:
+        return GameLocalization.get('celestial_anvil_name', lang: lang);
+      case BuildingType.ancestralTotem:
+        return GameLocalization.get('ancestral_totem_name', lang: lang);
+      case BuildingType.prismaticResonator:
+        return GameLocalization.get('prismatic_resonator_name', lang: lang);
     }
   }
 }

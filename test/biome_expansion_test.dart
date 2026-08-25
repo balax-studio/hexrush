@@ -5,8 +5,8 @@ import 'package:hex_rush/domain/models/hex_tile_model.dart';
 
 void main() {
   group('Biome Expansion and Procedural Variations Tests', () {
-    test('TileBiome enum should contain 8 distinct biomes', () {
-      expect(TileBiome.values.length, 8);
+    test('TileBiome enum should contain 11 distinct biomes (8 standard + 3 legendary)', () {
+      expect(TileBiome.values.length, 11);
       expect(
         TileBiome.values,
         containsAll([
@@ -18,6 +18,9 @@ void main() {
           TileBiome.tundra,
           TileBiome.volcano,
           TileBiome.wetland,
+          TileBiome.celestialCrater,
+          TileBiome.kurganValley,
+          TileBiome.crystalChasm,
         ]),
       );
     });

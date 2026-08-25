@@ -61,3 +61,21 @@ Bu dosya, projede çalışan tüm yapay zeka ajanları ve geliştiriciler için 
 
 13. **Arazi Yönetimi ve Yeniden Yapılandırma Özgürlüğü (Hex Remodeling Agency):**
     - Oyuncunun bina kurduğu arazilerde strateji değişikliği yapabilmesi için bina yıkma (`demolishBuilding`) ve kısmi iade mekanizması daima sunulmalıdır.
+
+14. **Etik Oyun Psikolojisi ve Tutunma İlkeleri (Ethical Retention & Anti-Dark Patterns):**
+    - Kısa vadeli metrik baskısı için oyuncuyu cezalandıran, kaygı (FOMO) yaratan veya agresif bildirimler içeren karanlık desenler (Dark Patterns) KESİNLİKLE YASAKTIR.
+    - D1-D30 tutunma planı Öz-Belirleme Kuramı (özerklik, yetkinlik, akış hali), dokunsal mikro-tatminler ve deterministik mevsim/göç dengesi üzerine inşa edilir (`.agents/rules/etik_oyun_psikolojisi_ve_tutunma_standartlari.md`).
+
+15. **Dijital Bağımlılık ve Karanlık Tasarım Kesin Yasakları (18 Mekanik Standartı):**
+    - Lootbox, seri (streak) cezası, suni kıtlık/FOMO, kırmızı mikro-anksiyete rozetleri, sentetik casino efektleri, near-miss illüzyonları ve yapay gecikmeler (pay-to-skip) KESİNLİKLE YASAKTIR.
+    - Tüm mekanik, görsel, fonksiyonel ve sosyal tasarımlar `.agents/rules/dijital_bagimlilik_ve_karanlik_tasarim_yasaklari.md` standartlarına tam uyumlu olmak zorundadır.
+
+16. **Organik Animasyon Desenkronizasyonu, Sis Geçişi ve Zero-GC Standartları:**
+    - Doğadaki ağaç, ekin, su ve bina animasyonlarında tekdüze senkronik hareket yasaktır; eksenel koordinat tabanlı deterministik faz ofseti (`tileAnimTime`) ve alt-öğe faz kaymaları zorunludur.
+    - Açık karolar ile karanlık sis alanı arasında yumuşak atmosferik geçiş (Border Fog & Multi-Stop Radial Vignette) sağlanmalıdır.
+    - `render()` ve `update()` döngülerinde her karede yeni `Paint()` veya `Path()` nesnesi oluşturulamaz; `static final` veya önceden tahsis edilmiş havuzlar korunmalıdır (`.agents/rules/organik_desenkronizasyon_ve_zero_gc_render_standartlari.md`).
+
+17. **Kadim Bozkır Terminolojisi ve Tarihsel Uyum Standardı (Anti-Feudal & Anti-Arcade Slop):**
+    - Batı feodalizmi, modern sanayi veya jenerik fantastik slop terimlerinin (örn. *"Şato"*, *"Krallık"*, *"Taç"*, *"Mısır Tarlası"*, *"Kereste Fabrikası"*, *"Mobilyacı"*, *"Mithril"*, *"Tier X"*, *"Frenzy/Çılgınlık"*) kullanımı KESİNLİKLE YASAKTIR.
+    - Tüm arayüz, yerelleştirme, görevler ve bildirimler Göktürk ve Avrasya bozkır devlet nizamına uygun terminoloji ile yazılmalıdır (*"Kağan Otağı"*, *"HexRush Kağanlığı"*, *"Kut / Hanlık Şanı"*, *"Buğday Tarlası"*, *"Hızar Otağı"*, *"Marangoz Otağı"*, *"Gök Demiri"*, *"Toy Coşkusu / Akın Narası"*, *"Bozkır Kurultay Pazarı"*). Detaylar `.agents/rules/ui_ux_ve_icerik_standartlari.md` belgesindedir.
+

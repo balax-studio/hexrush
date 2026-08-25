@@ -1078,10 +1078,6 @@ class VoxelIsometricRenderer {
   }
 
   /// 3D Voxel Dağ - Çoklu Prosedürel Morfoloji
-  static void drawVoxelMountain(Canvas canvas, Offset baseCenter, {int variant = 0, String season = 'SPRING', bool isZud = false}) {
-    drawVoxelMountainVariant(canvas, baseCenter, variant, season: season, isZud: isZud);
-  }
-
   static void drawVoxelMountainVariant(
     Canvas canvas,
     Offset baseCenter,
@@ -1439,7 +1435,7 @@ class VoxelIsometricRenderer {
     }
   }
 
-  /// 3D Voksel Canlı Sis Kubbesi, Gizem Işıltıları ve Rünik Keşif Fısıltıları
+  /// Sis İçinde Seyrek Kadim Rünler, Sunak ve Efsanevi Biyom Fısıltıları (Clean & Sparse)
   static void drawVoxelMysteryFog(
     Canvas canvas,
     Offset center, {
@@ -1453,202 +1449,123 @@ class VoxelIsometricRenderer {
   }) {
     if (alpha <= 0.01) return;
 
-    // 1. Zemin Nefes Alan Voksel Sis Tepeleri (Layered Voxel Mist Canopy)
-    final double floatOffset = math.sin(animTime * 1.8 + (seed % 7)) * 2.5;
-    final Offset mistCenter = Offset(center.dx, center.dy - 4.0 + floatOffset - disperseRise);
+    final Offset mistCenter = Offset(center.dx, center.dy - disperseRise);
 
-    // Ana Sis Gövdesi (3D Yarı Saydam İzometrik Blok)
-    drawIsoCube(
-      canvas,
-      mistCenter,
-      w: 32.0,
-      d: 32.0,
-      h: 10.0,
-      topColor: const Color(0xFF1E293B).withValues(alpha: (0.88 * alpha).clamp(0.0, 1.0)),
-      leftColor: const Color(0xFF0F172A).withValues(alpha: (0.85 * alpha).clamp(0.0, 1.0)),
-      rightColor: const Color(0xFF060913).withValues(alpha: (0.80 * alpha).clamp(0.0, 1.0)),
-      drawShadow: true,
-      shadowOpacity: 0.35 * alpha,
-    );
-
-    // İkincil Küçük Sis Bulut Parçaları (Organik Saçaklar)
-    final Offset mistPuff1 = Offset(mistCenter.dx - 10 * cosIso, mistCenter.dy - 5 + 6 * sinIso);
-    drawIsoCube(
-      canvas,
-      mistPuff1,
-      w: 14.0,
-      d: 14.0,
-      h: 7.0,
-      topColor: const Color(0xFF334155).withValues(alpha: (0.75 * alpha).clamp(0.0, 1.0)),
-      leftColor: const Color(0xFF1E293B).withValues(alpha: (0.70 * alpha).clamp(0.0, 1.0)),
-      rightColor: const Color(0xFF0F172A).withValues(alpha: (0.65 * alpha).clamp(0.0, 1.0)),
-    );
-
-    final Offset mistPuff2 = Offset(mistCenter.dx + 12 * cosIso, mistCenter.dy - 7 - 4 * sinIso);
-    drawIsoCube(
-      canvas,
-      mistPuff2,
-      w: 12.0,
-      d: 12.0,
-      h: 8.0,
-      topColor: const Color(0xFF334155).withValues(alpha: (0.75 * alpha).clamp(0.0, 1.0)),
-      leftColor: const Color(0xFF1E293B).withValues(alpha: (0.70 * alpha).clamp(0.0, 1.0)),
-      rightColor: const Color(0xFF0F172A).withValues(alpha: (0.65 * alpha).clamp(0.0, 1.0)),
-    );
-
-    // 2. Gizem Işıkları ve Fısıltı Teaser Efektleri (Mystery Glimmers)
+    // 1. Kadim Sunak (Shrine) Keşif Parıltısı
     if (hasShrine) {
-      // Tapınak Varsa: Göğe yükselen mistik mavi ışık huzmesi ve kristal parıltı
-      final double shrinePulse = 0.5 + 0.5 * math.sin(animTime * 3.0);
+      final double shrinePulse = 0.4 + 0.4 * math.sin(animTime * 2.6 + seed);
       _sharedFillPaint
-        ..color = const Color(0xFF38BDF8).withValues(alpha: 0.35 * shrinePulse)
+        ..color = const Color(0xFF38BDF8).withValues(alpha: (0.28 * shrinePulse * alpha).clamp(0.0, 1.0))
         ..style = PaintingStyle.fill;
-      canvas.drawCircle(Offset(mistCenter.dx, mistCenter.dy - 16), 14.0, _sharedFillPaint);
+      canvas.drawCircle(Offset(mistCenter.dx, mistCenter.dy - 6), 12.0, _sharedFillPaint);
 
-      // Yüzen Kadim Kristal Parçacığı
+      // Yüzen Kadim Göksel Rün Kristali
+      final double floatY = math.sin(animTime * 2.2 + seed) * 3.0;
       drawIsoCube(
         canvas,
-        Offset(mistCenter.dx, mistCenter.dy - 18 - math.sin(animTime * 2.5) * 4.0),
-        w: 6.0,
-        d: 6.0,
-        h: 10.0,
-        topColor: const Color(0xFFE0F2FE),
-        leftColor: const Color(0xFF7DD3FC),
-        rightColor: const Color(0xFF0284C7),
+        Offset(mistCenter.dx, mistCenter.dy - 8.0 - floatY),
+        w: 5.0,
+        d: 5.0,
+        h: 8.0,
+        topColor: const Color(0xFFE0F2FE).withValues(alpha: alpha),
+        leftColor: const Color(0xFF7DD3FC).withValues(alpha: alpha),
+        rightColor: const Color(0xFF0284C7).withValues(alpha: alpha),
       );
-    } else if (hiddenBiome == TileBiome.volcano) {
-      // Volkan Varsa: Sisin altından sızan lav/kor parıltısı
-      final double lavaPulse = 0.4 + 0.4 * math.sin(animTime * 2.2);
-      _sharedFillPaint
-        ..color = const Color(0xFFEF4444).withValues(alpha: 0.3 * lavaPulse)
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(Offset(mistCenter.dx, mistCenter.dy - 4), 12.0, _sharedFillPaint);
-
-      drawIsoCube(
-        canvas,
-        Offset(mistCenter.dx, mistCenter.dy - 7),
-        w: 8.0,
-        d: 8.0,
-        h: 4.0,
-        topColor: const Color(0xFFF97316),
-        leftColor: const Color(0xFFEA580C),
-        rightColor: const Color(0xFFC2410C),
-      );
-    } else if (hiddenBiome == TileBiome.mountain) {
-      // Dağ Varsa: Sisin tepesinden yükselen karanlık masif zirve silüeti
-      drawIsoCube(
-        canvas,
-        Offset(mistCenter.dx, mistCenter.dy - 11),
-        w: 10.0,
-        d: 10.0,
-        h: 11.0,
-        topColor: const Color(0xFF64748B).withValues(alpha: 0.9),
-        leftColor: const Color(0xFF475569).withValues(alpha: 0.85),
-        rightColor: const Color(0xFF334155).withValues(alpha: 0.8),
-      );
-    } else if (hiddenBiome == TileBiome.sea || hiddenBiome == TileBiome.wetland) {
-      // Deniz/Su Varsa: Sisin üzerinde turkuaz dalga pırıltısı
-      final double wavePulse = 0.3 + 0.3 * math.sin(animTime * 2.0 + seed);
-      drawIsoCube(
-        canvas,
-        Offset(mistCenter.dx, mistCenter.dy - 4),
-        w: 10.0,
-        d: 4.0,
-        h: 2.0,
-        topColor: const Color(0xFF38BDF8).withValues(alpha: wavePulse),
-        leftColor: const Color(0xFF0284C7).withValues(alpha: wavePulse * 0.8),
-        rightColor: const Color(0xFF0369A1).withValues(alpha: wavePulse * 0.6),
-      );
-    } else if (hiddenBiome == TileBiome.forest) {
-      // Orman Varsa: Zümrüt rengi uçuşan yaprak/polen zerresi
-      final double leafY = (animTime * 10.0 + seed * 3.0) % 18.0;
-      drawIsoCube(
-        canvas,
-        Offset(mistCenter.dx + math.sin(animTime + seed) * 4.0, mistCenter.dy - 8.0 - leafY),
-        w: 3.0,
-        d: 3.0,
-        h: 3.0,
-        topColor: const Color(0xFF34D399).withValues(alpha: 0.8),
-        leftColor: const Color(0xFF10B981).withValues(alpha: 0.7),
-        rightColor: const Color(0xFF059669).withValues(alpha: 0.6),
-      );
+      return;
     }
 
-    // 3. Rünik Petroglifler (Sınır Karolarında Parlak Nabız)
+    // 2. Efsanevi Biyomlar (Göksel Krater, Kurgan, Kristal)
+    if (hiddenBiome == TileBiome.celestialCrater) {
+      // Göksel Yıldız Tozu Parıltısı
+      final double starPulse = 0.35 + 0.35 * math.sin(animTime * 3.0 + seed);
+      _sharedFillPaint
+        ..color = const Color(0xFFA855F7).withValues(alpha: (0.3 * starPulse * alpha).clamp(0.0, 1.0))
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset(mistCenter.dx, mistCenter.dy - 4), 10.0, _sharedFillPaint);
+      drawIsoCube(
+        canvas,
+        Offset(mistCenter.dx, mistCenter.dy - 6.0),
+        w: 4.0,
+        d: 4.0,
+        h: 4.0,
+        topColor: const Color(0xFFE9D5FF).withValues(alpha: alpha),
+        leftColor: const Color(0xFFC084FC).withValues(alpha: alpha),
+        rightColor: const Color(0xFF9333EA).withValues(alpha: alpha),
+      );
+      return;
+    } else if (hiddenBiome == TileBiome.kurganValley) {
+      // Atalar Kurganı Altın Ruhu
+      final double kurganPulse = 0.35 + 0.35 * math.sin(animTime * 2.0 + seed);
+      _sharedFillPaint
+        ..color = const Color(0xFFF59E0B).withValues(alpha: (0.28 * kurganPulse * alpha).clamp(0.0, 1.0))
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset(mistCenter.dx, mistCenter.dy - 4), 10.0, _sharedFillPaint);
+      drawIsoCube(
+        canvas,
+        Offset(mistCenter.dx, mistCenter.dy - 6.0),
+        w: 5.0,
+        d: 5.0,
+        h: 5.0,
+        topColor: const Color(0xFFFEF3C7).withValues(alpha: alpha),
+        leftColor: const Color(0xFFFBBF24).withValues(alpha: alpha),
+        rightColor: const Color(0xFFD97706).withValues(alpha: alpha),
+      );
+      return;
+    } else if (hiddenBiome == TileBiome.crystalChasm) {
+      // Kristal Yarığı Mor Işıltısı
+      final double crystalPulse = 0.35 + 0.35 * math.sin(animTime * 2.8 + seed);
+      _sharedFillPaint
+        ..color = const Color(0xFFEC4899).withValues(alpha: (0.28 * crystalPulse * alpha).clamp(0.0, 1.0))
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset(mistCenter.dx, mistCenter.dy - 4), 10.0, _sharedFillPaint);
+      drawIsoCube(
+        canvas,
+        Offset(mistCenter.dx, mistCenter.dy - 6.0),
+        w: 4.0,
+        d: 4.0,
+        h: 6.0,
+        topColor: const Color(0xFFFCE7F3).withValues(alpha: alpha),
+        leftColor: const Color(0xFFF472B6).withValues(alpha: alpha),
+        rightColor: const Color(0xFFDB2777).withValues(alpha: alpha),
+      );
+      return;
+    }
+
+    // 3. %5 Seyrek Rastgele Bozkır Tamgası / Rünik Keşif Fısıltısı
+    final bool isRareMystery = (seed % 20 == 0);
+    if (isRareMystery) {
+      drawVoxelPetroglyph(
+        canvas,
+        Offset(mistCenter.dx, mistCenter.dy - 4),
+        seed: seed,
+        animTime: animTime,
+        isBorderFog: isBorderFog,
+      );
+    }
+  }
+
+  /// Antik Bozkır Petroglif & Tamga Kazıma Çizgileri (Sis Karoları İçin)
+  static void drawVoxelPetroglyph(
+    Canvas canvas,
+    Offset center, {
+    required int seed,
+    double animTime = 0.0,
+    bool isBorderFog = false,
+  }) {
+    final int variant = seed % 4;
     final double runeBrightness = isBorderFog ? 0.75 : 0.25;
     final double runePulse = runeBrightness + 0.2 * math.sin(animTime * 2.5 + (seed % 5));
-    
+
     _sharedStrokePaint
-      ..color = isBorderFog 
+      ..color = isBorderFog
           ? const Color(0xFFFBBF24).withValues(alpha: runePulse.clamp(0.0, 1.0))
           : const Color(0xFFD97706).withValues(alpha: runePulse.clamp(0.0, 1.0))
       ..style = PaintingStyle.stroke
       ..strokeWidth = isBorderFog ? 2.2 : 1.5
       ..strokeCap = StrokeCap.round;
 
-    final int variant = seed % 4;
-    _sharedPath.reset();
-    final Offset rCenter = Offset(mistCenter.dx, mistCenter.dy - 8);
-
-    switch (variant) {
-      case 0:
-        _sharedPath.moveTo(rCenter.dx - 7, rCenter.dy - 3);
-        _sharedPath.lineTo(rCenter.dx, rCenter.dy + 4);
-        _sharedPath.lineTo(rCenter.dx + 7, rCenter.dy - 3);
-        _sharedPath.moveTo(rCenter.dx, rCenter.dy + 4);
-        _sharedPath.lineTo(rCenter.dx, rCenter.dy + 9);
-        _sharedPath.moveTo(rCenter.dx - 4, rCenter.dy - 1);
-        _sharedPath.lineTo(rCenter.dx + 4, rCenter.dy - 1);
-        break;
-      case 1:
-        _sharedPath.moveTo(rCenter.dx, rCenter.dy - 7);
-        _sharedPath.lineTo(rCenter.dx, rCenter.dy + 7);
-        _sharedPath.moveTo(rCenter.dx - 7, rCenter.dy);
-        _sharedPath.lineTo(rCenter.dx + 7, rCenter.dy);
-        _sharedPath.addOval(Rect.fromCircle(center: rCenter, radius: 3.5));
-        break;
-      case 2:
-        _sharedPath.moveTo(rCenter.dx - 5, rCenter.dy - 5);
-        _sharedPath.quadraticBezierTo(rCenter.dx - 2, rCenter.dy - 9, rCenter.dx, rCenter.dy - 3);
-        _sharedPath.lineTo(rCenter.dx, rCenter.dy + 5);
-        _sharedPath.lineTo(rCenter.dx - 3, rCenter.dy + 8);
-        _sharedPath.moveTo(rCenter.dx, rCenter.dy + 5);
-        _sharedPath.lineTo(rCenter.dx + 3, rCenter.dy + 8);
-        break;
-      case 3:
-      default:
-        _sharedPath.moveTo(rCenter.dx - 6, rCenter.dy + 5);
-        _sharedPath.lineTo(rCenter.dx + 6, rCenter.dy - 5);
-        _sharedPath.moveTo(rCenter.dx + 6, rCenter.dy - 5);
-        _sharedPath.lineTo(rCenter.dx + 2, rCenter.dy - 5);
-        _sharedPath.moveTo(rCenter.dx + 6, rCenter.dy - 5);
-        _sharedPath.lineTo(rCenter.dx + 6, rCenter.dy - 1);
-        break;
-    }
-
-    if (isBorderFog) {
-      _cubeShadowPaint
-        ..color = const Color(0xFFFFD700).withValues(alpha: (runePulse * 0.5).clamp(0.0, 1.0))
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 4.5
-        ..strokeCap = StrokeCap.round;
-      canvas.drawPath(_sharedPath, _cubeShadowPaint);
-    }
-    canvas.drawPath(_sharedPath, _sharedStrokePaint);
-  }
-
-  /// Antik Bozkır Petroglif & Tamga Kazıma Çizgileri (Sis Karoları İçin)
-  static void drawVoxelPetroglyph(Canvas canvas, Offset center, {required int seed, double animTime = 0.0}) {
-    final int variant = seed % 4;
-    final double pulse = 0.35 + 0.15 * math.sin(animTime * 1.5 + (seed % 10));
-    _sharedStrokePaint
-      ..color = const Color(0xFFD97706).withValues(alpha: pulse)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.8
-      ..strokeCap = StrokeCap.round;
-
     _cubeShadowPaint
-      ..color = const Color(0xFFFBBF24).withValues(alpha: pulse * 0.4)
+      ..color = const Color(0xFFFBBF24).withValues(alpha: (runePulse * 0.4).clamp(0.0, 1.0))
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.5
       ..strokeCap = StrokeCap.round;
@@ -2663,5 +2580,690 @@ class VoxelIsometricRenderer {
       leftColor: const Color(0xFFBAE6FD),
       rightColor: const Color(0xFF7DD3FC),
     );
+  }
+
+  // ==========================================
+  // ÖZEL ÇÖL BİNALARI (DESERT EXCLUSIVES)
+  // ==========================================
+
+  /// Vaha Sarnıcı (Oasis Cistern)
+  static void drawVoxelOasisCistern(Canvas canvas, Offset center, {double scale = 1.0, double animTime = 0.0}) {
+    // Taş taban havuzu
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy + 4 * scale),
+      w: 18.0 * scale,
+      d: 18.0 * scale,
+      h: 4.0 * scale,
+      topColor: const Color(0xFFD97706),
+      leftColor: const Color(0xFFB45309),
+      rightColor: const Color(0xFF92400E),
+    );
+    // Berrak turkuaz su
+    final double ripple = math.sin(animTime * 2.0) * 0.5;
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy + (2 + ripple) * scale),
+      w: 12.0 * scale,
+      d: 12.0 * scale,
+      h: 2.0 * scale,
+      topColor: const Color(0xFF38BDF8),
+      leftColor: const Color(0xFF0284C7),
+      rightColor: const Color(0xFF0369A1),
+    );
+    // Hurma ağacı gölgesi
+    drawIsoCube(
+      canvas,
+      Offset(center.dx - 8 * scale, center.dy - 6 * scale),
+      w: 3.0 * scale,
+      d: 3.0 * scale,
+      h: 12.0 * scale,
+      topColor: const Color(0xFF78350F),
+      leftColor: const Color(0xFF5A2408),
+      rightColor: const Color(0xFF451A03),
+    );
+    drawIsoCube(
+      canvas,
+      Offset(center.dx - 8 * scale, center.dy - 18 * scale),
+      w: 10.0 * scale,
+      d: 10.0 * scale,
+      h: 4.0 * scale,
+      topColor: const Color(0xFF65A30D),
+      leftColor: const Color(0xFF4D7C0F),
+      rightColor: const Color(0xFF3F6212),
+    );
+  }
+
+  /// İpek Yolu Kervansarayı (Silk Road Caravanserai)
+  static void drawVoxelCaravanserai(Canvas canvas, Offset center, {double scale = 1.0, double animTime = 0.0}) {
+    // Kumtaşı kale avlusu
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy + 2 * scale),
+      w: 22.0 * scale,
+      d: 22.0 * scale,
+      h: 8.0 * scale,
+      topColor: const Color(0xFFFDE68A),
+      leftColor: const Color(0xFFF59E0B),
+      rightColor: const Color(0xFFD97706),
+    );
+    // İç avlu kumaş gölgeliği (Kırmızı-Sarı Tente)
+    final double sway = math.sin(animTime * 1.8) * 0.6;
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy - (6 + sway) * scale),
+      w: 12.0 * scale,
+      d: 12.0 * scale,
+      h: 2.0 * scale,
+      topColor: const Color(0xFFDC2626),
+      leftColor: const Color(0xFFB91C1C),
+      rightColor: const Color(0xFF991B1B),
+    );
+    // Ahşap kervan kapısı kulesi
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy - 10 * scale),
+      w: 6.0 * scale,
+      d: 6.0 * scale,
+      h: 8.0 * scale,
+      topColor: const Color(0xFFFBBF24),
+      leftColor: const Color(0xFFD97706),
+      rightColor: const Color(0xFFB45309),
+    );
+  }
+
+  /// Gök Gözlemevi (Desert Astrolabe)
+  static void drawVoxelAstrolabe(Canvas canvas, Offset center, {double scale = 1.0, double animTime = 0.0}) {
+    // Silindirik pirinç taban
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy + 4 * scale),
+      w: 14.0 * scale,
+      d: 14.0 * scale,
+      h: 10.0 * scale,
+      topColor: const Color(0xFFE2E8F0),
+      leftColor: const Color(0xFFCBD5E1),
+      rightColor: const Color(0xFF94A3B8),
+    );
+    // Dönen göksel pirinç halkalar
+    final double spin = math.sin(animTime * 2.2) * 2.0;
+    drawIsoCube(
+      canvas,
+      Offset(center.dx + spin * scale, center.dy - 8 * scale),
+      w: 8.0 * scale,
+      d: 8.0 * scale,
+      h: 8.0 * scale,
+      topColor: const Color(0xFFFBBF24),
+      leftColor: const Color(0xFFD97706),
+      rightColor: const Color(0xFFB45309),
+    );
+    // Mistik parıltı küresi
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy - 16 * scale),
+      w: 4.0 * scale,
+      d: 4.0 * scale,
+      h: 4.0 * scale,
+      topColor: const Color(0xFF67E8F9),
+      leftColor: const Color(0xFF06B6D4),
+      rightColor: const Color(0xFF0891B2),
+    );
+  }
+
+  // ==========================================
+  // ÖZEL TUNDRA BİNALARI (TUNDRA EXCLUSIVES)
+  // ==========================================
+
+  /// Geyik Otağı & Kürk Loncası (Reindeer Sanctuary)
+  static void drawVoxelReindeerSanctuary(Canvas canvas, Offset center, {double scale = 1.0, double animTime = 0.0}) {
+    // Ahşap çit ve barınak
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy + 2 * scale),
+      w: 16.0 * scale,
+      d: 16.0 * scale,
+      h: 6.0 * scale,
+      topColor: const Color(0xFF78350F),
+      leftColor: const Color(0xFF5A2408),
+      rightColor: const Color(0xFF451A03),
+    );
+    // Kürk kaplı sivri çadır (Chum / Yurt)
+    drawIsoCube(
+      canvas,
+      Offset(center.dx - 4 * scale, center.dy - 8 * scale),
+      w: 10.0 * scale,
+      d: 10.0 * scale,
+      h: 12.0 * scale,
+      topColor: const Color(0xFFD6D3D1),
+      leftColor: const Color(0xFFA8A29E),
+      rightColor: const Color(0xFF78716C),
+    );
+    // Otlayan boynuzlu geyik
+    final double headBob = math.sin(animTime * 2.0) * 0.8;
+    drawIsoCube(
+      canvas,
+      Offset(center.dx + 6 * scale, center.dy + headBob * scale),
+      w: 5.0 * scale,
+      d: 7.0 * scale,
+      h: 5.0 * scale,
+      topColor: const Color(0xFF9A3412),
+      leftColor: const Color(0xFF7C2D12),
+      rightColor: const Color(0xFF5B21B6),
+    );
+  }
+
+  /// Jeotermal Kaplıca (Geothermal Bath)
+  static void drawVoxelGeothermalBath(Canvas canvas, Offset center, {double scale = 1.0, double animTime = 0.0}) {
+    // Ahşap setli sıcak su havuzu
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy + 3 * scale),
+      w: 16.0 * scale,
+      d: 16.0 * scale,
+      h: 5.0 * scale,
+      topColor: const Color(0xFF78716C),
+      leftColor: const Color(0xFF57534E),
+      rightColor: const Color(0xFF44403C),
+    );
+    // Sıcak turkuaz-yeşil mineral suyu
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy + 1 * scale),
+      w: 12.0 * scale,
+      d: 12.0 * scale,
+      h: 2.0 * scale,
+      topColor: const Color(0xFF2DD4BF),
+      leftColor: const Color(0xFF0D9488),
+      rightColor: const Color(0xFF0F766E),
+    );
+    // Yükselen buhar küpü
+    final double steamY = (animTime * 10.0) % 16.0;
+    _sharedFillPaint.color = const Color(0xFFE0F2FE).withValues(alpha: (1.0 - steamY / 16.0).clamp(0.0, 0.7));
+    canvas.drawCircle(Offset(center.dx, center.dy - 6 * scale - steamY), 3.0 * scale, _sharedFillPaint);
+  }
+
+  /// Mamut & Kehribar Sondajı (Permafrost Dig)
+  static void drawVoxelPermafrostDig(Canvas canvas, Offset center, {double scale = 1.0, double animTime = 0.0}) {
+    // Ahşap vinç kulesi
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy),
+      w: 14.0 * scale,
+      d: 14.0 * scale,
+      h: 6.0 * scale,
+      topColor: const Color(0xFF475569),
+      leftColor: const Color(0xFF334155),
+      rightColor: const Color(0xFF1E293B),
+    );
+    drawIsoCube(
+      canvas,
+      Offset(center.dx - 3 * scale, center.dy - 10 * scale),
+      w: 4.0 * scale,
+      d: 4.0 * scale,
+      h: 14.0 * scale,
+      topColor: const Color(0xFFB45309),
+      leftColor: const Color(0xFF92400E),
+      rightColor: const Color(0xFF78350F),
+    );
+    // Kehribar ve mamut dişi sandığı
+    drawIsoCube(
+      canvas,
+      Offset(center.dx + 5 * scale, center.dy - 4 * scale),
+      w: 6.0 * scale,
+      d: 6.0 * scale,
+      h: 5.0 * scale,
+      topColor: const Color(0xFFFBBF24),
+      leftColor: const Color(0xFFF59E0B),
+      rightColor: const Color(0xFFD97706),
+    );
+  }
+
+  // ==========================================
+  // ÖZEL VOLKAN BİNALARI (VOLCANO EXCLUSIVES)
+  // ==========================================
+
+  /// Jeotermal Buhar Bacası (Steam Vent Dynamo)
+  static void drawVoxelSteamVent(Canvas canvas, Offset center, {double scale = 1.0, double animTime = 0.0}) {
+    // Obsidyen taban
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy + 3 * scale),
+      w: 16.0 * scale,
+      d: 16.0 * scale,
+      h: 5.0 * scale,
+      topColor: const Color(0xFF1E293B),
+      leftColor: const Color(0xFF0F172A),
+      rightColor: const Color(0xFF020617),
+    );
+    // Pirinç buhar borusu
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy - 8 * scale),
+      w: 6.0 * scale,
+      d: 6.0 * scale,
+      h: 12.0 * scale,
+      topColor: const Color(0xFFD97706),
+      leftColor: const Color(0xFFB45309),
+      rightColor: const Color(0xFF92400E),
+    );
+    // Basınç vanası
+    final double vRotate = math.sin(animTime * 3.0) * 1.5;
+    drawIsoCube(
+      canvas,
+      Offset(center.dx + vRotate * scale, center.dy - 16 * scale),
+      w: 8.0 * scale,
+      d: 4.0 * scale,
+      h: 2.0 * scale,
+      topColor: const Color(0xFFEF4444),
+      leftColor: const Color(0xFFDC2626),
+      rightColor: const Color(0xFFB91C1C),
+    );
+  }
+
+  /// Kadim Obsidyen Dökümhanesi (Obsidian Master Forge)
+  static void drawVoxelObsidianForge(Canvas canvas, Offset center, {double scale = 1.0, double animTime = 0.0}) {
+    // Lav oluklu döküm tabanı
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy + 2 * scale),
+      w: 20.0 * scale,
+      d: 20.0 * scale,
+      h: 7.0 * scale,
+      topColor: const Color(0xFF0F172A),
+      leftColor: const Color(0xFF020617),
+      rightColor: const Color(0xFF000000),
+    );
+    // Kor lav kanalı
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy + 1 * scale),
+      w: 12.0 * scale,
+      d: 4.0 * scale,
+      h: 2.0 * scale,
+      topColor: const Color(0xFFEF4444),
+      leftColor: const Color(0xFFDC2626),
+      rightColor: const Color(0xFFB91C1C),
+    );
+    // Büyük obsidyen örs
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy - 8 * scale),
+      w: 8.0 * scale,
+      d: 8.0 * scale,
+      h: 9.0 * scale,
+      topColor: const Color(0xFF334155),
+      leftColor: const Color(0xFF1E293B),
+      rightColor: const Color(0xFF0F172A),
+    );
+    // Ateş kıvılcımı puf
+    final double flamePulse = 0.5 + 0.5 * math.sin(animTime * 4.0);
+    _sharedFillPaint.color = const Color(0xFFF59E0B).withValues(alpha: flamePulse);
+    canvas.drawCircle(Offset(center.dx, center.dy - 18 * scale), 3.0 * scale, _sharedFillPaint);
+  }
+
+  // ==========================================
+  // ÖZEL SAZLIK BİNALARI (WETLAND EXCLUSIVES)
+  // ==========================================
+
+  /// Bozkır Şifacı Otağı (Herbalist Yurt)
+  static void drawVoxelHerbalistYurt(Canvas canvas, Offset center, {double scale = 1.0, double animTime = 0.0}) {
+    // Sazlık kazıkları üstünde ahşap platform
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy + 4 * scale),
+      w: 16.0 * scale,
+      d: 16.0 * scale,
+      h: 4.0 * scale,
+      topColor: const Color(0xFF78350F),
+      leftColor: const Color(0xFF5A2408),
+      rightColor: const Color(0xFF451A03),
+    );
+    // Yeşil otlarla kaplı şifa çadırı
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy - 6 * scale),
+      w: 12.0 * scale,
+      d: 12.0 * scale,
+      h: 10.0 * scale,
+      topColor: const Color(0xFF84CC16),
+      leftColor: const Color(0xFF65A30D),
+      rightColor: const Color(0xFF4D7C0F),
+    );
+    // Kaynayan şifa kazanı
+    drawIsoCube(
+      canvas,
+      Offset(center.dx + 6 * scale, center.dy),
+      w: 4.0 * scale,
+      d: 4.0 * scale,
+      h: 4.0 * scale,
+      topColor: const Color(0xFF10B981),
+      leftColor: const Color(0xFF059669),
+      rightColor: const Color(0xFF047857),
+    );
+  }
+
+  /// Kamış & Yazıt Atölyesi (Reed Scribe Workshop)
+  static void drawVoxelScribeWorkshop(Canvas canvas, Offset center, {double scale = 1.0, double animTime = 0.0}) {
+    // Ahşap tezgah ve kurutma iskeleti
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy + 2 * scale),
+      w: 18.0 * scale,
+      d: 14.0 * scale,
+      h: 5.0 * scale,
+      topColor: const Color(0xFFB45309),
+      leftColor: const Color(0xFF92400E),
+      rightColor: const Color(0xFF78350F),
+    );
+    // Parşömen kurutma askıları
+    final double paperSway = math.sin(animTime * 1.6) * 0.5;
+    drawIsoCube(
+      canvas,
+      Offset(center.dx - 4 * scale, center.dy - (6 + paperSway) * scale),
+      w: 3.0 * scale,
+      d: 10.0 * scale,
+      h: 8.0 * scale,
+      topColor: const Color(0xFFFEF3C7),
+      leftColor: const Color(0xFFFDE68A),
+      rightColor: const Color(0xFFFCD34D),
+    );
+    // Rün ve mühür masası
+    drawIsoCube(
+      canvas,
+      Offset(center.dx + 4 * scale, center.dy - 4 * scale),
+      w: 6.0 * scale,
+      d: 6.0 * scale,
+      h: 6.0 * scale,
+      topColor: const Color(0xFFD97706),
+      leftColor: const Color(0xFFB45309),
+      rightColor: const Color(0xFF92400E),
+    );
+  }
+
+  // ==========================================
+  // EFSANEVİ BİYOMLAR & ANITSAL BİNALAR
+  // ==========================================
+
+  /// Gök Demircisi (Celestial Anvil)
+  static void drawVoxelCelestialAnvil(Canvas canvas, Offset center, {double scale = 1.0, double animTime = 0.0}) {
+    // Göksel krater monolit tabanı
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy + 3 * scale),
+      w: 20.0 * scale,
+      d: 20.0 * scale,
+      h: 8.0 * scale,
+      topColor: const Color(0xFF1E1B4B),
+      leftColor: const Color(0xFF0F172A),
+      rightColor: const Color(0xFF020617),
+    );
+    // Mavi parıltılı Mithril gök örsü
+    final double pulse = 0.7 + 0.3 * math.sin(animTime * 3.0);
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy - 8 * scale),
+      w: 10.0 * scale,
+      d: 10.0 * scale,
+      h: 10.0 * scale,
+      topColor: Color.lerp(const Color(0xFF38BDF8), const Color(0xFF818CF8), pulse)!,
+      leftColor: const Color(0xFF0284C7),
+      rightColor: const Color(0xFF1E40AF),
+    );
+    // Yıldız tozu ışıltısı
+    _sharedFillPaint.color = const Color(0xFFBAE6FD).withValues(alpha: pulse);
+    canvas.drawCircle(Offset(center.dx, center.dy - 20 * scale), 4.0 * scale, _sharedFillPaint);
+  }
+
+  /// Kurgan Koruyucusu (Ancestral Totem)
+  static void drawVoxelAncestralTotem(Canvas canvas, Offset center, {double scale = 1.0, double animTime = 0.0}) {
+    // Höyük taş kaidesi
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy + 4 * scale),
+      w: 22.0 * scale,
+      d: 22.0 * scale,
+      h: 7.0 * scale,
+      topColor: const Color(0xFF475569),
+      leftColor: const Color(0xFF334155),
+      rightColor: const Color(0xFF1E293B),
+    );
+    // Üçlü Taş Balbal Heykelleri
+    drawIsoCube(
+      canvas,
+      Offset(center.dx - 6 * scale, center.dy - 6 * scale),
+      w: 5.0 * scale,
+      d: 5.0 * scale,
+      h: 14.0 * scale,
+      topColor: const Color(0xFF94A3B8),
+      leftColor: const Color(0xFF64748B),
+      rightColor: const Color(0xFF475569),
+    );
+    drawIsoCube(
+      canvas,
+      Offset(center.dx + 6 * scale, center.dy - 6 * scale),
+      w: 5.0 * scale,
+      d: 5.0 * scale,
+      h: 14.0 * scale,
+      topColor: const Color(0xFF94A3B8),
+      leftColor: const Color(0xFF64748B),
+      rightColor: const Color(0xFF475569),
+    );
+    // Ortadaki kutsal ata sütunu ve tamga ateşi
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy - 12 * scale),
+      w: 6.0 * scale,
+      d: 6.0 * scale,
+      h: 20.0 * scale,
+      topColor: const Color(0xFFFBBF24),
+      leftColor: const Color(0xFFD97706),
+      rightColor: const Color(0xFFB45309),
+    );
+  }
+
+  /// Rezonans Kulesi (Prismatic Resonator)
+  static void drawVoxelPrismaticResonator(Canvas canvas, Offset center, {double scale = 1.0, double animTime = 0.0}) {
+    // Kristal yarık kaidesi
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy + 3 * scale),
+      w: 18.0 * scale,
+      d: 18.0 * scale,
+      h: 6.0 * scale,
+      topColor: const Color(0xFF581C87),
+      leftColor: const Color(0xFF3B0764),
+      rightColor: const Color(0xFF2E1065),
+    );
+    // Yükselen prizmatik kristal monolit
+    final double glow = 0.6 + 0.4 * math.sin(animTime * 2.5);
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy - 10 * scale),
+      w: 8.0 * scale,
+      d: 8.0 * scale,
+      h: 18.0 * scale,
+      topColor: Color.lerp(const Color(0xFFC084FC), const Color(0xFFE879F9), glow)!,
+      leftColor: const Color(0xFF9333EA),
+      rightColor: const Color(0xFF7E22CE),
+    );
+    // Tepe rezonans halkası
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy - 22 * scale),
+      w: 4.0 * scale,
+      d: 4.0 * scale,
+      h: 4.0 * scale,
+      topColor: const Color(0xFFF0ABFC),
+      leftColor: const Color(0xFFD946EF),
+      rightColor: const Color(0xFFA21CAF),
+    );
+  }
+
+  // ==========================================
+  // EFSANEVİ BİYOM DOĞAL ZEMİN & BALBALLAR
+  // ==========================================
+
+  /// Göksel Krater Doğal Zemin Vokselleri
+  static void drawVoxelCelestialCraterGround(Canvas canvas, Offset center, {double scale = 1.0, double animTime = 0.0}) {
+    // Krater çukuru kayaları
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy),
+      w: 16.0 * scale,
+      d: 16.0 * scale,
+      h: 3.0 * scale,
+      topColor: const Color(0xFF1E1B4B),
+      leftColor: const Color(0xFF0F172A),
+      rightColor: const Color(0xFF020617),
+    );
+    // Mavi göktaşı kristal parçaları
+    final double pulse = 0.5 + 0.5 * math.sin(animTime * 2.0);
+    drawIsoCube(
+      canvas,
+      Offset(center.dx - 4 * scale, center.dy - 2 * scale),
+      w: 4.0 * scale,
+      d: 4.0 * scale,
+      h: 5.0 * scale,
+      topColor: Color.lerp(const Color(0xFF38BDF8), const Color(0xFF818CF8), pulse)!,
+      leftColor: const Color(0xFF0284C7),
+      rightColor: const Color(0xFF1E40AF),
+    );
+  }
+
+  /// Atalar Kurganı Doğal Balbal Taşları
+  static void drawVoxelKurganBalbals(Canvas canvas, Offset center, {double scale = 1.0, double animTime = 0.0}) {
+    // Höyük tepeciği
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy + 2 * scale),
+      w: 18.0 * scale,
+      d: 18.0 * scale,
+      h: 5.0 * scale,
+      topColor: const Color(0xFF334155),
+      leftColor: const Color(0xFF1E293B),
+      rightColor: const Color(0xFF0F172A),
+    );
+    // İkili Kadim Taş Balbal
+    drawIsoCube(
+      canvas,
+      Offset(center.dx - 5 * scale, center.dy - 4 * scale),
+      w: 4.0 * scale,
+      d: 4.0 * scale,
+      h: 10.0 * scale,
+      topColor: const Color(0xFF94A3B8),
+      leftColor: const Color(0xFF64748B),
+      rightColor: const Color(0xFF475569),
+    );
+    drawIsoCube(
+      canvas,
+      Offset(center.dx + 5 * scale, center.dy - 2 * scale),
+      w: 4.0 * scale,
+      d: 4.0 * scale,
+      h: 8.0 * scale,
+      topColor: const Color(0xFF94A3B8),
+      leftColor: const Color(0xFF64748B),
+      rightColor: const Color(0xFF475569),
+    );
+  }
+
+  /// Kristal Yarığı Doğal Zemin Vokselleri
+  static void drawVoxelCrystalChasmGround(Canvas canvas, Offset center, {double scale = 1.0, double animTime = 0.0}) {
+    // Mor-koyu taban yarığı
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy),
+      w: 16.0 * scale,
+      d: 16.0 * scale,
+      h: 4.0 * scale,
+      topColor: const Color(0xFF3B0764),
+      leftColor: const Color(0xFF2E1065),
+      rightColor: const Color(0xFF1E1B4B),
+    );
+    // Yükselen 3 kristal dikiti
+    final double g = 0.7 + 0.3 * math.sin(animTime * 3.0);
+    drawIsoCube(
+      canvas,
+      Offset(center.dx - 4 * scale, center.dy - 3 * scale),
+      w: 3.0 * scale,
+      d: 3.0 * scale,
+      h: 7.0 * scale,
+      topColor: Color.lerp(const Color(0xFFC084FC), const Color(0xFFF472B6), g)!,
+      leftColor: const Color(0xFF9333EA),
+      rightColor: const Color(0xFF7E22CE),
+    );
+    drawIsoCube(
+      canvas,
+      Offset(center.dx + 3 * scale, center.dy - 5 * scale),
+      w: 4.0 * scale,
+      d: 4.0 * scale,
+      h: 11.0 * scale,
+      topColor: Color.lerp(const Color(0xFFE879F9), const Color(0xFFA855F7), g)!,
+      leftColor: const Color(0xFFA21CAF),
+      rightColor: const Color(0xFF701A75),
+    );
+  }
+
+  // ==========================================
+  // CANLI MİKRO-PARTİKÜL & ATMOSFER EFEKTLERİ
+  // ==========================================
+
+  /// Çöl: Rüzgarda Savrulan Kum Tozları
+  static void drawVoxelDesertDust(Canvas canvas, Offset center, {double animTime = 0.0, int seed = 0}) {
+    _sharedFillPaint.color = const Color(0xFFFDE68A).withValues(alpha: 0.45);
+    for (int i = 0; i < 3; i++) {
+      final double progress = ((animTime * 0.8 + i * 0.33 + (seed % 7) * 0.1) % 1.0);
+      final double x = center.dx - 15.0 + progress * 30.0;
+      final double y = center.dy - 8.0 + math.sin(progress * math.pi * 2.0) * 4.0;
+      canvas.drawCircle(Offset(x, y), 1.2, _sharedFillPaint);
+    }
+  }
+
+  /// Tundra: Don & Buz Kristalleri Parıltısı
+  static void drawVoxelIceSparkles(Canvas canvas, Offset center, {double animTime = 0.0, int seed = 0}) {
+    for (int i = 0; i < 2; i++) {
+      final double sparkle = (0.5 + 0.5 * math.sin(animTime * 3.5 + i * 2.0 + seed)).clamp(0.0, 1.0);
+      _sharedFillPaint.color = const Color(0xFFBAE6FD).withValues(alpha: sparkle * 0.7);
+      final double ox = (i == 0 ? -7.0 : 8.0) + (seed % 5);
+      final double oy = (i == 0 ? -4.0 : 5.0) - (seed % 3);
+      canvas.drawCircle(Offset(center.dx + ox, center.dy + oy), 1.5, _sharedFillPaint);
+    }
+  }
+
+  /// Volkan: Lav Korları & Kıvılcımlar
+  static void drawVoxelVolcanoEmbers(Canvas canvas, Offset center, {double animTime = 0.0, int seed = 0}) {
+    for (int i = 0; i < 3; i++) {
+      final double progress = ((animTime * 1.2 + i * 0.33 + (seed % 5) * 0.2) % 1.0);
+      final double y = center.dy + 4.0 - progress * 20.0;
+      final double x = center.dx + math.sin(progress * 6.0 + i) * 5.0;
+      final double alpha = (1.0 - progress).clamp(0.0, 0.8);
+      _sharedFillPaint.color = (i % 2 == 0 ? const Color(0xFFEF4444) : const Color(0xFFF59E0B)).withValues(alpha: alpha);
+      canvas.drawCircle(Offset(x, y), 1.4, _sharedFillPaint);
+    }
+  }
+
+  /// Sazlık: Uçuşan Yusufçuklar
+  static void drawVoxelDragonflies(Canvas canvas, Offset center, {double animTime = 0.0, int seed = 0}) {
+    final double flightAngle = animTime * 2.5 + seed;
+    final double x = center.dx + math.cos(flightAngle) * 12.0;
+    final double y = center.dy + math.sin(flightAngle * 1.5) * 6.0 - 4.0;
+    _sharedFillPaint.color = const Color(0xFF38BDF8).withValues(alpha: 0.85);
+    canvas.drawCircle(Offset(x, y), 1.8, _sharedFillPaint);
+    _sharedFillPaint.color = const Color(0xFFE0F2FE).withValues(alpha: 0.6);
+    canvas.drawCircle(Offset(x - 2, y - 1), 1.0, _sharedFillPaint);
+    canvas.drawCircle(Offset(x + 2, y - 1), 1.0, _sharedFillPaint);
+  }
+
+  /// Göksel Krater & Kristal: Kozmik Yıldız Tozu
+  static void drawVoxelCelestialStardust(Canvas canvas, Offset center, {double animTime = 0.0, int seed = 0}) {
+    for (int i = 0; i < 4; i++) {
+      final double progress = ((animTime * 0.7 + i * 0.25 + seed * 0.1) % 1.0);
+      final double radius = 4.0 + progress * 12.0;
+      final double angle = progress * math.pi * 2.0 + i * 1.57;
+      final double x = center.dx + math.cos(angle) * radius;
+      final double y = center.dy + math.sin(angle) * radius * 0.5 - 6.0;
+      final double alpha = (math.sin(progress * math.pi)).clamp(0.0, 0.8);
+      _sharedFillPaint.color = (i % 2 == 0 ? const Color(0xFFC084FC) : const Color(0xFF38BDF8)).withValues(alpha: alpha);
+      canvas.drawCircle(Offset(x, y), 1.3, _sharedFillPaint);
+    }
   }
 }

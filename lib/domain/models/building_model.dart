@@ -15,6 +15,68 @@ enum BuildingType {
   fisherman,
   fishermanHut,
   shrine,
+  // Özel Çöl Binaları
+  oasisCistern,
+  caravanserai,
+  astrolabe,
+  // Özel Tundra Binaları
+  reindeerSanctuary,
+  geothermalBath,
+  permafrostDig,
+  // Özel Volkan Binaları
+  steamVent,
+  obsidianForge,
+  // Özel Sazlık Binaları
+  herbalistYurt,
+  scribeWorkshop,
+  // Efsanevi Biyom Binaları
+  celestialAnvil,
+  ancestralTotem,
+  prismaticResonator,
+}
+
+extension BuildingTypeExtension on BuildingType {
+  /// Binanın açılması için gereken asgari Şato Seviyesi
+  int get requiredCastleLevel {
+    switch (this) {
+      case BuildingType.castle:
+      case BuildingType.corn:
+      case BuildingType.lumberjack:
+      case BuildingType.worker:
+      case BuildingType.shrine:
+        return 1;
+
+      case BuildingType.windmill:
+      case BuildingType.sawmill:
+      case BuildingType.watchtower:
+      case BuildingType.oasisCistern:
+      case BuildingType.herbalistYurt:
+        return 2;
+
+      case BuildingType.bakery:
+      case BuildingType.furniture:
+      case BuildingType.mine:
+      case BuildingType.bridge:
+      case BuildingType.fisherman:
+      case BuildingType.caravanserai:
+      case BuildingType.scribeWorkshop:
+      case BuildingType.reindeerSanctuary:
+        return 3;
+
+      case BuildingType.fishermanHut:
+      case BuildingType.geothermalBath:
+      case BuildingType.permafrostDig:
+      case BuildingType.steamVent:
+      case BuildingType.astrolabe:
+        return 4;
+
+      case BuildingType.obsidianForge:
+      case BuildingType.celestialAnvil:
+      case BuildingType.ancestralTotem:
+      case BuildingType.prismaticResonator:
+        return 5;
+    }
+  }
 }
 
 class BuildingModel {
@@ -75,6 +137,38 @@ class BuildingModel {
         return 45.0;
       case BuildingType.shrine:
         return 0.0;
+
+      // Özel Binalar
+      case BuildingType.oasisCistern:
+        return 45.0;
+      case BuildingType.caravanserai:
+        return 80.0;
+      case BuildingType.astrolabe:
+        return 120.0;
+
+      case BuildingType.reindeerSanctuary:
+        return 60.0;
+      case BuildingType.geothermalBath:
+        return 90.0;
+      case BuildingType.permafrostDig:
+        return 130.0;
+
+      case BuildingType.steamVent:
+        return 85.0;
+      case BuildingType.obsidianForge:
+        return 150.0;
+
+      case BuildingType.herbalistYurt:
+        return 40.0;
+      case BuildingType.scribeWorkshop:
+        return 75.0;
+
+      case BuildingType.celestialAnvil:
+        return 200.0;
+      case BuildingType.ancestralTotem:
+        return 250.0;
+      case BuildingType.prismaticResonator:
+        return 220.0;
     }
   }
 
@@ -104,6 +198,34 @@ class BuildingModel {
         return 0.30;
       case BuildingType.fisherman:
         return 0.35;
+
+      // Özel Binalar
+      case BuildingType.oasisCistern:
+        return 0.30; // Su ve aura bereketi
+      case BuildingType.caravanserai:
+        return 0.18; // Altın ve Taç getirisi
+      case BuildingType.astrolabe:
+        return 0.15; // Töre bilgisi çarpanı
+      case BuildingType.reindeerSanctuary:
+        return 0.32; // Kürk ve gıda
+      case BuildingType.geothermalBath:
+        return 0.20; // Buhar ve enerji
+      case BuildingType.permafrostDig:
+        return 0.22; // Antik kehribar ve maden
+      case BuildingType.steamVent:
+        return 0.28; // Buhar basıncı
+      case BuildingType.obsidianForge:
+        return 0.25; // Obsidyen döküm
+      case BuildingType.herbalistYurt:
+        return 0.35; // Şifa ve bitkisel iksir
+      case BuildingType.scribeWorkshop:
+        return 0.22; // Parşömen ve yazıt
+      case BuildingType.celestialAnvil:
+        return 0.16; // Mithril ve Tamga
+      case BuildingType.ancestralTotem:
+        return 0.20; // Atalar bereketi
+      case BuildingType.prismaticResonator:
+        return 0.24; // Kristal rezonans
       default:
         return 0.0;
     }

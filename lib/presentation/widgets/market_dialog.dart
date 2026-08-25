@@ -52,7 +52,7 @@ class MarketDialog extends ConsumerWidget {
         'fromAmount': '25 Demir + 25 Taş',
         'toIcon': GameIconType.crown,
         'toAmount': '1 Taç',
-        'desc': 'Değerli madenleri birleştirerek krallık prestij tacı döv.',
+        'desc': 'Değerli madenleri birleştirerek hanlık şanı ve kutlu tamga döv.',
         'canAfford': resources.iron >= 25.0 && resources.stone >= 25.0,
       },
     ];

@@ -4,6 +4,7 @@ enum TactileSoundType {
   tap,
   build,
   conquer,
+  stoneClick,
   reward,
   upgrade,
   market,
@@ -33,6 +34,7 @@ class TactileAudioService {
         switch (type) {
           case TactileSoundType.tap:
           case TactileSoundType.market:
+          case TactileSoundType.stoneClick:
             await HapticFeedback.lightImpact();
             break;
           case TactileSoundType.build:
@@ -59,6 +61,7 @@ class TactileAudioService {
           case TactileSoundType.tap:
           case TactileSoundType.build:
           case TactileSoundType.conquer:
+          case TactileSoundType.stoneClick:
           case TactileSoundType.reward:
           case TactileSoundType.upgrade:
           case TactileSoundType.market:

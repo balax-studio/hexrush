@@ -121,7 +121,7 @@ class SettingsDialog extends ConsumerWidget {
                   activeTrackColor: const Color(0xFFFFC700),
                   inactiveTrackColor: const Color(0xFF0F172A),
                   trackHeight: 4,
-                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                  thumbShape: const _NeoRectSliderThumbShape(),
                 ),
                 child: Slider(
                   value: settings.sfxVolume,
@@ -131,6 +131,109 @@ class SettingsDialog extends ConsumerWidget {
                 ),
               ),
             ],
+
+            const SizedBox(height: 16),
+
+            // Bildirim Tercihleri
+            const Text(
+              'BİLDİRİM TERCİHLERİ',
+              style: NeoBrutalistTheme.fontLabel,
+            ),
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: NeoBrutalistTheme.sharpRadius,
+                border: Border.all(color: const Color(0xFF334155), width: 1.5),
+              ),
+              child: Column(
+                children: [
+                  _buildNotificationToggle(
+                    'Ambar Dolum Uyarısı (%80)',
+                    settings.notifications.storageFullAlert,
+                    (val) => notifier.updateNotificationSettings(storageFullAlert: val),
+                  ),
+                  _buildNotificationToggle(
+                    'Mevsim Değişimi Uyarısı',
+                    settings.notifications.seasonChangeAlert,
+                    (val) => notifier.updateNotificationSettings(seasonChangeAlert: val),
+                  ),
+                  _buildNotificationToggle(
+                    'Görev Tamamlanma Uyarısı',
+                    settings.notifications.questCompletedAlert,
+                    (val) => notifier.updateNotificationSettings(questCompletedAlert: val),
+                  ),
+                  _buildNotificationToggle(
+                    'Otağ Büyütme Hazır Uyarısı',
+                    settings.notifications.castleUpgradeReadyAlert,
+                    (val) => notifier.updateNotificationSettings(castleUpgradeReadyAlert: val),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Dinamik Neo-Brutalist Tema Paleti
+            const Text(
+              'NEO-BRUTALİST TEMA PALETİ',
+              style: NeoBrutalistTheme.fontLabel,
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: NeoBrutalistTheme.allPalettes.map((p) {
+                final bool isSelected = settings.activeThemePalette == p.id;
+                return GestureDetector(
+                  onTap: () => notifier.setThemePalette(p.id),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: p.surface,
+                      borderRadius: NeoBrutalistTheme.sharpRadius,
+                      border: Border.all(
+                        color: isSelected ? p.primaryGold : p.slateBorder,
+                        width: isSelected ? 2.0 : 1.2,
+                      ),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: p.primaryGold.withValues(alpha: 0.4),
+                                offset: const Offset(2.0, 2.0),
+                                blurRadius: 0.0,
+                              )
+                            ]
+                          : NeoBrutalistTheme.hardShadowSmall,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: p.accentColor,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.black, width: 1.0),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          p.nameTr,
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : const Color(0xFF94A3B8),
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
 
             const SizedBox(height: 16),
 
@@ -224,5 +327,85 @@ class SettingsDialog extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildNotificationToggle(
+    String label,
+    bool value,
+    ValueChanged<bool> onChanged,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700),
+            ),
+          ),
+          GestureDetector(
+            onTap: () => onChanged(!value),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: value ? const Color(0xFF065F46) : const Color(0xFF1E293B),
+                borderRadius: NeoBrutalistTheme.sharpRadius,
+                border: Border.all(
+                  color: value ? const Color(0xFF10B981) : const Color(0xFF475569),
+                  width: 1.5,
+                ),
+              ),
+              child: Text(
+                value ? 'AÇIK' : 'KAPALI',
+                style: TextStyle(
+                  color: value ? Colors.white : Colors.white60,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NeoRectSliderThumbShape extends SliderComponentShape {
+  static const double width = 12.0;
+  static const double height = 16.0;
+
+  const _NeoRectSliderThumbShape();
+
+  @override
+  Size getPreferredSize(bool isEnabled, bool isDiscrete) => const Size(width, height);
+
+  @override
+  void paint(
+    PaintingContext context,
+    Offset center, {
+    required Animation<double> activationAnimation,
+    required Animation<double> enableAnimation,
+    required bool isDiscrete,
+    required TextPainter labelPainter,
+    required RenderBox parentBox,
+    required SliderThemeData sliderTheme,
+    required TextDirection textDirection,
+    required double value,
+    required double textScaleFactor,
+    required Size sizeWithOverflow,
+  }) {
+    final canvas = context.canvas;
+    final rect = Rect.fromCenter(center: center, width: width, height: height);
+    final fillPaint = Paint()..color = const Color(0xFFFFC700);
+    final borderPaint = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    canvas.drawRect(rect, fillPaint);
+    canvas.drawRect(rect, borderPaint);
   }
 }

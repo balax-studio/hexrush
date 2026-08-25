@@ -139,6 +139,11 @@ void main() {
 
       notifier.conquerTile(target);
 
+      // Gözcü Kulesi için Şato Seviye 2 gereklidir
+      notifier.state = notifier.state.copyWith(
+        progression: notifier.state.progression.copyWith(castleLevel: 2),
+      );
+
       final built = notifier.buildStructure(target, BuildingType.watchtower);
       expect(built, isTrue);
 

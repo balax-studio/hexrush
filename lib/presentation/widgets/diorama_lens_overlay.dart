@@ -27,19 +27,20 @@ class DioramaLensOverlay extends ConsumerWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. Kenar Vinyet Gradyanı (Derinlik & Odak)
+          // 1. Kenar Vinyet ve Atmosferik Sis Gradyanı (Yumuşak Geçiş & Odak)
           DecoratedBox(
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 center: Alignment.center,
-                radius: 1.1,
+                radius: 1.05,
                 colors: [
                   Colors.transparent,
                   Colors.transparent,
-                  const Color(0xFF0F172A).withValues(alpha: 0.35),
-                  const Color(0xFF020617).withValues(alpha: 0.75),
+                  const Color(0xFF0F172A).withValues(alpha: 0.18),
+                  const Color(0xFF0F172A).withValues(alpha: 0.48),
+                  const Color(0xFF060913).withValues(alpha: 0.82),
                 ],
-                stops: const [0.0, 0.55, 0.85, 1.0],
+                stops: const [0.0, 0.48, 0.72, 0.88, 1.0],
               ),
             ),
           ),

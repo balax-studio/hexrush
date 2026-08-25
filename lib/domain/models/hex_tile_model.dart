@@ -10,6 +10,9 @@ enum TileBiome {
   tundra,
   volcano,
   wetland,
+  celestialCrater,
+  kurganValley,
+  crystalChasm,
 }
 
 enum TileState {

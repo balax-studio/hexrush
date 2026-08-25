@@ -129,11 +129,13 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          isTr ? 'GÖREV' : 'OBJECTIVE',
+                          _isCollapsed && !allDone
+                              ? '${isTr ? 'GÖREV' : 'QUEST'}: ${activeQuest.currentAmount}/${activeQuest.targetAmount}'
+                              : (isTr ? 'GÖREV' : 'OBJECTIVE'),
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w900,
-                            letterSpacing: 1.2,
+                            letterSpacing: 1.0,
                             color: isCompleted
                                 ? const Color(0xFFFDE68A)
                                 : const Color(0xFFCBD5E1),

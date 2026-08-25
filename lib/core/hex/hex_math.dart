@@ -68,11 +68,6 @@ class HexMath {
     return HexAxial(rq, rr);
   }
 
-  /// Verilen koordinatın 6 komşusunu döndürür.
-  static List<HexAxial> getNeighbors(HexAxial coord) {
-    return coord.neighbors;
-  }
-
   /// Pre-computed corner unit multipliers for 6 pointy-top corners (-30°, 30°, 90°, 150°, 210°, 270°)
   static const List<double> _cosAngles = [
     0.8660254037844386,  // cos(-30°)

@@ -8,6 +8,7 @@ import '../../domain/economy/economy_calculator.dart';
 import '../../domain/models/game_state_model.dart';
 import '../providers/game_state_notifier.dart';
 import 'icons/game_vector_icons.dart';
+import 'season_calendar_widget.dart';
 import 'tactile_neo_button.dart';
 
 class TopBarHUD extends ConsumerStatefulWidget {
@@ -247,6 +248,11 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
       isZud: gameState.season.isZud,
     );
 
+    final int nextCastleLvl = gameState.progression.castleLevel + 1;
+    final castleCosts = EconomyCalculator.getCastleUpgradeCost(nextCastleLvl);
+    final bool canUpgradeCastle = resources.food >= (castleCosts['food'] ?? double.infinity) &&
+        resources.wood >= (castleCosts['wood'] ?? 0);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: const BoxDecoration(
@@ -282,8 +288,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     iconColor: const Color(0xFFFBBF24),
                     currentStock: resources.food.toStringAsFixed(1),
                     netRate: '${netRates.food >= 0 ? '+' : ''}${netRates.food.toStringAsFixed(1)}/saniye',
-                    description: 'Krallığın temel besin kaynağı. Yeni altıgen toprakları fethetmek ve halkı doyurmak için harcanır.',
-                    strategicHint: 'Çiftlikler, Bozkır Göçer İaşesi doktrini ve Krallık Şatosu\'ndan toplanır.',
+                    description: 'Kağanlığın temel besin kaynağı. Yeni altıgen toprakları fethetmek ve oba halkını doyurmak için harcanır.',
+                    strategicHint: 'Tarlalar, Bozkır Göçer İaşesi doktrini ve Kağan Otağı\'ndan toplanır.',
                   ),
                 ),
                 const SizedBox(width: 6),
@@ -439,10 +445,32 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                 const SizedBox(width: 5),
 
                 // Ayarlar butonu
-                _buildIconButton(
-                  icon: const GameVectorIcon(type: GameIconType.settings, size: 15),
-                  onPressed: widget.onOpenSettings,
-                  tooltip: 'Ayarlar',
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    _buildIconButton(
+                      icon: const GameVectorIcon(type: GameIconType.settings, size: 15),
+                      onPressed: widget.onOpenSettings,
+                      tooltip: 'Ayarlar',
+                    ),
+                    if (gameState.settings.notifications.storageFullAlert ||
+                        gameState.settings.notifications.seasonChangeAlert ||
+                        gameState.settings.notifications.questCompletedAlert ||
+                        gameState.settings.notifications.castleUpgradeReadyAlert)
+                      Positioned(
+                        top: -2,
+                        right: -2,
+                        child: Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD97706),
+                            borderRadius: BorderRadius.circular(1.5),
+                            border: Border.all(color: const Color(0xFF020617), width: 1.0),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ],
             ),
@@ -494,12 +522,12 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     rate: netRates.bread,
                     onTap: () => _showResourceExplanation(
                       context,
-                      title: 'EKMEK (TİER 3 BESİN)',
+                      title: 'EKMEK (İŞLENMİŞ BESİN)',
                       iconType: GameIconType.bread,
                       iconColor: const Color(0xFFF59E0B),
                       currentStock: resources.bread.toStringAsFixed(1),
                       netRate: '${netRates.bread >= 0 ? '+' : ''}${netRates.bread.toStringAsFixed(1)}/saniye',
-                      description: 'Taş fırında un ve gıda harcanarak pişirilen yüksek kalorili besin. Şato geliştirmeleri için gereklidir.',
+                      description: 'Taş köz fırınında un ve gıda harcanarak pişirilen yüksek besleyici gıda. Otağ geliştirmeleri için gereklidir.',
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -510,12 +538,12 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     rate: netRates.furniture,
                     onTap: () => _showResourceExplanation(
                       context,
-                      title: 'MOBİLYA (LÜKS TİCARET MALI)',
+                      title: 'AHŞAP İŞLEME (TİCARET MALI)',
                       iconType: GameIconType.furniture,
                       iconColor: const Color(0xFFB45309),
                       currentStock: resources.furniture.toStringAsFixed(1),
                       netRate: '${netRates.furniture >= 0 ? '+' : ''}${netRates.furniture.toStringAsFixed(1)}/saniye',
-                      description: 'Mobilya atölyesinde keresteden üretilir. Yüksek pazar değerine ve ticaret getirisine sahiptir.',
+                      description: 'Marangoz otağında keresteden üretilir. Yüksek pazar takas değerine sahiptir.',
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -550,15 +578,20 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   _buildSeasonBadge(
                     gameState.season,
                     lang,
-                    onTap: () => _showResourceExplanation(
-                      context,
-                      title: 'MEVSİM & İKLİM DÖNGÜSÜ',
-                      iconType: gameState.season.isZud ? GameIconType.zud : GameIconType.winter,
-                      iconColor: _getSeasonColor(gameState.season),
-                      currentStock: '${GameLocalization.get(gameState.season.current.toLowerCase(), lang: lang)} (Yıl ${gameState.season.year})',
-                      description: 'İlkbahar: +%20 Üretim Bereketi.\nYaz: Normal üretim hızı.\nSonbahar: Bol hasat dönemi.\nKış: Üretim %50 yavaşlar, donan karolar ısıtılmalıdır.\nZud: Ağır bozkır kışı afeti!',
-                      strategicHint: 'Kış yaklaşırken odun stoklayın; donan karoları ısıtarak üretimi sürdürün.',
-                    ),
+                    onTap: () {
+                      showDialog<void>(
+                        context: context,
+                        builder: (ctx) => Dialog(
+                          backgroundColor: Colors.transparent,
+                          insetPadding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: SeasonCalendarWidget(
+                            season: gameState.season,
+                            language: lang,
+                            onClose: () => Navigator.of(ctx).pop(),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   if (gameState.season.isZud) ...[
                     const SizedBox(width: 6),
@@ -592,51 +625,70 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
               GestureDetector(
                 onTap: () => _showResourceExplanation(
                   context,
-                  title: 'KRALLIK ŞATOSU & KÜRESEL BONUS',
+                  title: 'KAĞAN OTAĞI & KÜRESEL BONUS',
                   iconType: GameIconType.crown,
                   iconColor: const Color(0xFFFFD700),
-                  currentStock: 'Şato Seviye ${gameState.progression.castleLevel}',
-                  description: 'Krallığınızın ana yönetim merkezi. Şatoyu geliştirdikçe tüm binaların küresel üretim hızı katlanır, yeni bina tipleri ve meclis yuvaları açılır.',
-                  strategicHint: 'Şatoyu merkez karoya tıklayarak gerekli malzemelerle yükseltebilirsiniz.',
+                  currentStock: 'Kağan Otağı Seviye ${gameState.progression.castleLevel}',
+                  description: 'Kağanlığınızın ana yönetim merkezi. Otağı büyüttükçe tüm obanın küresel üretim hızı katlanır, yeni yapılar ve kurultay yuvaları açılır.',
+                  strategicHint: 'Otağı merkez karoya dokunarak gerekli erzak ve malzemelerle büyütebilirsiniz.',
                 ),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0F172A),
-                    borderRadius: NeoBrutalistTheme.sharpRadius,
-                    border: Border.all(color: Colors.black, width: 1.5),
-                    boxShadow: NeoBrutalistTheme.hardShadowSmall,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'KALE LV.${gameState.progression.castleLevel}',
-                        style: const TextStyle(
-                          color: Color(0xFFFFD700),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.4,
-                        ),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0F172A),
+                        borderRadius: NeoBrutalistTheme.sharpRadius,
+                        border: Border.all(color: Colors.black, width: 1.5),
+                        boxShadow: NeoBrutalistTheme.hardShadowSmall,
                       ),
-                      const SizedBox(width: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                        child: Text(
-                          '+${((globalMult - 1.0) * 100).toInt()}% HIZ',
-                          style: const TextStyle(
-                            color: Color(0xFF10B981),
-                            fontSize: 9,
-                            fontWeight: FontWeight.w900,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'OTAĞ LV.${gameState.progression.castleLevel}',
+                            style: const TextStyle(
+                              color: Color(0xFFFFD700),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF10B981).withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                            child: Text(
+                              '+${((globalMult - 1.0) * 100).toInt()}% HIZ',
+                              style: const TextStyle(
+                                color: Color(0xFF10B981),
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (canUpgradeCastle)
+                      Positioned(
+                        top: -3,
+                        right: -3,
+                        child: Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD97706),
+                            borderRadius: BorderRadius.circular(1.5),
+                            border: Border.all(color: const Color(0xFF020617), width: 1.0),
                           ),
                         ),
                       ),
-                    ],
-                  ),
+                  ],
                 ),
               ),
             ],

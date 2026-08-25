@@ -185,6 +185,11 @@ class EconomyCalculator {
       case TileBiome.volcano:
         base = 25.0;
         break;
+      case TileBiome.celestialCrater:
+      case TileBiome.kurganValley:
+      case TileBiome.crystalChasm:
+        base = 50.0;
+        break;
     }
 
     // C(n) = C_base * 1.6^n * W(n)
@@ -228,6 +233,48 @@ class EconomyCalculator {
     };
   }
 
+  static double getBiomeMasteryMultiplier({
+    required TileBiome biome,
+    Map<String, int> cumulativeBiomeCounts = const {},
+  }) {
+    final int count = cumulativeBiomeCounts[biome.name] ?? 0;
+    if (count >= 10) return 1.10; // 10+ karo: +%10
+    if (count >= 5) return 1.05; // 5+ karo: +%5
+    return 1.0;
+  }
+
+  /// Deterministik Mevsimsel Üretim Çarpanı (Seasonal Production Boost)
+  /// Bahar: Gıda zinciri +%20, Yaz: Odun zinciri +%15, Sonbahar: Maden +%15
+  static double getSeasonalProductionBoost({
+    required String season,
+    required BuildingType buildingType,
+  }) {
+    switch (season.toUpperCase()) {
+      case 'SPRING':
+        if (buildingType == BuildingType.corn ||
+            buildingType == BuildingType.windmill ||
+            buildingType == BuildingType.bakery ||
+            buildingType == BuildingType.fisherman) {
+          return 1.20;
+        }
+        return 1.0;
+      case 'SUMMER':
+        if (buildingType == BuildingType.lumberjack ||
+            buildingType == BuildingType.sawmill ||
+            buildingType == BuildingType.furniture) {
+          return 1.15;
+        }
+        return 1.0;
+      case 'AUTUMN':
+        if (buildingType == BuildingType.mine) {
+          return 1.15;
+        }
+        return 1.0;
+      default:
+        return 1.0;
+    }
+  }
+
   static double calculateBuildingProduction({
     required BuildingType type,
     required int level,
@@ -237,6 +284,8 @@ class EconomyCalculator {
     double synergyMultiplier = 1.0,
     double workerMultiplier = 1.0,
     double shrineMultiplier = 1.0,
+    double biomeMasteryMultiplier = 1.0,
+    double seasonalBoostMultiplier = 1.0,
   }) {
     // Eşik Çarpanı (k)
     int k = 0;
@@ -260,7 +309,9 @@ class EconomyCalculator {
            seasonMultiplier *
            synergyMultiplier *
            workerMultiplier *
-           shrineMultiplier;
+           shrineMultiplier *
+           biomeMasteryMultiplier *
+           seasonalBoostMultiplier;
   }
 
   static double getTamgaMultiplier(int tamga) {
@@ -425,12 +476,52 @@ class EconomyCalculator {
               ? rate * cappedSeconds
               : math.min(maxCap, rate * cappedSeconds);
           break;
+        case BuildingType.reindeerSanctuary:
+        case BuildingType.herbalistYurt:
+          gainedFood += hasWorkers
+              ? rate * cappedSeconds
+              : math.min(maxCap, rate * cappedSeconds);
+          break;
+        case BuildingType.caravanserai:
+          gainedBread += hasWorkers
+              ? rate * cappedSeconds
+              : math.min(maxCap, rate * cappedSeconds);
+          break;
+        case BuildingType.scribeWorkshop:
+          gainedPlank += hasWorkers
+              ? rate * cappedSeconds
+              : math.min(maxCap, rate * cappedSeconds);
+          break;
+        case BuildingType.steamVent:
+          gainedStone += hasWorkers
+              ? rate * cappedSeconds
+              : math.min(maxCap, rate * cappedSeconds);
+          break;
+        case BuildingType.obsidianForge:
+        case BuildingType.permafrostDig:
+          gainedStone += hasWorkers
+              ? (rate * 0.5) * cappedSeconds
+              : math.min(maxCap * 0.5, (rate * 0.5) * cappedSeconds);
+          gainedIron += hasWorkers
+              ? (rate * 0.5) * cappedSeconds
+              : math.min(maxCap * 0.5, (rate * 0.5) * cappedSeconds);
+          break;
+        case BuildingType.celestialAnvil:
+          gainedIron += hasWorkers
+              ? rate * cappedSeconds
+              : math.min(maxCap, rate * cappedSeconds);
+          break;
         case BuildingType.shrine:
         case BuildingType.castle:
         case BuildingType.worker:
         case BuildingType.watchtower:
         case BuildingType.bridge:
         case BuildingType.fishermanHut:
+        case BuildingType.oasisCistern:
+        case BuildingType.astrolabe:
+        case BuildingType.geothermalBath:
+        case BuildingType.ancestralTotem:
+        case BuildingType.prismaticResonator:
           break;
       }
     }
@@ -458,6 +549,7 @@ class EconomyCalculator {
     Map<HexAxial, HexTileModel>? tileMap,
     String season = 'SPRING',
     bool isZud = false,
+    Map<String, int> cumulativeBiomeCounts = const {},
   }) {
     final double totalMult = globalMultiplier * seasonMultiplier * shrineMultiplier;
 
@@ -489,7 +581,21 @@ class EconomyCalculator {
         isZud: isZud,
       );
 
-      final double rate = (b.baseProductionRate * math.pow(1.5, b.level - 1)) * totalMult * biomeSynergy;
+      final double masteryMult = getBiomeMasteryMultiplier(
+        biome: t.biome,
+        cumulativeBiomeCounts: cumulativeBiomeCounts,
+      );
+
+      final double seasonalBoost = getSeasonalProductionBoost(
+        season: season,
+        buildingType: b.type,
+      );
+
+      final double rate = (b.baseProductionRate * math.pow(1.5, b.level - 1)) *
+          totalMult *
+          seasonalBoost *
+          biomeSynergy *
+          masteryMult;
 
       switch (b.type) {
         case BuildingType.corn:
@@ -517,12 +623,38 @@ class EconomyCalculator {
         case BuildingType.fisherman:
           netFish += rate;
           break;
+        case BuildingType.reindeerSanctuary:
+        case BuildingType.herbalistYurt:
+          netFood += rate;
+          break;
+        case BuildingType.caravanserai:
+          netBread += rate;
+          break;
+        case BuildingType.scribeWorkshop:
+          netPlank += rate;
+          break;
+        case BuildingType.steamVent:
+          netStone += rate;
+          break;
+        case BuildingType.obsidianForge:
+        case BuildingType.permafrostDig:
+          netStone += rate * 0.5;
+          netIron += rate * 0.5;
+          break;
+        case BuildingType.celestialAnvil:
+          netIron += rate;
+          break;
         case BuildingType.shrine:
         case BuildingType.castle:
         case BuildingType.worker:
         case BuildingType.watchtower:
         case BuildingType.bridge:
         case BuildingType.fishermanHut:
+        case BuildingType.oasisCistern:
+        case BuildingType.astrolabe:
+        case BuildingType.geothermalBath:
+        case BuildingType.ancestralTotem:
+        case BuildingType.prismaticResonator:
           break;
       }
     }
@@ -550,6 +682,23 @@ class EconomyCalculator {
     if (!targetTile.hasBuilding) return 1.0;
     final bType = targetTile.building!.type;
     double synergy = 1.0;
+
+    // Doğal efsanevi biyom zemin bonusları
+    switch (targetTile.biome) {
+      case TileBiome.celestialCrater:
+        synergy += 0.50; // Göksel Rezonans
+        break;
+      case TileBiome.kurganValley:
+        synergy += 0.40; // Atalar Bereketi
+        break;
+      case TileBiome.crystalChasm:
+        synergy += 0.45; // Kristal Harmonisi
+        break;
+      default:
+        break;
+    }
+
+    final bool hasOasisCisternNeighbor = neighborTiles.any((n) => n.building?.type == BuildingType.oasisCistern);
 
     for (final neighbor in neighborTiles) {
       if (neighbor.isFog) continue;
@@ -585,8 +734,8 @@ class EconomyCalculator {
           if (bType == BuildingType.windmill || bType == BuildingType.furniture) {
             synergy += 0.40;
           }
-          // Çiftliklere kuraklık cezası (-%20)
-          if (bType == BuildingType.corn) {
+          // Çiftliklere kuraklık cezası (-%20), eğer komşuda Vaha Sarnıcı yoksa
+          if (bType == BuildingType.corn && !hasOasisCisternNeighbor) {
             synergy -= 0.20;
           }
           break;
@@ -609,12 +758,24 @@ class EconomyCalculator {
           }
           break;
 
+        case TileBiome.celestialCrater:
+          synergy += 0.50; // Göksel Rezonans
+          break;
+
+        case TileBiome.kurganValley:
+          synergy += 0.40; // Atalar Bereketi
+          break;
+
+        case TileBiome.crystalChasm:
+          synergy += 0.45; // Kristal Harmonisi
+          break;
+
         case TileBiome.tundra:
           // Tundra: Kışın soğuk cezası (-%25), ancak Madenlere +%20 Permafrost Taş Bonusu
           if (season.toUpperCase() == 'WINTER' || isZud) {
             if (bType == BuildingType.corn) synergy -= 0.25;
           }
-          if (bType == BuildingType.mine) synergy += 0.20;
+          if (bType == BuildingType.mine || bType == BuildingType.permafrostDig) synergy += 0.25;
           break;
 
         case TileBiome.meadow:
@@ -623,6 +784,20 @@ class EconomyCalculator {
             synergy += 0.10;
           }
           break;
+      }
+
+      // Komşuda Vaha Sarnıcı varsa bereket ver
+      if (neighbor.building?.type == BuildingType.oasisCistern) {
+        synergy += 0.40;
+      }
+      // Komşuda Jeotermal Kaplıca varsa ayazı kır
+      if (neighbor.building?.type == BuildingType.geothermalBath) {
+        synergy += 0.35;
+      }
+      // Komşuda Obsidyen Dökümhanesi varsa alet dayanıklılığı ver
+      if (neighbor.building?.type == BuildingType.obsidianForge &&
+          (bType == BuildingType.mine || bType == BuildingType.sawmill)) {
+        synergy += 0.35;
       }
     }
 
@@ -640,10 +815,41 @@ class EconomyCalculator {
     final bType = targetTile.building!.type;
     final List<String> labels = [];
 
+    switch (targetTile.biome) {
+      case TileBiome.celestialCrater:
+        labels.add('+50% GÖKSEL CEVHER (Krater)');
+        break;
+      case TileBiome.kurganValley:
+        labels.add('+40% ATALAR BEREKETİ (Kurgan)');
+        break;
+      case TileBiome.crystalChasm:
+        labels.add('+45% KRİSTAL HARMONİSİ (Yarık)');
+        break;
+      default:
+        break;
+    }
+
+    final bool hasOasisCisternNeighbor = neighborTiles.any((n) => n.building?.type == BuildingType.oasisCistern);
+    if (hasOasisCisternNeighbor) {
+      labels.add('+40% Vaha Sarnıcı Aurası');
+    }
+
     for (final neighbor in neighborTiles) {
       if (neighbor.isFog) continue;
 
       switch (neighbor.biome) {
+        case TileBiome.celestialCrater:
+          labels.add('+50% Göksel Rezonans (Krater)');
+          break;
+
+        case TileBiome.kurganValley:
+          labels.add('+40% Atalar Bereketi (Kurgan)');
+          break;
+
+        case TileBiome.crystalChasm:
+          labels.add('+45% Kristal Harmonisi (Yarık)');
+          break;
+
         case TileBiome.wetland:
         case TileBiome.sea:
           if (bType == BuildingType.corn || bType == BuildingType.windmill) {
@@ -657,7 +863,7 @@ class EconomyCalculator {
           break;
 
         case TileBiome.volcano:
-          if (bType == BuildingType.mine) {
+          if (bType == BuildingType.mine || bType == BuildingType.obsidianForge) {
             labels.add('+50% Jeotermal Dökümhane (Volkan)');
           }
           if (bType == BuildingType.lumberjack || bType == BuildingType.sawmill) {
@@ -666,7 +872,9 @@ class EconomyCalculator {
           break;
 
         case TileBiome.desert:
-          if (bType == BuildingType.windmill || bType == BuildingType.furniture) {
+          if (bType == BuildingType.windmill ||
+              bType == BuildingType.furniture ||
+              bType == BuildingType.caravanserai) {
             labels.add('+40% İpek Yolu Ticareti (Çöl)');
           }
           if (bType == BuildingType.corn) {
@@ -675,8 +883,8 @@ class EconomyCalculator {
           break;
 
         case TileBiome.mountain:
-          if (bType == BuildingType.mine) {
-            labels.add('+35% Zengin Damar (Dağ)');
+          if (bType == BuildingType.mine || bType == BuildingType.astrolabe) {
+            labels.add('+35% Zengin Damar & İrtifa (Dağ)');
           }
           if (bType == BuildingType.watchtower) {
             labels.add('+50% Rüzgar Siperi (Dağ)');
@@ -693,7 +901,9 @@ class EconomyCalculator {
           if (season.toUpperCase() == 'WINTER' || isZud) {
             if (bType == BuildingType.corn) labels.add('-25% Ayaz Şoku (Tundra)');
           }
-          if (bType == BuildingType.mine) labels.add('+20% Permafrost Taş (Tundra)');
+          if (bType == BuildingType.mine || bType == BuildingType.permafrostDig) {
+            labels.add('+25% Permafrost Taş (Tundra)');
+          }
           break;
 
         case TileBiome.meadow:
@@ -701,6 +911,17 @@ class EconomyCalculator {
             labels.add('+10% Verimli Çayır (Çayır)');
           }
           break;
+      }
+
+      if (neighbor.building?.type == BuildingType.oasisCistern) {
+        labels.add('+40% Vaha Sarnıcı Bereketi');
+      }
+      if (neighbor.building?.type == BuildingType.geothermalBath) {
+        labels.add('+35% Jeotermal Isı Aurası');
+      }
+      if (neighbor.building?.type == BuildingType.obsidianForge &&
+          (bType == BuildingType.mine || bType == BuildingType.sawmill)) {
+        labels.add('+35% Obsidyen Alet Gücü');
       }
     }
 

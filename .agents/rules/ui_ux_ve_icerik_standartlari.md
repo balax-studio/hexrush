@@ -41,3 +41,23 @@ Bu kural belgesi, HexRush projesindeki tüm arayüz tasarımı, kullanıcı dene
 - **Başlıklar ve Unvanlar:** `Cinzel` / Serif büyük harf (`UPPERCASE`), tok ve anıtsal.
 - **Sayısal Metrikler ve Maliyetler:** `JetBrains Mono` / Monospace, sabit genişlikli (`tabular-nums`), titreşimsiz sayaçlar.
 - **Açıklama ve Gövde Metinleri:** `Outfit` / Sans-serif, yüksek okunabilirlik (`#F8FAFC` kireçtaşı beyazı veya `#94A3B8` kül grisi).
+
+---
+
+## 5. Kadim Bozkır ve Türk Terminoloji Standardı (Anti-Feudal & Anti-Arcade Slop)
+Oyun dili ve metinleri Göktürk, Hun ve Avrasya bozkır devlet nizamı ile tam uyumlu olmalıdır. Batı feodalizmi, modern sanayi veya jenerik fantezi slopları KESİNLİKLE KULLANILAMAZ.
+
+| Yasaklı Feodal / Slop Terim | Zorunlu Bozkır & Brutalist Karşılığı | Neden Yasak? |
+| :--- | :--- | :--- |
+| **Şato / Kale** | **Kağan Otağı / Ak Otağ / Merkez Otağ** | Bozkır kağanlığının idare merkezi otağdır. |
+| **Krallık** | **Kağanlık / Bozkır Kağanlığı** | Bozkır devlet teşkilatı krallık değil kağanlıktır. |
+| **Taç (`crowns`)** | **Kut / Hanlık Şanı / Altın Tamga** | Bozkır hükümdarlarında taç değil, kut ve tamga esastır. |
+| **Mısır Tarlası** | **Buğday Tarlası / Darı Ekini** | Mısır Amerika kıtası kökenlidir; kadim bozkırda buğday/darı ekilirdi. |
+| **Kereste Fabrikası** | **Hızar Otağı / Bıçkıhane** | "Fabrika" modern sanayi çağı terimidir. |
+| **Mobilyacı** | **Marangoz Otağı / Ağaç Yontucu** | Modern dükkan çağrışımı yapar. |
+| **Mithril** | **Gök Demiri / Semavi Çelik** | Mithril Batı fantastik edebiyatı slopudur; Türk mitolojisinde göktaşı demiri "Gök Demiri"dir. |
+| **Krallık Pazarı** | **Bozkır Kurultay Pazarı / İpek Pazarı** | Feodal pazar kalıbı yerine bozkır meclisi pazar kültürü. |
+| **(Tier 2, Tier 3, ...)** | *(Kaldırılmalı veya "2. Aşama")* | İngilizce jenerik oyun slopudur. |
+| **10x Çılgınlık (Frenzy)** | **10x Toy Coşkusu / 10x Akın Narası** | Arcade mobil oyun jargonu yerine kültürel coşku. |
+| **"Harika!", "İyi oyunlar!"** | **"Oban kutlu, tören daim olsun."** | Şablon yapay zeka ve mobil tutorial slopu. |
+

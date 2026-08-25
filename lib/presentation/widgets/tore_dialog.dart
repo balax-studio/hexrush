@@ -223,7 +223,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                 doctrines,
                 notifier,
                 castleLvl >= 3,
-                lockMsg: 'Şato Lv.3 Gerekli',
+                lockMsg: 'Otağ Lv.3 Gerekli',
               ),
             ],
           ),
@@ -632,24 +632,29 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
     );
   }
 
-  // --- SEKME 3: UNVANLAR & BAŞARIMLAR ---
+  // --- SEKME 3: UNVANLAR & BAŞARIMLAR (Dinamik Tema Bağlantılı) ---
   Widget _buildTitlesTab(BuildContext context, GameState gameState, GameStateNotifier notifier, String lang) {
     final titles = gameState.titles;
+    final activeTitle = gameState.settings.activeTitle;
 
     final titleList = [
       {
-        'key': 'khagan',
-        'icon': GameIconType.crown,
-        'title': 'BÜYÜK KAĞAN',
-        'desc': 'Şato Lv.4 ve 10 Toprak gerektirir. (+%15 Küresel Hız)',
-        'owned': titles['khagan'] == true,
-        'canClaim': gameState.progression.castleLevel >= 4 && gameState.progression.ownedCount >= 10,
+        'key': 'nomad',
+        'icon': GameIconType.tore,
+        'title': 'BOZKIR GÖÇERİ',
+        'palette': 'KADİM BAZALT TEMASI',
+        'desc': 'Bozkırın kadim topraklarına adım atmış özgür göçer.',
+        'inscription': 'Çadırını kuran, göğün altında ateşini yakan her göçerin temel hakkı.',
+        'owned': true,
+        'canClaim': false,
       },
       {
         'key': 'conqueror',
         'icon': GameIconType.land,
         'title': 'TOPRAK FATİHİ',
+        'palette': 'KIZIL KURGAN TEMASI',
         'desc': '15 Toprak gerektirir. (Fetih Maliyeti -%10)',
+        'inscription': 'Bozkırın ufuklarını yurt tutan, sınırları aşarak çadırını kuran fatihlerin izi.',
         'owned': titles['conqueror'] == true,
         'canClaim': gameState.progression.ownedCount >= 15,
       },
@@ -657,7 +662,9 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
         'key': 'merchant',
         'icon': GameIconType.market,
         'title': 'İPEK YOLU TÜCCARI',
+        'palette': 'ALTAY YEŞİMİ TEMASI',
         'desc': '50 Un ve 50 Kereste gerektirir. (Pazar Gelirleri +%20)',
+        'inscription': 'Kervan yollarını bağlayan, un ve keresteyi berekete çeviren usta tacirlerin kaydı.',
         'owned': titles['merchant'] == true,
         'canClaim': gameState.resources.flour >= 50 && gameState.resources.plank >= 50,
       },
@@ -665,9 +672,21 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
         'key': 'zudMaster',
         'icon': GameIconType.winter,
         'title': 'ZUD FATİHİ',
+        'palette': 'GÖK TENGRİ TEMASI',
         'desc': 'Kış Yılı 2\'ye ulaşmayı gerektirir. (Kış Kayıpları -%20)',
+        'inscription': 'Dondurucu boranları ve kara kışları dize getiren, ocağı hiç sönmeyen bilgelerin anısı.',
         'owned': titles['zudMaster'] == true,
         'canClaim': gameState.season.year >= 2,
+      },
+      {
+        'key': 'khagan',
+        'icon': GameIconType.crown,
+        'title': 'BÜYÜK KAĞAN',
+        'palette': 'ALTIN KAĞANLIK TEMASI',
+        'desc': 'Kağan Otağı Lv.4 ve 10 Toprak gerektirir. (+%15 Küresel Hız)',
+        'inscription': 'On boyu birleştiren, kutlu otağı kuran ve bozkıra nizam veren ulu hükümdar yazıtı.',
+        'owned': titles['khagan'] == true,
+        'canClaim': gameState.progression.castleLevel >= 4 && gameState.progression.ownedCount >= 10,
       },
     ];
 
@@ -676,7 +695,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'KRALLIK UNVANLARI & BAŞARIMLAR:',
+            'BOZKIR KAĞANLIK UNVANLARI & DİNAMİK TEMALAR:',
             style: TextStyle(
               color: Color(0xFFFFC700),
               fontSize: 11,
@@ -686,17 +705,23 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
           ),
           const SizedBox(height: 8),
           ...titleList.map((t) {
+            final String key = t['key'] as String;
             final bool isOwned = t['owned'] as bool;
             final bool canClaim = t['canClaim'] as bool;
+            final bool isEquipped = (activeTitle == key) || (activeTitle.isEmpty && key == 'nomad');
 
             return Container(
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: isOwned ? const Color(0xFF064E3B) : const Color(0xFF0F172A),
+                color: isEquipped
+                    ? const Color(0xFF1E1B4B)
+                    : (isOwned ? const Color(0xFF064E3B) : const Color(0xFF0F172A)),
                 borderRadius: NeoBrutalistTheme.sharpRadius,
                 border: Border.all(
-                  color: isOwned ? const Color(0xFF10B981) : const Color(0xFF334155),
+                  color: isEquipped
+                      ? const Color(0xFFA855F7)
+                      : (isOwned ? const Color(0xFF10B981) : const Color(0xFF334155)),
                   width: 1.8,
                 ),
                 boxShadow: NeoBrutalistTheme.hardShadowSmall,
@@ -712,41 +737,100 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                           children: [
                             GameVectorIcon(type: t['icon'] as GameIconType, size: 14),
                             const SizedBox(width: 6),
-                            Text(
-                              t['title'] as String,
-                              style: TextStyle(
-                                color: isOwned ? const Color(0xFF10B981) : Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w900,
+                            Expanded(
+                              child: Text(
+                                t['title'] as String,
+                                style: TextStyle(
+                                  color: isEquipped
+                                      ? const Color(0xFFC084FC)
+                                      : (isOwned ? const Color(0xFF10B981) : Colors.white),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                ),
                               ),
                             ),
                           ],
                         ),
+                        const SizedBox(height: 2),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF020617),
+                            borderRadius: NeoBrutalistTheme.sharpRadius,
+                            border: Border.all(color: const Color(0xFF334155), width: 1.0),
+                          ),
+                          child: Text(
+                            t['palette'] as String,
+                            style: const TextStyle(
+                              color: Color(0xFFFBBF24),
+                              fontSize: 8,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 3),
                         Text(
                           t['desc'] as String,
-                          style: const TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.w600),
+                          style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600),
                         ),
+                        if (t['inscription'] != null) ...[
+                          const SizedBox(height: 3),
+                          Text(
+                            t['inscription'] as String,
+                            style: const TextStyle(
+                              color: Color(0xFF94A3B8),
+                              fontSize: 9,
+                              fontStyle: FontStyle.italic,
+                              height: 1.2,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
                   const SizedBox(width: 8),
-                  if (isOwned)
+                  if (isEquipped)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                       decoration: BoxDecoration(
                         color: const Color(0xFF10B981),
                         borderRadius: NeoBrutalistTheme.sharpRadius,
                         border: Border.all(color: Colors.black, width: 1.5),
+                        boxShadow: NeoBrutalistTheme.hardShadowSmall,
                       ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.check, size: 12, color: Colors.black),
+                          SizedBox(width: 4),
+                          Text(
+                            'KUŞANILDI',
+                            style: TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.w900),
+                          ),
+                        ],
+                      ),
+                    )
+                  else if (isOwned)
+                    TactileNeoButton(
+                      onTap: () => notifier.equipTitle(key),
+                      backgroundColor: const Color(0xFF38BDF8),
+                      borderColor: Colors.black,
+                      shadowColor: const Color(0xFF0369A1),
+                      shadowOffset: 2.0,
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      soundType: TactileSoundType.reward,
                       child: const Text(
-                        'AÇILDI',
-                        style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.w900),
+                        'TEMAYI KUŞAN',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                     )
                   else
                     TactileNeoButton(
-                      onTap: canClaim ? () => notifier.claimTitle(t['key'] as String) : null,
+                      onTap: canClaim ? () => notifier.claimTitle(key) : null,
                       isEnabled: canClaim,
                       backgroundColor: const Color(0xFFFFC700),
                       borderColor: Colors.black,
