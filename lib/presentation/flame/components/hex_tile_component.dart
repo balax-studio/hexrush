@@ -217,7 +217,15 @@ class HexTileComponent extends PositionComponent {
   void _renderVoxelObjects(Canvas canvas, Offset center) {
     final int seed = (coord.q * 31 + coord.r * 17).abs();
 
-    if (tileModel.hasBuilding) {
+    if (tileModel.hasShrine) {
+      VoxelIsometricRenderer.drawVoxelAncientShrine(
+        canvas,
+        center,
+        shrineType: tileModel.shrine,
+        animTime: _animTimer,
+        isNight: isNight,
+      );
+    } else if (tileModel.hasBuilding) {
       final b = tileModel.building!;
       switch (b.type) {
         case BuildingType.castle:
@@ -254,10 +262,10 @@ class HexTileComponent extends PositionComponent {
           VoxelIsometricRenderer.drawVoxelBridge(canvas, center);
           break;
         case BuildingType.fisherman:
-          VoxelIsometricRenderer.drawVoxelLumberjack(canvas, center); // Geçici olarak oduncu görseli
+          VoxelIsometricRenderer.drawVoxelFishermanBoat(canvas, center, animTime: _animTimer, isNight: isNight);
           break;
         case BuildingType.fishermanHut:
-          VoxelIsometricRenderer.drawVoxelBakery(canvas, center, _animTimer, isNight: isNight); // Geçici olarak fırın görseli
+          VoxelIsometricRenderer.drawVoxelFishermanHut(canvas, center, animTime: _animTimer, isNight: isNight);
           break;
       }
     } else {
@@ -333,7 +341,8 @@ class HexTileComponent extends PositionComponent {
         VoxelIsometricRenderer.drawVoxelDeer(
           canvas,
           Offset(center.dx - 2, center.dy + 6),
-          animTime: _animTimer + seed,
+          animTime: _animTimer,
+          seed: seed,
           scale: 0.85,
         );
         break;
@@ -371,7 +380,8 @@ class HexTileComponent extends PositionComponent {
         VoxelIsometricRenderer.drawVoxelSheep(
           canvas,
           Offset(center.dx - 2, center.dy + 2),
-          animTime: _animTimer + seed,
+          animTime: _animTimer,
+          seed: seed,
           scale: 0.9,
         );
         VoxelIsometricRenderer.drawVoxelFlowers(

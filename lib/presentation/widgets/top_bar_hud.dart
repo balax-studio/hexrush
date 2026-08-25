@@ -31,12 +31,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
     final lang = gameState.settings.language;
 
     return Container(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 8,
-        left: 12,
-        right: 12,
-        bottom: 8,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: const BoxDecoration(
         color: NeoBrutalistTheme.surface,
         border: Border(

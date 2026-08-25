@@ -241,15 +241,21 @@ class HexMapGame extends FlameGame {
         Color cargoColor = const Color(0xFFFBBF24);
         if (tile.building!.type == BuildingType.corn) cargoColor = const Color(0xFFFBBF24);
         if (tile.building!.type == BuildingType.lumberjack) cargoColor = const Color(0xFFB45309);
+        if (tile.building!.type == BuildingType.sawmill) cargoColor = const Color(0xFFD97706);
         if (tile.building!.type == BuildingType.windmill) cargoColor = const Color(0xFFFEF08A);
         if (tile.building!.type == BuildingType.bakery) cargoColor = const Color(0xFFF59E0B);
+        if (tile.building!.type == BuildingType.furniture) cargoColor = const Color(0xFF78350F);
         if (tile.building!.type == BuildingType.mine) cargoColor = const Color(0xFF94A3B8);
+        if (tile.building!.type == BuildingType.fisherman || tile.building!.type == BuildingType.fishermanHut) {
+          cargoColor = const Color(0xFF38BDF8);
+        }
 
+        final int workerSeed = (entry.key.q * 31 + entry.key.r * 17).abs();
         final worker = WorkerAgentComponent(
           startPos: tileVec,
           endPos: castleVec,
           cargoColor: cargoColor,
-          speed: 0.25,
+          seed: workerSeed,
         );
         _workerComponents.add(worker);
         gameWorld.add(worker);
