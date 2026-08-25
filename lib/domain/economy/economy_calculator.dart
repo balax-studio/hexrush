@@ -155,6 +155,18 @@ class EconomyCalculator {
     return math.max(1.0, cost.roundToDouble());
   }
 
+  static Map<String, double> getCastleUpgradeCost(int nextLevel) {
+    final double foodCost = 50.0 * math.pow(1.5, nextLevel - 2);
+    // İlk birkaç seviye (Lvl 5'e kadar) odun istemesin (Soft-lock önleme)
+    final double woodCost =
+        nextLevel <= 5 ? 0.0 : 25.0 * math.pow(1.5, nextLevel - 6);
+
+    return {
+      'food': foodCost,
+      'wood': woodCost,
+    };
+  }
+
   static double calculateBuildingProduction({
     required BuildingType type,
     required int level,

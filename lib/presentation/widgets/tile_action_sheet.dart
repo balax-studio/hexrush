@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
+import '../../domain/economy/economy_calculator.dart';
 import '../../domain/models/building_model.dart';
 import '../../domain/models/hex_tile_model.dart';
 import '../providers/game_state_notifier.dart';
@@ -36,6 +37,10 @@ class TileActionSheet extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Tutorial Hint Section
+            if (gameState.progression.tutorialStep < 9)
+              _buildTutorialHint(gameState.progression.tutorialStep, lang),
+
             // Header: Biyom Adı ve Kapat Butonu
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -207,17 +212,27 @@ class TileActionSheet extends ConsumerWidget {
       HexTileModel tile, dynamic gameState, String lang) {
     final notifier = ref.read(gameStateProvider.notifier);
     final int lvl = gameState.progression.castleLevel;
-    final double nextFood = 50.0 * (lvl == 1 ? 1.0 : (lvl == 2 ? 1.5 : 2.25));
-    final double nextWood = 25.0 * (lvl == 1 ? 1.0 : (lvl == 2 ? 1.5 : 2.25));
+    final int nextLvl = lvl + 1;
+    final costs = EconomyCalculator.getCastleUpgradeCost(nextLvl);
+    final double nextFood = costs['food']!;
+    final double nextWood = costs['wood']!;
+
     final bool canAfford = gameState.resources.food >= nextFood &&
         gameState.resources.wood >= nextWood;
+
+    final String costLabel = nextWood > 0
+        ? '${nextFood.toInt()} GIDA + ${nextWood.toInt()} ODUN'
+        : '${nextFood.toInt()} GIDA';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           '${GameLocalization.get('global_bonus', lang: lang)}: +${((lvl - 1) * 25)}%',
-          style: const TextStyle(color: Color(0xFF10B981), fontSize: 13, fontWeight: FontWeight.w900),
+          style: const TextStyle(
+              color: Color(0xFF10B981),
+              fontSize: 13,
+              fontWeight: FontWeight.w900),
         ),
         const SizedBox(height: 4),
         Text(
@@ -228,13 +243,15 @@ class TileActionSheet extends ConsumerWidget {
                   : (lvl == 3
                       ? 'Seviye 4\'te Mobilyacı & Kağan Unvanı açılır!'
                       : 'Maksimum Krallık Gücü!')),
-          style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w700),
+          style: const TextStyle(
+              color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 12),
         ElevatedButton(
           onPressed: () => notifier.upgradeCastle(),
           style: ElevatedButton.styleFrom(
-            backgroundColor: canAfford ? const Color(0xFF8B5CF6) : const Color(0xFF475569),
+            backgroundColor:
+                canAfford ? const Color(0xFF8B5CF6) : const Color(0xFF475569),
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 12),
             shape: const RoundedRectangleBorder(
@@ -246,11 +263,15 @@ class TileActionSheet extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const GameVectorIcon(type: GameIconType.crown, size: 16, color: Colors.white),
+              const GameVectorIcon(
+                  type: GameIconType.crown, size: 16, color: Colors.white),
               const SizedBox(width: 8),
               Text(
-                '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} (${nextFood.toInt()} GIDA + ${nextWood.toInt()} ODUN)',
-                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 0.3),
+                '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} ($costLabel)',
+                style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 12,
+                    letterSpacing: 0.3),
               ),
             ],
           ),
@@ -380,7 +401,10 @@ class TileActionSheet extends ConsumerWidget {
         const Text(
           'İNŞA EDİLEBİLİR YAPILAR:',
           style: TextStyle(
-              color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 0.4),
+              color: Colors.white70,
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.4),
         ),
         const SizedBox(height: 8),
         Wrap(
@@ -396,14 +420,18 @@ class TileActionSheet extends ConsumerWidget {
               onTap: isUnlocked
                   ? () => notifier.buildStructure(tile.coord, type)
                   : () {
-                      notifier.showToast('Bu yapı için Kale Seviye $requiredLvl gereklidir!');
+                      notifier.showToast(
+                          'Bu yapı için Kale Seviye $requiredLvl gereklidir!');
                     },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                width: (MediaQuery.of(context).size.width - 48) / 2,
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: !isUnlocked
                       ? const Color(0xFF0F172A)
-                      : (canAfford ? const Color(0xFF1E3A8A) : const Color(0xFF334155)),
+                      : (canAfford
+                          ? const Color(0xFF1E3A8A)
+                          : const Color(0xFF334155)),
                   borderRadius: NeoBrutalistTheme.sharpRadius,
                   border: Border.all(
                     color: Colors.black,
@@ -411,21 +439,37 @@ class TileActionSheet extends ConsumerWidget {
                   ),
                   boxShadow: NeoBrutalistTheme.hardShadowSmall,
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _getBuildingVectorIcon(type, isUnlocked),
-                    const SizedBox(width: 6),
+                    Row(
+                      children: [
+                        _getBuildingVectorIcon(type, isUnlocked),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            isUnlocked
+                                ? '${_getBuildingName(type, lang)} (${dummy.baseCost.toInt()})'
+                                : '${_getBuildingName(type, lang)} (LV.$requiredLvl)',
+                            style: TextStyle(
+                              color: !isUnlocked
+                                  ? Colors.grey.shade500
+                                  : (canAfford ? Colors.white : Colors.white70),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
                     Text(
-                      isUnlocked
-                          ? '${_getBuildingName(type, lang)} (${dummy.baseCost.toInt()})'
-                          : '${_getBuildingName(type, lang)} (LV.$requiredLvl)',
+                      _getBuildingDescription(type, lang),
                       style: TextStyle(
-                        color: !isUnlocked
-                            ? Colors.grey.shade500
-                            : (canAfford ? Colors.white : Colors.white70),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
+                        color: Colors.white.withOpacity(0.6),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -436,6 +480,97 @@ class TileActionSheet extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  Widget _buildTutorialHint(int step, String lang) {
+    String hint = "";
+    switch (step) {
+      case 0:
+        hint = "HexRush'a hoş geldin! Öncelikle boş bir Çayır (Sarı) arazisi seç.";
+        break;
+      case 1:
+        hint = "Harika! Şimdi 'FETHET' diyerek bu toprağı krallığına kat.";
+        break;
+      case 2:
+        hint = "Toprak artık senin! Şimdi buraya bir 'Mısır Tarlası' inşa et.";
+        break;
+      case 3:
+        hint = "Üretime başladık! Ürünleri otomatik toplamak için bir 'İşçi Kulübesi' inşa et.";
+        break;
+      case 4:
+        hint = "İşçiler çalışıyor! Biriken ürünleri manuel toplamak için tarlaya tıkla.";
+        break;
+      case 5:
+        hint = "Harika! Şimdi odun lazım. Bir Orman (Yeşil) arazisi seç ve fethet.";
+        break;
+      case 6:
+        hint = "Orman seçildi! Şimdi 'FETHET' butonuyla krallığına kat.";
+        break;
+      case 7:
+        hint = "Şimdi de buraya bir 'Oduncu Kulübesi' inşa ederek odun üretimine başla.";
+        break;
+      case 8:
+        hint = "Başlangıç eğitimini tamamladın! Şatoyu yükselterek yeni binalar açabilirsin. İyi oyunlar!";
+        break;
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFBBF24),
+        borderRadius: NeoBrutalistTheme.sharpRadius,
+        border: Border.all(color: Colors.black, width: 2),
+        boxShadow: NeoBrutalistTheme.hardShadowSmall,
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.help_outline, color: Colors.black, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              hint,
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getBuildingDescription(BuildingType type, String lang) {
+    switch (type) {
+      case BuildingType.castle:
+        return GameLocalization.get('castle_desc', lang: lang);
+      case BuildingType.corn:
+        return GameLocalization.get('corn_desc', lang: lang);
+      case BuildingType.lumberjack:
+        return GameLocalization.get('lumberjack_desc', lang: lang);
+      case BuildingType.windmill:
+        return GameLocalization.get('windmill_desc', lang: lang);
+      case BuildingType.sawmill:
+        return GameLocalization.get('sawmill_desc', lang: lang);
+      case BuildingType.bakery:
+        return GameLocalization.get('bakery_desc', lang: lang);
+      case BuildingType.furniture:
+        return GameLocalization.get('furniture_desc', lang: lang);
+      case BuildingType.worker:
+        return GameLocalization.get('worker_desc', lang: lang);
+      case BuildingType.watchtower:
+        return GameLocalization.get('watchtower_desc', lang: lang);
+      case BuildingType.mine:
+        return GameLocalization.get('mine_desc', lang: lang);
+      case BuildingType.bridge:
+        return GameLocalization.get('bridge_desc', lang: lang);
+      case BuildingType.fisherman:
+        return GameLocalization.get('fisherman_desc', lang: lang);
+      case BuildingType.fishermanHut:
+        return GameLocalization.get('fisherman_hut_desc', lang: lang);
+    }
   }
 
   int _getRequiredCastleLevel(BuildingType type) {
@@ -577,9 +712,9 @@ class TileActionSheet extends ConsumerWidget {
       case BuildingType.bridge:
         return GameLocalization.get('bridge_name', lang: lang);
       case BuildingType.fisherman:
-        return 'Balıkçı';
+        return GameLocalization.get('fisherman_name', lang: lang);
       case BuildingType.fishermanHut:
-        return 'Balıkçı Barınağı';
+        return GameLocalization.get('fisherman_hut_name', lang: lang);
     }
   }
 }

@@ -255,6 +255,21 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
   }
 
   Widget _buildBrutalistChip(GameIconType type, double value, Color color, {bool isInt = false}) {
+    final lang = ref.watch(gameStateProvider).settings.language;
+    String label = '';
+    switch (type) {
+      case GameIconType.food: label = GameLocalization.get('food', lang: lang).toUpperCase(); break;
+      case GameIconType.wood: label = GameLocalization.get('wood', lang: lang).toUpperCase(); break;
+      case GameIconType.stone: label = GameLocalization.get('stone', lang: lang).toUpperCase(); break;
+      case GameIconType.iron: label = GameLocalization.get('iron', lang: lang).toUpperCase(); break;
+      case GameIconType.crown: label = GameLocalization.get('crowns', lang: lang).toUpperCase(); break;
+      case GameIconType.flour: label = GameLocalization.get('flour', lang: lang).toUpperCase(); break;
+      case GameIconType.plank: label = GameLocalization.get('plank', lang: lang).toUpperCase(); break;
+      case GameIconType.bread: label = GameLocalization.get('bread', lang: lang).toUpperCase(); break;
+      case GameIconType.furniture: label = GameLocalization.get('furniture', lang: lang).toUpperCase(); break;
+      default: label = '';
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
       decoration: BoxDecoration(
@@ -268,6 +283,17 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
         children: [
           GameVectorIcon(type: type, size: 14),
           const SizedBox(width: 5),
+          if (label.isNotEmpty) ...[
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 9,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(width: 4),
+          ],
           Text(
             isInt ? value.toInt().toString() : value.toStringAsFixed(1),
             style: TextStyle(
@@ -283,6 +309,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
   }
 
   Widget _buildLandChip(int count) {
+    final lang = ref.watch(gameStateProvider).settings.language;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
       decoration: BoxDecoration(
@@ -296,6 +323,15 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
         children: [
           const GameVectorIcon(type: GameIconType.land, size: 14),
           const SizedBox(width: 5),
+          Text(
+            GameLocalization.get('land', lang: lang).toUpperCase(),
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 9,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(width: 4),
           Text(
             '$count',
             style: const TextStyle(

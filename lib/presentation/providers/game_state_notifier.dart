@@ -69,7 +69,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
     return GameState(
       tiles: map,
-      resources: const ResourcesModel(food: 50.0, wood: 20.0),
+      resources: const ResourcesModel(food: 100.0, wood: 50.0),
       progression: const ProgressionModel(castleLevel: 1, ownedCount: 1),
     );
   }
@@ -412,6 +412,17 @@ class GameStateNotifier extends StateNotifier<GameState> {
       state = state.copyWith(clearSelection: true);
     } else {
       state = state.copyWith(selectedCoord: coord);
+
+      final tile = state.tiles[coord];
+      if (tile == null) return;
+
+      // Tutorial Logic
+      int currentStep = state.progression.tutorialStep;
+      if (currentStep == 0 && !tile.isOwned && !tile.isFog) {
+        state = state.copyWith(progression: state.progression.copyWith(tutorialStep: 1));
+      } else if (currentStep == 6 && tile.biome == TileBiome.forest && !tile.isOwned) {
+        state = state.copyWith(progression: state.progression.copyWith(tutorialStep: 7));
+      }
     }
   }
 
@@ -539,6 +550,10 @@ class GameStateNotifier extends StateNotifier<GameState> {
     if (tile.biome == TileBiome.sea) sCount++;
     if (tile.biome == TileBiome.mountain) mtCount++;
 
+    int nextTutorial = state.progression.tutorialStep;
+    if (nextTutorial == 1) nextTutorial = 2;
+    else if (nextTutorial == 7) nextTutorial = 8;
+
     state = state.copyWith(
       tiles: updatedTiles,
       resources: state.resources.copyWith(food: state.resources.food - cost),
@@ -548,6 +563,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
         purchasedForestCount: fCount,
         purchasedSeaCount: sCount,
         purchasedMountainCount: mtCount,
+        tutorialStep: nextTutorial,
       ),
       shrineMultiplier: newShrineMult,
       activeToast: tile.hasShrine
@@ -664,9 +680,15 @@ class GameStateNotifier extends StateNotifier<GameState> {
       }
     }
 
+    int nextTutorial = state.progression.tutorialStep;
+    if (type == BuildingType.corn && nextTutorial == 2) nextTutorial = 3;
+    else if (type == BuildingType.worker && nextTutorial == 3) nextTutorial = 4;
+    else if (type == BuildingType.lumberjack && nextTutorial == 8) nextTutorial = 9;
+
     state = state.copyWith(
       tiles: updatedTiles,
       resources: state.resources.copyWith(food: state.resources.food - cost),
+      progression: state.progression.copyWith(tutorialStep: nextTutorial),
       activeToast: '🏗️ ${type.name.toUpperCase()} başarıyla inşa edildi!',
     );
 
@@ -717,6 +739,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
     );
 
     ResourcesModel res = state.resources;
+    int nextTutorial = state.progression.tutorialStep;
+    if (b.type == BuildingType.corn && nextTutorial == 4) nextTutorial = 6; // Skip to forest tutorial
+
     if (b.type == BuildingType.corn) {
       res = res.copyWith(food: res.food + accum);
     } else if (b.type == BuildingType.lumberjack) {
@@ -738,6 +763,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     state = state.copyWith(
       tiles: updatedTiles,
       resources: res,
+      progression: state.progression.copyWith(tutorialStep: nextTutorial),
       activeToast: '+${accum.toStringAsFixed(1)} toplandı!',
     );
 
@@ -892,9 +918,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
   bool upgradeCastle() {
     final int nextLvl = state.progression.castleLevel + 1;
-    final double foodCost = 50.0 * math.pow(1.5, nextLvl - 2);
-    // İlk bir kaç seviye (Lvl 2 ve 3) odun istemesin
-    final double woodCost = nextLvl <= 3 ? 0.0 : 25.0 * math.pow(1.5, nextLvl - 4);
+    final costs = EconomyCalculator.getCastleUpgradeCost(nextLvl);
+    final double foodCost = costs['food']!;
+    final double woodCost = costs['wood']!;
 
     if (state.resources.food < foodCost || state.resources.wood < woodCost) {
       String costMsg = '⚠️ Şato yükseltme için ${foodCost.toInt()} 🥡';

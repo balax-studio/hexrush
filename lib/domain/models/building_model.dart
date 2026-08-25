@@ -86,6 +86,8 @@ class BuildingModel {
   /// Temel üretim hızı (birim/saniye)
   double get baseProductionRate {
     switch (type) {
+      case BuildingType.castle:
+        return 0.10; // Küçük bir temel üretim (Soft-lock koruması)
       case BuildingType.corn:
         return 0.42;
       case BuildingType.lumberjack:

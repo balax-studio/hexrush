@@ -104,6 +104,7 @@ class ProgressionModel {
   final int purchasedSeaCount;
   final int purchasedMountainCount;
   final int totalMigrations;
+  final int tutorialStep; // 0: Start, 1: Select Tile, 2: Conquer, 3: Build Corn, 4: Build Worker, 5: Collect, 6: Wood Tutorial...
 
   const ProgressionModel({
     this.castleLevel = 1,
@@ -113,6 +114,7 @@ class ProgressionModel {
     this.purchasedSeaCount = 0,
     this.purchasedMountainCount = 0,
     this.totalMigrations = 0,
+    this.tutorialStep = 0,
   });
 
   ProgressionModel copyWith({
@@ -123,6 +125,7 @@ class ProgressionModel {
     int? purchasedSeaCount,
     int? purchasedMountainCount,
     int? totalMigrations,
+    int? tutorialStep,
   }) {
     return ProgressionModel(
       castleLevel: castleLevel ?? this.castleLevel,
@@ -133,6 +136,7 @@ class ProgressionModel {
       purchasedMountainCount:
           purchasedMountainCount ?? this.purchasedMountainCount,
       totalMigrations: totalMigrations ?? this.totalMigrations,
+      tutorialStep: tutorialStep ?? this.tutorialStep,
     );
   }
 
@@ -144,6 +148,7 @@ class ProgressionModel {
         'purchased_sea_count': purchasedSeaCount,
         'purchased_mountain_count': purchasedMountainCount,
         'total_migrations': totalMigrations,
+        'tutorial_step': tutorialStep,
       };
 
   factory ProgressionModel.fromJson(Map<String, dynamic> json) {
@@ -155,6 +160,7 @@ class ProgressionModel {
       purchasedSeaCount: json['purchased_sea_count'] as int? ?? 0,
       purchasedMountainCount: json['purchased_mountain_count'] as int? ?? 0,
       totalMigrations: json['total_migrations'] as int? ?? 0,
+      tutorialStep: json['tutorial_step'] as int? ?? 0,
     );
   }
 }
