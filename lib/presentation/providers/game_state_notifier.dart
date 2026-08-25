@@ -127,7 +127,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
             iron: state.resources.iron + offline.iron,
           ),
           activeToast:
-              '✨ Çevrimdışı Gelir: +${offline.food.toStringAsFixed(1)} 🥡 +${offline.wood.toStringAsFixed(1)} 🪵',
+              'Çevrimdışı Gelir: +${offline.food.toStringAsFixed(1)} Gıda, +${offline.wood.toStringAsFixed(1)} Odun',
         );
       }
     }
@@ -184,7 +184,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
         // Kış başlangıcında %25 olasılıkla Zud afeti
         newIsZud = math.Random().nextDouble() < 0.25;
         if (newIsZud) {
-          showToast('❄️ DİKKAT: Şiddetli Zud Afeti Başladı! (%40 Kayıp)');
+          showToast('DİKKAT: Şiddetli Zud Afeti Başladı! (Üretim: -%40)');
         }
       } else {
         newSeason = 'SPRING';
@@ -458,33 +458,33 @@ class GameStateNotifier extends StateNotifier<GameState> {
     });
 
     if (!hasOwnedNeighbor) {
-      showToast('⚠️ Yalnızca sınır komşunuz olan arazileri fethedebilirsiniz!');
+      showToast('Yalnızca sınır komşusu olan araziler fethedilebilir.');
       return false;
     }
 
     // Orman kilit kontrolü: Şato Seviye >= 2
     if (tile.biome == TileBiome.forest && state.progression.castleLevel < 2) {
       showToast(
-          '🔒 Orman Kilitli! Odunculuk için Şatoyu Seviye 2\'ye yükselt.');
+          'Orman Kilitli: Odunculuk için Şato Seviye 2 gereklidir.');
       return false;
     }
     // Dağ kilit kontrolü: Şato Seviye >= 3
     if (tile.biome == TileBiome.mountain && state.progression.castleLevel < 3) {
       showToast(
-          '🔒 Dağ Kilitli! Madencilik için Şatoyu Seviye 3\'e yükselt.');
+          'Dağ Kilitli: Madencilik için Şato Seviye 3 gereklidir.');
       return false;
     }
     // Deniz kilit kontrolü: Şato Seviye >= 4
     if (tile.biome == TileBiome.sea && state.progression.castleLevel < 4) {
       showToast(
-          '🔒 Deniz Kilitli! Balıkçılık ve Köprüler için Şatoyu Seviye 4\'e yükselt.');
+          'Deniz Kilitli: Balıkçılık ve Köprüler için Şato Seviye 4 gereklidir.');
       return false;
     }
 
     final double cost = calculateExpansionCost(tile.biome);
     if (state.resources.food < cost) {
       showToast(
-          '⚠️ Yetersiz Gıda! Yeni karo için ${cost.toInt()} 🥡 Gıda gerekli.');
+          'Yetersiz Gıda: Yeni karo için ${cost.toInt()} Gıda gerekli.');
       return false;
     }
 
@@ -527,7 +527,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     double newShrineMult = state.shrineMultiplier;
     if (tile.hasShrine) {
       newShrineMult += 0.5; // Her sunak +%50 toplamsal bonus
-      showToast('✨ Kadim Sunak Fethedildi! Üretim Bonusu: +%50');
+      showToast('Kadim Sunak Fethedildi (Üretim Bonusu: +%50).');
     }
 
     int mCount = state.progression.purchasedMeadowCount;
@@ -551,8 +551,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
       ),
       shrineMultiplier: newShrineMult,
       activeToast: tile.hasShrine
-          ? '✨ Sunak Gücüyle beraber yeni arsa fethedildi!'
-          : '🏰 ${cost.toInt()} 🥡 Gıda karşılığında yeni arsa fethedildi!',
+          ? 'Sunak gücüyle beraber yeni arsa fethedildi.'
+          : '${cost.toInt()} Gıda karşılığında yeni arsa fethedildi.',
     );
 
     saveGame();
@@ -569,7 +569,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
             type == BuildingType.sawmill ||
             type == BuildingType.watchtower) &&
         castleLvl < 2) {
-      showToast('🔒 Bu yapı için Şato Seviye 2 gereklidir!');
+      showToast('Kilitli: Bu yapı için Şato Seviye 2 gereklidir.');
       return false;
     }
     if ((type == BuildingType.windmill ||
@@ -579,25 +579,25 @@ class GameStateNotifier extends StateNotifier<GameState> {
             type == BuildingType.fisherman ||
             type == BuildingType.fishermanHut) &&
         castleLvl < 3) {
-      showToast('🔒 Bu yapı için Şato Seviye 3 gereklidir!');
+      showToast('Kilitli: Bu yapı için Şato Seviye 3 gereklidir.');
       return false;
     }
     if (type == BuildingType.furniture && castleLvl < 4) {
-      showToast('🔒 Mobilyacı için Şato Seviye 4 gereklidir!');
+      showToast('Kilitli: Mobilyacı için Şato Seviye 4 gereklidir.');
       return false;
     }
 
     if (type == BuildingType.corn && tile.biome != TileBiome.meadow) {
-      showToast('⚠️ Mısır Tarlası yalnızca Çayır biyomuna inşa edilebilir!');
+      showToast('Mısır Tarlası yalnızca Çayır biyomuna inşa edilebilir.');
       return false;
     }
     if (type == BuildingType.lumberjack && tile.biome != TileBiome.forest) {
-      showToast('⚠️ Oduncu Kulübesi yalnızca Orman biyomuna inşa edilebilir!');
+      showToast('Oduncu Kulübesi yalnızca Orman biyomuna inşa edilebilir.');
       return false;
     }
     if (type == BuildingType.bridge) {
       if (tile.biome != TileBiome.sea) {
-        showToast('⚠️ Köprü yalnızca Deniz biyomuna inşa edilebilir!');
+        showToast('Köprü yalnızca Deniz biyomuna inşa edilebilir.');
         return false;
       }
       // Köprü için iki kara biyomu arasında olma kontrolü
@@ -606,21 +606,21 @@ class GameStateNotifier extends StateNotifier<GameState> {
         return t != null && t.biome != TileBiome.sea;
       }).length;
       if (landNeighbors < 2) {
-        showToast('⚠️ Köprü yalnızca iki kara parçası arasına inşa edilebilir!');
+        showToast('Köprü yalnızca iki kara parçası arasına inşa edilebilir.');
         return false;
       }
     }
     if (type == BuildingType.mine && tile.biome != TileBiome.mountain) {
-      showToast('⚠️ Maden Ocağı yalnızca Dağ biyomuna inşa edilebilir!');
+      showToast('Maden Ocağı yalnızca Dağ biyomuna inşa edilebilir.');
       return false;
     }
     if (type == BuildingType.fisherman && tile.biome != TileBiome.sea) {
-      showToast('⚠️ Balıkçı yalnızca Deniz biyomuna inşa edilebilir!');
+      showToast('Balıkçı yalnızca Deniz biyomuna inşa edilebilir.');
       return false;
     }
     if (type == BuildingType.fishermanHut) {
       if (tile.biome != TileBiome.sea) {
-        showToast('⚠️ Balıkçı Barınağı yalnızca Deniz biyomuna inşa edilebilir!');
+        showToast('Balıkçı Barınağı yalnızca Deniz biyomuna inşa edilebilir.');
         return false;
       }
       // Kıyı kontrolü: En az bir kara komşusu olmalı
@@ -629,7 +629,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
         return t != null && t.biome != TileBiome.sea;
       });
       if (!hasLandNeighbor) {
-        showToast('⚠️ Balıkçı Barınağı kıyıya (kara yanına) inşa edilmelidir!');
+        showToast('Balıkçı Barınağı kıyıya (kara yanına) inşa edilmelidir.');
         return false;
       }
     }
@@ -638,7 +638,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     final cost = dummy.baseCost;
 
     if (state.resources.food < cost) {
-      showToast('⚠️ Yetersiz kaynak! Gerekli: ${cost.toInt()} 🥡');
+      showToast('Yetersiz kaynak: ${cost.toInt()} Gıda gereklidir.');
       return false;
     }
 
@@ -667,7 +667,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     state = state.copyWith(
       tiles: updatedTiles,
       resources: state.resources.copyWith(food: state.resources.food - cost),
-      activeToast: '🏗️ ${type.name.toUpperCase()} başarıyla inşa edildi!',
+      activeToast: '${type.name.toUpperCase()} inşa edildi.',
     );
 
     saveGame();
@@ -683,7 +683,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
     if (state.resources.food < cost) {
       showToast(
-          '⚠️ Yükseltme için yetersiz kaynak! Gerekli: ${cost.toInt()} 🥡');
+          'Yükseltme için yetersiz kaynak: ${cost.toInt()} Gıda gereklidir.');
       return false;
     }
 
@@ -696,7 +696,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       tiles: updatedTiles,
       resources: state.resources.copyWith(food: state.resources.food - cost),
       activeToast:
-          '⭐ ${b.type.name.toUpperCase()} Seviye ${b.level + 1}\'e yükseltildi!',
+          '${b.type.name.toUpperCase()} Seviye ${b.level + 1} oldu.',
     );
 
     saveGame();
@@ -748,13 +748,13 @@ class GameStateNotifier extends StateNotifier<GameState> {
     final tile = state.tiles[coord];
     if (tile == null || !tile.isOwned) return false;
     if (tile.isWarmed) {
-      showToast('🔥 Bu karo zaten ısıtılmış!');
+      showToast('Bu karo zaten ısıtılmış.');
       return false;
     }
 
     const double woodCost = 5.0;
     if (state.resources.wood < woodCost) {
-      showToast('⚠️ Karoyu ısıtmak için 5 🪵 Odun gereklidir!');
+      showToast('Karoyu ısıtmak için 5 Odun gereklidir.');
       return false;
     }
 
@@ -767,7 +767,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     state = state.copyWith(
       tiles: updatedTiles,
       resources: state.resources.copyWith(wood: state.resources.wood - woodCost),
-      activeToast: '🔥 Karo 3 dakika boyunca ısıtıldı (+%50 Üretim Hızı)!',
+      activeToast: 'Karo 3 dakika boyunca ısıtıldı (Üretim Hızı: +%50).',
     );
 
     return true;
@@ -793,7 +793,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     );
 
     if (!result.success) {
-      showToast('⚠️ Takas için gerekli kaynaklar yetersiz!');
+      showToast('Takas için gerekli kaynaklar yetersiz.');
       return false;
     }
 
@@ -818,7 +818,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
     state = state.copyWith(
       resources: newRes,
-      activeToast: '⚖️ Ticaret başarılı! Kaynaklar güncellendi.',
+      activeToast: 'Ticaret başarılı: Kaynaklar güncellendi.',
     );
 
     saveGame();
@@ -827,7 +827,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
   bool upgradeToreTalent(String branch, String talentKey, int costCrowns) {
     if (state.resources.crowns < costCrowns) {
-      showToast('⚠️ Yetersiz Taç! Gerekli: $costCrowns 👑');
+      showToast('Yetersiz Taç: $costCrowns Taç gereklidir.');
       return false;
     }
 
@@ -844,7 +844,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
         crowns: state.resources.crowns - costCrowns,
       ),
       toreTalents: newTore,
-      activeToast: '📜 $talentKey Seviye ${currentLvl + 1} oldu!',
+      activeToast: '$talentKey Seviye ${currentLvl + 1} oldu.',
     );
 
     saveGame();
@@ -853,7 +853,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
   bool claimTitle(String titleKey) {
     if (state.titles[titleKey] == true) {
-      showToast('ℹ️ Bu unvana zaten sahipsiniz!');
+      showToast('Bu unvana zaten sahipsiniz.');
       return false;
     }
 
@@ -874,7 +874,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     }
 
     if (!qualified) {
-      showToast('🔒 Unvan şartları henüz sağlanmadı!');
+      showToast('Unvan şartları henüz sağlanmadı.');
       return false;
     }
 
@@ -883,7 +883,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
     state = state.copyWith(
       titles: newTitles,
-      activeToast: '👑 Yeni Unvan Açıldı: ${titleKey.toUpperCase()}!',
+      activeToast: 'Yeni Unvan Açıldı: ${titleKey.toUpperCase()}',
     );
 
     saveGame();
@@ -897,9 +897,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
     final double woodCost = nextLvl <= 3 ? 0.0 : 25.0 * math.pow(1.5, nextLvl - 4);
 
     if (state.resources.food < foodCost || state.resources.wood < woodCost) {
-      String costMsg = '⚠️ Şato yükseltme için ${foodCost.toInt()} 🥡';
-      if (woodCost > 0) costMsg += ' ve ${woodCost.toInt()} 🪵';
-      costMsg += ' gerekli!';
+      String costMsg = 'Şato yükseltme için ${foodCost.toInt()} Gıda';
+      if (woodCost > 0) costMsg += ' ve ${woodCost.toInt()} Odun';
+      costMsg += ' gereklidir.';
       showToast(costMsg);
       return false;
     }
@@ -910,7 +910,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
         wood: state.resources.wood - woodCost,
       ),
       progression: state.progression.copyWith(castleLevel: nextLvl),
-      activeToast: '🏰 Krallık Şatosu Seviye $nextLvl oldu! (Küresel Hız +%25)',
+      activeToast: 'Krallık Şatosu Seviye $nextLvl oldu (Küresel Hız: +%25).',
     );
 
     saveGame();
@@ -921,7 +921,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     state = state.copyWith(
       frenzyMultiplier: 10,
       frenzyTimer: 60.0,
-      activeToast: '🔥 10x Üretim Çılgınlığı Aktif! (60 Saniye)',
+      activeToast: '10x Üretim Çılgınlığı Aktif (60 Saniye).',
     );
   }
 
@@ -975,7 +975,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
     state = state.copyWith(
       resources: state.resources.copyWith(tamgas: totalTamgas),
-      activeToast: '🌅 Göç Tamamlandı! +$newTamgas Tamga Kazanıldı. Yeni Çarpan: x${tamgaMult.toStringAsFixed(1)}',
+      activeToast: 'Göç Tamamlandı. +$newTamgas Tamga Kazanıldı (Yeni Çarpan: x${tamgaMult.toStringAsFixed(1)}).',
     );
 
     saveGame();
