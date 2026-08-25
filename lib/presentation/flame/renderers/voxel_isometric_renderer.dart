@@ -792,43 +792,220 @@ class VoxelIsometricRenderer {
     );
   }
 
-  /// 3D Voxel Dağ
-  static void drawVoxelMountain(Canvas canvas, Offset baseCenter) {
-    drawIsoCube(
-      canvas,
-      baseCenter,
-      w: 36.0,
-      d: 36.0,
-      h: 12.0,
-      topColor: const Color(0xFF64748B),
-      leftColor: const Color(0xFF475569),
-      rightColor: const Color(0xFF334155),
-      drawShadow: true,
-    );
+  /// 3D Voxel Dağ - Çoklu Prosedürel Morfoloji
+  static void drawVoxelMountain(Canvas canvas, Offset baseCenter, {int variant = 0, String season = 'SPRING', bool isZud = false}) {
+    drawVoxelMountainVariant(canvas, baseCenter, variant, season: season, isZud: isZud);
+  }
 
-    final Offset midBase = Offset(baseCenter.dx, baseCenter.dy - 12.0);
-    drawIsoCube(
-      canvas,
-      midBase,
-      w: 24.0,
-      d: 24.0,
-      h: 14.0,
-      topColor: const Color(0xFF94A3B8),
-      leftColor: const Color(0xFF64748B),
-      rightColor: const Color(0xFF475569),
-    );
+  static void drawVoxelMountainVariant(
+    Canvas canvas,
+    Offset baseCenter,
+    int variant, {
+    String season = 'SPRING',
+    bool isZud = false,
+    double scale = 1.0,
+    double animTime = 0.0,
+  }) {
+    final bool isWinter = season == 'WINTER' || isZud;
+    final bool isSummer = season == 'SUMMER';
 
-    final Offset topBase = Offset(baseCenter.dx, midBase.dy - 14.0);
-    drawIsoCube(
-      canvas,
-      topBase,
-      w: 14.0,
-      d: 14.0,
-      h: 12.0,
-      topColor: const Color(0xFFFFFFFF),
-      leftColor: const Color(0xFFE2E8F0),
-      rightColor: const Color(0xFFCBD5E1),
-    );
+    final Color snowTop = isZud ? const Color(0xFFBAE6FD) : const Color(0xFFFFFFFF);
+    final Color snowLeft = isZud ? const Color(0xFF7DD3FC) : const Color(0xFFE2E8F0);
+    final Color snowRight = isZud ? const Color(0xFF38BDF8) : const Color(0xFFCBD5E1);
+
+    final int type = variant % 4;
+    switch (type) {
+      case 0:
+        // Variant 0: Çift Zirveli Sivri Masif (Twin Sharp Peaks)
+        drawIsoCube(
+          canvas,
+          baseCenter,
+          w: 38.0 * scale,
+          d: 38.0 * scale,
+          h: 10.0 * scale,
+          topColor: isWinter ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+          leftColor: const Color(0xFF475569),
+          rightColor: const Color(0xFF334155),
+          drawShadow: true,
+        );
+        final Offset leftMid = Offset(baseCenter.dx - 8.0 * scale, baseCenter.dy - 10.0 * scale);
+        drawIsoCube(
+          canvas,
+          leftMid,
+          w: 18.0 * scale,
+          d: 18.0 * scale,
+          h: 14.0 * scale,
+          topColor: const Color(0xFF94A3B8),
+          leftColor: const Color(0xFF64748B),
+          rightColor: const Color(0xFF475569),
+        );
+        final Offset leftTop = Offset(leftMid.dx, leftMid.dy - 14.0 * scale);
+        drawIsoCube(
+          canvas,
+          leftTop,
+          w: 10.0 * scale,
+          d: 10.0 * scale,
+          h: isSummer ? 8.0 * scale : 14.0 * scale,
+          topColor: snowTop,
+          leftColor: snowLeft,
+          rightColor: snowRight,
+        );
+        final Offset rightMid = Offset(baseCenter.dx + 10.0 * scale, baseCenter.dy - 8.0 * scale);
+        drawIsoCube(
+          canvas,
+          rightMid,
+          w: 16.0 * scale,
+          d: 16.0 * scale,
+          h: 11.0 * scale,
+          topColor: const Color(0xFF94A3B8),
+          leftColor: const Color(0xFF64748B),
+          rightColor: const Color(0xFF475569),
+        );
+        final Offset rightTop = Offset(rightMid.dx, rightMid.dy - 11.0 * scale);
+        drawIsoCube(
+          canvas,
+          rightTop,
+          w: 8.0 * scale,
+          d: 8.0 * scale,
+          h: isSummer ? 6.0 * scale : 10.0 * scale,
+          topColor: snowTop,
+          leftColor: snowLeft,
+          rightColor: snowRight,
+        );
+        break;
+
+      case 1:
+        // Variant 1: Katmanlı Demir Kanyonu / Kızıl Mesa (Stratified Red Mesa)
+        drawIsoCube(
+          canvas,
+          baseCenter,
+          w: 40.0 * scale,
+          d: 36.0 * scale,
+          h: 9.0 * scale,
+          topColor: const Color(0xFF78350F),
+          leftColor: const Color(0xFF5C2B09),
+          rightColor: const Color(0xFF451A03),
+          drawShadow: true,
+        );
+        final Offset step1 = Offset(baseCenter.dx, baseCenter.dy - 9.0 * scale);
+        drawIsoCube(
+          canvas,
+          step1,
+          w: 28.0 * scale,
+          d: 26.0 * scale,
+          h: 9.0 * scale,
+          topColor: const Color(0xFFB45309),
+          leftColor: const Color(0xFF92400E),
+          rightColor: const Color(0xFF78350F),
+        );
+        final Offset step2 = Offset(baseCenter.dx, step1.dy - 9.0 * scale);
+        drawIsoCube(
+          canvas,
+          step2,
+          w: 18.0 * scale,
+          d: 16.0 * scale,
+          h: 8.0 * scale,
+          topColor: isWinter ? snowTop : const Color(0xFFD97706),
+          leftColor: isWinter ? snowLeft : const Color(0xFFB45309),
+          rightColor: isWinter ? snowRight : const Color(0xFF92400E),
+        );
+        drawIsoCube(
+          canvas,
+          Offset(step2.dx + 4.0 * scale, step2.dy - 8.0 * scale),
+          w: 4.0 * scale,
+          d: 4.0 * scale,
+          h: 3.0 * scale,
+          topColor: const Color(0xFFFBBF24),
+          leftColor: const Color(0xFFF59E0B),
+          rightColor: const Color(0xFFD97706),
+        );
+        break;
+
+      case 2:
+        // Variant 2: Kraterli Volkanik Masif (Volcanic Caldera)
+        drawIsoCube(
+          canvas,
+          baseCenter,
+          w: 36.0 * scale,
+          d: 36.0 * scale,
+          h: 12.0 * scale,
+          topColor: const Color(0xFF334155),
+          leftColor: const Color(0xFF1E293B),
+          rightColor: const Color(0xFF0F172A),
+          drawShadow: true,
+        );
+        final Offset midCaldera = Offset(baseCenter.dx, baseCenter.dy - 12.0 * scale);
+        drawIsoCube(
+          canvas,
+          midCaldera,
+          w: 24.0 * scale,
+          d: 24.0 * scale,
+          h: 12.0 * scale,
+          topColor: const Color(0xFF475569),
+          leftColor: const Color(0xFF334155),
+          rightColor: const Color(0xFF1E293B),
+        );
+        final Offset craterBase = Offset(baseCenter.dx, midCaldera.dy - 12.0 * scale);
+        drawIsoCube(
+          canvas,
+          craterBase,
+          w: 12.0 * scale,
+          d: 12.0 * scale,
+          h: 3.0 * scale,
+          topColor: const Color(0xFFDC2626),
+          leftColor: const Color(0xFFB91C1C),
+          rightColor: const Color(0xFF991B1B),
+        );
+        drawIsoCube(
+          canvas,
+          Offset(craterBase.dx, craterBase.dy - 3.0 * scale),
+          w: 6.0 * scale,
+          d: 6.0 * scale,
+          h: 2.0 * scale,
+          topColor: const Color(0xFFFBBF24),
+          leftColor: const Color(0xFFF59E0B),
+          rightColor: const Color(0xFFD97706),
+        );
+        break;
+
+      case 3:
+      default:
+        // Variant 3: Tekil Sarp Boynuz Zirve (Matterhorn Needle Crag)
+        drawIsoCube(
+          canvas,
+          baseCenter,
+          w: 34.0 * scale,
+          d: 34.0 * scale,
+          h: 10.0 * scale,
+          topColor: const Color(0xFF64748B),
+          leftColor: const Color(0xFF475569),
+          rightColor: const Color(0xFF334155),
+          drawShadow: true,
+        );
+        final Offset midSpire = Offset(baseCenter.dx + 2.0 * scale, baseCenter.dy - 10.0 * scale);
+        drawIsoCube(
+          canvas,
+          midSpire,
+          w: 20.0 * scale,
+          d: 20.0 * scale,
+          h: 16.0 * scale,
+          topColor: const Color(0xFF94A3B8),
+          leftColor: const Color(0xFF64748B),
+          rightColor: const Color(0xFF475569),
+        );
+        final Offset topSpire = Offset(midSpire.dx, midSpire.dy - 16.0 * scale);
+        drawIsoCube(
+          canvas,
+          topSpire,
+          w: 10.0 * scale,
+          d: 10.0 * scale,
+          h: 18.0 * scale,
+          topColor: snowTop,
+          leftColor: snowLeft,
+          rightColor: snowRight,
+        );
+        break;
+    }
   }
 
   /// 3D Voxel Oduncu Kulübesi
@@ -1380,5 +1557,293 @@ class VoxelIsometricRenderer {
         rightColor: cargoColor.withValues(alpha: 0.6),
       );
     }
+  }
+
+  // ==========================================
+  // YENİ BİYOM VOKSEL ÇİZİCİLERİ & DETAYLARI
+  // ==========================================
+
+  /// Çöl (Karakum): Katmanlı Kum Tepesi
+  static void drawVoxelSandDunes(Canvas canvas, Offset center, {double scale = 1.0}) {
+    drawIsoCube(
+      canvas,
+      center,
+      w: 26.0 * scale,
+      d: 18.0 * scale,
+      h: 5.0 * scale,
+      topColor: const Color(0xFFFDE68A),
+      leftColor: const Color(0xFFF59E0B),
+      rightColor: const Color(0xFFD97706),
+      drawShadow: true,
+      shadowOpacity: 0.25,
+    );
+    drawIsoCube(
+      canvas,
+      Offset(center.dx + 4 * scale, center.dy - 5.0 * scale),
+      w: 16.0 * scale,
+      d: 12.0 * scale,
+      h: 4.0 * scale,
+      topColor: const Color(0xFFFEF08A),
+      leftColor: const Color(0xFFFBBF24),
+      rightColor: const Color(0xFFF59E0B),
+    );
+  }
+
+  /// Çöl: Voksel Bozkır Kaktüsü / Kurak Diken
+  static void drawVoxelCactus(Canvas canvas, Offset center, {double scale = 1.0}) {
+    // Gövde
+    drawIsoCube(
+      canvas,
+      center,
+      w: 6.0 * scale,
+      d: 6.0 * scale,
+      h: 16.0 * scale,
+      topColor: const Color(0xFF15803D),
+      leftColor: const Color(0xFF166534),
+      rightColor: const Color(0xFF14532D),
+      drawShadow: true,
+      shadowOpacity: 0.3,
+    );
+    // Sol Dal
+    drawIsoCube(
+      canvas,
+      Offset(center.dx - 5.0 * scale, center.dy - 6.0 * scale),
+      w: 4.0 * scale,
+      d: 4.0 * scale,
+      h: 8.0 * scale,
+      topColor: const Color(0xFF16A34A),
+      leftColor: const Color(0xFF15803D),
+      rightColor: const Color(0xFF166534),
+    );
+    // Sağ Dal
+    drawIsoCube(
+      canvas,
+      Offset(center.dx + 5.0 * scale, center.dy - 9.0 * scale),
+      w: 4.0 * scale,
+      d: 4.0 * scale,
+      h: 7.0 * scale,
+      topColor: const Color(0xFF16A34A),
+      leftColor: const Color(0xFF15803D),
+      rightColor: const Color(0xFF166534),
+    );
+  }
+
+  /// Çöl: Kurak Bozkır Çalısı
+  static void drawVoxelDesertShrub(Canvas canvas, Offset center, {double scale = 1.0}) {
+    drawIsoCube(
+      canvas,
+      center,
+      w: 8.0 * scale,
+      d: 8.0 * scale,
+      h: 6.0 * scale,
+      topColor: const Color(0xFFCA8A04),
+      leftColor: const Color(0xFFA16207),
+      rightColor: const Color(0xFF854D0E),
+    );
+  }
+
+  /// Tundra: Donmuş Kaya Sütunu / Dikilitaş (Permafrost Spire)
+  static void drawVoxelPermafrostSpire(Canvas canvas, Offset center, {double scale = 1.0}) {
+    drawIsoCube(
+      canvas,
+      center,
+      w: 14.0 * scale,
+      d: 14.0 * scale,
+      h: 8.0 * scale,
+      topColor: const Color(0xFF64748B),
+      leftColor: const Color(0xFF475569),
+      rightColor: const Color(0xFF334155),
+      drawShadow: true,
+    );
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy - 8.0 * scale),
+      w: 8.0 * scale,
+      d: 8.0 * scale,
+      h: 12.0 * scale,
+      topColor: const Color(0xFF93C5FD),
+      leftColor: const Color(0xFF60A5FA),
+      rightColor: const Color(0xFF3B82F6),
+    );
+  }
+
+  /// Tundra: Yosunlu Arktik Taşlar
+  static void drawVoxelLichenRocks(Canvas canvas, Offset center, {double scale = 1.0}) {
+    drawIsoCube(
+      canvas,
+      center,
+      w: 10.0 * scale,
+      d: 10.0 * scale,
+      h: 5.0 * scale,
+      topColor: const Color(0xFF65A30D),
+      leftColor: const Color(0xFF475569),
+      rightColor: const Color(0xFF334155),
+    );
+    drawIsoCube(
+      canvas,
+      Offset(center.dx + 8 * scale, center.dy + 3 * scale),
+      w: 7.0 * scale,
+      d: 7.0 * scale,
+      h: 4.0 * scale,
+      topColor: const Color(0xFF84CC16),
+      leftColor: const Color(0xFF64748B),
+      rightColor: const Color(0xFF475569),
+    );
+  }
+
+  /// Volkan: Obsidiyen Masif Sütunları
+  static void drawVoxelObsidianPillars(Canvas canvas, Offset center, {double scale = 1.0, double animTime = 0.0}) {
+    drawIsoCube(
+      canvas,
+      center,
+      w: 16.0 * scale,
+      d: 16.0 * scale,
+      h: 12.0 * scale,
+      topColor: const Color(0xFF1E293B),
+      leftColor: const Color(0xFF0F172A),
+      rightColor: const Color(0xFF020617),
+      drawShadow: true,
+    );
+    // Siyah Sivri Prizma
+    drawIsoCube(
+      canvas,
+      Offset(center.dx + 4 * scale, center.dy - 12.0 * scale),
+      w: 8.0 * scale,
+      d: 8.0 * scale,
+      h: 14.0 * scale,
+      topColor: const Color(0xFF334155),
+      leftColor: const Color(0xFF1E293B),
+      rightColor: const Color(0xFF0F172A),
+    );
+  }
+
+  /// Volkan: Lav Çatlağı / Magma Menfezi
+  static void drawVoxelMagmaVent(Canvas canvas, Offset center, {double scale = 1.0, double animTime = 0.0}) {
+    final double pulse = (math.sin(animTime * 3.0) + 1.0) * 0.5;
+    final Color magmaColor = Color.lerp(const Color(0xFFEA580C), const Color(0xFFFBBF24), pulse)!;
+
+    drawIsoCube(
+      canvas,
+      center,
+      w: 12.0 * scale,
+      d: 12.0 * scale,
+      h: 3.0 * scale,
+      topColor: magmaColor,
+      leftColor: const Color(0xFFDC2626),
+      rightColor: const Color(0xFF991B1B),
+    );
+  }
+
+  /// Sazlık: Bozkır Kamışları & Sazlar
+  static void drawVoxelReeds(Canvas canvas, Offset center, {double scale = 1.0, double animTime = 0.0}) {
+    final double windSway = math.sin(animTime * 2.5) * 1.5 * scale;
+
+    drawIsoCube(
+      canvas,
+      Offset(center.dx - 4 * scale + windSway, center.dy),
+      w: 3.0 * scale,
+      d: 3.0 * scale,
+      h: 14.0 * scale,
+      topColor: const Color(0xFF65A30D),
+      leftColor: const Color(0xFF4D7C0F),
+      rightColor: const Color(0xFF3F6212),
+    );
+    drawIsoCube(
+      canvas,
+      Offset(center.dx + 3 * scale + windSway * 0.8, center.dy + 2 * scale),
+      w: 3.0 * scale,
+      d: 3.0 * scale,
+      h: 16.0 * scale,
+      topColor: const Color(0xFF84CC16),
+      leftColor: const Color(0xFF65A30D),
+      rightColor: const Color(0xFF4D7C0F),
+    );
+    drawIsoCube(
+      canvas,
+      Offset(center.dx - 1 * scale, center.dy + 4 * scale),
+      w: 3.0 * scale,
+      d: 3.0 * scale,
+      h: 11.0 * scale,
+      topColor: const Color(0xFF4D7C0F),
+      leftColor: const Color(0xFF3F6212),
+      rightColor: const Color(0xFF365314),
+    );
+  }
+
+  /// Sazlık: Nilüfer Yaprağı ve Çiçeği
+  static void drawVoxelWaterLilies(Canvas canvas, Offset center, {double scale = 1.0}) {
+    drawIsoCube(
+      canvas,
+      center,
+      w: 8.0 * scale,
+      d: 8.0 * scale,
+      h: 1.5 * scale,
+      topColor: const Color(0xFF10B981),
+      leftColor: const Color(0xFF059669),
+      rightColor: const Color(0xFF047857),
+    );
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy - 1.5 * scale),
+      w: 3.0 * scale,
+      d: 3.0 * scale,
+      h: 2.5 * scale,
+      topColor: const Color(0xFFF472B6),
+      leftColor: const Color(0xFFEC4899),
+      rightColor: const Color(0xFFDB2777),
+    );
+  }
+
+  /// Mevsimsel: Bahar Gelincikleri / Kır Laleleri
+  static void drawVoxelSpringPoppies(Canvas canvas, Offset center, {double scale = 1.0}) {
+    drawIsoCube(
+      canvas,
+      center,
+      w: 4.0 * scale,
+      d: 4.0 * scale,
+      h: 4.0 * scale,
+      topColor: const Color(0xFFEF4444),
+      leftColor: const Color(0xFFDC2626),
+      rightColor: const Color(0xFFB91C1C),
+    );
+    drawIsoCube(
+      canvas,
+      Offset(center.dx + 6 * scale, center.dy + 4 * scale),
+      w: 3.0 * scale,
+      d: 3.0 * scale,
+      h: 3.0 * scale,
+      topColor: const Color(0xFFF59E0B),
+      leftColor: const Color(0xFFD97706),
+      rightColor: const Color(0xFFB45309),
+    );
+  }
+
+  /// Mevsimsel: Sonbahar Kızıl Yaprak Kümesi
+  static void drawVoxelAutumnFoliage(Canvas canvas, Offset center, {double scale = 1.0}) {
+    drawIsoCube(
+      canvas,
+      center,
+      w: 8.0 * scale,
+      d: 8.0 * scale,
+      h: 3.0 * scale,
+      topColor: const Color(0xFFEA580C),
+      leftColor: const Color(0xFFC2410C),
+      rightColor: const Color(0xFF9A3412),
+    );
+  }
+
+  /// Mevsimsel: Kış Kıyı Buz Kütleleri (Ice Floes)
+  static void drawVoxelIceFloes(Canvas canvas, Offset center, {double scale = 1.0, double animTime = 0.0}) {
+    final double bob = math.sin(animTime * 1.5) * 1.0;
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy + bob),
+      w: 12.0 * scale,
+      d: 8.0 * scale,
+      h: 2.0 * scale,
+      topColor: const Color(0xFFE0F2FE),
+      leftColor: const Color(0xFFBAE6FD),
+      rightColor: const Color(0xFF7DD3FC),
+    );
   }
 }

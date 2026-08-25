@@ -6,6 +6,10 @@ enum TileBiome {
   forest,
   mountain,
   sea,
+  desert,
+  tundra,
+  volcano,
+  wetland,
 }
 
 enum TileState {

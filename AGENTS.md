@@ -30,3 +30,22 @@ Bu dosya, projede çalışan tüm yapay zeka ajanları ve geliştiriciler için 
 
 5. **Test ve Doğrulama:**
    - Her geliştirme adımından sonra `flutter test` çalıştırılarak tüm testlerin eksiksiz geçtiği teyit edilmelidir.
+
+6. **Yerel Öncelikli Çalışma ve Dağıtım Kontrolü (Deployment Guard):**
+   - Kullanıcıdan açık ve net bir talimat gelmedikçe (örn. *"push et"*, *"web build al"*) kesinlikle `git push` yapılamaz ve `flutter build web` tetiklenemez.
+   - Tüm geliştirme, deneme ve doğrulamalar yerel çalışma alanında tutulmalıdır.
+
+7. **Flame Motoru Render ve Bellek Bütçesi (Zero-GC & 60 FPS):**
+   - `render(Canvas canvas)` ve `update(double dt)` döngüleri içinde her karede dinamik `Paint()` veya `Path()` nesnesi oluşturulamaz (`new`lenemez).
+   - Çizim araçları `static final` veya bileşen seviyesinde önceden tahsis edilmiş olmalıdır.
+
+8. **İmmutable State ve Katman Ayrımı:**
+   - `GameState` ve tüm alt veri modelleri kesinlikle `immutable` (`copyWith`) kalmalıdır.
+   - Formüller ve zamanlayıcılar UI katmanında değil, `EconomyCalculator` ve `GameStateNotifier` içinde izole edilmelidir.
+
+9. **Kayıt Güvenliği ve Migrasyon (Save Integrity):**
+   - Yerel depolamaya yazılan oyun durumlarında `schemaVersion` bulunmalı ve geriye dönük uyumlu migrasyon mekanizması korunmalıdır.
+
+10. **Dokunsal Ses ve Haptik Standardı (Tactile Audio & Haptics):**
+    - Sentetik/dijital sesler yerine taş, ahşap ve demir gibi organik sesler kullanılmalıdır.
+    - Tıklanabilir tüm interaktif butonlarda hafif dokunsal titreşim (`HapticFeedback.lightImpact`) sağlanmalıdır.

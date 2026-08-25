@@ -97,11 +97,16 @@ class HexTileComponent extends PositionComponent {
     if (tileModel.isFog) return 0.0;
     switch (biome) {
       case TileBiome.sea:
+      case TileBiome.wetland:
         return 0.0;
       case TileBiome.meadow:
+      case TileBiome.desert:
+        return 10.0;
       case TileBiome.forest:
+      case TileBiome.tundra:
         return 12.0;
       case TileBiome.mountain:
+      case TileBiome.volcano:
         return 20.0;
     }
   }
@@ -282,17 +287,29 @@ class HexTileComponent extends PositionComponent {
         case TileBiome.sea:
           _renderLivingSea(canvas, center, seed);
           break;
+        case TileBiome.desert:
+          _renderLivingDesert(canvas, center, seed);
+          break;
+        case TileBiome.tundra:
+          _renderLivingTundra(canvas, center, seed);
+          break;
+        case TileBiome.volcano:
+          _renderLivingVolcano(canvas, center, seed);
+          break;
+        case TileBiome.wetland:
+          _renderLivingWetland(canvas, center, seed);
+          break;
       }
     }
 
-    // Gece Ateşböcekleri (Orman ve Çayırlarda)
-    if (isNight && (tileModel.biome == TileBiome.forest || tileModel.biome == TileBiome.meadow)) {
+    if (isNight && (tileModel.biome == TileBiome.forest || tileModel.biome == TileBiome.meadow || tileModel.biome == TileBiome.wetland)) {
       VoxelIsometricRenderer.drawVoxelFireflies(canvas, center, animTime: _animTimer, seed: seed);
     }
   }
 
   void _renderLivingForest(Canvas canvas, Offset center, int seed) {
     final int variant = seed % 4;
+    final bool isAutumn = season == 'AUTUMN';
 
     switch (variant) {
       case 0:
@@ -323,7 +340,11 @@ class HexTileComponent extends PositionComponent {
           scale: 0.75,
           animTime: _animTimer,
         );
-        VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx + 6, center.dy + 6), scale: 0.85);
+        if (isAutumn) {
+          VoxelIsometricRenderer.drawVoxelAutumnFoliage(canvas, Offset(center.dx + 4, center.dy + 6), scale: 0.85);
+        } else {
+          VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx + 6, center.dy + 6), scale: 0.85);
+        }
         break;
       case 2:
         VoxelIsometricRenderer.drawVoxelPine(
@@ -350,22 +371,13 @@ class HexTileComponent extends PositionComponent {
       default:
         VoxelIsometricRenderer.drawVoxelTree(
           canvas,
-          Offset(center.dx - 4, center.dy + 2),
-          scale: 1.0,
-          foliageTint: const Color(0xFF34D399),
+          Offset(center.dx + 6, center.dy - 4),
+          scale: 1.05,
           animTime: _animTimer,
         );
-        VoxelIsometricRenderer.drawVoxelTree(
+        VoxelIsometricRenderer.drawVoxelPebbles(
           canvas,
-          Offset(center.dx + 12, center.dy - 4),
-          scale: 0.75,
-          foliageTint: const Color(0xFFFBBF24),
-          animTime: _animTimer,
-        );
-        VoxelIsometricRenderer.drawVoxelFlowers(
-          canvas,
-          Offset(center.dx - 12, center.dy + 8),
-          flowerColor: const Color(0xFFF43F5E),
+          Offset(center.dx - 10, center.dy + 6),
           scale: 0.9,
         );
         break;
@@ -374,48 +386,48 @@ class HexTileComponent extends PositionComponent {
 
   void _renderLivingMeadow(Canvas canvas, Offset center, int seed) {
     final int variant = seed % 4;
+    final bool isSpring = season == 'SPRING';
 
     switch (variant) {
       case 0:
+        if (isSpring) {
+          VoxelIsometricRenderer.drawVoxelSpringPoppies(canvas, Offset(center.dx - 6, center.dy + 2), scale: 0.9);
+        } else {
+          VoxelIsometricRenderer.drawVoxelFlowers(
+            canvas,
+            Offset(center.dx - 8, center.dy + 4),
+            flowerColor: const Color(0xFFFBBF24),
+            scale: 0.85,
+          );
+        }
+        VoxelIsometricRenderer.drawVoxelFlowers(
+          canvas,
+          Offset(center.dx + 10, center.dy - 6),
+          flowerColor: const Color(0xFFF43F5E),
+          scale: 0.75,
+        );
+        break;
+      case 1:
         VoxelIsometricRenderer.drawVoxelSheep(
           canvas,
-          Offset(center.dx - 2, center.dy + 2),
+          Offset(center.dx + 4, center.dy),
           animTime: _animTimer,
           seed: seed,
           scale: 0.9,
         );
         VoxelIsometricRenderer.drawVoxelFlowers(
           canvas,
-          Offset(center.dx + 12, center.dy - 6),
-          flowerColor: const Color(0xFFEC4899),
-          scale: 0.8,
-        );
-        break;
-      case 1:
-        VoxelIsometricRenderer.drawVoxelFlowers(
-          canvas,
-          Offset(center.dx - 8, center.dy + 2),
-          flowerColor: const Color(0xFFEF4444),
-          scale: 0.9,
-        );
-        VoxelIsometricRenderer.drawVoxelFlowers(
-          canvas,
-          Offset(center.dx + 8, center.dy - 4),
+          Offset(center.dx - 12, center.dy - 4),
           flowerColor: const Color(0xFF38BDF8),
-          scale: 0.85,
-        );
-        VoxelIsometricRenderer.drawVoxelFlowers(
-          canvas,
-          Offset(center.dx - 2, center.dy - 8),
-          flowerColor: const Color(0xFFFACC15),
           scale: 0.8,
         );
         break;
       case 2:
-        VoxelIsometricRenderer.drawVoxelPebbles(
+        VoxelIsometricRenderer.drawVoxelTree(
           canvas,
-          Offset(center.dx - 4, center.dy + 2),
-          scale: 0.95,
+          Offset(center.dx - 10, center.dy - 6),
+          scale: 0.75,
+          animTime: _animTimer,
         );
         VoxelIsometricRenderer.drawIsoCube(
           canvas,
@@ -447,7 +459,14 @@ class HexTileComponent extends PositionComponent {
   }
 
   void _renderLivingMountain(Canvas canvas, Offset center, int seed) {
-    VoxelIsometricRenderer.drawVoxelMountain(canvas, center);
+    VoxelIsometricRenderer.drawVoxelMountainVariant(
+      canvas,
+      center,
+      seed,
+      season: season,
+      isZud: isZud,
+      animTime: _animTimer,
+    );
     if (seed % 2 == 0) {
       VoxelIsometricRenderer.drawVoxelPebbles(
         canvas,
@@ -458,6 +477,12 @@ class HexTileComponent extends PositionComponent {
   }
 
   void _renderLivingSea(Canvas canvas, Offset center, int seed) {
+    final bool isWinter = season == 'WINTER' || isZud;
+    if (isWinter) {
+      VoxelIsometricRenderer.drawVoxelIceFloes(canvas, center, scale: 0.9, animTime: _animTimer);
+      return;
+    }
+
     final double waveOffset = math.sin(_animTimer * 2.0 + (seed % 5)) * 3.5;
     VoxelIsometricRenderer.drawIsoCube(
       canvas,
@@ -470,13 +495,99 @@ class HexTileComponent extends PositionComponent {
       rightColor: const Color(0xFF38BDF8),
     );
 
-    // Sıçrayan Gümüş Balıklar
     VoxelIsometricRenderer.drawVoxelLeapingFish(
       canvas,
       center,
       animTime: _animTimer,
       seed: seed,
     );
+  }
+
+  void _renderLivingDesert(Canvas canvas, Offset center, int seed) {
+    final int variant = seed % 4;
+    switch (variant) {
+      case 0:
+        VoxelIsometricRenderer.drawVoxelSandDunes(canvas, Offset(center.dx - 4, center.dy + 2), scale: 0.9);
+        VoxelIsometricRenderer.drawVoxelCactus(canvas, Offset(center.dx + 12, center.dy - 6), scale: 0.85);
+        break;
+      case 1:
+        VoxelIsometricRenderer.drawVoxelCactus(canvas, Offset(center.dx - 6, center.dy), scale: 1.05);
+        VoxelIsometricRenderer.drawVoxelDesertShrub(canvas, Offset(center.dx + 10, center.dy + 4), scale: 0.9);
+        break;
+      case 2:
+        VoxelIsometricRenderer.drawVoxelSandDunes(canvas, center, scale: 1.1);
+        break;
+      case 3:
+      default:
+        VoxelIsometricRenderer.drawVoxelDesertShrub(canvas, Offset(center.dx - 8, center.dy - 4), scale: 1.0);
+        VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx + 8, center.dy + 4), scale: 0.8);
+        break;
+    }
+  }
+
+  void _renderLivingTundra(Canvas canvas, Offset center, int seed) {
+    final int variant = seed % 4;
+    switch (variant) {
+      case 0:
+        VoxelIsometricRenderer.drawVoxelPermafrostSpire(canvas, Offset(center.dx - 4, center.dy - 2), scale: 0.95);
+        VoxelIsometricRenderer.drawVoxelLichenRocks(canvas, Offset(center.dx + 10, center.dy + 6), scale: 0.85);
+        break;
+      case 1:
+        VoxelIsometricRenderer.drawVoxelLichenRocks(canvas, Offset(center.dx - 6, center.dy), scale: 1.0);
+        VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx + 8, center.dy - 6), scale: 0.9);
+        break;
+      case 2:
+        VoxelIsometricRenderer.drawVoxelPermafrostSpire(canvas, center, scale: 1.1);
+        break;
+      case 3:
+      default:
+        VoxelIsometricRenderer.drawVoxelPine(canvas, Offset(center.dx - 6, center.dy - 4), scale: 0.65, animTime: _animTimer);
+        VoxelIsometricRenderer.drawVoxelLichenRocks(canvas, Offset(center.dx + 8, center.dy + 4), scale: 0.8);
+        break;
+    }
+  }
+
+  void _renderLivingVolcano(Canvas canvas, Offset center, int seed) {
+    final int variant = seed % 4;
+    switch (variant) {
+      case 0:
+        VoxelIsometricRenderer.drawVoxelObsidianPillars(canvas, Offset(center.dx - 6, center.dy - 2), scale: 0.95, animTime: _animTimer);
+        VoxelIsometricRenderer.drawVoxelMagmaVent(canvas, Offset(center.dx + 8, center.dy + 4), scale: 0.85, animTime: _animTimer);
+        break;
+      case 1:
+        VoxelIsometricRenderer.drawVoxelMagmaVent(canvas, center, scale: 1.1, animTime: _animTimer);
+        break;
+      case 2:
+        VoxelIsometricRenderer.drawVoxelObsidianPillars(canvas, center, scale: 1.15, animTime: _animTimer);
+        break;
+      case 3:
+      default:
+        VoxelIsometricRenderer.drawVoxelObsidianPillars(canvas, Offset(center.dx + 6, center.dy - 4), scale: 0.9, animTime: _animTimer);
+        VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx - 8, center.dy + 4), scale: 0.8);
+        break;
+    }
+  }
+
+  void _renderLivingWetland(Canvas canvas, Offset center, int seed) {
+    final int variant = seed % 4;
+    switch (variant) {
+      case 0:
+        VoxelIsometricRenderer.drawVoxelReeds(canvas, Offset(center.dx - 6, center.dy - 2), scale: 0.95, animTime: _animTimer);
+        VoxelIsometricRenderer.drawVoxelWaterLilies(canvas, Offset(center.dx + 8, center.dy + 4), scale: 0.85);
+        break;
+      case 1:
+        VoxelIsometricRenderer.drawVoxelReeds(canvas, center, scale: 1.1, animTime: _animTimer);
+        break;
+      case 2:
+        VoxelIsometricRenderer.drawVoxelWaterLilies(canvas, Offset(center.dx - 4, center.dy), scale: 1.0);
+        VoxelIsometricRenderer.drawVoxelLeapingFish(canvas, Offset(center.dx + 8, center.dy + 4), animTime: _animTimer, seed: seed);
+        break;
+      case 3:
+      default:
+        VoxelIsometricRenderer.drawVoxelReeds(canvas, Offset(center.dx + 6, center.dy - 4), scale: 0.9, animTime: _animTimer);
+        VoxelIsometricRenderer.drawVoxelBirchTree(canvas, Offset(center.dx - 8, center.dy + 4), scale: 0.6, animTime: _animTimer);
+        break;
+    }
   }
 
   void _renderBrutalistBadges(Canvas canvas, Offset center) {
@@ -533,21 +644,56 @@ class HexTileComponent extends PositionComponent {
   }
 
   Color _getBiomeTopColor(TileBiome biome) {
-    final bool isWinter = season == 'WINTER';
+    final bool isWinter = season == 'WINTER' || isZud;
+    final bool isAutumn = season == 'AUTUMN';
+    final bool isSummer = season == 'SUMMER';
+
     switch (biome) {
       case TileBiome.meadow:
-        return isWinter ? const Color(0xFFE2E8F0) : const Color(0xFF86EFAC);
+        if (isWinter) return const Color(0xFFE2E8F0);
+        if (isAutumn) return const Color(0xFFFBBF24);
+        if (isSummer) return const Color(0xFF4ADE80);
+        return const Color(0xFF86EFAC);
+
       case TileBiome.forest:
-        return isWinter ? const Color(0xFFCBD5E1) : const Color(0xFF4ADE80);
+        if (isWinter) return const Color(0xFFCBD5E1);
+        if (isAutumn) return const Color(0xFFEA580C);
+        if (isSummer) return const Color(0xFF16A34A);
+        return const Color(0xFF22C55E);
+
       case TileBiome.mountain:
-        return isWinter ? const Color(0xFFF8FAFC) : const Color(0xFF94A3B8);
+        if (isWinter) return const Color(0xFFF8FAFC);
+        if (isAutumn) return const Color(0xFF78350F);
+        return const Color(0xFF94A3B8);
+
       case TileBiome.sea:
-        return isWinter ? const Color(0xFF60A5FA) : const Color(0xFF38BDF8);
+        if (isWinter) return const Color(0xFFBAE6FD);
+        if (isAutumn) return const Color(0xFF0284C7);
+        return const Color(0xFF38BDF8);
+
+      case TileBiome.desert:
+        if (isWinter) return const Color(0xFFFEF08A);
+        if (isAutumn) return const Color(0xFFD97706);
+        if (isSummer) return const Color(0xFFF59E0B);
+        return const Color(0xFFFDE047);
+
+      case TileBiome.tundra:
+        if (isWinter) return const Color(0xFFE0F2FE);
+        if (isAutumn) return const Color(0xFFC084FC);
+        return const Color(0xFF93C5FD);
+
+      case TileBiome.volcano:
+        return const Color(0xFF1E293B);
+
+      case TileBiome.wetland:
+        if (isWinter) return const Color(0xFF94A3B8);
+        if (isAutumn) return const Color(0xFFA3E635);
+        return const Color(0xFF34D399);
     }
   }
 
   (Color, Color, Color) _getBiome3DWallColors(TileBiome biome) {
-    final bool isWinter = season == 'WINTER';
+    final bool isWinter = season == 'WINTER' || isZud;
     switch (biome) {
       case TileBiome.meadow:
       case TileBiome.forest:
@@ -555,13 +701,27 @@ class HexTileComponent extends PositionComponent {
           return (const Color(0xFFCBD5E1), const Color(0xFF94A3B8), const Color(0xFF475569));
         }
         return (const Color(0xFF65A30D), const Color(0xFF4D7C0F), const Color(0xFF5C3A21));
+
       case TileBiome.mountain:
         if (isWinter) {
           return (const Color(0xFF94A3B8), const Color(0xFF64748B), const Color(0xFF334155));
         }
         return (const Color(0xFF64748B), const Color(0xFF475569), const Color(0xFF334155));
+
       case TileBiome.sea:
         return (const Color(0xFF0284C7), const Color(0xFF0369A1), const Color(0xFF075985));
+
+      case TileBiome.desert:
+        return (const Color(0xFFD97706), const Color(0xFFB45309), const Color(0xFF78350F));
+
+      case TileBiome.tundra:
+        return (const Color(0xFF60A5FA), const Color(0xFF3B82F6), const Color(0xFF1D4ED8));
+
+      case TileBiome.volcano:
+        return (const Color(0xFF0F172A), const Color(0xFF020617), const Color(0xFF450A0A));
+
+      case TileBiome.wetland:
+        return (const Color(0xFF059669), const Color(0xFF047857), const Color(0xFF064E3B));
     }
   }
 }

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/audio/tactile_audio_service.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../providers/game_state_notifier.dart';
 import 'icons/game_vector_icons.dart';
+import 'tactile_neo_button.dart';
 
 class ToreDialog extends ConsumerWidget {
   const ToreDialog({super.key});
@@ -119,31 +121,24 @@ class ToreDialog extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    const GameVectorIcon(type: GameIconType.tore, size: 22),
-                    const SizedBox(width: 10),
+                    const GameVectorIcon(type: GameIconType.tore, size: 20),
+                    const SizedBox(width: 8),
                     Text(
                       GameLocalization.get('tore_title', lang: lang).toUpperCase(),
-                      style: NeoBrutalistTheme.fontTitle,
+                      style: NeoBrutalistTheme.fontHeaderMonolith,
                     ),
                   ],
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF334155),
-                    borderRadius: NeoBrutalistTheme.sharpRadius,
-                    border: Border.all(color: Colors.black, width: 1.5),
-                    boxShadow: NeoBrutalistTheme.hardShadowSmall,
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white, size: 16),
-                    onPressed: () => Navigator.of(context).pop(),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
-                  ),
+                TactileNeoButton(
+                  onTap: () => Navigator.of(context).pop(),
+                  backgroundColor: const Color(0xFF334155),
+                  shadowOffset: 2.0,
+                  padding: const EdgeInsets.all(5),
+                  child: const Icon(Icons.close, color: Colors.white, size: 16),
                 ),
               ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Container(
@@ -151,7 +146,7 @@ class ToreDialog extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: const Color(0xFF0F172A),
                     borderRadius: NeoBrutalistTheme.sharpRadius,
-                    border: Border.all(color: Colors.black, width: 1.5),
+                    border: Border.all(color: const Color(0xFF334155), width: 1.5),
                     boxShadow: NeoBrutalistTheme.hardShadowSmall,
                   ),
                   child: Row(
@@ -180,10 +175,10 @@ class ToreDialog extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'KADİM TÖRE YETENEKLERİ:',
+                      'TÖRE KANUNLARI (KALICI YÜKSELTMELER):',
                       style: TextStyle(
                         color: Color(0xFFFFC700),
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0.5,
                       ),
@@ -192,6 +187,7 @@ class ToreDialog extends ConsumerWidget {
                     ...talents.map((t) {
                       final int cost = t['cost'] as int;
                       final bool canAfford = crowns >= cost;
+
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
                         padding: const EdgeInsets.all(10),
@@ -199,7 +195,7 @@ class ToreDialog extends ConsumerWidget {
                           color: const Color(0xFF0F172A),
                           borderRadius: NeoBrutalistTheme.sharpRadius,
                           border: Border.all(
-                            color: canAfford ? const Color(0xFF8B5CF6) : Colors.black,
+                            color: canAfford ? const Color(0xFF8B5CF6) : const Color(0xFF334155),
                             width: 1.8,
                           ),
                           boxShadow: NeoBrutalistTheme.hardShadowSmall,
@@ -236,24 +232,21 @@ class ToreDialog extends ConsumerWidget {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            ElevatedButton(
-                              onPressed: canAfford
+                            TactileNeoButton(
+                              onTap: canAfford
                                   ? () => notifier.upgradeToreTalent(
                                         t['branch'] as String,
                                         t['key'] as String,
                                         cost,
                                       )
                                   : null,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: canAfford ? const Color(0xFF8B5CF6) : const Color(0xFF475569),
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: NeoBrutalistTheme.sharpRadius,
-                                  side: BorderSide(color: Colors.black, width: 1.6),
-                                ),
-                                elevation: 0,
-                              ),
+                              isEnabled: canAfford,
+                              backgroundColor: const Color(0xFF8B5CF6),
+                              borderColor: Colors.black,
+                              shadowColor: const Color(0xFF4C1D95),
+                              shadowOffset: 2.0,
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              soundType: TactileSoundType.upgrade,
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -261,7 +254,11 @@ class ToreDialog extends ConsumerWidget {
                                   const SizedBox(width: 4),
                                   Text(
                                     '$cost TAÇ',
-                                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -275,7 +272,7 @@ class ToreDialog extends ConsumerWidget {
                       'KRALLIK UNVANLARI & BAŞARIMLAR:',
                       style: TextStyle(
                         color: Color(0xFFFFC700),
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0.5,
                       ),
@@ -292,7 +289,7 @@ class ToreDialog extends ConsumerWidget {
                           color: isOwned ? const Color(0xFF064E3B) : const Color(0xFF0F172A),
                           borderRadius: NeoBrutalistTheme.sharpRadius,
                           border: Border.all(
-                            color: isOwned ? const Color(0xFF10B981) : Colors.black,
+                            color: isOwned ? const Color(0xFF10B981) : const Color(0xFF334155),
                             width: 1.8,
                           ),
                           boxShadow: NeoBrutalistTheme.hardShadowSmall,
@@ -341,21 +338,22 @@ class ToreDialog extends ConsumerWidget {
                                 ),
                               )
                             else
-                              ElevatedButton(
-                                onPressed: canClaim ? () => notifier.claimTitle(t['key'] as String) : null,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: canClaim ? const Color(0xFFFFC700) : const Color(0xFF475569),
-                                  foregroundColor: Colors.black,
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  shape: const RoundedRectangleBorder(
-                                    borderRadius: NeoBrutalistTheme.sharpRadius,
-                                    side: BorderSide(color: Colors.black, width: 1.6),
-                                  ),
-                                  elevation: 0,
-                                ),
+                              TactileNeoButton(
+                                onTap: canClaim ? () => notifier.claimTitle(t['key'] as String) : null,
+                                isEnabled: canClaim,
+                                backgroundColor: const Color(0xFFFFC700),
+                                borderColor: Colors.black,
+                                shadowColor: const Color(0xFF78350F),
+                                shadowOffset: 2.0,
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                soundType: TactileSoundType.reward,
                                 child: Text(
                                   GameLocalization.get('claim_title', lang: lang).toUpperCase(),
-                                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                  ),
                                 ),
                               ),
                           ],

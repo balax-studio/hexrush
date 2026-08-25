@@ -18,15 +18,19 @@ class LowPolyBuildingRenderer {
   ) {
     switch (biome) {
       case TileBiome.meadow:
+      case TileBiome.desert:
         _drawLowPolyMeadowTuft(canvas, center, animTime);
         break;
       case TileBiome.forest:
+      case TileBiome.tundra:
         _drawLowPolyPineTrees(canvas, center);
         break;
       case TileBiome.mountain:
+      case TileBiome.volcano:
         _drawLowPolyMountainPeaks(canvas, center);
         break;
       case TileBiome.sea:
+      case TileBiome.wetland:
         _drawLowPolyWaves(canvas, center, animTime);
         break;
     }

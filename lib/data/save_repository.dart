@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../domain/models/game_state_model.dart';
 import '../domain/models/hex_tile_model.dart';
+import '../domain/models/quest_model.dart';
 
 class SaveDataBundle {
   final int timestamp;
@@ -13,6 +14,7 @@ class SaveDataBundle {
   final Map<String, dynamic> toreTalents;
   final Map<String, dynamic> titles;
   final Map<String, dynamic> stats;
+  final List<QuestModel> quests;
 
   const SaveDataBundle({
     required this.timestamp,
@@ -24,6 +26,7 @@ class SaveDataBundle {
     this.toreTalents = const {},
     this.titles = const {},
     this.stats = const {},
+    this.quests = const [],
   });
 }
 
@@ -70,6 +73,15 @@ class SaveRepository {
         }
       }
 
+      final List<QuestModel> quests = [];
+      if (data.containsKey('quests') && data['quests'] is List) {
+        for (final item in (data['quests'] as List)) {
+          if (item is Map<String, dynamic>) {
+            quests.add(QuestModel.fromJson(item));
+          }
+        }
+      }
+
       final toreTalents =
           data['tore']?['tore_talents'] as Map<String, dynamic>? ?? {};
       final titles = data['titles'] as Map<String, dynamic>? ?? {};
@@ -85,6 +97,7 @@ class SaveRepository {
         toreTalents: toreTalents,
         titles: titles,
         stats: stats,
+        quests: quests,
       );
     } catch (e) {
       // JSON parse error fallback
@@ -102,6 +115,7 @@ class SaveRepository {
     Map<String, dynamic> toreTalents = const {},
     Map<String, dynamic> titles = const {},
     Map<String, dynamic> stats = const {},
+    List<QuestModel> quests = const [],
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final data = {
@@ -115,6 +129,7 @@ class SaveRepository {
       'tore': {'tore_talents': toreTalents},
       'titles': titles,
       'stats': stats,
+      'quests': quests.map((q) => q.toJson()).toList(),
     };
 
     return prefs.setString(_saveKey, jsonEncode(data));

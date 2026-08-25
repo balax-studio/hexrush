@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/audio/tactile_audio_service.dart';
 import '../../core/hex/hex_coordinates.dart';
 import '../../data/save_repository.dart';
 import '../../domain/economy/economy_calculator.dart';
@@ -8,6 +9,7 @@ import '../../domain/models/building_model.dart';
 import '../../domain/models/game_state.dart';
 import '../../domain/models/game_state_model.dart';
 import '../../domain/models/hex_tile_model.dart';
+import '../../domain/models/quest_model.dart';
 
 final gameStateProvider =
     StateNotifierProvider<GameStateNotifier, GameState>((ref) {
@@ -20,6 +22,92 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
   GameStateNotifier() : super(_createInitialState()) {
     initialize();
+  }
+
+  static List<QuestModel> _generateInitialQuests() {
+    return const [
+      QuestModel(
+        id: 'q_corn_1',
+        titleTr: 'Bozkırın Ekmeği',
+        titleEn: 'Bread of the Steppe',
+        descriptionTr: 'Krallığı beslemek için 1 adet Buğday Tarlası inşa et.',
+        descriptionEn: 'Build 1 Corn Farm to feed your realm.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.corn,
+        targetAmount: 1,
+        rewardType: QuestRewardType.wood,
+        rewardAmount: 30,
+      ),
+      QuestModel(
+        id: 'q_conquer_3',
+        titleTr: 'Toprakları Genişlet',
+        titleEn: 'Expand Territory',
+        descriptionTr: 'Sisi yararak toplam 3 karo fethet.',
+        descriptionEn: 'Conquer a total of 3 hex tiles.',
+        type: QuestType.conquerTiles,
+        targetAmount: 3,
+        rewardType: QuestRewardType.food,
+        rewardAmount: 50,
+      ),
+      QuestModel(
+        id: 'q_lumberjack_1',
+        titleTr: 'Kereste Tedariği',
+        titleEn: 'Timber Supply',
+        descriptionTr: 'Ormana 1 adet Oduncu Kulübesi kur.',
+        descriptionEn: 'Build 1 Lumberjack Lodge in the forest.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.lumberjack,
+        targetAmount: 1,
+        rewardType: QuestRewardType.food,
+        rewardAmount: 60,
+      ),
+      QuestModel(
+        id: 'q_windmill_1',
+        titleTr: 'Değirmen Çarkı',
+        titleEn: 'Mill Wheel',
+        descriptionTr: 'Buğdayı una dönüştürmek için 1 Değirmen inşa et.',
+        descriptionEn: 'Build 1 Windmill to process grain into flour.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.windmill,
+        targetAmount: 1,
+        rewardType: QuestRewardType.wood,
+        rewardAmount: 80,
+      ),
+      QuestModel(
+        id: 'q_castle_2',
+        titleTr: 'Han Otağı Yükselişi',
+        titleEn: 'Seat of the Khan',
+        descriptionTr: 'Şatonu Seviye 2\'ye yükselt.',
+        descriptionEn: 'Upgrade your Castle to Level 2.',
+        type: QuestType.upgradeCastle,
+        targetAmount: 2,
+        rewardType: QuestRewardType.crowns,
+        rewardAmount: 2,
+      ),
+      QuestModel(
+        id: 'q_bakery_1',
+        titleTr: 'Sıcak Tandır',
+        titleEn: 'Warm Bakery',
+        descriptionTr: 'Unu ekmeğe dönüştürmek için 1 Fırın inşa et.',
+        descriptionEn: 'Build 1 Bakery to bake bread from flour.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.bakery,
+        targetAmount: 1,
+        rewardType: QuestRewardType.wood,
+        rewardAmount: 100,
+      ),
+      QuestModel(
+        id: 'q_shrine_1',
+        titleTr: 'Kadim Rünlerin Gücü',
+        titleEn: 'Ancient Rune Power',
+        descriptionTr: 'Bozkırda 1 adet Kadim Sunak keşfet ve fethet.',
+        descriptionEn: 'Discover and conquer 1 Ancient Shrine.',
+        type: QuestType.discoverShrine,
+        targetAmount: 1,
+        rewardType: QuestRewardType.crowns,
+        rewardAmount: 3,
+      ),
+    ];
   }
 
   static GameState _createInitialState() {
@@ -71,6 +159,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       tiles: map,
       resources: const ResourcesModel(food: 50.0, wood: 20.0),
       progression: const ProgressionModel(castleLevel: 1, ownedCount: 1),
+      quests: _generateInitialQuests(),
     );
   }
 
@@ -96,7 +185,10 @@ class GameStateNotifier extends StateNotifier<GameState> {
         toreTalents: save.toreTalents,
         titles: save.titles,
         stats: save.stats,
+        quests: save.quests.isNotEmpty ? save.quests : _generateInitialQuests(),
       );
+
+      _syncQuestProgress();
 
       // Offline gelir hesapla
       final double globalMult = EconomyCalculator.getGlobalMultiplier(
@@ -462,22 +554,28 @@ class GameStateNotifier extends StateNotifier<GameState> {
       return false;
     }
 
-    // Orman kilit kontrolü: Şato Seviye >= 2
-    if (tile.biome == TileBiome.forest && state.progression.castleLevel < 2) {
+    // Orman ve Çöl kilit kontrolü: Şato Seviye >= 2
+    if ((tile.biome == TileBiome.forest || tile.biome == TileBiome.desert) && state.progression.castleLevel < 2) {
       showToast(
-          'Orman Kilitli: Odunculuk için Şato Seviye 2 gereklidir.');
+          'Arazi Kilitli: Çöl ve Orman keşfi için Şato Seviye 2 gereklidir.');
       return false;
     }
-    // Dağ kilit kontrolü: Şato Seviye >= 3
-    if (tile.biome == TileBiome.mountain && state.progression.castleLevel < 3) {
+    // Dağ ve Sazlık kilit kontrolü: Şato Seviye >= 3
+    if ((tile.biome == TileBiome.mountain || tile.biome == TileBiome.wetland) && state.progression.castleLevel < 3) {
       showToast(
-          'Dağ Kilitli: Madencilik için Şato Seviye 3 gereklidir.');
+          'Arazi Kilitli: Dağ ve Sazlık keşfi için Şato Seviye 3 gereklidir.');
       return false;
     }
-    // Deniz kilit kontrolü: Şato Seviye >= 4
-    if (tile.biome == TileBiome.sea && state.progression.castleLevel < 4) {
+    // Deniz ve Tundra kilit kontrolü: Şato Seviye >= 4
+    if ((tile.biome == TileBiome.sea || tile.biome == TileBiome.tundra) && state.progression.castleLevel < 4) {
       showToast(
-          'Deniz Kilitli: Balıkçılık ve Köprüler için Şato Seviye 4 gereklidir.');
+          'Arazi Kilitli: Deniz ve Tundra keşfi için Şato Seviye 4 gereklidir.');
+      return false;
+    }
+    // Volkan kilit kontrolü: Şato Seviye >= 5
+    if (tile.biome == TileBiome.volcano && state.progression.castleLevel < 5) {
+      showToast(
+          'Volkan Kilitli: Obsidiyen arazileri için Şato Seviye 5 gereklidir.');
       return false;
     }
 
@@ -555,6 +653,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
           : '${cost.toInt()} Gıda karşılığında yeni arsa fethedildi.',
     );
 
+    TactileAudioService.instance.play(TactileSoundType.conquer);
+    _syncQuestProgress();
     saveGame();
     return true;
   }
@@ -596,37 +696,42 @@ class GameStateNotifier extends StateNotifier<GameState> {
       return false;
     }
     if (type == BuildingType.bridge) {
-      if (tile.biome != TileBiome.sea) {
-        showToast('Köprü yalnızca Deniz biyomuna inşa edilebilir.');
+      if (tile.biome != TileBiome.sea && tile.biome != TileBiome.wetland) {
+        showToast('Köprü yalnızca Deniz veya Sazlık biyomuna inşa edilebilir.');
         return false;
       }
       // Köprü için iki kara biyomu arasında olma kontrolü
       final landNeighbors = coord.neighbors.where((n) {
         final t = state.tiles[n];
-        return t != null && t.biome != TileBiome.sea;
+        return t != null && t.biome != TileBiome.sea && t.biome != TileBiome.wetland;
       }).length;
       if (landNeighbors < 2) {
         showToast('Köprü yalnızca iki kara parçası arasına inşa edilebilir.');
         return false;
       }
     }
-    if (type == BuildingType.mine && tile.biome != TileBiome.mountain) {
-      showToast('Maden Ocağı yalnızca Dağ biyomuna inşa edilebilir.');
+    if (type == BuildingType.mine &&
+        tile.biome != TileBiome.mountain &&
+        tile.biome != TileBiome.volcano &&
+        tile.biome != TileBiome.tundra) {
+      showToast('Maden Ocağı yalnızca Dağ, Tundra veya Volkan biyomuna inşa edilebilir.');
       return false;
     }
-    if (type == BuildingType.fisherman && tile.biome != TileBiome.sea) {
-      showToast('Balıkçı yalnızca Deniz biyomuna inşa edilebilir.');
+    if (type == BuildingType.fisherman &&
+        tile.biome != TileBiome.sea &&
+        tile.biome != TileBiome.wetland) {
+      showToast('Balıkçı yalnızca Deniz veya Sazlık biyomuna inşa edilebilir.');
       return false;
     }
     if (type == BuildingType.fishermanHut) {
-      if (tile.biome != TileBiome.sea) {
-        showToast('Balıkçı Barınağı yalnızca Deniz biyomuna inşa edilebilir.');
+      if (tile.biome != TileBiome.sea && tile.biome != TileBiome.wetland) {
+        showToast('Balıkçı Barınağı yalnızca Deniz veya Sazlık biyomuna inşa edilebilir.');
         return false;
       }
       // Kıyı kontrolü: En az bir kara komşusu olmalı
       final hasLandNeighbor = coord.neighbors.any((n) {
         final t = state.tiles[n];
-        return t != null && t.biome != TileBiome.sea;
+        return t != null && t.biome != TileBiome.sea && t.biome != TileBiome.wetland;
       });
       if (!hasLandNeighbor) {
         showToast('Balıkçı Barınağı kıyıya (kara yanına) inşa edilmelidir.');
@@ -670,6 +775,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
       activeToast: '${type.name.toUpperCase()} inşa edildi.',
     );
 
+    TactileAudioService.instance.play(TactileSoundType.build);
+    _syncQuestProgress();
     saveGame();
     return true;
   }
@@ -699,6 +806,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
           '${b.type.name.toUpperCase()} Seviye ${b.level + 1} oldu.',
     );
 
+    TactileAudioService.instance.play(TactileSoundType.upgrade);
+    _syncQuestProgress();
     saveGame();
     return true;
   }
@@ -741,6 +850,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       activeToast: '+${accum.toStringAsFixed(1)} toplandı!',
     );
 
+    TactileAudioService.instance.play(TactileSoundType.tap);
     return true;
   }
 
@@ -770,6 +880,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       activeToast: 'Karo 3 dakika boyunca ısıtıldı (Üretim Hızı: +%50).',
     );
 
+    TactileAudioService.instance.play(TactileSoundType.tap);
     return true;
   }
 
@@ -821,6 +932,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       activeToast: 'Ticaret başarılı: Kaynaklar güncellendi.',
     );
 
+    TactileAudioService.instance.play(TactileSoundType.market);
     saveGame();
     return true;
   }
@@ -847,6 +959,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       activeToast: '$talentKey Seviye ${currentLvl + 1} oldu.',
     );
 
+    TactileAudioService.instance.play(TactileSoundType.upgrade);
     saveGame();
     return true;
   }
@@ -886,6 +999,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       activeToast: 'Yeni Unvan Açıldı: ${titleKey.toUpperCase()}',
     );
 
+    TactileAudioService.instance.play(TactileSoundType.reward);
     saveGame();
     return true;
   }
@@ -913,6 +1027,94 @@ class GameStateNotifier extends StateNotifier<GameState> {
       activeToast: 'Krallık Şatosu Seviye $nextLvl oldu (Küresel Hız: +%25).',
     );
 
+    TactileAudioService.instance.play(TactileSoundType.upgrade);
+    _syncQuestProgress();
+    saveGame();
+    return true;
+  }
+
+  void _syncQuestProgress() {
+    final int ownedCount = state.progression.ownedCount;
+    final int castleLevel = state.progression.castleLevel;
+    final int shrineCount = state.tiles.values.where((t) => t.isOwned && t.hasShrine).length;
+
+    final updatedQuests = state.quests.map((q) {
+      if (q.isClaimed) return q;
+
+      int current = q.currentAmount;
+      switch (q.type) {
+        case QuestType.conquerTiles:
+          current = ownedCount;
+          break;
+        case QuestType.upgradeCastle:
+          current = castleLevel;
+          break;
+        case QuestType.discoverShrine:
+          current = shrineCount;
+          break;
+        case QuestType.buildStructure:
+          if (q.targetBuilding != null) {
+            current = state.tiles.values
+                .where((t) => t.isOwned && t.building?.type == q.targetBuilding)
+                .length;
+          }
+          break;
+        case QuestType.gatherResource:
+          break;
+      }
+
+      final bool isNowComplete = current >= q.targetAmount;
+      return q.copyWith(
+        currentAmount: current,
+        isCompleted: isNowComplete,
+      );
+    }).toList();
+
+    state = state.copyWith(quests: updatedQuests);
+  }
+
+  bool claimQuestReward(String questId) {
+    final questIndex = state.quests.indexWhere((q) => q.id == questId);
+    if (questIndex == -1) return false;
+
+    final quest = state.quests[questIndex];
+    if (!quest.isCompleted || quest.isClaimed) {
+      showToast('Görev henüz tamamlanmadı veya ödül zaten alındı.');
+      return false;
+    }
+
+    ResourcesModel newRes = state.resources;
+    String rewardName = 'Kaynak';
+
+    switch (quest.rewardType) {
+      case QuestRewardType.food:
+        newRes = newRes.copyWith(food: newRes.food + quest.rewardAmount);
+        rewardName = 'Gıda';
+        break;
+      case QuestRewardType.wood:
+        newRes = newRes.copyWith(wood: newRes.wood + quest.rewardAmount);
+        rewardName = 'Odun';
+        break;
+      case QuestRewardType.stone:
+        newRes = newRes.copyWith(stone: newRes.stone + quest.rewardAmount);
+        rewardName = 'Taş';
+        break;
+      case QuestRewardType.crowns:
+        newRes = newRes.copyWith(crowns: newRes.crowns + quest.rewardAmount);
+        rewardName = 'Taç';
+        break;
+    }
+
+    final updatedQuests = List<QuestModel>.from(state.quests);
+    updatedQuests[questIndex] = quest.copyWith(isClaimed: true);
+
+    state = state.copyWith(
+      resources: newRes,
+      quests: updatedQuests,
+      activeToast: 'Görev Ödülü Alındı: +${quest.rewardAmount} $rewardName',
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.reward);
     saveGame();
     return true;
   }
@@ -954,6 +1156,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       toreTalents: state.toreTalents,
       titles: state.titles,
       stats: state.stats,
+      quests: state.quests,
     );
   }
 
