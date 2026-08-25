@@ -83,13 +83,8 @@ class LowPolyBuildingRenderer {
         break;
       case BuildingType.fisherman:
       case BuildingType.fishermanHut:
-<<<<<<< HEAD
       case BuildingType.shrine:
         // Bu tipler için low-poly render henüz yok, boş geçiyoruz
-        break;
-      default:
-=======
->>>>>>> a05185c (fix(perf): 60fps zero-gc rendering, 2.5D tap accuracy, selection fix & strict analyzer)
         break;
     }
   }

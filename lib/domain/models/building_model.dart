@@ -124,11 +124,17 @@ class BuildingModel {
   /// Seviyeye göre anlık üretim hızı
   double get currentProductionRate {
     int k = 0;
-    if (level >= 200) k = 5;
-    else if (level >= 100) k = 4;
-    else if (level >= 50) k = 3;
-    else if (level >= 25) k = 2;
-    else if (level >= 10) k = 1;
+    if (level >= 200) {
+      k = 5;
+    } else if (level >= 100) {
+      k = 4;
+    } else if (level >= 50) {
+      k = 3;
+    } else if (level >= 25) {
+      k = 2;
+    } else if (level >= 10) {
+      k = 1;
+    }
 
     final double milestoneBoost = math.pow(2.0, k).toDouble();
     return baseProductionRate * level * milestoneBoost;
@@ -137,11 +143,17 @@ class BuildingModel {
   /// Seviyeye göre anlık taşıma kapasitesi
   double get currentCarryingCapacity {
     int k = 0;
-    if (level >= 200) k = 5;
-    else if (level >= 100) k = 4;
-    else if (level >= 50) k = 3;
-    else if (level >= 25) k = 2;
-    else if (level >= 10) k = 1;
+    if (level >= 200) {
+      k = 5;
+    } else if (level >= 100) {
+      k = 4;
+    } else if (level >= 50) {
+      k = 3;
+    } else if (level >= 25) {
+      k = 2;
+    } else if (level >= 10) {
+      k = 1;
+    }
 
     final double milestoneBoost = math.pow(2.0, k).toDouble();
     return baseCarryingCapacity * level * milestoneBoost;
@@ -173,26 +185,16 @@ class BuildingModel {
   }
 
   factory BuildingModel.fromLegacy(String bType, int bLvl, double bAccum) {
-    BuildingType type = BuildingType.corn;
-    if (bType == 'castle') type = BuildingType.castle;
-    else if (bType == 'corn') type = BuildingType.corn;
-    else if (bType == 'windmill') type = BuildingType.windmill;
-    else if (bType == 'bakery') type = BuildingType.bakery;
-    else if (bType == 'lumberjack') type = BuildingType.lumberjack;
-    else if (bType == 'sawmill') type = BuildingType.sawmill;
-    else if (bType == 'furniture') type = BuildingType.furniture;
-    else if (bType == 'worker') type = BuildingType.worker;
-    else if (bType == 'watchtower') type = BuildingType.watchtower;
-    else if (bType == 'mine') type = BuildingType.mine;
-    else if (bType == 'bridge') type = BuildingType.bridge;
-    else if (bType == 'fisherman') type = BuildingType.fisherman;
-    else if (bType == 'fishermanHut') type = BuildingType.fishermanHut;
-    else if (bType == 'shrine') type = BuildingType.shrine;
+    final BuildingType type = BuildingType.values.firstWhere(
+      (e) => e.name == bType,
+      orElse: () => BuildingType.corn,
+    );
 
     return BuildingModel(
       type: type,
       level: bLvl,
       accumulatedResource: bAccum,
+      totalGathered: 0.0,
     );
   }
 }

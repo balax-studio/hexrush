@@ -114,12 +114,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
   static GameState _createInitialState() {
     final Map<HexAxial, HexTileModel> map = {};
-<<<<<<< HEAD
     const int gridRadius = 20; // Harita çapı 20 birim
     final random = math.Random();
-=======
-    final random = math.Random(42);
->>>>>>> a05185c (fix(perf): 60fps zero-gc rendering, 2.5D tap accuracy, selection fix & strict analyzer)
 
     // Biyom Tohumları (Seeds) - Belirgin kümeler oluşturmak için
     // Merkeze uzak ama ulaşılabilir noktalara devasa deniz ve dağ odakları koyuyoruz.

@@ -398,8 +398,6 @@ class HexTileComponent extends PositionComponent {
             isNight: isNight,
           );
           break;
-        default:
-          break;
       }
     } else {
       switch (tileModel.biome) {
