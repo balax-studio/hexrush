@@ -5,6 +5,7 @@ import '../../core/audio/tactile_audio_service.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/economy/economy_calculator.dart';
+import '../../domain/models/game_state_model.dart';
 import '../providers/game_state_notifier.dart';
 import 'icons/game_vector_icons.dart';
 import 'tactile_neo_button.dart';
@@ -41,7 +42,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
     TactileAudioService.instance.play(TactileSoundType.tap);
     HapticFeedback.lightImpact();
 
-    showDialog(
+    showDialog<void>(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.65),
       builder: (ctx) {
@@ -237,7 +238,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
         : (gameState.season.current == 'WINTER' ? 0.5 : 1.0);
 
     final netRates = EconomyCalculator.calculateNetRates(
-      tiles: gameState.tiles.values.toList(),
+      tiles: gameState.tiles.values,
       globalMultiplier: globalMult,
       seasonMultiplier: seasonMult * gameState.frenzyMultiplier,
       shrineMultiplier: gameState.shrineMultiplier,
@@ -663,7 +664,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
     );
   }
 
-  Color _getSeasonColor(dynamic season) {
+  Color _getSeasonColor(SeasonModel season) {
     if (season.isZud) return const Color(0xFFEF4444);
     if (season.current == 'SUMMER') return const Color(0xFFFBBF24);
     if (season.current == 'AUTUMN') return const Color(0xFFEA580C);

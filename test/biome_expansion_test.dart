@@ -23,8 +23,8 @@ void main() {
     });
 
     test('All 8 biomes should have valid localized strings across all languages', () {
-      final languages = ['tr', 'en', 'es', 'de'];
-      final biomes = TileBiome.values;
+      const languages = ['tr', 'en', 'es', 'de'];
+      const biomes = TileBiome.values;
 
       for (final lang in languages) {
         for (final biome in biomes) {

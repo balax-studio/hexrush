@@ -37,6 +37,12 @@ class FloatingResourceNumberComponent extends PositionComponent {
     position = Vector2(_initialPos.x, _initialPos.y - easeY);
   }
 
+  static final Paint _shadowPaint = Paint()..style = PaintingStyle.fill;
+  static final Paint _bgPaint = Paint()..style = PaintingStyle.fill;
+  static final Paint _borderPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.5;
+
   @override
   void render(Canvas canvas) {
     final double progress = (_elapsed / duration).clamp(0.0, 1.0);
@@ -64,8 +70,8 @@ class FloatingResourceNumberComponent extends PositionComponent {
     );
     final textPainter = TextPainter(text: textSpan, textDirection: TextDirection.ltr)..layout();
 
-    final double padX = 7.0;
-    final double padY = 3.5;
+    const double padX = 7.0;
+    const double padY = 3.5;
     final Rect rect = Rect.fromCenter(
       center: Offset.zero,
       width: textPainter.width + padX * 2,
@@ -73,24 +79,24 @@ class FloatingResourceNumberComponent extends PositionComponent {
     );
 
     // 1. Sert Siyah Gölge
+    _shadowPaint.color = Colors.black.withValues(alpha: alpha * 0.8);
     canvas.drawRect(
       rect.shift(const Offset(2.0, 2.0)),
-      Paint()..color = Colors.black.withValues(alpha: alpha * 0.8),
+      _shadowPaint,
     );
 
     // 2. Arka Plan Kartı
+    _bgPaint.color = bgColor.withValues(alpha: alpha);
     canvas.drawRect(
       rect,
-      Paint()..color = bgColor.withValues(alpha: alpha),
+      _bgPaint,
     );
 
     // 3. Siyah Çerçeve
+    _borderPaint.color = Colors.black.withValues(alpha: alpha);
     canvas.drawRect(
       rect,
-      Paint()
-        ..color = Colors.black.withValues(alpha: alpha)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
+      _borderPaint,
     );
 
     // 4. Metin

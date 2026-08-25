@@ -114,8 +114,12 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
   static GameState _createInitialState() {
     final Map<HexAxial, HexTileModel> map = {};
+<<<<<<< HEAD
     const int gridRadius = 20; // Harita çapı 20 birim
     final random = math.Random();
+=======
+    final random = math.Random(42);
+>>>>>>> a05185c (fix(perf): 60fps zero-gc rendering, 2.5D tap accuracy, selection fix & strict analyzer)
 
     // Biyom Tohumları (Seeds) - Belirgin kümeler oluşturmak için
     // Merkeze uzak ama ulaşılabilir noktalara devasa deniz ve dağ odakları koyuyoruz.
@@ -368,8 +372,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
     }
 
     // Frenzy zamanlayıcı
-    double newFrenzyTimer = math.max(0.0, state.frenzyTimer - 1.0);
-    int newFrenzyMultiplier = newFrenzyTimer > 0 ? state.frenzyMultiplier : 1;
+    final double newFrenzyTimer = math.max(0.0, state.frenzyTimer - 1.0);
+    final int newFrenzyMultiplier = newFrenzyTimer > 0 ? state.frenzyMultiplier : 1;
 
     // Toplam İşçi Taşıma Kapasitesi: Şatodan gelen 1.0 taban kapasite + İşçi Çadırları (Softlock Önleme)
     double totalWorkerCapacity = 1.0;
@@ -505,21 +509,31 @@ class GameStateNotifier extends StateNotifier<GameState> {
       double consumePlank = 0;
 
       if (b.type == BuildingType.windmill) {
-        if (currentFood >= rate * 0.5) consumeFood = rate * 0.5;
-        else canProduce = false;
+        if (currentFood >= rate * 0.5) {
+          consumeFood = rate * 0.5;
+        } else {
+          canProduce = false;
+        }
       } else if (b.type == BuildingType.sawmill) {
-        if (currentWood >= rate * 0.5) consumeWood = rate * 0.5;
-        else canProduce = false;
+        if (currentWood >= rate * 0.5) {
+          consumeWood = rate * 0.5;
+        } else {
+          canProduce = false;
+        }
       } else if (b.type == BuildingType.bakery) {
         if (currentFlour >= rate * 0.4 && currentFood >= rate * 0.4) {
           consumeFlour = rate * 0.4;
           consumeFood = rate * 0.4;
-        } else canProduce = false;
+        } else {
+          canProduce = false;
+        }
       } else if (b.type == BuildingType.furniture) {
         if (currentPlank >= rate * 0.4 && currentWood >= rate * 0.4) {
           consumePlank = rate * 0.4;
           consumeWood = rate * 0.4;
-        } else canProduce = false;
+        } else {
+          canProduce = false;
+        }
       }
 
       if (canProduce) {
@@ -534,9 +548,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
         currentPlank -= consumePlank;
 
         // Taşıma Kapasitesi Kontrolü
-        double carriedAmount = math.min(rate, totalWorkerCapacity);
+        final double carriedAmount = math.min(rate, totalWorkerCapacity);
         totalWorkerCapacity -= carriedAmount;
-        double storedAmount = rate - carriedAmount;
+        final double storedAmount = rate - carriedAmount;
 
         // Taşınanları ekle
         switch (b.type) {
@@ -619,21 +633,22 @@ class GameStateNotifier extends StateNotifier<GameState> {
   }
 
   void selectTile(HexAxial coord) {
-    if (state.selectedCoord == coord) {
-      state = state.copyWith(clearSelection: true);
-    } else {
-      state = state.copyWith(selectedCoord: coord);
+    final tile = state.tiles[coord];
+    if (tile == null) return;
 
-      final tile = state.tiles[coord];
-      if (tile == null) return;
+    if (tile.isFog) {
+      showToast('Sisli Bölge: Komşu karoları fethederek sisi aç!');
+      return;
+    }
 
-      // Tutorial Logic
-      int currentStep = state.progression.tutorialStep;
-      if (currentStep == 0 && !tile.isOwned && !tile.isFog) {
-        state = state.copyWith(progression: state.progression.copyWith(tutorialStep: 1));
-      } else if (currentStep == 6 && tile.biome == TileBiome.forest && !tile.isOwned) {
-        state = state.copyWith(progression: state.progression.copyWith(tutorialStep: 7));
-      }
+    state = state.copyWith(selectedCoord: coord);
+
+    // Tutorial Logic
+    final int currentStep = state.progression.tutorialStep;
+    if (currentStep == 0 && !tile.isOwned && !tile.isFog) {
+      state = state.copyWith(progression: state.progression.copyWith(tutorialStep: 1));
+    } else if (currentStep == 6 && tile.biome == TileBiome.forest && !tile.isOwned) {
+      state = state.copyWith(progression: state.progression.copyWith(tutorialStep: 7));
     }
   }
 
@@ -773,14 +788,25 @@ class GameStateNotifier extends StateNotifier<GameState> {
     int fCount = state.progression.purchasedForestCount;
     int sCount = state.progression.purchasedSeaCount;
     int mtCount = state.progression.purchasedMountainCount;
-    if (tile.biome == TileBiome.meadow) mCount++;
-    if (tile.biome == TileBiome.forest) fCount++;
-    if (tile.biome == TileBiome.sea) sCount++;
-    if (tile.biome == TileBiome.mountain) mtCount++;
+    if (tile.biome == TileBiome.meadow) {
+      mCount++;
+    }
+    if (tile.biome == TileBiome.forest) {
+      fCount++;
+    }
+    if (tile.biome == TileBiome.sea) {
+      sCount++;
+    }
+    if (tile.biome == TileBiome.mountain) {
+      mtCount++;
+    }
 
     int nextTutorial = state.progression.tutorialStep;
-    if (nextTutorial == 1) nextTutorial = 2;
-    else if (nextTutorial == 7) nextTutorial = 8;
+    if (nextTutorial == 1) {
+      nextTutorial = 2;
+    } else if (nextTutorial == 7) {
+      nextTutorial = 8;
+    }
 
     state = state.copyWith(
       tiles: updatedTiles,
@@ -916,15 +942,19 @@ class GameStateNotifier extends StateNotifier<GameState> {
     }
 
     int nextTutorial = state.progression.tutorialStep;
-    if (type == BuildingType.corn && nextTutorial == 2) nextTutorial = 3;
-    else if (type == BuildingType.worker && nextTutorial == 3) nextTutorial = 4;
-    else if (type == BuildingType.lumberjack && nextTutorial == 8) nextTutorial = 9;
+    if (type == BuildingType.corn && nextTutorial == 2) {
+      nextTutorial = 3;
+    } else if (type == BuildingType.worker && nextTutorial == 3) {
+      nextTutorial = 4;
+    } else if (type == BuildingType.lumberjack && nextTutorial == 8) {
+      nextTutorial = 9;
+    }
 
     state = state.copyWith(
       tiles: updatedTiles,
       resources: state.resources.copyWith(food: state.resources.food - cost),
       progression: state.progression.copyWith(tutorialStep: nextTutorial),
-      activeToast: '🏗️ ${type.name.toUpperCase()} başarıyla inşa edildi!',
+      activeToast: '${type.name.toUpperCase()} başarıyla inşa edildi!',
     );
 
     TactileAudioService.instance.play(TactileSoundType.build);

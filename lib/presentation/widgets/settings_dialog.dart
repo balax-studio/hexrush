@@ -137,7 +137,7 @@ class SettingsDialog extends ConsumerWidget {
             // Sıfırlama Butonu
             TactileNeoButton(
               onTap: () {
-                showDialog(
+                showDialog<void>(
                   context: context,
                   builder: (ctx) => AlertDialog(
                     backgroundColor: NeoBrutalistTheme.surface,

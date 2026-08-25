@@ -407,6 +407,9 @@ class EconomyCalculator {
           gainedStone += hasWorkers
               ? rate * cappedSeconds
               : math.min(maxCap, rate * cappedSeconds);
+          gainedIron += hasWorkers
+              ? (rate * 0.5) * cappedSeconds
+              : math.min(maxCap * 0.5, (rate * 0.5) * cappedSeconds);
           break;
         case BuildingType.fisherman:
           gainedFish += hasWorkers
@@ -439,7 +442,7 @@ class EconomyCalculator {
 
   /// Anlık Saniyelik Net Üretim/Tüketim Debisi (HUD Rozetleri ve Analitik için)
   static NetResourceRates calculateNetRates({
-    required List<HexTileModel> tiles,
+    required Iterable<HexTileModel> tiles,
     required double globalMultiplier,
     required double seasonMultiplier,
     required double shrineMultiplier,

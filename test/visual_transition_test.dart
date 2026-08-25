@@ -9,8 +9,8 @@ void main() {
 
   group('Visual Transition Engine Tests (Fog Reveal & Season Blend)', () {
     test('HexTileComponent triggers reveal timer when fog is cleared', () {
-      final fogTile = HexTileModel(
-        coord: const HexAxial(1, 0),
+      const fogTile = HexTileModel(
+        coord: HexAxial(1, 0),
         biome: TileBiome.forest,
         state: TileState.fog,
       );
@@ -44,8 +44,8 @@ void main() {
     });
 
     test('HexTileComponent triggers season transition timer on season change', () {
-      final meadowTile = HexTileModel(
-        coord: const HexAxial(0, 0),
+      const meadowTile = HexTileModel(
+        coord: HexAxial(0, 0),
         biome: TileBiome.meadow,
         state: TileState.owned,
       );
@@ -76,8 +76,8 @@ void main() {
     });
 
     test('HexTileComponent renders correctly during fog reveal and season blend without exception', () {
-      final tile = HexTileModel(
-        coord: const HexAxial(0, 0),
+      const tile = HexTileModel(
+        coord: HexAxial(0, 0),
         biome: TileBiome.meadow,
         state: TileState.fog,
       );

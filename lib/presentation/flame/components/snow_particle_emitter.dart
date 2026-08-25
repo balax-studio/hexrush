@@ -48,15 +48,15 @@ class SnowParticleEmitter extends Component {
     }
   }
 
+  static final Paint _paint = Paint()..style = PaintingStyle.fill;
+
   @override
   void render(Canvas canvas) {
     if (!isActive) return;
 
-    final Paint paint = Paint()..style = PaintingStyle.fill;
-
     for (final flake in _flakes) {
-      paint.color = Colors.white.withValues(alpha: flake.opacity);
-      canvas.drawCircle(Offset(flake.x, flake.y), flake.radius, paint);
+      _paint.color = Colors.white.withValues(alpha: flake.opacity);
+      canvas.drawCircle(Offset(flake.x, flake.y), flake.radius, _paint);
     }
   }
 }

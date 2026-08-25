@@ -32,7 +32,7 @@ void main() {
 
     test('conquering adjacent discovered tile succeeds when affordable', () {
       final notifier = GameStateNotifier();
-      final target = const HexAxial(1, 0);
+      const target = HexAxial(1, 0);
 
       // Force target biome to meadow to avoid level lock flakiness
       notifier.state = notifier.state.copyWith(
@@ -51,7 +51,7 @@ void main() {
 
     test('building structure on owned tile updates tile and deducts resource', () {
       final notifier = GameStateNotifier();
-      final target = const HexAxial(1, 0);
+      const target = HexAxial(1, 0);
 
       notifier.conquerTile(target);
       if (notifier.state.tiles[target]?.biome == TileBiome.meadow) {
@@ -106,7 +106,7 @@ void main() {
 
     test('warm tile consumes wood and sets warmed state', () {
       final notifier = GameStateNotifier();
-      final center = const HexAxial(0, 0);
+      const center = HexAxial(0, 0);
       notifier.state = notifier.state.copyWith(
         resources: notifier.state.resources.copyWith(wood: 10.0),
       );
@@ -127,7 +127,7 @@ void main() {
         resources: const ResourcesModel(food: 100.0, wood: 100.0),
       );
 
-      final target = const HexAxial(1, 0);
+      const target = HexAxial(1, 0);
       notifier.conquerTile(target);
 
       // Force tile biome to meadow for test predictability
@@ -142,7 +142,7 @@ void main() {
       expect(built, isTrue);
 
       // Verify that tiles in radius 2 around (1, 0) are discovered
-      final checkCoord = const HexAxial(3, 0);
+      const checkCoord = HexAxial(3, 0);
       expect(notifier.state.tiles[checkCoord]?.state, equals(TileState.discovered));
       notifier.dispose();
     });

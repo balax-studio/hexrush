@@ -20,7 +20,7 @@ class HexMapGame extends FlameGame {
   late final CameraComponent gameCamera;
 
   final Map<HexAxial, HexTileComponent> _tileComponents = {};
-  final List<WorkerAgentComponent> _workerComponents = [];
+  final Map<HexAxial, WorkerAgentComponent> _workerComponents = {};
   final List<FloatingVoxelCloudComponent> _cloudComponents = [];
   late final SnowParticleEmitter _snowEmitter;
   late final FlyingVoxelBirdComponent _flyingBirds;
@@ -38,6 +38,21 @@ class HexMapGame extends FlameGame {
   double get currentZoom => _currentZoom;
   Vector2 get cameraPosition => gameCamera.viewfinder.position;
   bool get isNight => _isNight;
+
+  /// Aktif kamera görüş alanının dünya koordinatlarındaki dikdörtgeni (Viewport Culling için)
+  Rect get visibleWorldBounds {
+    final vp = canvasSize;
+    final halfW = (vp.x > 0 ? (vp.x / 2) : 600.0) / _currentZoom;
+    final halfH = (vp.y > 0 ? (vp.y / 2) : 500.0) / _currentZoom;
+    final camPos = gameCamera.viewfinder.position;
+    const margin = 140.0;
+    return Rect.fromLTRB(
+      camPos.x - halfW - margin,
+      camPos.y - halfH - margin,
+      camPos.x + halfW + margin,
+      camPos.y + halfH + margin,
+    );
+  }
 
   @override
   Future<void> onLoad() async {
@@ -114,13 +129,65 @@ class HexMapGame extends FlameGame {
         (localPos.dx - screenCenterX) / _currentZoom + gameCamera.viewfinder.position.x;
     final double worldY =
         (localPos.dy - screenCenterY) / _currentZoom + gameCamera.viewfinder.position.y;
+    final tapWorld = Offset(worldX, worldY);
 
-    final tappedCoord = HexMath.pixelToHex(
-      Offset(worldX, worldY),
+    if (_lastState == null || _lastState!.tiles.isEmpty) return;
+
+    final approxCoord = HexMath.pixelToHex(
+      tapWorld,
       hexSize: HexTileComponent.hexRadius,
     );
 
-    if (_lastState != null && _lastState!.tiles.containsKey(tappedCoord)) {
+    // En doğru karoyu bulmak için yaklaşık koordinatı ve komşularını incele
+    // Öncelik sırasına göre (öndeki/alttaki karolar önce) kontrol et
+    final candidates = {
+      approxCoord,
+      ...approxCoord.neighbors,
+      ...approxCoord.neighbors.expand((n) => n.neighbors),
+    }.toList()
+      ..sort((a, b) {
+        final posA = HexMath.hexToPixel(a, hexSize: HexTileComponent.hexRadius);
+        final posB = HexMath.hexToPixel(b, hexSize: HexTileComponent.hexRadius);
+        return posB.dy.compareTo(posA.dy); // Öndeki (aşağıdaki) karolar önce kontrol edilir
+      });
+
+    HexAxial? matchedCoord;
+
+    // 1. Aşama: Voksel/İzometrik üst yüzey poligon kontrolü
+    for (final coord in candidates) {
+      if (!_lastState!.tiles.containsKey(coord)) continue;
+      final tile = _lastState!.tiles[coord]!;
+      final tilePixel = HexMath.hexToPixel(coord, hexSize: HexTileComponent.hexRadius);
+      final double elevation = HexTileComponent.getBiomeElevation(tile.biome, isFog: tile.isFog);
+      final visualCenter = Offset(tilePixel.dx, tilePixel.dy - elevation);
+
+      if (HexMath.isPointInsideHex(tapWorld, visualCenter, hexSize: HexTileComponent.hexRadius)) {
+        matchedCoord = coord;
+        break;
+      }
+    }
+
+    // 2. Aşama: Eğer tam üst yüzeye denk gelmediyse (kenar/duvar tıklaması), en yakın görsel merkeze sahip karoyu seç
+    if (matchedCoord == null) {
+      double minDistance = double.infinity;
+      for (final coord in candidates) {
+        if (!_lastState!.tiles.containsKey(coord)) continue;
+        final tile = _lastState!.tiles[coord]!;
+        final tilePixel = HexMath.hexToPixel(coord, hexSize: HexTileComponent.hexRadius);
+        final double elevation = HexTileComponent.getBiomeElevation(tile.biome, isFog: tile.isFog);
+        final visualCenter = Offset(tilePixel.dx, tilePixel.dy - elevation);
+
+        final double d = (tapWorld - visualCenter).distanceSquared;
+        if (d < minDistance) {
+          minDistance = d;
+          matchedCoord = coord;
+        }
+      }
+    }
+
+    final tappedCoord = matchedCoord ?? approxCoord;
+
+    if (_lastState!.tiles.containsKey(tappedCoord)) {
       final tile = _lastState!.tiles[tappedCoord]!;
 
       // Dokunulan karoyu zıplat (Bounce)
@@ -188,20 +255,18 @@ class HexMapGame extends FlameGame {
     }
     _tileComponents.clear();
 
+    for (final w in _workerComponents.values) {
+      w.removeFromParent();
+    }
+    _workerComponents.clear();
+
     _updateTiles(state);
     _updateWorkers(state);
     _updateWeather(state);
   }
 
   void _updateTiles(GameState state) {
-    final sortedEntries = state.tiles.entries.toList()
-      ..sort((a, b) {
-        final posA = HexMath.hexToPixel(a.key, hexSize: HexTileComponent.hexRadius);
-        final posB = HexMath.hexToPixel(b.key, hexSize: HexTileComponent.hexRadius);
-        return posA.dy.compareTo(posB.dy);
-      });
-
-    for (final entry in sortedEntries) {
+    for (final entry in state.tiles.entries) {
       final coord = entry.key;
       final tile = entry.value;
       final bool isSel = state.selectedCoord == coord;
@@ -233,42 +298,49 @@ class HexMapGame extends FlameGame {
   }
 
   void _updateWorkers(GameState state) {
-    for (final w in _workerComponents) {
-      w.removeFromParent();
-    }
-    _workerComponents.clear();
-
+    final Set<HexAxial> activeBuildingCoords = {};
     final castlePos = HexMath.hexToPixel(const HexAxial(0, 0), hexSize: HexTileComponent.hexRadius);
     final castleVec = Vector2(castlePos.dx, castlePos.dy);
 
     for (final entry in state.tiles.entries) {
       final tile = entry.value;
       if (tile.isOwned && tile.hasBuilding && tile.building!.type != BuildingType.castle) {
-        final tilePos = HexMath.hexToPixel(entry.key, hexSize: HexTileComponent.hexRadius);
-        final tileVec = Vector2(tilePos.dx, tilePos.dy);
+        activeBuildingCoords.add(entry.key);
 
-        Color cargoColor = const Color(0xFFFBBF24);
-        if (tile.building!.type == BuildingType.corn) cargoColor = const Color(0xFFFBBF24);
-        if (tile.building!.type == BuildingType.lumberjack) cargoColor = const Color(0xFFB45309);
-        if (tile.building!.type == BuildingType.sawmill) cargoColor = const Color(0xFFD97706);
-        if (tile.building!.type == BuildingType.windmill) cargoColor = const Color(0xFFFEF08A);
-        if (tile.building!.type == BuildingType.bakery) cargoColor = const Color(0xFFF59E0B);
-        if (tile.building!.type == BuildingType.furniture) cargoColor = const Color(0xFF78350F);
-        if (tile.building!.type == BuildingType.mine) cargoColor = const Color(0xFF94A3B8);
-        if (tile.building!.type == BuildingType.fisherman || tile.building!.type == BuildingType.fishermanHut) {
-          cargoColor = const Color(0xFF38BDF8);
+        if (!_workerComponents.containsKey(entry.key)) {
+          final tilePos = HexMath.hexToPixel(entry.key, hexSize: HexTileComponent.hexRadius);
+          final tileVec = Vector2(tilePos.dx, tilePos.dy);
+
+          Color cargoColor = const Color(0xFFFBBF24);
+          if (tile.building!.type == BuildingType.corn) cargoColor = const Color(0xFFFBBF24);
+          if (tile.building!.type == BuildingType.lumberjack) cargoColor = const Color(0xFFB45309);
+          if (tile.building!.type == BuildingType.sawmill) cargoColor = const Color(0xFFD97706);
+          if (tile.building!.type == BuildingType.windmill) cargoColor = const Color(0xFFFEF08A);
+          if (tile.building!.type == BuildingType.bakery) cargoColor = const Color(0xFFF59E0B);
+          if (tile.building!.type == BuildingType.furniture) cargoColor = const Color(0xFF78350F);
+          if (tile.building!.type == BuildingType.mine) cargoColor = const Color(0xFF94A3B8);
+          if (tile.building!.type == BuildingType.fisherman || tile.building!.type == BuildingType.fishermanHut) {
+            cargoColor = const Color(0xFF38BDF8);
+          }
+
+          final int workerSeed = (entry.key.q * 31 + entry.key.r * 17).abs();
+          final worker = WorkerAgentComponent(
+            startPos: tileVec,
+            endPos: castleVec,
+            cargoColor: cargoColor,
+            seed: workerSeed,
+          );
+          _workerComponents[entry.key] = worker;
+          gameWorld.add(worker);
         }
-
-        final int workerSeed = (entry.key.q * 31 + entry.key.r * 17).abs();
-        final worker = WorkerAgentComponent(
-          startPos: tileVec,
-          endPos: castleVec,
-          cargoColor: cargoColor,
-          seed: workerSeed,
-        );
-        _workerComponents.add(worker);
-        gameWorld.add(worker);
       }
+    }
+
+    // Kaldırılan binaların işçilerini temizle
+    final removed = _workerComponents.keys.where((k) => !activeBuildingCoords.contains(k)).toList();
+    for (final k in removed) {
+      _workerComponents[k]?.removeFromParent();
+      _workerComponents.remove(k);
     }
   }
 

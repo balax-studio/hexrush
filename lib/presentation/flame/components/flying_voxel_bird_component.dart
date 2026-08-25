@@ -21,6 +21,10 @@ class FlyingVoxelBirdComponent extends PositionComponent {
     _time += dt;
   }
 
+  static final Paint _groundShadowPaint = Paint()
+    ..color = Colors.black.withValues(alpha: 0.12)
+    ..style = PaintingStyle.fill;
+
   @override
   void render(Canvas canvas) {
     // 3'lü kuş sürüsü (V formasyonu)
@@ -36,12 +40,9 @@ class FlyingVoxelBirdComponent extends PositionComponent {
       final double flap = baseWingAnim + i * 1.2;
 
       // Kuşun yerdeki hafif minik gölgesi
-      final Paint groundShadow = Paint()
-        ..color = Colors.black.withValues(alpha: 0.12)
-        ..style = PaintingStyle.fill;
       canvas.drawOval(
         Rect.fromCenter(center: Offset(ox, oy + 70.0), width: 8.0, height: 4.0),
-        groundShadow,
+        _groundShadowPaint,
       );
 
       // 3D Voxel Kuş

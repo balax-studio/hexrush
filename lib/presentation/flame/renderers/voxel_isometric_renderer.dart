@@ -9,7 +9,19 @@ class VoxelIsometricRenderer {
   static final double cosIso = math.cos(isoAngle);
   static final double sinIso = math.sin(isoAngle);
 
-  /// 3D İzometrik Küp / Prizma çizer
+  // Reusable Zero-GC rendering pools
+  static final Paint _sharedFillPaint = Paint()..style = PaintingStyle.fill;
+  static final Paint _sharedStrokePaint = Paint()..style = PaintingStyle.stroke;
+  static final Paint _cubeShadowPaint = Paint()..style = PaintingStyle.fill;
+
+  static final Path _cubeShadowPath = Path();
+  static final Path _cubeLeftPath = Path();
+  static final Path _cubeRightPath = Path();
+  static final Path _cubeTopPath = Path();
+  static final Path _sharedPath = Path();
+  static final Path _sharedPath2 = Path();
+
+  /// 3D İzometrik Küp / Prizma çizer (Zero-GC, Zero-Heap-Allocations)
   static void drawIsoCube(
     Canvas canvas,
     Offset baseCenter, {
@@ -22,62 +34,73 @@ class VoxelIsometricRenderer {
     bool drawShadow = false,
     double shadowOpacity = 0.25,
   }) {
-    final double dxR = (w / 2) * cosIso;
-    final double dyR = (w / 2) * sinIso;
-    final double dxL = -(d / 2) * cosIso;
-    final double dyL = (d / 2) * sinIso;
+    final double dxR = (w * 0.5) * cosIso;
+    final double dyR = (w * 0.5) * sinIso;
+    final double dxL = -(d * 0.5) * cosIso;
+    final double dyL = (d * 0.5) * sinIso;
 
-    final Offset bottomCenter = baseCenter;
-    final Offset bFront = Offset(bottomCenter.dx, bottomCenter.dy + dyR + dyL);
-    final Offset bRight = Offset(bottomCenter.dx + dxR, bottomCenter.dy + dyR - dyL);
-    final Offset bLeft = Offset(bottomCenter.dx + dxL, bottomCenter.dy - dyR + dyL);
-    final Offset bBack = Offset(bottomCenter.dx + dxR + dxL, bottomCenter.dy - dyR - dyL);
+    final double bx = baseCenter.dx;
+    final double by = baseCenter.dy;
+
+    final double bFrontX = bx;
+    final double bFrontY = by + dyR + dyL;
+    final double bRightX = bx + dxR;
+    final double bRightY = by + dyR - dyL;
+    final double bLeftX = bx + dxL;
+    final double bLeftY = by - dyR + dyL;
+    final double bBackX = bx + dxR + dxL;
+    final double bBackY = by - dyR - dyL;
 
     // Zemin temas gölgesi
     if (drawShadow) {
-      final Paint shadowPaint = Paint()
-        ..color = Colors.black.withValues(alpha: shadowOpacity)
-        ..style = PaintingStyle.fill;
-      final Path shadowPath = Path()
-        ..moveTo(bFront.dx, bFront.dy + 2)
-        ..lineTo(bRight.dx + 4, bRight.dy + 2)
-        ..lineTo(bBack.dx + 4, bBack.dy + 2)
-        ..lineTo(bLeft.dx - 4, bLeft.dy + 2)
+      _cubeShadowPaint.color = Colors.black.withValues(alpha: shadowOpacity);
+      _cubeShadowPath
+        ..reset()
+        ..moveTo(bFrontX, bFrontY + 2)
+        ..lineTo(bRightX + 4, bRightY + 2)
+        ..lineTo(bBackX + 4, bBackY + 2)
+        ..lineTo(bLeftX - 4, bLeftY + 2)
         ..close();
-      canvas.drawPath(shadowPath, shadowPaint);
+      canvas.drawPath(_cubeShadowPath, _cubeShadowPaint);
     }
 
-    final Offset tFront = Offset(bFront.dx, bFront.dy - h);
-    final Offset tRight = Offset(bRight.dx, bRight.dy - h);
-    final Offset tLeft = Offset(bLeft.dx, bLeft.dy - h);
-    final Offset tBack = Offset(bBack.dx, bBack.dy - h);
+    final double tFrontY = bFrontY - h;
+    final double tRightY = bRightY - h;
+    final double tLeftY = bLeftY - h;
+    final double tBackY = bBackY - h;
 
     // 1. Sol Yüzey
-    final Path leftFace = Path()
-      ..moveTo(bLeft.dx, bLeft.dy)
-      ..lineTo(bFront.dx, bFront.dy)
-      ..lineTo(tFront.dx, tFront.dy)
-      ..lineTo(tLeft.dx, tLeft.dy)
+    _cubeLeftPath
+      ..reset()
+      ..moveTo(bLeftX, bLeftY)
+      ..lineTo(bFrontX, bFrontY)
+      ..lineTo(bFrontX, tFrontY)
+      ..lineTo(bLeftX, tLeftY)
       ..close();
-    canvas.drawPath(leftFace, Paint()..color = leftColor);
+    _sharedFillPaint.color = leftColor;
+    canvas.drawPath(_cubeLeftPath, _sharedFillPaint);
 
     // 2. Sağ Yüzey
-    final Path rightFace = Path()
-      ..moveTo(bFront.dx, bFront.dy)
-      ..lineTo(bRight.dx, bRight.dy)
-      ..lineTo(tRight.dx, tRight.dy)
-      ..lineTo(tFront.dx, tFront.dy)
+    _cubeRightPath
+      ..reset()
+      ..moveTo(bFrontX, bFrontY)
+      ..lineTo(bRightX, bRightY)
+      ..lineTo(bRightX, tRightY)
+      ..lineTo(bFrontX, tFrontY)
       ..close();
-    canvas.drawPath(rightFace, Paint()..color = rightColor);
+    _sharedFillPaint.color = rightColor;
+    canvas.drawPath(_cubeRightPath, _sharedFillPaint);
 
     // 3. Üst Yüzey
-    final Path topFace = Path()
-      ..moveTo(tFront.dx, tFront.dy)
-      ..lineTo(tRight.dx, tRight.dy)
-      ..lineTo(tBack.dx, tBack.dy)
-      ..lineTo(tLeft.dx, tLeft.dy)
+    _cubeTopPath
+      ..reset()
+      ..moveTo(bFrontX, tFrontY)
+      ..lineTo(bRightX, tRightY)
+      ..lineTo(bBackX, tBackY)
+      ..lineTo(bLeftX, tLeftY)
       ..close();
-    canvas.drawPath(topFace, Paint()..color = topColor);
+    _sharedFillPaint.color = topColor;
+    canvas.drawPath(_cubeTopPath, _sharedFillPaint);
   }
 
   // --- RÜZGARLA SALINAN AĞAÇLAR (WIND SWAY) ---
@@ -251,13 +274,13 @@ class VoxelIsometricRenderer {
 
     // Su Halka Köpüğü (Splash ring)
     if (progress < 0.2 || progress > 0.8) {
-      final Paint splashPaint = Paint()
+      _sharedStrokePaint
         ..color = Colors.white.withValues(alpha: 0.6)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5;
       canvas.drawOval(
         Rect.fromCenter(center: Offset(seaCenter.dx + jumpX, seaCenter.dy), width: 14.0, height: 7.0),
-        splashPaint,
+        _sharedStrokePaint,
       );
     }
 
@@ -291,10 +314,10 @@ class VoxelIsometricRenderer {
       )!;
 
       // Glow aurası
-      final Paint glowPaint = Paint()
+      _sharedFillPaint
         ..color = fireflyColor.withValues(alpha: 0.4 * glow)
         ..style = PaintingStyle.fill;
-      canvas.drawCircle(Offset(fx, fy), 4.0, glowPaint);
+      canvas.drawCircle(Offset(fx, fy), 4.0, _sharedFillPaint);
 
       // Çekirdek Voxel
       drawIsoCube(
@@ -698,29 +721,31 @@ class VoxelIsometricRenderer {
     int seed = 0,
   }) {
     // 1. Kumsal Saçak Kenarlığı (Açık Kum Taşı Rengi)
-    final Paint sandPaint = Paint()
+    _sharedStrokePaint
       ..color = const Color(0xFFFDE68A).withValues(alpha: 0.45)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.5
       ..strokeCap = StrokeCap.round;
 
-    final Path shorelinePath = Path()..moveTo(corners[0].dx, corners[0].dy);
+    _sharedPath
+      ..reset()
+      ..moveTo(corners[0].dx, corners[0].dy);
     for (int i = 1; i < 6; i++) {
-      shorelinePath.lineTo(corners[i].dx, corners[i].dy);
+      _sharedPath.lineTo(corners[i].dx, corners[i].dy);
     }
-    shorelinePath.close();
-    canvas.drawPath(shorelinePath, sandPaint);
+    _sharedPath.close();
+    canvas.drawPath(_sharedPath, _sharedStrokePaint);
 
     // 2. Dinamik Sinüs Salınımlı Beyaz Dalga Köpüğü
     final double wavePulse1 = 0.5 + 0.5 * math.sin(animTime * 2.8 + seed);
-    final double wavePulse2 = 0.5 + 0.5 * math.cos(animTime * 2.2 + seed * 2);
+    final double wavePulse2 = 0.5 + 0.5 * math.cos(animTime * 2.1 + seed);
 
-    final Paint foamPaint = Paint()
+    _sharedStrokePaint
       ..color = Colors.white.withValues(alpha: 0.75 * wavePulse1)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
-    final Path foamPath = Path();
+    _sharedPath2.reset();
     for (int i = 0; i < 6; i++) {
       final pA = corners[i];
       final pB = corners[(i + 1) % 6];
@@ -729,10 +754,10 @@ class VoxelIsometricRenderer {
         mid.dx + (center.dx - mid.dx) * (0.15 + 0.1 * wavePulse1),
         mid.dy + (center.dy - mid.dy) * (0.15 + 0.1 * wavePulse1),
       );
-      foamPath.moveTo(pA.dx + (center.dx - pA.dx) * 0.1, pA.dy + (center.dy - pA.dy) * 0.1);
-      foamPath.quadraticBezierTo(offsetMid.dx, offsetMid.dy, pB.dx + (center.dx - pB.dx) * 0.1, pB.dy + (center.dy - pB.dy) * 0.1);
+      _sharedPath2.moveTo(pA.dx + (center.dx - pA.dx) * 0.1, pA.dy + (center.dy - pA.dy) * 0.1);
+      _sharedPath2.quadraticBezierTo(offsetMid.dx, offsetMid.dy, pB.dx + (center.dx - pB.dx) * 0.1, pB.dy + (center.dy - pB.dy) * 0.1);
     }
-    canvas.drawPath(foamPath, foamPaint);
+    canvas.drawPath(_sharedPath2, _sharedStrokePaint);
 
     // 3. Merkezde Dalgalanan Köpük Parçaları
     drawIsoCube(
@@ -989,22 +1014,25 @@ class VoxelIsometricRenderer {
 
     for (int i = 0; i < 4; i++) {
       final double a = angle + i * (math.pi / 2);
-      final double bLen = 16.0;
+      const double bLen = 16.0;
       final double bx = rotorHub.dx + bLen * math.cos(a);
       final double by = rotorHub.dy + bLen * math.sin(a) * 0.8;
 
-      final Paint bladePaint = Paint()
+      _sharedFillPaint
         ..color = const Color(0xFFFEF08A)
         ..style = PaintingStyle.fill;
-      final Paint framePaint = Paint()
+      _sharedStrokePaint
         ..color = const Color(0xFF78350F)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.0;
 
-      canvas.drawLine(rotorHub, Offset(bx, by), framePaint);
-      canvas.drawCircle(Offset(bx, by), 3.0, bladePaint);
+      canvas.drawLine(rotorHub, Offset(bx, by), _sharedStrokePaint);
+      canvas.drawCircle(Offset(bx, by), 3.0, _sharedFillPaint);
     }
-    canvas.drawCircle(rotorHub, 3.5, Paint()..color = const Color(0xFF451A03));
+    _sharedFillPaint
+      ..color = const Color(0xFF451A03)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(rotorHub, 3.5, _sharedFillPaint);
   }
 
   /// 3D Voxel Fırın (Duman Pufu & Gece Işığı)
@@ -1472,10 +1500,10 @@ class VoxelIsometricRenderer {
     if (hasShrine) {
       // Tapınak Varsa: Göğe yükselen mistik mavi ışık huzmesi ve kristal parıltı
       final double shrinePulse = 0.5 + 0.5 * math.sin(animTime * 3.0);
-      final Paint beaconPaint = Paint()
+      _sharedFillPaint
         ..color = const Color(0xFF38BDF8).withValues(alpha: 0.35 * shrinePulse)
         ..style = PaintingStyle.fill;
-      canvas.drawCircle(Offset(mistCenter.dx, mistCenter.dy - 16), 14.0, beaconPaint);
+      canvas.drawCircle(Offset(mistCenter.dx, mistCenter.dy - 16), 14.0, _sharedFillPaint);
 
       // Yüzen Kadim Kristal Parçacığı
       drawIsoCube(
@@ -1491,10 +1519,10 @@ class VoxelIsometricRenderer {
     } else if (hiddenBiome == TileBiome.volcano) {
       // Volkan Varsa: Sisin altından sızan lav/kor parıltısı
       final double lavaPulse = 0.4 + 0.4 * math.sin(animTime * 2.2);
-      final Paint lavaPaint = Paint()
+      _sharedFillPaint
         ..color = const Color(0xFFEF4444).withValues(alpha: 0.3 * lavaPulse)
         ..style = PaintingStyle.fill;
-      canvas.drawCircle(Offset(mistCenter.dx, mistCenter.dy - 4), 12.0, lavaPaint);
+      canvas.drawCircle(Offset(mistCenter.dx, mistCenter.dy - 4), 12.0, _sharedFillPaint);
 
       drawIsoCube(
         canvas,
@@ -1550,7 +1578,7 @@ class VoxelIsometricRenderer {
     final double runeBrightness = isBorderFog ? 0.75 : 0.25;
     final double runePulse = runeBrightness + 0.2 * math.sin(animTime * 2.5 + (seed % 5));
     
-    final Paint runePaint = Paint()
+    _sharedStrokePaint
       ..color = isBorderFog 
           ? const Color(0xFFFBBF24).withValues(alpha: runePulse.clamp(0.0, 1.0))
           : const Color(0xFFD97706).withValues(alpha: runePulse.clamp(0.0, 1.0))
@@ -1558,120 +1586,119 @@ class VoxelIsometricRenderer {
       ..strokeWidth = isBorderFog ? 2.2 : 1.5
       ..strokeCap = StrokeCap.round;
 
-    final Paint glowPaint = Paint()
-      ..color = const Color(0xFFFFD700).withValues(alpha: (runePulse * 0.5).clamp(0.0, 1.0))
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = isBorderFog ? 4.5 : 2.5
-      ..strokeCap = StrokeCap.round;
-
     final int variant = seed % 4;
-    final Path rune = Path();
+    _sharedPath.reset();
     final Offset rCenter = Offset(mistCenter.dx, mistCenter.dy - 8);
 
     switch (variant) {
       case 0:
-        rune.moveTo(rCenter.dx - 7, rCenter.dy - 3);
-        rune.lineTo(rCenter.dx, rCenter.dy + 4);
-        rune.lineTo(rCenter.dx + 7, rCenter.dy - 3);
-        rune.moveTo(rCenter.dx, rCenter.dy + 4);
-        rune.lineTo(rCenter.dx, rCenter.dy + 9);
-        rune.moveTo(rCenter.dx - 4, rCenter.dy - 1);
-        rune.lineTo(rCenter.dx + 4, rCenter.dy - 1);
+        _sharedPath.moveTo(rCenter.dx - 7, rCenter.dy - 3);
+        _sharedPath.lineTo(rCenter.dx, rCenter.dy + 4);
+        _sharedPath.lineTo(rCenter.dx + 7, rCenter.dy - 3);
+        _sharedPath.moveTo(rCenter.dx, rCenter.dy + 4);
+        _sharedPath.lineTo(rCenter.dx, rCenter.dy + 9);
+        _sharedPath.moveTo(rCenter.dx - 4, rCenter.dy - 1);
+        _sharedPath.lineTo(rCenter.dx + 4, rCenter.dy - 1);
         break;
       case 1:
-        rune.moveTo(rCenter.dx, rCenter.dy - 7);
-        rune.lineTo(rCenter.dx, rCenter.dy + 7);
-        rune.moveTo(rCenter.dx - 7, rCenter.dy);
-        rune.lineTo(rCenter.dx + 7, rCenter.dy);
-        rune.addOval(Rect.fromCircle(center: rCenter, radius: 3.5));
+        _sharedPath.moveTo(rCenter.dx, rCenter.dy - 7);
+        _sharedPath.lineTo(rCenter.dx, rCenter.dy + 7);
+        _sharedPath.moveTo(rCenter.dx - 7, rCenter.dy);
+        _sharedPath.lineTo(rCenter.dx + 7, rCenter.dy);
+        _sharedPath.addOval(Rect.fromCircle(center: rCenter, radius: 3.5));
         break;
       case 2:
-        rune.moveTo(rCenter.dx - 5, rCenter.dy - 5);
-        rune.quadraticBezierTo(rCenter.dx - 2, rCenter.dy - 9, rCenter.dx, rCenter.dy - 3);
-        rune.lineTo(rCenter.dx, rCenter.dy + 5);
-        rune.lineTo(rCenter.dx - 3, rCenter.dy + 8);
-        rune.moveTo(rCenter.dx, rCenter.dy + 5);
-        rune.lineTo(rCenter.dx + 3, rCenter.dy + 8);
+        _sharedPath.moveTo(rCenter.dx - 5, rCenter.dy - 5);
+        _sharedPath.quadraticBezierTo(rCenter.dx - 2, rCenter.dy - 9, rCenter.dx, rCenter.dy - 3);
+        _sharedPath.lineTo(rCenter.dx, rCenter.dy + 5);
+        _sharedPath.lineTo(rCenter.dx - 3, rCenter.dy + 8);
+        _sharedPath.moveTo(rCenter.dx, rCenter.dy + 5);
+        _sharedPath.lineTo(rCenter.dx + 3, rCenter.dy + 8);
         break;
       case 3:
       default:
-        rune.moveTo(rCenter.dx - 6, rCenter.dy + 5);
-        rune.lineTo(rCenter.dx + 6, rCenter.dy - 5);
-        rune.moveTo(rCenter.dx + 6, rCenter.dy - 5);
-        rune.lineTo(rCenter.dx + 2, rCenter.dy - 5);
-        rune.moveTo(rCenter.dx + 6, rCenter.dy - 5);
-        rune.lineTo(rCenter.dx + 6, rCenter.dy - 1);
+        _sharedPath.moveTo(rCenter.dx - 6, rCenter.dy + 5);
+        _sharedPath.lineTo(rCenter.dx + 6, rCenter.dy - 5);
+        _sharedPath.moveTo(rCenter.dx + 6, rCenter.dy - 5);
+        _sharedPath.lineTo(rCenter.dx + 2, rCenter.dy - 5);
+        _sharedPath.moveTo(rCenter.dx + 6, rCenter.dy - 5);
+        _sharedPath.lineTo(rCenter.dx + 6, rCenter.dy - 1);
         break;
     }
 
     if (isBorderFog) {
-      canvas.drawPath(rune, glowPaint);
+      _cubeShadowPaint
+        ..color = const Color(0xFFFFD700).withValues(alpha: (runePulse * 0.5).clamp(0.0, 1.0))
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 4.5
+        ..strokeCap = StrokeCap.round;
+      canvas.drawPath(_sharedPath, _cubeShadowPaint);
     }
-    canvas.drawPath(rune, runePaint);
+    canvas.drawPath(_sharedPath, _sharedStrokePaint);
   }
 
   /// Antik Bozkır Petroglif & Tamga Kazıma Çizgileri (Sis Karoları İçin)
   static void drawVoxelPetroglyph(Canvas canvas, Offset center, {required int seed, double animTime = 0.0}) {
     final int variant = seed % 4;
     final double pulse = 0.35 + 0.15 * math.sin(animTime * 1.5 + (seed % 10));
-    final Paint runePaint = Paint()
+    _sharedStrokePaint
       ..color = const Color(0xFFD97706).withValues(alpha: pulse)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.8
       ..strokeCap = StrokeCap.round;
 
-    final Paint glowPaint = Paint()
+    _cubeShadowPaint
       ..color = const Color(0xFFFBBF24).withValues(alpha: pulse * 0.4)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.5
       ..strokeCap = StrokeCap.round;
 
-    final Path rune = Path();
+    _sharedPath.reset();
 
     switch (variant) {
       case 0:
         // Variant 0: Bozkır Boynuz / Geyik Tamgası
-        rune.moveTo(center.dx - 8, center.dy - 4);
-        rune.lineTo(center.dx, center.dy + 4);
-        rune.lineTo(center.dx + 8, center.dy - 4);
-        rune.moveTo(center.dx, center.dy + 4);
-        rune.lineTo(center.dx, center.dy + 10);
-        rune.moveTo(center.dx - 5, center.dy - 1);
-        rune.lineTo(center.dx + 5, center.dy - 1);
+        _sharedPath.moveTo(center.dx - 8, center.dy - 4);
+        _sharedPath.lineTo(center.dx, center.dy + 4);
+        _sharedPath.lineTo(center.dx + 8, center.dy - 4);
+        _sharedPath.moveTo(center.dx, center.dy + 4);
+        _sharedPath.lineTo(center.dx, center.dy + 10);
+        _sharedPath.moveTo(center.dx - 5, center.dy - 1);
+        _sharedPath.lineTo(center.dx + 5, center.dy - 1);
         break;
       case 1:
         // Variant 1: Dört Yön Kağan Tamgası (Güneş Rünü)
-        rune.moveTo(center.dx, center.dy - 8);
-        rune.lineTo(center.dx, center.dy + 8);
-        rune.moveTo(center.dx - 8, center.dy);
-        rune.lineTo(center.dx + 8, center.dy);
-        rune.addOval(Rect.fromCircle(center: center, radius: 4.0));
+        _sharedPath.moveTo(center.dx, center.dy - 8);
+        _sharedPath.lineTo(center.dx, center.dy + 8);
+        _sharedPath.moveTo(center.dx - 8, center.dy);
+        _sharedPath.lineTo(center.dx + 8, center.dy);
+        _sharedPath.addOval(Rect.fromCircle(center: center, radius: 4.0));
         break;
       case 2:
         // Variant 2: Bozkır Dağ Keçisi Rünü
-        rune.moveTo(center.dx - 6, center.dy - 6);
-        rune.quadraticBezierTo(center.dx - 2, center.dy - 10, center.dx, center.dy - 4);
-        rune.lineTo(center.dx, center.dy + 6);
-        rune.lineTo(center.dx - 4, center.dy + 10);
-        rune.moveTo(center.dx, center.dy + 6);
-        rune.lineTo(center.dx + 4, center.dy + 10);
+        _sharedPath.moveTo(center.dx - 6, center.dy - 6);
+        _sharedPath.quadraticBezierTo(center.dx - 2, center.dy - 10, center.dx, center.dy - 4);
+        _sharedPath.lineTo(center.dx, center.dy + 6);
+        _sharedPath.lineTo(center.dx - 4, center.dy + 10);
+        _sharedPath.moveTo(center.dx, center.dy + 6);
+        _sharedPath.lineTo(center.dx + 4, center.dy + 10);
         break;
       case 3:
       default:
         // Variant 3: Ok ve Yay / And İmzası
-        rune.moveTo(center.dx - 7, center.dy + 6);
-        rune.lineTo(center.dx + 7, center.dy - 6);
-        rune.moveTo(center.dx + 7, center.dy - 6);
-        rune.lineTo(center.dx + 2, center.dy - 6);
-        rune.moveTo(center.dx + 7, center.dy - 6);
-        rune.lineTo(center.dx + 7, center.dy - 1);
-        rune.moveTo(center.dx - 2, center.dy + 1);
-        rune.lineTo(center.dx + 2, center.dy - 3);
+        _sharedPath.moveTo(center.dx - 7, center.dy + 6);
+        _sharedPath.lineTo(center.dx + 7, center.dy - 6);
+        _sharedPath.moveTo(center.dx + 7, center.dy - 6);
+        _sharedPath.lineTo(center.dx + 2, center.dy - 6);
+        _sharedPath.moveTo(center.dx + 7, center.dy - 6);
+        _sharedPath.lineTo(center.dx + 7, center.dy - 1);
+        _sharedPath.moveTo(center.dx - 2, center.dy + 1);
+        _sharedPath.lineTo(center.dx + 2, center.dy - 3);
         break;
     }
 
-    canvas.drawPath(rune, glowPaint);
-    canvas.drawPath(rune, runePaint);
+    canvas.drawPath(_sharedPath, _cubeShadowPaint);
+    canvas.drawPath(_sharedPath, _sharedStrokePaint);
   }
 
   /// 3D Voxel Kule (Gece Dönen Fener Işığı - Lighthouse Sweep)
@@ -1712,21 +1739,22 @@ class VoxelIsometricRenderer {
         beaconOrigin.dx + math.cos(angle) * 55.0,
         beaconOrigin.dy + math.sin(angle) * 28.0,
       );
-      final Paint beamPaint = Paint()
+      _sharedFillPaint
         ..color = const Color(0xFFFEF08A).withValues(alpha: 0.32)
         ..style = PaintingStyle.fill;
 
-      final Path beam = Path()
+      _sharedPath
+        ..reset()
         ..moveTo(beaconOrigin.dx, beaconOrigin.dy)
         ..lineTo(sweepTarget.dx - 14 * math.sin(angle), sweepTarget.dy + 14 * math.cos(angle))
         ..lineTo(sweepTarget.dx + 14 * math.sin(angle), sweepTarget.dy - 14 * math.cos(angle))
         ..close();
-      canvas.drawPath(beam, beamPaint);
+      canvas.drawPath(_sharedPath, _sharedFillPaint);
 
-      final Paint glowPaint = Paint()
+      _sharedFillPaint
         ..color = const Color(0xFFFBBF24).withValues(alpha: 0.6)
         ..style = PaintingStyle.fill;
-      canvas.drawCircle(beaconOrigin, 6.0, glowPaint);
+      canvas.drawCircle(beaconOrigin, 6.0, _sharedFillPaint);
     }
   }
 

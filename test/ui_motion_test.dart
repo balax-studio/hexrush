@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hex_rush/core/hex/hex_coordinates.dart';
-import 'package:hex_rush/domain/models/game_state_model.dart';
-import 'package:hex_rush/domain/models/hex_tile_model.dart';
 import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
 import 'package:hex_rush/presentation/widgets/diorama_lens_overlay.dart';
 import 'package:hex_rush/presentation/widgets/quest_tracker_hud.dart';
@@ -138,7 +136,7 @@ void main() {
 
       // Setup state with a selected tile
       final notifier = container.read(gameStateProvider.notifier);
-      final coord = const HexAxial(1, 0);
+      const coord = HexAxial(1, 0);
       notifier.selectTile(coord);
 
       await tester.pumpWidget(

@@ -48,19 +48,19 @@ class GameScreen extends ConsumerWidget {
               bottom: false,
               child: TopBarHUD(
                 onOpenSettings: () {
-                  showDialog(
+                  showDialog<void>(
                     context: context,
                     builder: (_) => const SettingsDialog(),
                   );
                 },
                 onOpenMarket: () {
-                  showDialog(
+                  showDialog<void>(
                     context: context,
                     builder: (_) => const MarketDialog(),
                   );
                 },
                 onOpenTore: () {
-                  showDialog(
+                  showDialog<void>(
                     context: context,
                     builder: (_) => const ToreDialog(),
                   );

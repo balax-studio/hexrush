@@ -4,6 +4,7 @@ import '../../core/audio/tactile_audio_service.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/models/doctrine_model.dart';
+import '../../domain/models/game_state.dart';
 import '../providers/game_state_notifier.dart';
 import 'icons/game_vector_icons.dart';
 import 'tactile_neo_button.dart';
@@ -47,10 +48,10 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
+                const Row(
                   children: [
-                    const GameVectorIcon(type: GameIconType.tore, size: 20),
-                    const SizedBox(width: 8),
+                    GameVectorIcon(type: GameIconType.tore, size: 20),
+                    SizedBox(width: 8),
                     Text(
                       'TÖRE & KURULTAY MECLİSİ',
                       style: NeoBrutalistTheme.fontHeaderMonolith,
@@ -162,7 +163,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
   }
 
   // --- SEKME 1: TÖRE DOKTRİNLERİ (CIVIC DOCTRINES) ---
-  Widget _buildDoctrinesTab(BuildContext context, dynamic gameState, GameStateNotifier notifier, String lang) {
+  Widget _buildDoctrinesTab(BuildContext context, GameState gameState, GameStateNotifier notifier, String lang) {
     final Map<DoctrineSlotType, String?> slots = gameState.activeDoctrineSlots;
     final List<DoctrineCardModel> doctrines = gameState.doctrines;
     final int castleLvl = gameState.progression.castleLevel;
@@ -481,8 +482,8 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
   }
 
   // --- SEKME 2: KADİM YETENEKLER ---
-  Widget _buildTalentsTab(BuildContext context, dynamic gameState, GameStateNotifier notifier, String lang) {
-    final crowns = gameState.progression.crowns;
+  Widget _buildTalentsTab(BuildContext context, GameState gameState, GameStateNotifier notifier, String lang) {
+    final crowns = gameState.resources.crowns;
     final tore = gameState.toreTalents;
 
     final int rainLvl = (tore['gokTengri']?['rainBlessing'] as num? ?? 0).toInt();
@@ -632,7 +633,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
   }
 
   // --- SEKME 3: UNVANLAR & BAŞARIMLAR ---
-  Widget _buildTitlesTab(BuildContext context, dynamic gameState, GameStateNotifier notifier, String lang) {
+  Widget _buildTitlesTab(BuildContext context, GameState gameState, GameStateNotifier notifier, String lang) {
     final titles = gameState.titles;
 
     final titleList = [

@@ -110,6 +110,14 @@ class HexGridPainter extends CustomPainter {
         return const Color(0xFF5D4037); // Dağ / Taş Kahve-Gri
       case TileBiome.sea:
         return const Color(0xFF0288D1); // Okyanus Mavisi
+      case TileBiome.desert:
+        return const Color(0xFFD97706); // Çöl Sarı-Turuncu
+      case TileBiome.tundra:
+        return const Color(0xFF0284C7); // Tundra Buz Mavisi
+      case TileBiome.volcano:
+        return const Color(0xFFDC2626); // Volkan Kırmızı
+      case TileBiome.wetland:
+        return const Color(0xFF059669); // Sulak Alan Zümrüt
     }
   }
 
@@ -127,6 +135,18 @@ class HexGridPainter extends CustomPainter {
         break;
       case TileBiome.sea:
         emoji = '🌊';
+        break;
+      case TileBiome.desert:
+        emoji = '🏜️';
+        break;
+      case TileBiome.tundra:
+        emoji = '❄️';
+        break;
+      case TileBiome.volcano:
+        emoji = '🌋';
+        break;
+      case TileBiome.wetland:
+        emoji = '🌿';
         break;
     }
     _drawText(canvas, emoji, center.translate(0, -2), fontSize: 18);
@@ -177,8 +197,6 @@ class HexGridPainter extends CustomPainter {
       case BuildingType.shrine:
         emoji = '🗿';
         break;
-      default:
-        emoji = '';
     }
 
     _drawText(canvas, emoji, center.translate(0, -6), fontSize: 20);

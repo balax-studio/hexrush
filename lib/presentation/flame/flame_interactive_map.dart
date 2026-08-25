@@ -24,6 +24,12 @@ class _FlameInteractiveMapState extends ConsumerState<FlameInteractiveMap> {
         ref.read(gameStateProvider.notifier).selectTile(coord);
       },
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final currentState = ref.read(gameStateProvider);
+        _game.syncGameState(currentState);
+      }
+    });
   }
 
   @override
@@ -32,10 +38,6 @@ class _FlameInteractiveMapState extends ConsumerState<FlameInteractiveMap> {
     ref.listen(gameStateProvider, (prev, next) {
       _game.syncGameState(next);
     });
-
-    // Initial sync
-    final currentState = ref.read(gameStateProvider);
-    _game.syncGameState(currentState);
 
     return LayoutBuilder(
       builder: (context, constraints) {

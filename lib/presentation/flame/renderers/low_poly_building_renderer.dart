@@ -9,6 +9,9 @@ class LowPolyBuildingRenderer {
     ..style = PaintingStyle.stroke
     ..strokeWidth = 1.3;
 
+  static final Paint _fill = Paint()..style = PaintingStyle.fill;
+  static final Path _path = Path();
+
   /// Biyom dekorasyonlarını (Ağaç, çim, dalga, dağ zirvesi) saf low-poly çizer
   static void renderBiomeDecoration(
     Canvas canvas,
@@ -80,10 +83,13 @@ class LowPolyBuildingRenderer {
         break;
       case BuildingType.fisherman:
       case BuildingType.fishermanHut:
+<<<<<<< HEAD
       case BuildingType.shrine:
         // Bu tipler için low-poly render henüz yok, boş geçiyoruz
         break;
       default:
+=======
+>>>>>>> a05185c (fix(perf): 60fps zero-gc rendering, 2.5D tap accuracy, selection fix & strict analyzer)
         break;
     }
   }
@@ -91,11 +97,12 @@ class LowPolyBuildingRenderer {
   // --- BİYOM LOW-POLY ÇİZİMLERİ ---
 
   static void _drawLowPolyMeadowTuft(Canvas canvas, Offset c, double t) {
-    final Paint p1 = Paint()..color = const Color(0xFF86EFAC);
+    _fill.color = const Color(0xFF86EFAC);
     final double sway = math.sin(t * 3.0) * 1.5;
 
     // 3 adet sivri geometrik ot
-    final Path tuft = Path()
+    _path
+      ..reset()
       ..moveTo(c.dx - 6, c.dy + 4)
       ..lineTo(c.dx - 8 + sway, c.dy - 6)
       ..lineTo(c.dx - 4, c.dy + 4)
@@ -105,18 +112,24 @@ class LowPolyBuildingRenderer {
       ..lineTo(c.dx + 6, c.dy + 4)
       ..close();
 
-    canvas.drawPath(tuft, p1);
-    canvas.drawPath(tuft, _stroke);
+    canvas.drawPath(_path, _fill);
+    _stroke.strokeWidth = 1.3;
+    _stroke.color = Colors.black;
+    canvas.drawPath(_path, _stroke);
   }
 
   static void _drawLowPolyPineTrees(Canvas canvas, Offset c) {
     // 3 katmanlı fasetli çam ağacı
-    final Paint darkGreen = Paint()..color = const Color(0xFF166534);
-    final Paint midGreen = Paint()..color = const Color(0xFF22C55E);
-    final Paint trunk = Paint()..color = const Color(0xFF78350F);
+    const darkGreen = Color(0xFF166534);
+    const midGreen = Color(0xFF22C55E);
+    const trunk = Color(0xFF78350F);
+
+    _stroke.strokeWidth = 1.3;
+    _stroke.color = Colors.black;
 
     // Gövde
-    canvas.drawRect(Rect.fromLTWH(c.dx - 2, c.dy + 4, 4, 8), trunk);
+    _fill.color = trunk;
+    canvas.drawRect(Rect.fromLTWH(c.dx - 2, c.dy + 4, 4, 8), _fill);
     canvas.drawRect(Rect.fromLTWH(c.dx - 2, c.dy + 4, 4, 8), _stroke);
 
     // 3 Katmanlı piramit taç
@@ -125,88 +138,104 @@ class LowPolyBuildingRenderer {
       final double halfW = 12.0 - (i * 2.5);
 
       // Sol açık faset
-      final Path leftP = Path()
+      _path
+        ..reset()
         ..moveTo(c.dx, yBase - 8)
         ..lineTo(c.dx - halfW, yBase)
         ..lineTo(c.dx, yBase)
         ..close();
-      canvas.drawPath(leftP, midGreen);
-      canvas.drawPath(leftP, _stroke);
+      _fill.color = midGreen;
+      canvas.drawPath(_path, _fill);
+      canvas.drawPath(_path, _stroke);
 
       // Sağ koyu faset
-      final Path rightP = Path()
+      _path
+        ..reset()
         ..moveTo(c.dx, yBase - 8)
         ..lineTo(c.dx + halfW, yBase)
         ..lineTo(c.dx, yBase)
         ..close();
-      canvas.drawPath(rightP, darkGreen);
-      canvas.drawPath(rightP, _stroke);
+      _fill.color = darkGreen;
+      canvas.drawPath(_path, _fill);
+      canvas.drawPath(_path, _stroke);
     }
   }
 
   static void _drawLowPolyMountainPeaks(Canvas canvas, Offset c) {
     // İkiz kristalize piramit zirve
-    final Paint darkRock = Paint()..color = const Color(0xFF475569);
-    final Paint lightRock = Paint()..color = const Color(0xFF94A3B8);
-    final Paint snow = Paint()..color = const Color(0xFFF8FAFC);
+    const darkRock = Color(0xFF475569);
+    const lightRock = Color(0xFF94A3B8);
+    const snow = Color(0xFFF8FAFC);
+
+    _stroke.strokeWidth = 1.3;
+    _stroke.color = Colors.black;
 
     // Ana Zirve
-    final Path leftM = Path()
+    _path
+      ..reset()
       ..moveTo(c.dx - 2, c.dy - 14)
       ..lineTo(c.dx - 16, c.dy + 8)
       ..lineTo(c.dx - 2, c.dy + 8)
       ..close();
-    canvas.drawPath(leftM, lightRock);
-    canvas.drawPath(leftM, _stroke);
+    _fill.color = lightRock;
+    canvas.drawPath(_path, _fill);
+    canvas.drawPath(_path, _stroke);
 
-    final Path rightM = Path()
+    _path
+      ..reset()
       ..moveTo(c.dx - 2, c.dy - 14)
       ..lineTo(c.dx + 12, c.dy + 8)
       ..lineTo(c.dx - 2, c.dy + 8)
       ..close();
-    canvas.drawPath(rightM, darkRock);
-    canvas.drawPath(rightM, _stroke);
+    _fill.color = darkRock;
+    canvas.drawPath(_path, _fill);
+    canvas.drawPath(_path, _stroke);
 
     // Kar Başlığı
-    final Path snowCap = Path()
+    _path
+      ..reset()
       ..moveTo(c.dx - 2, c.dy - 14)
       ..lineTo(c.dx - 7, c.dy - 6)
       ..lineTo(c.dx + 4, c.dy - 6)
       ..close();
-    canvas.drawPath(snowCap, snow);
-    canvas.drawPath(snowCap, _stroke);
+    _fill.color = snow;
+    canvas.drawPath(_path, _fill);
+    canvas.drawPath(_path, _stroke);
   }
 
   static void _drawLowPolyWaves(Canvas canvas, Offset c, double t) {
-    final Paint wave = Paint()
-      ..color = const Color(0xFFE0F2FE)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
+    _stroke.color = const Color(0xFFE0F2FE);
+    _stroke.strokeWidth = 2.0;
 
     final double phase = (t * 2.5) % (math.pi * 2);
     for (int row = -1; row <= 1; row++) {
       final double y = c.dy + row * 6.0;
       final double shift = math.sin(phase + row) * 3.0;
 
-      final Path p = Path()
+      _path
+        ..reset()
         ..moveTo(c.dx - 12 + shift, y)
         ..lineTo(c.dx - 4 + shift, y - 2)
         ..lineTo(c.dx + 4 + shift, y + 1)
         ..lineTo(c.dx + 12 + shift, y - 1);
-      canvas.drawPath(p, wave);
+      canvas.drawPath(_path, _stroke);
     }
   }
 
   // --- BİNA LOW-POLY ÇİZİMLERİ ---
 
   static void _drawCastle(Canvas canvas, Offset c, int level) {
-    final Paint wall = Paint()..color = const Color(0xFF94A3B8);
-    final Paint wallDark = Paint()..color = const Color(0xFF64748B);
-    final Paint roof = Paint()..color = const Color(0xFFDC2626);
-    final Paint gold = Paint()..color = const Color(0xFFFFD700);
+    const wall = Color(0xFF94A3B8);
+    const wallDark = Color(0xFF64748B);
+    const roof = Color(0xFFDC2626);
+    const gold = Color(0xFFFFD700);
+
+    _stroke.strokeWidth = 1.3;
+    _stroke.color = Colors.black;
 
     // Ana Gövde
-    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy + 3), width: 26, height: 16), wall);
+    _fill.color = wall;
+    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy + 3), width: 26, height: 16), _fill);
     canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy + 3), width: 26, height: 16), _stroke);
 
     // Kapı
@@ -214,100 +243,129 @@ class LowPolyBuildingRenderer {
       Rect.fromCenter(center: Offset(c.dx, c.dy + 7), width: 8, height: 8),
       const Radius.circular(3),
     );
-    canvas.drawRRect(gate, Paint()..color = const Color(0xFF1E293B));
+    _fill.color = const Color(0xFF1E293B);
+    canvas.drawRRect(gate, _fill);
     canvas.drawRRect(gate, _stroke);
 
     // İki Kule
     for (final xOff in [-11.0, 11.0]) {
       final Rect tRect = Rect.fromCenter(center: Offset(c.dx + xOff, c.dy - 2), width: 8, height: 20);
-      canvas.drawRect(tRect, wallDark);
+      _fill.color = wallDark;
+      canvas.drawRect(tRect, _fill);
       canvas.drawRect(tRect, _stroke);
 
       // Kule Çatısı (Kırmızı Piramit)
-      final Path rPath = Path()
+      _path
+        ..reset()
         ..moveTo(c.dx + xOff, c.dy - 18)
         ..lineTo(c.dx + xOff - 6, c.dy - 12)
         ..lineTo(c.dx + xOff + 6, c.dy - 12)
         ..close();
-      canvas.drawPath(rPath, roof);
-      canvas.drawPath(rPath, _stroke);
+      _fill.color = roof;
+      canvas.drawPath(_path, _fill);
+      canvas.drawPath(_path, _stroke);
     }
 
     // Kraliyet Bayrağı
-    final Path flag = Path()
+    _path
+      ..reset()
       ..moveTo(c.dx, c.dy - 5)
       ..lineTo(c.dx, c.dy - 15)
       ..lineTo(c.dx + 8, c.dy - 11)
       ..lineTo(c.dx, c.dy - 8);
-    canvas.drawPath(flag, gold);
-    canvas.drawPath(flag, _stroke);
+    _fill.color = gold;
+    canvas.drawPath(_path, _fill);
+    canvas.drawPath(_path, _stroke);
   }
 
   static void _drawCornFarm(Canvas canvas, Offset c) {
-    final Paint soil = Paint()..color = const Color(0xFF78350F);
-    final Paint corn = Paint()..color = const Color(0xFFFBBF24);
+    const soil = Color(0xFF78350F);
+    const corn = Color(0xFFFBBF24);
+
+    _stroke.strokeWidth = 1.3;
+    _stroke.color = Colors.black;
 
     // Çiftlik çit/tarla platformu
-    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy + 4), width: 22, height: 12), soil);
+    _fill.color = soil;
+    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy + 4), width: 22, height: 12), _fill);
     canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy + 4), width: 22, height: 12), _stroke);
 
     // Mısır koçanı dizisi
     for (int i = -1; i <= 1; i++) {
       final double x = c.dx + i * 7.0;
-      canvas.drawRect(Rect.fromCenter(center: Offset(x, c.dy - 2), width: 4, height: 10), corn);
+      _fill.color = corn;
+      canvas.drawRect(Rect.fromCenter(center: Offset(x, c.dy - 2), width: 4, height: 10), _fill);
+      _stroke.color = Colors.black;
       canvas.drawRect(Rect.fromCenter(center: Offset(x, c.dy - 2), width: 4, height: 10), _stroke);
 
-      canvas.drawLine(Offset(x - 3, c.dy), Offset(x, c.dy - 2), _stroke..color = Colors.green.shade800);
-      canvas.drawLine(Offset(x + 3, c.dy), Offset(x, c.dy - 2), _stroke..color = Colors.green.shade800);
+      _stroke.color = const Color(0xFF166534);
+      canvas.drawLine(Offset(x - 3, c.dy), Offset(x, c.dy - 2), _stroke);
+      canvas.drawLine(Offset(x + 3, c.dy), Offset(x, c.dy - 2), _stroke);
     }
   }
 
   static void _drawLumberjackLodge(Canvas canvas, Offset c) {
-    final Paint wood = Paint()..color = const Color(0xFF92400E);
-    final Paint roof = Paint()..color = const Color(0xFFB45309);
-    final Paint axe = Paint()..color = const Color(0xFFE2E8F0);
+    const wood = Color(0xFF92400E);
+    const roof = Color(0xFFB45309);
+    const axe = Color(0xFFE2E8F0);
+
+    _stroke.strokeWidth = 1.3;
+    _stroke.color = Colors.black;
 
     // Kütük kulübe
-    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy + 4), width: 20, height: 14), wood);
+    _fill.color = wood;
+    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy + 4), width: 20, height: 14), _fill);
     canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy + 4), width: 20, height: 14), _stroke);
 
     // Üçgen çatı
-    final Path r = Path()
+    _path
+      ..reset()
       ..moveTo(c.dx, c.dy - 10)
       ..lineTo(c.dx - 13, c.dy - 3)
       ..lineTo(c.dx + 13, c.dy - 3)
       ..close();
-    canvas.drawPath(r, roof);
-    canvas.drawPath(r, _stroke);
+    _fill.color = roof;
+    canvas.drawPath(_path, _fill);
+    canvas.drawPath(_path, _stroke);
 
     // Balta & Kütük
-    canvas.drawCircle(Offset(c.dx + 10, c.dy + 7), 3, Paint()..color = const Color(0xFFFDE68A));
-    canvas.drawLine(Offset(c.dx + 10, c.dy + 4), Offset(c.dx + 13, c.dy + 1), axe..strokeWidth = 2);
+    _fill.color = const Color(0xFFFDE68A);
+    canvas.drawCircle(Offset(c.dx + 10, c.dy + 7), 3, _fill);
+    _stroke.color = axe;
+    _stroke.strokeWidth = 2.0;
+    canvas.drawLine(Offset(c.dx + 10, c.dy + 4), Offset(c.dx + 13, c.dy + 1), _stroke);
   }
 
   static void _drawWindmill(Canvas canvas, Offset c, double t) {
-    final Paint tower = Paint()..color = const Color(0xFFF1F5F9);
-    final Paint roof = Paint()..color = const Color(0xFFDC2626);
-    final Paint blade = Paint()..color = const Color(0xFFFDE047);
+    const tower = Color(0xFFF1F5F9);
+    const roof = Color(0xFFDC2626);
+    const blade = Color(0xFFFDE047);
+
+    _stroke.strokeWidth = 1.3;
+    _stroke.color = Colors.black;
 
     // Konik Kule Gövdesi
-    final Path body = Path()
+    _path
+      ..reset()
       ..moveTo(c.dx - 6, c.dy - 5)
       ..lineTo(c.dx + 6, c.dy - 5)
       ..lineTo(c.dx + 9, c.dy + 10)
       ..lineTo(c.dx - 9, c.dy + 10)
       ..close();
-    canvas.drawPath(body, tower);
-    canvas.drawPath(body, _stroke);
+    _fill.color = tower;
+    canvas.drawPath(_path, _fill);
+    canvas.drawPath(_path, _stroke);
 
     // Çatı
-    final Path r = Path()
+    _path
+      ..reset()
       ..moveTo(c.dx, c.dy - 12)
       ..lineTo(c.dx - 7, c.dy - 5)
       ..lineTo(c.dx + 7, c.dy - 5)
       ..close();
-    canvas.drawPath(r, roof);
-    canvas.drawPath(r, _stroke);
+    _fill.color = roof;
+    canvas.drawPath(_path, _fill);
+    canvas.drawPath(_path, _stroke);
 
     // ⚡ CANLI DÖNEN DEĞİRMEN KANATLARI (4 Bıçak)
     final double angle = t * 2.8; // 30-40 RPM
@@ -315,52 +373,69 @@ class LowPolyBuildingRenderer {
 
     for (int i = 0; i < 4; i++) {
       final double a = angle + i * (math.pi / 2);
-      final double bLen = 13.0;
+      const double bLen = 13.0;
       final double bx = hub.dx + bLen * math.cos(a);
       final double by = hub.dy + bLen * math.sin(a);
 
-      canvas.drawLine(hub, Offset(bx, by), _stroke..strokeWidth = 2.0);
+      _stroke.strokeWidth = 2.0;
+      _stroke.color = Colors.black;
+      canvas.drawLine(hub, Offset(bx, by), _stroke);
 
-      final Path sail = Path()
+      _path
+        ..reset()
         ..moveTo(hub.dx + (bLen * 0.4) * math.cos(a), hub.dy + (bLen * 0.4) * math.sin(a))
         ..lineTo(bx, by)
         ..lineTo(bx + 4 * math.sin(a), by - 4 * math.cos(a))
         ..close();
-      canvas.drawPath(sail, blade);
-      canvas.drawPath(sail, _stroke..strokeWidth = 1.0);
+      _fill.color = blade;
+      canvas.drawPath(_path, _fill);
+      _stroke.strokeWidth = 1.0;
+      canvas.drawPath(_path, _stroke);
     }
     // Göbek
-    canvas.drawCircle(hub, 2.5, Paint()..color = Colors.black);
+    _fill.color = Colors.black;
+    canvas.drawCircle(hub, 2.5, _fill);
   }
 
   static void _drawSawmill(Canvas canvas, Offset c) {
-    final Paint mill = Paint()..color = const Color(0xFF78350F);
-    final Paint blade = Paint()..color = const Color(0xFFE2E8F0);
+    const mill = Color(0xFF78350F);
+    const blade = Color(0xFFE2E8F0);
 
-    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx - 4, c.dy + 2), width: 16, height: 16), mill);
+    _stroke.strokeWidth = 1.3;
+    _stroke.color = Colors.black;
+
+    _fill.color = mill;
+    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx - 4, c.dy + 2), width: 16, height: 16), _fill);
     canvas.drawRect(Rect.fromCenter(center: Offset(c.dx - 4, c.dy + 2), width: 16, height: 16), _stroke);
 
     // Dairesel Hızar Bıçağı
-    canvas.drawCircle(Offset(c.dx + 8, c.dy + 3), 7, blade);
+    _fill.color = blade;
+    canvas.drawCircle(Offset(c.dx + 8, c.dy + 3), 7, _fill);
     canvas.drawCircle(Offset(c.dx + 8, c.dy + 3), 7, _stroke);
   }
 
   static void _drawBakery(Canvas canvas, Offset c, double t) {
-    final Paint stone = Paint()..color = const Color(0xFF64748B);
-    final Paint fire = Paint()..color = const Color(0xFFF97316);
+    const stone = Color(0xFF64748B);
+    const fire = Color(0xFFF97316);
+
+    _stroke.strokeWidth = 1.3;
+    _stroke.color = Colors.black;
 
     // Taş fırın kubbesi
-    final Path dome = Path()
+    _path
+      ..reset()
       ..moveTo(c.dx - 10, c.dy + 8)
       ..lineTo(c.dx + 10, c.dy + 8)
       ..lineTo(c.dx + 8, c.dy - 2)
       ..quadraticBezierTo(c.dx, c.dy - 10, c.dx - 8, c.dy - 2)
       ..close();
-    canvas.drawPath(dome, stone);
-    canvas.drawPath(dome, _stroke);
+    _fill.color = stone;
+    canvas.drawPath(_path, _fill);
+    canvas.drawPath(_path, _stroke);
 
     // Fırın Ateşi Ağzı
-    canvas.drawCircle(Offset(c.dx, c.dy + 4), 4, fire);
+    _fill.color = fire;
+    canvas.drawCircle(Offset(c.dx, c.dy + 4), 4, _fill);
     canvas.drawCircle(Offset(c.dx, c.dy + 4), 4, _stroke);
 
     // ⚡ CANLI BACA DUMANI HALKALARI
@@ -368,69 +443,96 @@ class LowPolyBuildingRenderer {
     final double puffSize = 2.5 + (puffY * 0.25);
     final double alpha = (1.0 - (puffY / 18)).clamp(0.0, 1.0);
 
-    final Paint smoke = Paint()..color = Colors.white.withValues(alpha: alpha * 0.7);
-    canvas.drawCircle(Offset(c.dx - 4, c.dy - 10 - puffY), puffSize, smoke);
-    canvas.drawCircle(Offset(c.dx - 6, c.dy - 14 - puffY * 0.8), puffSize * 1.2, smoke);
+    _fill.color = Colors.white.withValues(alpha: alpha * 0.7);
+    canvas.drawCircle(Offset(c.dx - 4, c.dy - 10 - puffY), puffSize, _fill);
+    canvas.drawCircle(Offset(c.dx - 6, c.dy - 14 - puffY * 0.8), puffSize * 1.2, _fill);
   }
 
   static void _drawFurnitureWorkshop(Canvas canvas, Offset c) {
-    final Paint wood = Paint()..color = const Color(0xFFD97706);
-    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy + 4), width: 22, height: 12), wood);
+    const wood = Color(0xFFD97706);
+    _stroke.strokeWidth = 1.3;
+    _stroke.color = Colors.black;
+
+    _fill.color = wood;
+    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy + 4), width: 22, height: 12), _fill);
     canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy + 4), width: 22, height: 12), _stroke);
 
     // Tezgah üstü sandalye formu
-    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy - 4), width: 10, height: 8), Paint()..color = const Color(0xFFB45309));
+    _fill.color = const Color(0xFFB45309);
+    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy - 4), width: 10, height: 8), _fill);
     canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy - 4), width: 10, height: 8), _stroke);
   }
 
   static void _drawWorkerCottage(Canvas canvas, Offset c) {
-    final Paint tent = Paint()..color = const Color(0xFFE2E8F0);
-    final Path t = Path()
+    const tent = Color(0xFFE2E8F0);
+    _stroke.strokeWidth = 1.3;
+    _stroke.color = Colors.black;
+
+    _path
+      ..reset()
       ..moveTo(c.dx, c.dy - 8)
       ..lineTo(c.dx - 9, c.dy + 8)
       ..lineTo(c.dx + 9, c.dy + 8)
       ..close();
-    canvas.drawPath(t, tent);
-    canvas.drawPath(t, _stroke);
+    _fill.color = tent;
+    canvas.drawPath(_path, _fill);
+    canvas.drawPath(_path, _stroke);
   }
 
   static void _drawWatchtower(Canvas canvas, Offset c) {
-    final Paint wood = Paint()..color = const Color(0xFF78350F);
-    final Paint light = Paint()..color = const Color(0xFFFEF08A);
+    const wood = Color(0xFF78350F);
+    const light = Color(0xFFFEF08A);
+
+    _stroke.color = Colors.black;
+    _stroke.strokeWidth = 2.0;
 
     // Kule Ayakları
-    canvas.drawLine(Offset(c.dx - 8, c.dy + 10), Offset(c.dx - 4, c.dy - 8), _stroke..strokeWidth = 2);
-    canvas.drawLine(Offset(c.dx + 8, c.dy + 10), Offset(c.dx + 4, c.dy - 8), _stroke..strokeWidth = 2);
-    canvas.drawLine(Offset(c.dx - 7, c.dy + 2), Offset(c.dx + 7, c.dy + 2), _stroke..strokeWidth = 1.5);
+    canvas.drawLine(Offset(c.dx - 8, c.dy + 10), Offset(c.dx - 4, c.dy - 8), _stroke);
+    canvas.drawLine(Offset(c.dx + 8, c.dy + 10), Offset(c.dx + 4, c.dy - 8), _stroke);
+    _stroke.strokeWidth = 1.5;
+    canvas.drawLine(Offset(c.dx - 7, c.dy + 2), Offset(c.dx + 7, c.dy + 2), _stroke);
 
     // Gözlem Kabini
-    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy - 10), width: 14, height: 8), wood);
+    _fill.color = wood;
+    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy - 10), width: 14, height: 8), _fill);
+    _stroke.strokeWidth = 1.3;
     canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy - 10), width: 14, height: 8), _stroke);
 
     // Işık / Meşale
-    canvas.drawCircle(Offset(c.dx, c.dy - 15), 3, light);
+    _fill.color = light;
+    canvas.drawCircle(Offset(c.dx, c.dy - 15), 3, _fill);
   }
 
   static void _drawMineShaft(Canvas canvas, Offset c) {
-    final Paint frame = Paint()..color = const Color(0xFF78350F);
-    final Paint ore = Paint()..color = const Color(0xFFFFD700);
+    const frame = Color(0xFF78350F);
+    const ore = Color(0xFFFFD700);
+
+    _stroke.strokeWidth = 1.3;
+    _stroke.color = Colors.black;
 
     // Maden Giriş Kirişi
-    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy + 3), width: 18, height: 14), frame);
+    _fill.color = frame;
+    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy + 3), width: 18, height: 14), _fill);
     canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy + 3), width: 18, height: 14), _stroke);
 
     // Karanlık Tünel
-    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy + 4), width: 12, height: 10), Paint()..color = Colors.black);
+    _fill.color = Colors.black;
+    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy + 4), width: 12, height: 10), _fill);
 
     // Vagon / Altın Külçesi
-    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx + 8, c.dy + 8), width: 6, height: 4), ore);
+    _fill.color = ore;
+    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx + 8, c.dy + 8), width: 6, height: 4), _fill);
     canvas.drawRect(Rect.fromCenter(center: Offset(c.dx + 8, c.dy + 8), width: 6, height: 4), _stroke);
   }
 
   static void _drawBridge(Canvas canvas, Offset c) {
-    final Paint wood = Paint()..color = const Color(0xFFD97706);
+    const wood = Color(0xFFD97706);
+    _stroke.strokeWidth = 1.3;
+    _stroke.color = Colors.black;
+
     // İki kemerli ahşap köprü
-    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy), width: 28, height: 8), wood);
+    _fill.color = wood;
+    canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy), width: 28, height: 8), _fill);
     canvas.drawRect(Rect.fromCenter(center: Offset(c.dx, c.dy), width: 28, height: 8), _stroke);
 
     // Parmaklıklar

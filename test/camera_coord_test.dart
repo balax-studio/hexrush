@@ -8,7 +8,7 @@ void main() {
     final world = World();
     final camera = CameraComponent(world: world);
     camera.viewfinder.position = Vector2(50, -30); // camera panned
-    final double zoom = 1.25;
+    const double zoom = 1.25;
     camera.viewfinder.zoom = zoom;
     camera.viewport.size = Vector2(500, 800);
 

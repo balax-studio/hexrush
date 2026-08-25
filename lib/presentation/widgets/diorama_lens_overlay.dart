@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/game_state_notifier.dart';
@@ -9,8 +8,7 @@ class DioramaLensOverlay extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final gameState = ref.watch(gameStateProvider);
-    final season = gameState.season;
+    final season = ref.watch(gameStateProvider.select((s) => s.season));
     final bool isWinter = season.current == 'WINTER' || season.isZud;
     final bool isSummer = season.current == 'SUMMER';
 

@@ -1,14 +1,14 @@
 import 'dart:math' as math;
 import 'package:flame/components.dart';
-import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import '../../../core/hex/hex_coordinates.dart';
 import '../../../core/hex/hex_math.dart';
 import '../../../domain/models/building_model.dart';
 import '../../../domain/models/hex_tile_model.dart';
+import '../hex_map_game.dart';
 import '../renderers/voxel_isometric_renderer.dart';
 
-class HexTileComponent extends PositionComponent with TapCallbacks {
+class HexTileComponent extends PositionComponent {
   final HexAxial coord;
   HexTileModel tileModel;
   bool isSelected;
@@ -37,6 +37,30 @@ class HexTileComponent extends PositionComponent with TapCallbacks {
 
   static const double hexRadius = 52.0;
   static const double baseDepth3D = 20.0;
+
+  // Pre-allocated corner arrays for zero-GC rendering
+  final List<Offset> _corners = List.filled(6, Offset.zero);
+  final List<Offset> _groundCorners = List.filled(6, Offset.zero);
+  final List<Offset> _mistCorners = List.filled(6, Offset.zero);
+
+  // Zero-GC Reusable static drawing tools
+  static final Paint _sharedFillPaint = Paint()..style = PaintingStyle.fill;
+  static final Paint _sharedStrokePaint = Paint()..style = PaintingStyle.stroke;
+  static final Paint _highlightPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.0;
+  static final Paint _selectBorderPaint = Paint()
+    ..color = const Color(0xFFFFD700)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 3.0;
+  static final Paint _warmPaint = Paint()
+    ..color = const Color(0x55F97316)
+    ..style = PaintingStyle.fill;
+  static final Paint _badgeShadowPaint = Paint()..color = Colors.black;
+
+  static final Path _fogPath = Path();
+  static final Path _wallPath = Path();
+  static final Path _topPath = Path();
 
   HexTileComponent({
     required this.coord,
@@ -100,13 +124,6 @@ class HexTileComponent extends PositionComponent with TapCallbacks {
   }
 
   @override
-  void onTapDown(TapDownEvent event) {
-    super.onTapDown(event);
-    triggerTapBounce();
-    onTileTapped?.call(coord);
-  }
-
-  @override
   void update(double dt) {
     super.update(dt);
     _animTimer += dt;
@@ -126,6 +143,18 @@ class HexTileComponent extends PositionComponent with TapCallbacks {
 
   @override
   void render(Canvas canvas) {
+    // Frustum / Viewport Culling: Ekran dışındaki karoları çizme
+    final game = findGame();
+    if (game is HexMapGame) {
+      final Rect bounds = game.visibleWorldBounds;
+      if (position.x < bounds.left ||
+          position.x > bounds.right ||
+          position.y < bounds.top ||
+          position.y > bounds.bottom) {
+        return;
+      }
+    }
+
     // Dokunsal Pop / Yaylanma zıplaması
     double bounceOffset = 0.0;
     if (_bounceTimer > 0) {
@@ -136,13 +165,13 @@ class HexTileComponent extends PositionComponent with TapCallbacks {
       bounceOffset = math.sin(progress * math.pi) * 12.0;
     }
 
-    final double elevation = _getBiomeElevation(tileModel.biome) + bounceOffset;
+    final double elevation = getBiomeElevation(tileModel.biome, isFog: tileModel.isFog) + bounceOffset;
     final Offset center = Offset(size.x / 2, size.y / 2 - elevation);
-    final corners = HexMath.getHexCorners(center, hexSize: hexRadius, yScale: HexMath.defaultYScale);
+    HexMath.getHexCornersInto(_corners, center, hexSize: hexRadius, yScale: HexMath.defaultYScale);
 
     // 1. TAM SİSLİ KARO
     if (tileModel.isFog) {
-      _renderVoxelFog(canvas, corners, center, alpha: 1.0, floatY: 0.0);
+      _renderVoxelFog(canvas, _corners, center, alpha: 1.0, floatY: 0.0);
       return;
     }
 
@@ -154,24 +183,24 @@ class HexTileComponent extends PositionComponent with TapCallbacks {
       // Yükselen zemin (Aşağıdan yumuşakça yükselerek belirir)
       final double groundElevation = elevation - (1.0 - eased) * 14.0;
       final Offset groundCenter = Offset(size.x / 2, size.y / 2 - groundElevation);
-      final groundCorners = HexMath.getHexCorners(groundCenter, hexSize: hexRadius, yScale: HexMath.defaultYScale);
+      HexMath.getHexCornersInto(_groundCorners, groundCenter, hexSize: hexRadius, yScale: HexMath.defaultYScale);
 
-      _render3DExtrudedWalls(canvas, groundCorners, groundElevation);
-      _renderIsometricTopFace(canvas, groundCorners, groundCenter);
-      _renderVoxelObjects(canvas, groundCenter, groundCorners);
+      _render3DExtrudedWalls(canvas, _groundCorners, groundElevation);
+      _renderIsometricTopFace(canvas, _groundCorners, groundCenter);
+      _renderVoxelObjects(canvas, groundCenter, _groundCorners);
       _renderBrutalistBadges(canvas, groundCenter);
 
       // Yukarı doğru dağılarak kaybolan sis katmanı
       final double mistAlpha = (1.0 - eased).clamp(0.0, 1.0);
       final double mistFloatY = eased * 30.0;
-      _renderVoxelFog(canvas, corners, center, alpha: mistAlpha, floatY: mistFloatY);
+      _renderVoxelFog(canvas, _corners, center, alpha: mistAlpha, floatY: mistFloatY);
       return;
     }
 
     // 3. NORMAL AÇIK KARO RENDER
-    _render3DExtrudedWalls(canvas, corners, elevation);
-    _renderIsometricTopFace(canvas, corners, center);
-    _renderVoxelObjects(canvas, center, corners);
+    _render3DExtrudedWalls(canvas, _corners, elevation);
+    _renderIsometricTopFace(canvas, _corners, center);
+    _renderVoxelObjects(canvas, center, _corners);
 
     // İnşaat / Yükseltme Sırasında Voksel Toz Patlaması (Construction Poof)
     if (_buildBounceTimer > 0) {
@@ -182,8 +211,8 @@ class HexTileComponent extends PositionComponent with TapCallbacks {
     _renderBrutalistBadges(canvas, center);
   }
 
-  double _getBiomeElevation(TileBiome biome) {
-    if (tileModel.isFog) return 0.0;
+  static double getBiomeElevation(TileBiome biome, {bool isFog = false}) {
+    if (isFog) return 0.0;
     switch (biome) {
       case TileBiome.sea:
       case TileBiome.wetland:
@@ -210,24 +239,26 @@ class HexTileComponent extends PositionComponent with TapCallbacks {
     if (alpha <= 0.01) return;
 
     final Offset mistCenter = Offset(center.dx, center.dy - floatY);
-    final mistCorners = HexMath.getHexCorners(mistCenter, hexSize: hexRadius, yScale: HexMath.defaultYScale);
+    HexMath.getHexCornersInto(_mistCorners, mistCenter, hexSize: hexRadius, yScale: HexMath.defaultYScale);
 
-    final Path path = Path()..moveTo(mistCorners[0].dx, mistCorners[0].dy);
+    _fogPath
+      ..reset()
+      ..moveTo(_mistCorners[0].dx, _mistCorners[0].dy);
     for (int i = 1; i < 6; i++) {
-      path.lineTo(mistCorners[i].dx, mistCorners[i].dy);
+      _fogPath.lineTo(_mistCorners[i].dx, _mistCorners[i].dy);
     }
-    path.close();
+    _fogPath.close();
 
-    final Paint fogFill = Paint()
+    _sharedFillPaint
       ..color = const Color(0xFF0F172A).withValues(alpha: (0.92 * alpha).clamp(0.0, 1.0))
       ..style = PaintingStyle.fill;
-    canvas.drawPath(path, fogFill);
+    canvas.drawPath(_fogPath, _sharedFillPaint);
 
-    final Paint border = Paint()
+    _sharedStrokePaint
       ..color = const Color(0xFF1E293B).withValues(alpha: alpha.clamp(0.0, 1.0))
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
-    canvas.drawPath(path, border);
+    canvas.drawPath(_fogPath, _sharedStrokePaint);
 
     // 3D Voksel Canlı Sis Kubbesi, Gizem Işıltıları ve Keşif Fısıltıları
     final int seed = (coord.q * 37 + coord.r * 19).abs();
@@ -251,11 +282,13 @@ class HexTileComponent extends PositionComponent with TapCallbacks {
     final double wallH = baseDepth3D + elevation;
     final (wallLeft, wallRight, bedrock) = _getBiome3DWallColors(tileModel.biome);
 
+    _sharedFillPaint.style = PaintingStyle.fill;
     for (int i = 1; i <= 3; i++) {
       final pA = corners[i];
       final pB = corners[(i + 1) % 6];
 
-      final Path wallPath = Path()
+      _wallPath
+        ..reset()
         ..moveTo(pA.dx, pA.dy)
         ..lineTo(pB.dx, pB.dy)
         ..lineTo(pB.dx, pB.dy + wallH)
@@ -266,44 +299,40 @@ class HexTileComponent extends PositionComponent with TapCallbacks {
           ? wallLeft
           : (i == 2 ? wallRight : bedrock);
 
-      canvas.drawPath(wallPath, Paint()..color = col);
+      _sharedFillPaint.color = col;
+      canvas.drawPath(_wallPath, _sharedFillPaint);
     }
   }
 
   void _renderIsometricTopFace(Canvas canvas, List<Offset> corners, Offset center) {
-    final Path topPath = Path()..moveTo(corners[0].dx, corners[0].dy);
+    _topPath
+      ..reset()
+      ..moveTo(corners[0].dx, corners[0].dy);
     for (int i = 1; i < 6; i++) {
-      topPath.lineTo(corners[i].dx, corners[i].dy);
+      _topPath.lineTo(corners[i].dx, corners[i].dy);
     }
-    topPath.close();
+    _topPath.close();
 
     final int seed = (coord.q * 37 + coord.r * 19).abs();
     Color topColor = _getBiomeTopColor(tileModel.biome, seed);
     if (isNight) {
       topColor = Color.lerp(topColor, const Color(0xFF0F172A), 0.45)!;
     }
-    canvas.drawPath(topPath, Paint()..color = topColor);
+    _sharedFillPaint
+      ..style = PaintingStyle.fill
+      ..color = topColor;
+    canvas.drawPath(_topPath, _sharedFillPaint);
 
-    final Paint highlight = Paint()
-      ..color = Colors.white.withValues(alpha: isNight ? 0.05 : 0.12)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-    canvas.drawPath(topPath, highlight);
+    _highlightPaint.color = Colors.white.withValues(alpha: isNight ? 0.05 : 0.12);
+    canvas.drawPath(_topPath, _highlightPaint);
 
     if (tileModel.isWarmed) {
-      final Paint warm = Paint()
-        ..color = const Color(0x55F97316)
-        ..style = PaintingStyle.fill;
-      canvas.drawPath(topPath, warm);
+      canvas.drawPath(_topPath, _warmPaint);
     }
 
     // Seçili Karo Neo-Brutalist Sarı Vurgusu
     if (isSelected) {
-      final Paint selectBorder = Paint()
-        ..color = const Color(0xFFFFD700)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 3.0;
-      canvas.drawPath(topPath, selectBorder);
+      canvas.drawPath(_topPath, _selectBorderPaint);
     }
   }
 
@@ -756,15 +785,16 @@ class HexTileComponent extends PositionComponent with TapCallbacks {
     const double h = 16.0;
     final Rect rect = Rect.fromCenter(center: Offset(x, y), width: w, height: h);
 
-    canvas.drawRect(rect.shift(const Offset(2, 2)), Paint()..color = Colors.black);
-    canvas.drawRect(rect, Paint()..color = bg);
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..color = Colors.black
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.4,
-    );
+    canvas.drawRect(rect.shift(const Offset(2, 2)), _badgeShadowPaint);
+    _sharedFillPaint
+      ..style = PaintingStyle.fill
+      ..color = bg;
+    canvas.drawRect(rect, _sharedFillPaint);
+    _sharedStrokePaint
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4;
+    canvas.drawRect(rect, _sharedStrokePaint);
 
     final textSpan = TextSpan(
       text: text,

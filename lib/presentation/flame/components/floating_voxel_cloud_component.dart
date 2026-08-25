@@ -31,21 +31,22 @@ class FloatingVoxelCloudComponent extends PositionComponent {
     }
   }
 
+  static final Paint _groundShadowPaint = Paint()
+    ..color = Colors.black.withValues(alpha: 0.15)
+    ..style = PaintingStyle.fill;
+
   @override
   void render(Canvas canvas) {
     final Offset center = Offset(size.x / 2, size.y / 2);
 
     // Yeryüzüne vuran yumuşak bulut gölgesi
-    final Paint groundShadow = Paint()
-      ..color = Colors.black.withValues(alpha: 0.15)
-      ..style = PaintingStyle.fill;
     canvas.drawOval(
       Rect.fromCenter(
         center: Offset(center.dx, center.dy + 70 * cloudScale),
         width: 36 * cloudScale,
         height: 14 * cloudScale,
       ),
-      groundShadow,
+      _groundShadowPaint,
     );
 
     // 3D Voxel Bulut Gövdesi
