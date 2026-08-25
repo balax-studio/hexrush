@@ -49,6 +49,9 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
       globalMultiplier: globalMult,
       seasonMultiplier: seasonMult * gameState.frenzyMultiplier,
       shrineMultiplier: gameState.shrineMultiplier,
+      tileMap: gameState.tiles,
+      season: gameState.season.current,
+      isZud: gameState.season.isZud,
     );
 
     return Container(
@@ -131,15 +134,34 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                 ),
                 const SizedBox(width: 5),
 
-                // Töre Butonu (Vector Parşömen)
-                _buildIconButton(
-                  icon: const GameVectorIcon(type: GameIconType.tore, size: 15),
-                  onPressed: widget.onOpenTore,
-                  tooltip: GameLocalization.get('tore_title', lang: lang),
+                // Töre Butonu (Vector Parşömen + Bildirim Rozeti)
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    _buildIconButton(
+                      icon: const GameVectorIcon(type: GameIconType.tore, size: 15),
+                      onPressed: widget.onOpenTore,
+                      tooltip: GameLocalization.get('tore_title', lang: lang),
+                    ),
+                    if (resources.crowns > 0)
+                      Positioned(
+                        top: -2,
+                        right: -2,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFD700),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.black, width: 1.5),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 5),
 
-                // Frenzy Butonu (TactileNeoButton)
+                // Kompakt Frenzy / Çılgınlık Butonu (Taşmayı Önler)
                 TactileNeoButton(
                   onTap: () {
                     ref.read(gameStateProvider.notifier).activateFrenzy();
@@ -147,22 +169,23 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   backgroundColor: gameState.frenzyTimer > 0
                       ? const Color(0xFFEF4444)
                       : const Color(0xFF8B5CF6),
+                  shadowColor: const Color(0xFF4C1D95),
                   shadowOffset: 2.0,
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const GameVectorIcon(type: GameIconType.frenzy, size: 13, color: Colors.white),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 3),
                       Text(
                         gameState.frenzyTimer > 0
                             ? '${gameState.frenzyTimer.toInt()}s'
-                            : GameLocalization.get('frenzy_boost', lang: lang),
+                            : '10x',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 11,
                           fontWeight: FontWeight.w900,
-                          letterSpacing: 0.3,
+                          letterSpacing: 0.2,
                         ),
                       ),
                     ],
@@ -272,21 +295,70 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   border: Border.all(color: Colors.black, width: 1.5),
                   boxShadow: NeoBrutalistTheme.hardShadowSmall,
                 ),
-                child: Text(
-                  'KALE LV.${gameState.progression.castleLevel}',
-                  style: const TextStyle(
-                    color: Color(0xFFFFD700),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.5,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'KALE LV.${gameState.progression.castleLevel}',
+                      style: const TextStyle(
+                        color: Color(0xFFFFD700),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981).withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                      child: Text(
+                        '+${((globalMult - 1.0) * 100).toInt()}% HIZ',
+                        style: const TextStyle(
+                          color: Color(0xFF10B981),
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
+
+          // Mevsim İlerleme Çubuğu (Season Progress Micro-Bar)
+          const SizedBox(height: 4),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: Container(
+              height: 3,
+              width: double.infinity,
+              color: const Color(0xFF1E293B),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: FractionallySizedBox(
+                  widthFactor: (gameState.season.timer / 300.0).clamp(0.0, 1.0),
+                  child: Container(
+                    color: _getSeasonColor(gameState.season),
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  Color _getSeasonColor(dynamic season) {
+    if (season.isZud) return const Color(0xFFEF4444);
+    if (season.current == 'SUMMER') return const Color(0xFFFBBF24);
+    if (season.current == 'AUTUMN') return const Color(0xFFEA580C);
+    if (season.current == 'WINTER') return const Color(0xFF38BDF8);
+    return const Color(0xFF4ADE80);
   }
 
   Widget _buildIconButton({

@@ -19,6 +19,9 @@ class HexTileComponent extends PositionComponent {
   double _bounceTimer = 0.0;
   static const double _bounceDuration = 0.25;
 
+  double _buildBounceTimer = 0.0;
+  static const double _buildBounceDuration = 0.35;
+
   static const double hexRadius = 52.0;
   static const double baseDepth3D = 20.0;
 
@@ -52,6 +55,15 @@ class HexTileComponent extends PositionComponent {
     if (!isSelected && newIsSelected) {
       triggerTapBounce();
     }
+
+    final bool buildingAdded = !tileModel.hasBuilding && newTileModel.hasBuilding;
+    final bool buildingUpgraded = tileModel.hasBuilding &&
+        newTileModel.hasBuilding &&
+        newTileModel.building!.level > tileModel.building!.level;
+    if (buildingAdded || buildingUpgraded) {
+      _buildBounceTimer = _buildBounceDuration;
+    }
+
     tileModel = newTileModel;
     isSelected = newIsSelected;
     season = newSeason;
@@ -66,6 +78,9 @@ class HexTileComponent extends PositionComponent {
     if (_bounceTimer > 0) {
       _bounceTimer = (_bounceTimer - dt).clamp(0.0, _bounceDuration);
     }
+    if (_buildBounceTimer > 0) {
+      _buildBounceTimer = (_buildBounceTimer - dt).clamp(0.0, _buildBounceDuration);
+    }
   }
 
   @override
@@ -75,6 +90,9 @@ class HexTileComponent extends PositionComponent {
     if (_bounceTimer > 0) {
       final double progress = 1.0 - (_bounceTimer / _bounceDuration);
       bounceOffset = math.sin(progress * math.pi) * 8.0;
+    } else if (_buildBounceTimer > 0) {
+      final double progress = 1.0 - (_buildBounceTimer / _buildBounceDuration);
+      bounceOffset = math.sin(progress * math.pi) * 12.0;
     }
 
     final double elevation = _getBiomeElevation(tileModel.biome) + bounceOffset;
@@ -88,8 +106,15 @@ class HexTileComponent extends PositionComponent {
 
     _render3DExtrudedWalls(canvas, corners, elevation);
     _renderIsometricTopFace(canvas, corners, center);
-    _renderVoxelObjects(canvas, center);
+    _renderVoxelObjects(canvas, center, corners);
     _renderRoads(canvas, center);
+
+    // İnşaat / Yükseltme Sırasında Voksel Toz Patlaması (Construction Poof)
+    if (_buildBounceTimer > 0) {
+      final double progress = 1.0 - (_buildBounceTimer / _buildBounceDuration);
+      VoxelIsometricRenderer.drawVoxelConstructionPoof(canvas, center, progress);
+    }
+
     _renderBrutalistBadges(canvas, center);
   }
 
@@ -129,9 +154,20 @@ class HexTileComponent extends PositionComponent {
       ..strokeWidth = 1.0;
     canvas.drawPath(path, border);
 
-    // Bozkır Petrogilf & Tamga Kazıma Çizgileri (Arkeolojik Rün)
+    // 3D Voksel Canlı Sis Kubbesi, Gizem Işıltıları ve Keşif Fısıltıları
     final int seed = (coord.q * 37 + coord.r * 19).abs();
-    VoxelIsometricRenderer.drawVoxelPetroglyph(canvas, center, seed: seed, animTime: _animTimer);
+    final int distFromCenter = HexMath.hexDistance(coord, const HexAxial(0, 0));
+    final bool isBorderFog = distFromCenter <= 5;
+
+    VoxelIsometricRenderer.drawVoxelMysteryFog(
+      canvas,
+      center,
+      seed: seed,
+      hiddenBiome: tileModel.biome,
+      hasShrine: tileModel.hasShrine,
+      isBorderFog: isBorderFog,
+      animTime: _animTimer,
+    );
   }
 
   void _render3DExtrudedWalls(Canvas canvas, List<Offset> corners, double elevation) {
@@ -164,7 +200,8 @@ class HexTileComponent extends PositionComponent {
     }
     topPath.close();
 
-    Color topColor = _getBiomeTopColor(tileModel.biome);
+    final int seed = (coord.q * 37 + coord.r * 19).abs();
+    Color topColor = _getBiomeTopColor(tileModel.biome, seed);
     if (isNight) {
       topColor = Color.lerp(topColor, const Color(0xFF0F172A), 0.45)!;
     }
@@ -212,7 +249,7 @@ class HexTileComponent extends PositionComponent {
     }
   }
 
-  void _renderVoxelObjects(Canvas canvas, Offset center) {
+  void _renderVoxelObjects(Canvas canvas, Offset center, List<Offset> corners) {
     final int seed = (coord.q * 31 + coord.r * 17).abs();
 
     if (tileModel.hasShrine) {
@@ -251,7 +288,7 @@ class HexTileComponent extends PositionComponent {
           VoxelIsometricRenderer.drawVoxelLumberjack(canvas, center);
           break;
         case BuildingType.watchtower:
-          VoxelIsometricRenderer.drawVoxelWatchtower(canvas, center, isNight: isNight);
+          VoxelIsometricRenderer.drawVoxelWatchtower(canvas, center, isNight: isNight, animTime: _animTimer);
           break;
         case BuildingType.mine:
           VoxelIsometricRenderer.drawVoxelMine(canvas, center, animTime: _animTimer, isNight: isNight);
@@ -278,7 +315,7 @@ class HexTileComponent extends PositionComponent {
           _renderLivingMountain(canvas, center, seed);
           break;
         case TileBiome.sea:
-          _renderLivingSea(canvas, center, seed);
+          _renderLivingSea(canvas, center, corners, seed);
           break;
         case TileBiome.desert:
           _renderLivingDesert(canvas, center, seed);
@@ -469,12 +506,21 @@ class HexTileComponent extends PositionComponent {
     }
   }
 
-  void _renderLivingSea(Canvas canvas, Offset center, int seed) {
+  void _renderLivingSea(Canvas canvas, Offset center, List<Offset> corners, int seed) {
     final bool isWinter = season == 'WINTER' || isZud;
     if (isWinter) {
       VoxelIsometricRenderer.drawVoxelIceFloes(canvas, center, scale: 0.9, animTime: _animTimer);
       return;
     }
+
+    // Doğal Kıyı Şeridi ve Dinamik Dalga Köpükleri
+    VoxelIsometricRenderer.drawVoxelShorelineWaves(
+      canvas,
+      center,
+      corners,
+      animTime: _animTimer,
+      seed: seed,
+    );
 
     final double waveOffset = math.sin(_animTimer * 2.0 + (seed % 5)) * 3.5;
     VoxelIsometricRenderer.drawIsoCube(
@@ -636,52 +682,106 @@ class HexTileComponent extends PositionComponent {
     textPainter.paint(canvas, Offset(x - textPainter.width / 2, y - textPainter.height / 2));
   }
 
-  Color _getBiomeTopColor(TileBiome biome) {
+  Color _getBiomeTopColor(TileBiome biome, int seed) {
     final bool isWinter = season == 'WINTER' || isZud;
     final bool isAutumn = season == 'AUTUMN';
     final bool isSummer = season == 'SUMMER';
 
+    Color baseColor;
     switch (biome) {
       case TileBiome.meadow:
-        if (isWinter) return const Color(0xFFE2E8F0);
-        if (isAutumn) return const Color(0xFFFBBF24);
-        if (isSummer) return const Color(0xFF4ADE80);
-        return const Color(0xFF86EFAC);
+        if (isWinter) {
+          baseColor = const Color(0xFFE2E8F0);
+        } else if (isAutumn) {
+          baseColor = const Color(0xFFFBBF24);
+        } else if (isSummer) {
+          baseColor = const Color(0xFF4ADE80);
+        } else {
+          baseColor = const Color(0xFF86EFAC);
+        }
+        break;
 
       case TileBiome.forest:
-        if (isWinter) return const Color(0xFFCBD5E1);
-        if (isAutumn) return const Color(0xFFEA580C);
-        if (isSummer) return const Color(0xFF16A34A);
-        return const Color(0xFF22C55E);
+        if (isWinter) {
+          baseColor = const Color(0xFFCBD5E1);
+        } else if (isAutumn) {
+          baseColor = const Color(0xFFEA580C);
+        } else if (isSummer) {
+          baseColor = const Color(0xFF16A34A);
+        } else {
+          baseColor = const Color(0xFF22C55E);
+        }
+        break;
 
       case TileBiome.mountain:
-        if (isWinter) return const Color(0xFFF8FAFC);
-        if (isAutumn) return const Color(0xFF78350F);
-        return const Color(0xFF94A3B8);
+        if (isWinter) {
+          baseColor = const Color(0xFFF8FAFC);
+        } else if (isAutumn) {
+          baseColor = const Color(0xFF78350F);
+        } else {
+          baseColor = const Color(0xFF94A3B8);
+        }
+        break;
 
       case TileBiome.sea:
-        if (isWinter) return const Color(0xFFBAE6FD);
-        if (isAutumn) return const Color(0xFF0284C7);
-        return const Color(0xFF38BDF8);
+        if (isWinter) {
+          baseColor = const Color(0xFFBAE6FD);
+        } else if (isAutumn) {
+          baseColor = const Color(0xFF0284C7);
+        } else {
+          baseColor = const Color(0xFF38BDF8);
+        }
+        break;
 
       case TileBiome.desert:
-        if (isWinter) return const Color(0xFFFEF08A);
-        if (isAutumn) return const Color(0xFFD97706);
-        if (isSummer) return const Color(0xFFF59E0B);
-        return const Color(0xFFFDE047);
+        if (isWinter) {
+          baseColor = const Color(0xFFFEF08A);
+        } else if (isAutumn) {
+          baseColor = const Color(0xFFD97706);
+        } else if (isSummer) {
+          baseColor = const Color(0xFFF59E0B);
+        } else {
+          baseColor = const Color(0xFFFDE047);
+        }
+        break;
 
       case TileBiome.tundra:
-        if (isWinter) return const Color(0xFFE0F2FE);
-        if (isAutumn) return const Color(0xFFC084FC);
-        return const Color(0xFF93C5FD);
+        if (isWinter) {
+          baseColor = const Color(0xFFE0F2FE);
+        } else if (isAutumn) {
+          baseColor = const Color(0xFFC084FC);
+        } else {
+          baseColor = const Color(0xFF93C5FD);
+        }
+        break;
 
       case TileBiome.volcano:
-        return const Color(0xFF1E293B);
+        baseColor = const Color(0xFF1E293B);
+        break;
 
       case TileBiome.wetland:
-        if (isWinter) return const Color(0xFF94A3B8);
-        if (isAutumn) return const Color(0xFFA3E635);
-        return const Color(0xFF34D399);
+        if (isWinter) {
+          baseColor = const Color(0xFF94A3B8);
+        } else if (isAutumn) {
+          baseColor = const Color(0xFFA3E635);
+        } else {
+          baseColor = const Color(0xFF34D399);
+        }
+        break;
+    }
+
+    // Doğal Ton Çeşitliliği (Procedural Shade Variance): Bitişik aynı biyomların mozaik gibi ayrışmasını sağlar
+    final int shadeVariant = seed % 4;
+    switch (shadeVariant) {
+      case 0:
+        return baseColor;
+      case 1:
+        return Color.lerp(baseColor, Colors.white, 0.09)!;
+      case 2:
+        return Color.lerp(baseColor, const Color(0xFF0F172A), 0.08)!;
+      case 3:
+      default:
+        return Color.lerp(baseColor, const Color(0xFFFDE047), 0.07)!;
     }
   }
 

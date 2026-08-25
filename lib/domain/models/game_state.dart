@@ -1,4 +1,5 @@
 import '../../core/hex/hex_coordinates.dart';
+import 'doctrine_model.dart';
 import 'game_state_model.dart';
 import 'hex_tile_model.dart';
 import 'quest_model.dart';
@@ -20,6 +21,8 @@ class GameState {
   final double shrineMultiplier;
   final List<QuestModel> quests;
   final String? activeQuestId;
+  final List<DoctrineCardModel> doctrines;
+  final Map<DoctrineSlotType, String?> activeDoctrineSlots;
 
   const GameState({
     required this.tiles,
@@ -38,6 +41,13 @@ class GameState {
     this.shrineMultiplier = 1.0,
     this.quests = const [],
     this.activeQuestId,
+    this.doctrines = const [],
+    this.activeDoctrineSlots = const {
+      DoctrineSlotType.economic: 'doc_sulama_fermani',
+      DoctrineSlotType.military: 'doc_bozkir_akincisi',
+      DoctrineSlotType.nomadic: 'doc_kis_otagi',
+      DoctrineSlotType.wildcard: null,
+    },
   });
 
   QuestModel? get currentActiveQuest {
@@ -68,6 +78,8 @@ class GameState {
     double? shrineMultiplier,
     List<QuestModel>? quests,
     String? activeQuestId,
+    List<DoctrineCardModel>? doctrines,
+    Map<DoctrineSlotType, String?>? activeDoctrineSlots,
   }) {
     return GameState(
       tiles: tiles ?? this.tiles,
@@ -86,6 +98,8 @@ class GameState {
       shrineMultiplier: shrineMultiplier ?? this.shrineMultiplier,
       quests: quests ?? this.quests,
       activeQuestId: activeQuestId ?? this.activeQuestId,
+      doctrines: doctrines ?? this.doctrines,
+      activeDoctrineSlots: activeDoctrineSlots ?? this.activeDoctrineSlots,
     );
   }
 }

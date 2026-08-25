@@ -1,5 +1,7 @@
 import 'dart:math' as math;
+import '../../core/hex/hex_coordinates.dart';
 import '../models/building_model.dart';
+import '../models/doctrine_model.dart';
 import '../models/hex_tile_model.dart';
 
 class MarketTradeResult {
@@ -429,6 +431,9 @@ class EconomyCalculator {
     required double globalMultiplier,
     required double seasonMultiplier,
     required double shrineMultiplier,
+    Map<HexAxial, HexTileModel>? tileMap,
+    String season = 'SPRING',
+    bool isZud = false,
   }) {
     final double totalMult = globalMultiplier * seasonMultiplier * shrineMultiplier;
 
@@ -442,10 +447,25 @@ class EconomyCalculator {
     double netFurniture = 0.0;
     double netFish = 0.0;
 
+    final map = tileMap ?? {for (final t in tiles) t.coord: t};
+
     for (final t in tiles) {
       if (!t.isOwned || !t.hasBuilding) continue;
       final b = t.building!;
-      final double rate = (b.baseProductionRate * math.pow(1.5, b.level - 1)) * totalMult;
+
+      final neighborTiles = t.coord.neighbors
+          .map((nc) => map[nc])
+          .whereType<HexTileModel>()
+          .toList();
+
+      final double biomeSynergy = calculateAdjacencySynergy(
+        targetTile: t,
+        neighborTiles: neighborTiles,
+        season: season,
+        isZud: isZud,
+      );
+
+      final double rate = (b.baseProductionRate * math.pow(1.5, b.level - 1)) * totalMult * biomeSynergy;
 
       switch (b.type) {
         case BuildingType.corn:
@@ -489,5 +509,214 @@ class EconomyCalculator {
       furniture: netFurniture,
       fish: netFish,
     );
+  }
+
+  /// Karoların komşuluk ve biyom sinerji çarpanlarını hesaplar (Adjacency Aura)
+  static double calculateAdjacencySynergy({
+    required HexTileModel targetTile,
+    required List<HexTileModel> neighborTiles,
+    required String season,
+    required bool isZud,
+  }) {
+    if (!targetTile.hasBuilding) return 1.0;
+    final bType = targetTile.building!.type;
+    double synergy = 1.0;
+
+    for (final neighbor in neighborTiles) {
+      if (neighbor.isFog) continue;
+
+      switch (neighbor.biome) {
+        case TileBiome.wetland:
+        case TileBiome.sea:
+          // Sazlık / Deniz: Çiftliklere ve Değirmenlere +%30 Sulama Bereketi
+          if (bType == BuildingType.corn || bType == BuildingType.windmill) {
+            synergy += 0.30;
+          }
+          // Deniz: Fırın ve Balıkçılara +%20 Lojistik Kolaylığı
+          if (bType == BuildingType.bakery ||
+              bType == BuildingType.fisherman ||
+              bType == BuildingType.fishermanHut) {
+            synergy += 0.20;
+          }
+          break;
+
+        case TileBiome.volcano:
+          // Volkan: Madenlere +%50 Jeotermal Isı & Dökümhane Bonusu
+          if (bType == BuildingType.mine) {
+            synergy += 0.50;
+          }
+          // Orman binalarına kuruma/kül riski (-%15)
+          if (bType == BuildingType.lumberjack || bType == BuildingType.sawmill) {
+            synergy -= 0.15;
+          }
+          break;
+
+        case TileBiome.desert:
+          // Çöl: Değirmen & Mobilyacıya +%40 İpek Yolu Ticaret Bonusu
+          if (bType == BuildingType.windmill || bType == BuildingType.furniture) {
+            synergy += 0.40;
+          }
+          // Çiftliklere kuraklık cezası (-%20)
+          if (bType == BuildingType.corn) {
+            synergy -= 0.20;
+          }
+          break;
+
+        case TileBiome.mountain:
+          // Dağ: Madenlere +%35 Zengin Damar Bonusu
+          if (bType == BuildingType.mine) {
+            synergy += 0.35;
+          }
+          // Gözetleme Kulesine +%50 Rüzgar Siperi & Görüş
+          if (bType == BuildingType.watchtower) {
+            synergy += 0.50;
+          }
+          break;
+
+        case TileBiome.forest:
+          // Orman: Marangoz & Mobilyacıya +%25 Kereste Yakınlığı
+          if (bType == BuildingType.sawmill || bType == BuildingType.furniture) {
+            synergy += 0.25;
+          }
+          break;
+
+        case TileBiome.tundra:
+          // Tundra: Kışın soğuk cezası (-%25), ancak Madenlere +%20 Permafrost Taş Bonusu
+          if (season.toUpperCase() == 'WINTER' || isZud) {
+            if (bType == BuildingType.corn) synergy -= 0.25;
+          }
+          if (bType == BuildingType.mine) synergy += 0.20;
+          break;
+
+        case TileBiome.meadow:
+          // Çayır: Çiftliklere +%10 Verimli Toprak
+          if (bType == BuildingType.corn) {
+            synergy += 0.10;
+          }
+          break;
+      }
+    }
+
+    return math.max(0.20, synergy);
+  }
+
+  /// Aktif komşuluk sinerjilerinin açıklamalarını ve oranlarını döndürür (UI Rozetleri için)
+  static List<String> getActiveSynergyLabels({
+    required HexTileModel targetTile,
+    required List<HexTileModel> neighborTiles,
+    required String season,
+    required bool isZud,
+  }) {
+    if (!targetTile.hasBuilding) return const [];
+    final bType = targetTile.building!.type;
+    final List<String> labels = [];
+
+    for (final neighbor in neighborTiles) {
+      if (neighbor.isFog) continue;
+
+      switch (neighbor.biome) {
+        case TileBiome.wetland:
+        case TileBiome.sea:
+          if (bType == BuildingType.corn || bType == BuildingType.windmill) {
+            labels.add('+30% Sulama Bereketi (Su/Sazlık)');
+          }
+          if (bType == BuildingType.bakery ||
+              bType == BuildingType.fisherman ||
+              bType == BuildingType.fishermanHut) {
+            labels.add('+20% Lojistik Kolaylığı (Deniz)');
+          }
+          break;
+
+        case TileBiome.volcano:
+          if (bType == BuildingType.mine) {
+            labels.add('+50% Jeotermal Dökümhane (Volkan)');
+          }
+          if (bType == BuildingType.lumberjack || bType == BuildingType.sawmill) {
+            labels.add('-15% Kül Kuruması (Volkan)');
+          }
+          break;
+
+        case TileBiome.desert:
+          if (bType == BuildingType.windmill || bType == BuildingType.furniture) {
+            labels.add('+40% İpek Yolu Ticareti (Çöl)');
+          }
+          if (bType == BuildingType.corn) {
+            labels.add('-20% Kuraklık (Çöl)');
+          }
+          break;
+
+        case TileBiome.mountain:
+          if (bType == BuildingType.mine) {
+            labels.add('+35% Zengin Damar (Dağ)');
+          }
+          if (bType == BuildingType.watchtower) {
+            labels.add('+50% Rüzgar Siperi (Dağ)');
+          }
+          break;
+
+        case TileBiome.forest:
+          if (bType == BuildingType.sawmill || bType == BuildingType.furniture) {
+            labels.add('+25% Kereste Yakınlığı (Orman)');
+          }
+          break;
+
+        case TileBiome.tundra:
+          if (season.toUpperCase() == 'WINTER' || isZud) {
+            if (bType == BuildingType.corn) labels.add('-25% Ayaz Şoku (Tundra)');
+          }
+          if (bType == BuildingType.mine) labels.add('+20% Permafrost Taş (Tundra)');
+          break;
+
+        case TileBiome.meadow:
+          if (bType == BuildingType.corn) {
+            labels.add('+10% Verimli Çayır (Çayır)');
+          }
+          break;
+      }
+    }
+
+    return labels;
+  }
+
+  /// Aktif doktrinlerin bina türüne göre getirdiği ek üretim çarpanı
+  static double getDoctrineProductionMultiplier({
+    required BuildingType buildingType,
+    required List<DoctrineCardModel> activeDoctrines,
+  }) {
+    double mult = 1.0;
+    for (final doc in activeDoctrines) {
+      if (doc.effectType == DoctrineEffectType.cropBonus &&
+          (buildingType == BuildingType.corn || buildingType == BuildingType.windmill)) {
+        mult += doc.effectValue;
+      }
+      if (doc.effectType == DoctrineEffectType.desertTradeBonus &&
+          (buildingType == BuildingType.windmill ||
+           buildingType == BuildingType.furniture ||
+           buildingType == BuildingType.bakery)) {
+        mult += doc.effectValue;
+      }
+    }
+    return mult;
+  }
+
+  /// Aktif doktrinlere göre karo fetih maliyeti çarpanı
+  static double getConquestCostMultiplier(List<DoctrineCardModel> activeDoctrines) {
+    double discount = 0.0;
+    for (final doc in activeDoctrines) {
+      if (doc.effectType == DoctrineEffectType.conquestDiscount) {
+        discount += doc.effectValue;
+      }
+    }
+    return math.max(0.2, 1.0 - discount);
+  }
+
+  /// Aktif doktrinlere göre kış ısıtma odun maliyeti
+  static double getWinterWarmWoodCost(List<DoctrineCardModel> activeDoctrines) {
+    for (final doc in activeDoctrines) {
+      if (doc.effectType == DoctrineEffectType.winterWarmDiscount) {
+        return math.max(1.0, 5.0 - doc.effectValue);
+      }
+    }
+    return 5.0;
   }
 }

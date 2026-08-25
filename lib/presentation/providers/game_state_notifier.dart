@@ -7,6 +7,7 @@ import '../../core/hex/hex_math.dart';
 import '../../data/save_repository.dart';
 import '../../domain/economy/economy_calculator.dart';
 import '../../domain/models/building_model.dart';
+import '../../domain/models/doctrine_model.dart';
 import '../../domain/models/game_state.dart';
 import '../../domain/models/game_state_model.dart';
 import '../../domain/models/hex_tile_model.dart';
@@ -181,6 +182,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       resources: const ResourcesModel(food: 100.0, wood: 50.0),
       progression: const ProgressionModel(castleLevel: 1, ownedCount: 1),
       quests: _generateInitialQuests(),
+      doctrines: DoctrineCardModel.getInitialDoctrines(),
     );
   }
 
@@ -334,6 +336,20 @@ class GameStateNotifier extends StateNotifier<GameState> {
     double addedStone = 0.0;
     double addedIron = 0.0;
 
+    final activeDoctrines = getActiveDoctrines();
+
+    // Doktrin: Göçer İaşesi (Boş çayırlardan iaşe)
+    final bool hasGrazeDoctrine = activeDoctrines.any((d) => d.effectType == DoctrineEffectType.meadowGrazeYield);
+    if (hasGrazeDoctrine) {
+      int emptyMeadowCount = 0;
+      for (final t in state.tiles.values) {
+        if (t.isOwned && t.biome == TileBiome.meadow && !t.hasBuilding) {
+          emptyMeadowCount++;
+        }
+      }
+      addedFood += emptyMeadowCount * 0.5;
+    }
+
     final updatedTiles = Map<HexAxial, HexTileModel>.from(state.tiles);
     // Kaynakların bir kopyasını al (tüketim kontrolü için)
     double currentFood = state.resources.food;
@@ -354,29 +370,44 @@ class GameStateNotifier extends StateNotifier<GameState> {
         continue;
       }
 
-      // Komşuluk sinerjisi hesapla
-      double synergy = 1.0;
+      // 1. Bina Zincir Sinerjisi (Örn: Tarlanın yanındaki Değirmen 2x)
+      double chainSynergy = 1.0;
       for (final nCoord in tile.coord.neighbors) {
         final nTile = state.tiles[nCoord];
         if (nTile != null && nTile.isOwned && nTile.building != null) {
           if (b.type == BuildingType.windmill &&
               nTile.building!.type == BuildingType.corn) {
-            synergy = 2.0;
+            chainSynergy = 2.0;
           }
           if (b.type == BuildingType.sawmill &&
               nTile.building!.type == BuildingType.lumberjack) {
-            synergy = 2.0;
+            chainSynergy = 2.0;
           }
           if (b.type == BuildingType.bakery &&
               nTile.building!.type == BuildingType.windmill) {
-            synergy = 2.0;
+            chainSynergy = 2.0;
           }
           if (b.type == BuildingType.furniture &&
               nTile.building!.type == BuildingType.sawmill) {
-            synergy = 2.0;
+            chainSynergy = 2.0;
           }
         }
       }
+
+      // 2. Biyom ve Komşuluk Sinerjisi (Sulama Bereketi, Jeotermal Maden, İpek Yolu vb.)
+      final neighborTiles = tile.coord.neighbors
+          .map((nc) => state.tiles[nc])
+          .whereType<HexTileModel>()
+          .toList();
+
+      final double biomeSynergy = EconomyCalculator.calculateAdjacencySynergy(
+        targetTile: tile,
+        neighborTiles: neighborTiles,
+        season: newSeason,
+        isZud: newIsZud,
+      );
+
+      final double totalSynergy = chainSynergy * biomeSynergy;
 
       // Karo ısıtma süresi ve kış koruması
       bool isWarmed = tile.isWarmed;
@@ -394,13 +425,18 @@ class GameStateNotifier extends StateNotifier<GameState> {
         titles: state.titles,
       );
 
+      final double docMult = EconomyCalculator.getDoctrineProductionMultiplier(
+        buildingType: b.type,
+        activeDoctrines: activeDoctrines,
+      );
+
       final double rate = EconomyCalculator.calculateBuildingProduction(
         type: b.type,
         level: b.level,
         baseRate: b.baseProductionRate,
-        globalMultiplier: globalMult,
+        globalMultiplier: globalMult * docMult,
         seasonMultiplier: seasonMult,
-        synergyMultiplier: synergy,
+        synergyMultiplier: totalSynergy,
         workerMultiplier: 1.0, // Kapasite sistemi geldiği için oran sabitlendi
         shrineMultiplier: state.shrineMultiplier,
       );
@@ -473,7 +509,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
           case BuildingType.mine:
             addedStone += carriedAmount;
             if (state.progression.castleLevel >= 3) {
-              addedIron += carriedAmount * 0.3;
+              final bool hasIronBoost = activeDoctrines.any((d) => d.effectType == DoctrineEffectType.mineIronBoost);
+              final double ironRatio = hasIronBoost ? 0.45 : 0.30;
+              addedIron += carriedAmount * ironRatio;
             }
             break;
           case BuildingType.fisherman:
@@ -563,13 +601,18 @@ class GameStateNotifier extends StateNotifier<GameState> {
       'mountain': state.progression.purchasedMountainCount,
     };
 
-    return EconomyCalculator.getExpansionCost(
+    final double baseCost = EconomyCalculator.getExpansionCost(
       biome: biome,
       ownedCount: state.progression.ownedCount,
       biomeCounts: biomeCounts,
       toreTalents: state.toreTalents,
       titles: state.titles,
     );
+
+    final activeDoctrines = getActiveDoctrines();
+    final double docMult = EconomyCalculator.getConquestCostMultiplier(activeDoctrines);
+
+    return baseCost * docMult;
   }
 
   bool conquerTile(HexAxial coord) {
@@ -923,9 +966,11 @@ class GameStateNotifier extends StateNotifier<GameState> {
       return false;
     }
 
-    const double woodCost = 5.0;
+    final activeDoctrines = getActiveDoctrines();
+    final double woodCost = EconomyCalculator.getWinterWarmWoodCost(activeDoctrines);
+
     if (state.resources.wood < woodCost) {
-      showToast('Karoyu ısıtmak için 5 Odun gereklidir.');
+      showToast('Karoyu ısıtmak için ${woodCost.toInt()} Odun gereklidir.');
       return false;
     }
 
@@ -938,7 +983,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     state = state.copyWith(
       tiles: updatedTiles,
       resources: state.resources.copyWith(wood: state.resources.wood - woodCost),
-      activeToast: 'Karo 3 dakika boyunca ısıtıldı (Üretim Hızı: +%50).',
+      activeToast: 'Karo 3 dakika boyunca ısıtıldı (${woodCost.toInt()} Odun)!',
     );
 
     TactileAudioService.instance.play(TactileSoundType.tap);
@@ -1219,6 +1264,65 @@ class GameStateNotifier extends StateNotifier<GameState> {
       stats: state.stats,
       quests: state.quests,
     );
+  }
+
+  List<DoctrineCardModel> getActiveDoctrines() {
+    final List<DoctrineCardModel> active = [];
+    for (final docId in state.activeDoctrineSlots.values) {
+      if (docId != null) {
+        final doc = state.doctrines.where((d) => d.id == docId).firstOrNull;
+        if (doc != null && doc.isUnlocked) {
+          active.add(doc);
+        }
+      }
+    }
+    return active;
+  }
+
+  void unlockDoctrine(String id) {
+    final doc = state.doctrines.where((d) => d.id == id).firstOrNull;
+    if (doc == null || doc.isUnlocked) return;
+
+    if (state.resources.crowns < doc.costCrowns) {
+      showToast('Yetersiz Şan: Bu töre için ${doc.costCrowns} Şan gereklidir.');
+      return;
+    }
+
+    final updatedDoctrines = state.doctrines.map((d) {
+      if (d.id == id) return d.copyWith(isUnlocked: true);
+      return d;
+    }).toList();
+
+    state = state.copyWith(
+      resources: state.resources.copyWith(
+        crowns: state.resources.crowns - doc.costCrowns,
+      ),
+      doctrines: updatedDoctrines,
+      activeToast: '${doc.titleTr} töresi mecliste kabul edildi!',
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.upgrade);
+  }
+
+  void equipDoctrine(DoctrineSlotType slot, String? id) {
+    if (id != null) {
+      final doc = state.doctrines.where((d) => d.id == id).firstOrNull;
+      if (doc == null || !doc.isUnlocked) return;
+      if (slot != DoctrineSlotType.wildcard && doc.slotType != slot) {
+        showToast('Bu töre seçilen yuvaya takılamaz.');
+        return;
+      }
+    }
+
+    final updatedSlots = Map<DoctrineSlotType, String?>.from(state.activeDoctrineSlots);
+    updatedSlots[slot] = id;
+
+    state = state.copyWith(
+      activeDoctrineSlots: updatedSlots,
+      activeToast: id != null ? 'Töre yürürlüğe girdi.' : 'Töre yuvası boşaltıldı.',
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.tap);
   }
 
   void resetGame() {

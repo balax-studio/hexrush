@@ -106,7 +106,8 @@ void main() {
       final success = notifier.warmTile(center);
       expect(success, isTrue);
       expect(notifier.state.tiles[center]?.isWarmed, isTrue);
-      expect(notifier.state.resources.wood, equals(5.0));
+      // Başlangıçta aktif olan Kış Otağı doktrini maliyeti 5'ten 2'ye düşürür (10 - 2 = 8)
+      expect(notifier.state.resources.wood, equals(8.0));
       notifier.dispose();
     });
 

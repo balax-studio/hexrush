@@ -370,7 +370,20 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
     final bool isWinter = gameState.season.current == 'WINTER';
     final bool canWarm = isWinter && !tile.isWarmed && gameState.resources.wood >= 5.0;
 
+    final neighborTiles = tile.coord.neighbors
+        .map((nc) => gameState.tiles[nc] as HexTileModel?)
+        .whereType<HexTileModel>()
+        .toList();
+
+    final activeSynergies = EconomyCalculator.getActiveSynergyLabels(
+      targetTile: tile,
+      neighborTiles: neighborTiles,
+      season: gameState.season.current,
+      isZud: gameState.season.isZud,
+    );
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -388,6 +401,35 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
             ),
           ],
         ),
+        if (activeSynergies.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 4,
+            runSpacing: 4,
+            children: activeSynergies.map((label) {
+              final isPositive = label.startsWith('+');
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isPositive ? const Color(0xFF064E3B) : const Color(0xFF7F1D1D),
+                  border: Border.all(
+                    color: isPositive ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                    width: 1.5,
+                  ),
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: isPositive ? const Color(0xFF6EE7B7) : const Color(0xFFFCA5A5),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
         if (hasAccum) ...[
           const SizedBox(height: 6),
           Row(
@@ -484,6 +526,11 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
     final available = _getAvailableBuildingsForBiome(tile.biome);
     final int castleLvl = gameState.progression.castleLevel;
 
+    final neighborTiles = tile.coord.neighbors
+        .map((nc) => gameState.tiles[nc] as HexTileModel?)
+        .whereType<HexTileModel>()
+        .toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -501,6 +548,16 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
             final int requiredLvl = _getRequiredCastleLevel(type);
             final bool isUnlocked = castleLvl >= requiredLvl;
             final bool canAfford = gameState.resources.food >= dummy.baseCost;
+
+            final previewTile = tile.copyWith(
+              building: BuildingModel(type: type, level: 1),
+            );
+            final previewSynergies = EconomyCalculator.getActiveSynergyLabels(
+              targetTile: previewTile,
+              neighborTiles: neighborTiles,
+              season: gameState.season.current,
+              isZud: gameState.season.isZud,
+            );
 
             return TactileNeoButton(
               onTap: isUnlocked
@@ -524,17 +581,44 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        isUnlocked
-                            ? '${_getBuildingName(type, lang)} (${dummy.baseCost.toInt()})'
-                            : '${_getBuildingName(type, lang)} (LV.$requiredLvl)',
-                        style: TextStyle(
-                          color: !isUnlocked
-                              ? Colors.grey.shade500
-                              : (canAfford ? Colors.white : Colors.white70),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                        ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            isUnlocked
+                                ? '${_getBuildingName(type, lang)} (${dummy.baseCost.toInt()})'
+                                : '${_getBuildingName(type, lang)} (LV.$requiredLvl)',
+                            style: TextStyle(
+                              color: !isUnlocked
+                                  ? Colors.grey.shade500
+                                  : (canAfford ? Colors.white : Colors.white70),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          if (previewSynergies.isNotEmpty) ...[
+                            const SizedBox(width: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: previewSynergies.first.startsWith('+')
+                                    ? const Color(0xFF064E3B)
+                                    : const Color(0xFF7F1D1D),
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                              child: Text(
+                                previewSynergies.first.split(' ').first,
+                                style: TextStyle(
+                                  color: previewSynergies.first.startsWith('+')
+                                      ? const Color(0xFF6EE7B7)
+                                      : const Color(0xFFFCA5A5),
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                       Text(
                         _getBuildingDescription(type, lang),
