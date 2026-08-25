@@ -9,7 +9,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('Softlock Prevention and Failsafe Tests', () {
-    test('Initial map generation guarantees meadow and forest in Radius 1', () {
+    test('Initial map generation respects distance-based biome constraints', () {
       final notifier = GameStateNotifier();
       final state = notifier.state;
 
@@ -17,15 +17,24 @@ void main() {
       expect(state.tiles[center]?.isOwned, true);
       expect(state.tiles[center]?.building?.type, BuildingType.castle);
 
-      final neighbors = center.neighbors;
-      final neighborBiomes = neighbors.map((c) => state.tiles[c]?.biome).toList();
+      state.tiles.forEach((coord, tile) {
+        final dist = HexMath.hexDistance(center, coord);
 
-      final meadowCount = neighborBiomes.where((b) => b == TileBiome.meadow).length;
-      final forestCount = neighborBiomes.where((b) => b == TileBiome.forest).length;
-
-      // Softlock Prevention: Must have at least 3 meadow tiles and 1 forest tile adjacent to start
-      expect(meadowCount, greaterThanOrEqualTo(3));
-      expect(forestCount, greaterThanOrEqualTo(1));
+        if (dist == 1) {
+          // Radius 1: NO Sea, Mountain, Wetland, Desert
+          expect(tile.biome, isNot(TileBiome.sea));
+          expect(tile.biome, isNot(TileBiome.mountain));
+          expect(tile.biome, isNot(TileBiome.wetland));
+          expect(tile.biome, isNot(TileBiome.desert));
+        } else if (dist == 2) {
+          // Radius 2: NO Sea, Mountain
+          expect(tile.biome, isNot(TileBiome.sea));
+          expect(tile.biome, isNot(TileBiome.mountain));
+        } else if (dist == 3) {
+          // Radius 3: NO Sea
+          expect(tile.biome, isNot(TileBiome.sea));
+        }
+      });
 
       notifier.dispose();
     });

@@ -180,7 +180,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
   Widget _buildConquerSection(
       BuildContext context, WidgetRef ref, HexTileModel tile, String lang) {
     final notifier = ref.read(gameStateProvider.notifier);
-    final double cost = notifier.calculateExpansionCost(tile.biome);
+    final double cost = notifier.calculateExpansionCost(tile.coord);
     final double currentFood = ref.watch(gameStateProvider).resources.food;
     final bool canAfford = currentFood >= cost;
     final double deficit = cost - currentFood;
@@ -727,6 +727,10 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         return GameLocalization.get('fisherman_desc', lang: lang);
       case BuildingType.fishermanHut:
         return GameLocalization.get('fisherman_hut_desc', lang: lang);
+      case BuildingType.shrine:
+        return 'Kadim güçler barındıran gizemli yapı.';
+      default:
+        return '';
     }
   }
 
@@ -749,6 +753,10 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
       case BuildingType.furniture:
         return 4;
       case BuildingType.castle:
+        return 1;
+      case BuildingType.shrine:
+        return 1;
+      default:
         return 1;
     }
   }
@@ -861,6 +869,10 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         return const GameVectorIcon(type: GameIconType.food, size: 13);
       case BuildingType.fishermanHut:
         return const GameVectorIcon(type: GameIconType.land, size: 13);
+      case BuildingType.shrine:
+        return const GameVectorIcon(type: GameIconType.shrine, size: 13);
+      default:
+        return const SizedBox.shrink();
     }
   }
 
@@ -913,6 +925,10 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         return GameLocalization.get('fisherman_name', lang: lang);
       case BuildingType.fishermanHut:
         return GameLocalization.get('fisherman_hut_name', lang: lang);
+      case BuildingType.shrine:
+        return 'Kadim Sunak';
+      default:
+        return '';
     }
   }
 }

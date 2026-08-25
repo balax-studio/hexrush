@@ -360,6 +360,17 @@ class HexTileComponent extends PositionComponent with TapCallbacks {
         case BuildingType.fishermanHut:
           VoxelIsometricRenderer.drawVoxelFishermanHut(canvas, center, animTime: _animTimer, isNight: isNight);
           break;
+        case BuildingType.shrine:
+          VoxelIsometricRenderer.drawVoxelAncientShrine(
+            canvas,
+            center,
+            shrineType: tileModel.shrine,
+            animTime: _animTimer,
+            isNight: isNight,
+          );
+          break;
+        default:
+          break;
       }
     } else {
       switch (tileModel.biome) {
@@ -717,14 +728,16 @@ class HexTileComponent extends PositionComponent with TapCallbacks {
     if (!tileModel.hasBuilding) return;
     final b = tileModel.building!;
 
-    _drawBadge(
-      canvas,
-      center.dx,
-      center.dy + 16,
-      'LV.${b.level}',
-      const Color(0xFF0F172A),
-      const Color(0xFFFFD700),
-    );
+    if (b.type != BuildingType.shrine && b.type != BuildingType.bridge) {
+      _drawBadge(
+        canvas,
+        center.dx,
+        center.dy + 16,
+        'LV.${b.level}',
+        const Color(0xFF0F172A),
+        const Color(0xFFFFD700),
+      );
+    }
 
     if (b.accumulatedResource > 0) {
       _drawBadge(

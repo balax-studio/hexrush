@@ -14,12 +14,10 @@ enum BuildingType {
   bridge,
   fisherman,
   fishermanHut,
+  shrine,
 }
 
 class BuildingModel {
-// ... (omitting fields for brevity in replacementContent, but I should be careful)
-// Actually I'll provide the full class content with changes to methods.
-
   final BuildingType type;
   final int level;
   final double accumulatedResource;
@@ -75,6 +73,8 @@ class BuildingModel {
         return 30.0;
       case BuildingType.fishermanHut:
         return 45.0;
+      case BuildingType.shrine:
+        return 0.0;
     }
   }
 
@@ -87,7 +87,7 @@ class BuildingModel {
   double get baseProductionRate {
     switch (type) {
       case BuildingType.castle:
-        return 0.10; // Küçük bir temel üretim (Soft-lock koruması)
+        return 0.10;
       case BuildingType.corn:
         return 0.42;
       case BuildingType.lumberjack:
@@ -113,9 +113,9 @@ class BuildingModel {
   double get baseCarryingCapacity {
     switch (type) {
       case BuildingType.worker:
-        return 1.68; // 4 * 0.42 (Corn rate)
+        return 1.68;
       case BuildingType.fishermanHut:
-        return 1.40; // 4 * 0.35 (Fisherman rate)
+        return 1.40;
       default:
         return 0.0;
     }
@@ -123,19 +123,12 @@ class BuildingModel {
 
   /// Seviyeye göre anlık üretim hızı
   double get currentProductionRate {
-    // Eşik Çarpanı (k)
     int k = 0;
-    if (level >= 200) {
-      k = 5;
-    } else if (level >= 100) {
-      k = 4;
-    } else if (level >= 50) {
-      k = 3;
-    } else if (level >= 25) {
-      k = 2;
-    } else if (level >= 10) {
-      k = 1;
-    }
+    if (level >= 200) k = 5;
+    else if (level >= 100) k = 4;
+    else if (level >= 50) k = 3;
+    else if (level >= 25) k = 2;
+    else if (level >= 10) k = 1;
 
     final double milestoneBoost = math.pow(2.0, k).toDouble();
     return baseProductionRate * level * milestoneBoost;
@@ -144,62 +137,14 @@ class BuildingModel {
   /// Seviyeye göre anlık taşıma kapasitesi
   double get currentCarryingCapacity {
     int k = 0;
-    if (level >= 200) {
-      k = 5;
-    } else if (level >= 100) {
-      k = 4;
-    } else if (level >= 50) {
-      k = 3;
-    } else if (level >= 25) {
-      k = 2;
-    } else if (level >= 10) {
-      k = 1;
-    }
+    if (level >= 200) k = 5;
+    else if (level >= 100) k = 4;
+    else if (level >= 50) k = 3;
+    else if (level >= 25) k = 2;
+    else if (level >= 10) k = 1;
 
     final double milestoneBoost = math.pow(2.0, k).toDouble();
     return baseCarryingCapacity * level * milestoneBoost;
-  }
-
-  /// ROI / F/K Oranı (Saniye bazında)
-  double get roiSeconds {
-    final double nextLevelRate = _calculateRateForLevel(level + 1);
-    final double deltaP = nextLevelRate - currentProductionRate;
-    if (deltaP <= 0) {
-      return 0;
-    }
-    return upgradeCost / deltaP;
-  }
-
-  double _calculateRateForLevel(int targetLevel) {
-    int k = 0;
-    if (targetLevel >= 200) {
-      k = 5;
-    } else if (targetLevel >= 100) {
-      k = 4;
-    } else if (targetLevel >= 50) {
-      k = 3;
-    } else if (targetLevel >= 25) {
-      k = 2;
-    } else if (targetLevel >= 10) {
-      k = 1;
-    }
-    final double milestoneBoost = math.pow(2.0, k).toDouble();
-    return baseProductionRate * targetLevel * milestoneBoost;
-  }
-
-  bool get isNextLevelMilestone {
-    final int next = level + 1;
-    return next == 10 || next == 25 || next == 50 || next == 100 || next == 200;
-  }
-
-  /// Bir sonraki eşiğe kalan seviye
-  int get levelsToNextMilestone {
-    if (level < 10) return 10 - level;
-    if (level < 25) return 25 - level;
-    if (level < 50) return 50 - level;
-    if (level < 100) return 100 - level;
-    if (level < 200) return 200 - level;
-    return 0;
   }
 
   /// Maksimum birikim kapasitesi (otomasyonsuz durumda)
@@ -230,18 +175,19 @@ class BuildingModel {
   factory BuildingModel.fromLegacy(String bType, int bLvl, double bAccum) {
     BuildingType type = BuildingType.corn;
     if (bType == 'castle') type = BuildingType.castle;
-    if (bType == 'corn') type = BuildingType.corn;
-    if (bType == 'windmill') type = BuildingType.windmill;
-    if (bType == 'bakery') type = BuildingType.bakery;
-    if (bType == 'lumberjack') type = BuildingType.lumberjack;
-    if (bType == 'sawmill') type = BuildingType.sawmill;
-    if (bType == 'furniture') type = BuildingType.furniture;
-    if (bType == 'worker') type = BuildingType.worker;
-    if (bType == 'watchtower') type = BuildingType.watchtower;
-    if (bType == 'mine') type = BuildingType.mine;
-    if (bType == 'bridge') type = BuildingType.bridge;
-    if (bType == 'fisherman') type = BuildingType.fisherman;
-    if (bType == 'fishermanHut') type = BuildingType.fishermanHut;
+    else if (bType == 'corn') type = BuildingType.corn;
+    else if (bType == 'windmill') type = BuildingType.windmill;
+    else if (bType == 'bakery') type = BuildingType.bakery;
+    else if (bType == 'lumberjack') type = BuildingType.lumberjack;
+    else if (bType == 'sawmill') type = BuildingType.sawmill;
+    else if (bType == 'furniture') type = BuildingType.furniture;
+    else if (bType == 'worker') type = BuildingType.worker;
+    else if (bType == 'watchtower') type = BuildingType.watchtower;
+    else if (bType == 'mine') type = BuildingType.mine;
+    else if (bType == 'bridge') type = BuildingType.bridge;
+    else if (bType == 'fisherman') type = BuildingType.fisherman;
+    else if (bType == 'fishermanHut') type = BuildingType.fishermanHut;
+    else if (bType == 'shrine') type = BuildingType.shrine;
 
     return BuildingModel(
       type: type,

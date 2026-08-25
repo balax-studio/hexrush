@@ -168,12 +168,23 @@ class HexGridPainter extends CustomPainter {
       case BuildingType.bridge:
         emoji = '🌉';
         break;
+      case BuildingType.fisherman:
+        emoji = '🎣';
+        break;
+      case BuildingType.fishermanHut:
+        emoji = '🏠';
+        break;
+      case BuildingType.shrine:
+        emoji = '🗿';
+        break;
+      default:
+        emoji = '';
     }
 
     _drawText(canvas, emoji, center.translate(0, -6), fontSize: 20);
 
     // Seviye rozeti
-    if (building.type != BuildingType.bridge) {
+    if (building.type != BuildingType.bridge && building.type != BuildingType.shrine) {
       _drawBadge(
         canvas,
         'Lv.${building.level}',

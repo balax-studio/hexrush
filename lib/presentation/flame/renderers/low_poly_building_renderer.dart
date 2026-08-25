@@ -78,6 +78,13 @@ class LowPolyBuildingRenderer {
       case BuildingType.bridge:
         _drawBridge(canvas, center);
         break;
+      case BuildingType.fisherman:
+      case BuildingType.fishermanHut:
+      case BuildingType.shrine:
+        // Bu tipler için low-poly render henüz yok, boş geçiyoruz
+        break;
+      default:
+        break;
     }
   }
 

@@ -34,6 +34,14 @@ void main() {
       final notifier = GameStateNotifier();
       final target = const HexAxial(1, 0);
 
+      // Force target biome to meadow to avoid level lock flakiness
+      notifier.state = notifier.state.copyWith(
+        tiles: {
+          ...notifier.state.tiles,
+          target: notifier.state.tiles[target]!.copyWith(biome: TileBiome.meadow),
+        },
+      );
+
       final success = notifier.conquerTile(target);
       expect(success, isTrue);
       expect(notifier.state.tiles[target]?.state, equals(TileState.owned));

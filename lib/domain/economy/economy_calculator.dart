@@ -150,6 +150,7 @@ class EconomyCalculator {
     required TileBiome biome,
     required int ownedCount,
     required Map<String, int> biomeCounts,
+    int distance = 0,
     Map<String, dynamic> toreTalents = const {},
     Map<String, dynamic> titles = const {},
   }) {
@@ -196,7 +197,13 @@ class EconomyCalculator {
       wallMult = 5.0;
     }
 
-    final double cost = base * math.pow(1.6, ownedCount) * wallMult * (1.0 - discount);
+    // Mesafe Sınırı (Soft-Wall): Merkezden 20 birim uzaktaki yerler satın alınamaz olsun (x10000)
+    double distanceMult = 1.0;
+    if (distance > 20) {
+      distanceMult = 10000.0;
+    }
+
+    final double cost = base * math.pow(1.6, ownedCount) * wallMult * (1.0 - discount) * distanceMult;
     return math.max(1.0, cost.roundToDouble());
   }
 
@@ -406,7 +413,12 @@ class EconomyCalculator {
               ? rate * cappedSeconds
               : math.min(maxCap, rate * cappedSeconds);
           break;
-        default:
+        case BuildingType.shrine:
+        case BuildingType.castle:
+        case BuildingType.worker:
+        case BuildingType.watchtower:
+        case BuildingType.bridge:
+        case BuildingType.fishermanHut:
           break;
       }
     }
@@ -493,7 +505,12 @@ class EconomyCalculator {
         case BuildingType.fisherman:
           netFish += rate;
           break;
-        default:
+        case BuildingType.shrine:
+        case BuildingType.castle:
+        case BuildingType.worker:
+        case BuildingType.watchtower:
+        case BuildingType.bridge:
+        case BuildingType.fishermanHut:
           break;
       }
     }

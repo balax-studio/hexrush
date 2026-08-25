@@ -114,65 +114,120 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
   static GameState _createInitialState() {
     final Map<HexAxial, HexTileModel> map = {};
-    const int radius = 3;
-    final random = math.Random(42);
+    const int gridRadius = 20; // Harita çapı 20 birim
+    final random = math.Random();
 
-    // Merkez karo: (0, 0) Çayır + Şato
-    const centerCoord = HexAxial(0, 0);
-    map[centerCoord] = const HexTileModel(
-      coord: centerCoord,
-      biome: TileBiome.meadow,
-      state: TileState.owned,
-      building: BuildingModel(type: BuildingType.castle, level: 1),
-    );
+    // Biyom Tohumları (Seeds) - Belirgin kümeler oluşturmak için
+    // Merkeze uzak ama ulaşılabilir noktalara devasa deniz ve dağ odakları koyuyoruz.
+    final seaSeeds = [
+      const HexAxial(12, -6),
+      const HexAxial(-6, 12),
+      const HexAxial(-6, -6),
+    ];
+    final mountainSeeds = [
+      const HexAxial(-12, 6),
+      const HexAxial(6, -12),
+      const HexAxial(12, 0),
+    ];
 
-    // Çevresindeki 4 radius ızgarayı oluştur (Başlangıç keşfi)
-    final initialRange = centerCoord.getRange(4);
-    for (final coord in initialRange) {
-      if (!map.containsKey(coord)) {
-        TileBiome biome;
-        final int dist = HexMath.hexDistance(centerCoord, coord);
-        if (dist == 1) {
-          // Radius 1: İlk halkanın (6 komşu) 4 tanesi Çayır, 1 tanesi Orman, 1 tanesi Çöl (Softlock Engelleme)
-          final int idx = centerCoord.neighbors.indexOf(coord);
-          if (idx <= 3) {
-            biome = TileBiome.meadow;
-          } else if (idx == 4) {
-            biome = TileBiome.forest;
-          } else {
-            biome = TileBiome.desert;
-          }
-        } else if (dist == 2) {
-          // Radius 2: Çayır, Orman, Dağ, Sazlık dengeli dağılım
-          final biomes = [TileBiome.meadow, TileBiome.forest, TileBiome.mountain, TileBiome.wetland, TileBiome.desert];
-          biome = biomes[random.nextInt(biomes.length)];
-        } else {
-          // Radius 3 ve 4: Tüm 8 biyom dengeli
-          biome = TileBiome.values[random.nextInt(TileBiome.values.length)];
-        }
-
-        map[coord] = HexTileModel(
-          coord: coord,
-          biome: biome,
-          state: TileState.discovered,
-        );
-      }
-    }
-
-    // Radius 8 (veya daha büyük) ızgarayı oluştur (fog)
-    const int gridRadius = 8;
+    // Tüm ızgarayı oluştur
     for (int q = -gridRadius; q <= gridRadius; q++) {
       final int r1 = math.max(-gridRadius, -q - gridRadius);
       final int r2 = math.min(gridRadius, -q + gridRadius);
       for (int r = r1; r <= r2; r++) {
         final coord = HexAxial(q, r);
-        if (!map.containsKey(coord)) {
-          final biome = TileBiome.values[random.nextInt(TileBiome.values.length)];
-          map[coord] = HexTileModel(
-            coord: coord,
-            biome: biome,
-            state: TileState.fog,
+        final int dist = HexMath.hexDistance(const HexAxial(0, 0), coord);
+
+        TileBiome biome;
+
+        if (coord.q == 0 && coord.r == 0) {
+          // Merkez (0,0) - Şato yeri
+          biome = TileBiome.meadow;
+        } else if (dist == 1) {
+          // Radius 1: Su (sea), Dağ (mountain), Sazlık (wetland), Çöl (desert) olmasın
+          final allowed = [TileBiome.meadow, TileBiome.forest, TileBiome.tundra, TileBiome.volcano];
+          biome = allowed[random.nextInt(allowed.length)];
+        } else if (dist == 2) {
+          // Radius 2: Su (sea), Dağ (mountain) olmasın
+          final allowed = [TileBiome.meadow, TileBiome.forest, TileBiome.desert, TileBiome.tundra, TileBiome.volcano, TileBiome.wetland];
+          biome = allowed[random.nextInt(allowed.length)];
+        } else if (dist == 3) {
+          // Radius 3: Su (sea) olmasın
+          final allowed = [TileBiome.meadow, TileBiome.forest, TileBiome.desert, TileBiome.tundra, TileBiome.volcano, TileBiome.wetland, TileBiome.mountain];
+          biome = allowed[random.nextInt(allowed.length)];
+        } else {
+          // 3 ve üzeri: Özel biyom kümeleri veya rastgele (Çayır, Orman, Çöl)
+
+          // Önce tohumlara yakınlığa bakıyoruz (Deniz ve Dağ kümeleri)
+          double minSeaDist = 999;
+          for (final s in seaSeeds) {
+            minSeaDist = math.min(minSeaDist, HexMath.hexDistance(s, coord).toDouble());
+          }
+
+          double minMtnDist = 999;
+          for (final m in mountainSeeds) {
+            minMtnDist = math.min(minMtnDist, HexMath.hexDistance(m, coord).toDouble());
+          }
+
+          if (minSeaDist < 4 + random.nextInt(2)) {
+            biome = TileBiome.sea;
+          } else if (minMtnDist < 4 + random.nextInt(2)) {
+            biome = TileBiome.mountain;
+          } else {
+            // Tohumlara uzaksa: Çayır, Orman, Çöl random
+            final genericBiomes = [TileBiome.meadow, TileBiome.forest, TileBiome.desert];
+            biome = genericBiomes[random.nextInt(genericBiomes.length)];
+          }
+        }
+
+        map[coord] = HexTileModel(
+          coord: coord,
+          biome: biome,
+          state: dist <= 4 ? TileState.discovered : TileState.fog,
+        );
+      }
+    }
+
+    // Merkez karo (0,0) mutlaka Owned ve Castle olmalı
+    map[const HexAxial(0, 0)] = map[const HexAxial(0, 0)]!.copyWith(
+      state: TileState.owned,
+      building: const BuildingModel(type: BuildingType.castle, level: 1),
+    );
+
+    // 2. TAPINAK YERLEŞİMİ
+    // Merkeze uzaklık < 5 olan 1 tane rastgele tapınak
+    final potentialCloseShrines = map.keys.where((c) {
+      final d = HexMath.hexDistance(const HexAxial(0, 0), c);
+      return d > 2 && d < 5 && map[c]!.biome != TileBiome.sea && map[c]!.biome != TileBiome.mountain;
+    }).toList();
+    if (potentialCloseShrines.isNotEmpty) {
+      final shrineCoord = potentialCloseShrines[random.nextInt(potentialCloseShrines.length)];
+      map[shrineCoord] = map[shrineCoord]!.copyWith(
+        building: const BuildingModel(type: BuildingType.shrine, level: 1),
+      );
+    }
+
+    // Uzak Tapınaklar (Biyom Sınırlarına)
+    // Deniz veya Dağ kenarındaki kara parçalarına stratejik tapınaklar serpiştiriyoruz
+    final farCoords = map.keys.where((c) => HexMath.hexDistance(const HexAxial(0, 0), c) > 10).toList();
+    int farShrineCount = 0;
+    for (final c in farCoords) {
+      if (farShrineCount >= 4) break;
+      final tile = map[c]!;
+      if (tile.biome == TileBiome.meadow || tile.biome == TileBiome.forest) {
+        // Komşularında Deniz veya Dağ var mı? (Sınır takibi)
+        bool isBoundary = false;
+        for (final n in c.neighbors) {
+          if (map.containsKey(n) && (map[n]!.biome == TileBiome.sea || map[n]!.biome == TileBiome.mountain)) {
+            isBoundary = true;
+            break;
+          }
+        }
+        if (isBoundary && random.nextDouble() < 0.05) {
+          map[c] = map[c]!.copyWith(
+            building: const BuildingModel(type: BuildingType.shrine, level: 1),
           );
+          farShrineCount++;
         }
       }
     }
@@ -366,7 +421,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
           b.type == BuildingType.worker ||
           b.type == BuildingType.watchtower ||
           b.type == BuildingType.bridge ||
-          b.type == BuildingType.fishermanHut) {
+          b.type == BuildingType.fishermanHut ||
+          b.type == BuildingType.shrine) {
         continue;
       }
 
@@ -593,7 +649,10 @@ class GameStateNotifier extends StateNotifier<GameState> {
     state = state.copyWith(clearToast: true);
   }
 
-  double calculateExpansionCost(TileBiome biome) {
+  double calculateExpansionCost(HexAxial coord) {
+    final tile = state.tiles[coord];
+    if (tile == null) return 99999.0;
+
     final Map<String, int> biomeCounts = {
       'meadow': state.progression.purchasedMeadowCount,
       'forest': state.progression.purchasedForestCount,
@@ -601,10 +660,13 @@ class GameStateNotifier extends StateNotifier<GameState> {
       'mountain': state.progression.purchasedMountainCount,
     };
 
+    final int distance = HexMath.hexDistance(const HexAxial(0, 0), coord);
+
     final double baseCost = EconomyCalculator.getExpansionCost(
-      biome: biome,
+      biome: tile.biome,
       ownedCount: state.progression.ownedCount,
       biomeCounts: biomeCounts,
+      distance: distance,
       toreTalents: state.toreTalents,
       titles: state.titles,
     );
@@ -658,7 +720,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       return false;
     }
 
-    final double cost = calculateExpansionCost(tile.biome);
+    final double cost = calculateExpansionCost(coord);
     if (state.resources.food < cost) {
       showToast(
           'Yetersiz Gıda: Yeni karo için ${cost.toInt()} Gıda gerekli.');

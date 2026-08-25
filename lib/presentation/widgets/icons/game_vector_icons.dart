@@ -25,6 +25,7 @@ enum GameIconType {
   tundra,
   volcano,
   wetland,
+  shrine,
 }
 
 class GameVectorIcon extends StatelessWidget {
@@ -129,7 +130,34 @@ class _GameIconPainter extends CustomPainter {
       case GameIconType.wetland:
         _drawWetland(canvas, s, h);
         break;
+      case GameIconType.shrine:
+        _drawShrine(canvas, s, h);
+        break;
     }
+  }
+
+  void _drawShrine(Canvas canvas, double w, double h) {
+    final Paint fill = Paint()..color = customColor ?? const Color(0xFFA855F7);
+    final Paint stroke = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+
+    // Monolitik Dikilitaş Formu
+    final Path monolith = Path()
+      ..moveTo(w * 0.35, h * 0.85)
+      ..lineTo(w * 0.65, h * 0.85)
+      ..lineTo(w * 0.65, h * 0.25)
+      ..lineTo(w * 0.5, h * 0.15)
+      ..lineTo(w * 0.35, h * 0.25)
+      ..close();
+
+    canvas.drawPath(monolith, fill);
+    canvas.drawPath(monolith, stroke);
+
+    // Orta rünik göz
+    canvas.drawCircle(Offset(w * 0.5, h * 0.45), w * 0.1, stroke);
+    canvas.drawCircle(Offset(w * 0.5, h * 0.45), w * 0.05, Paint()..color = Colors.white);
   }
 
   void _drawFood(Canvas canvas, double w, double h) {
