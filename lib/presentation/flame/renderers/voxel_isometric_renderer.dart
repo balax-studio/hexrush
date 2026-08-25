@@ -1086,8 +1086,8 @@ class VoxelIsometricRenderer {
     );
   }
 
-  /// 3D Voxel Maden
-  static void drawVoxelMine(Canvas canvas, Offset baseCenter) {
+  /// 3D Voxel Maden ve Demir Döküm Ocağı (Duman ve Kıvılcımlar)
+  static void drawVoxelMine(Canvas canvas, Offset baseCenter, {double animTime = 0.0, bool isNight = false}) {
     drawIsoCube(
       canvas,
       baseCenter,
@@ -1100,6 +1100,7 @@ class VoxelIsometricRenderer {
       drawShadow: true,
     );
 
+    // Maden Giriş Tüneli
     drawIsoCube(
       canvas,
       Offset(baseCenter.dx, baseCenter.dy + 4),
@@ -1111,6 +1112,7 @@ class VoxelIsometricRenderer {
       rightColor: Colors.black,
     );
 
+    // Altın / Demir Cevheri Yığını
     drawIsoCube(
       canvas,
       Offset(baseCenter.dx + 10 * cosIso, baseCenter.dy + 8 * sinIso),
@@ -1121,6 +1123,99 @@ class VoxelIsometricRenderer {
       leftColor: const Color(0xFFEAB308),
       rightColor: const Color(0xFFCA8A04),
     );
+
+    // Maden Havalandırma Bacası
+    final Offset ventBase = Offset(baseCenter.dx - 6 * cosIso, baseCenter.dy - 16.0 - 4 * sinIso);
+    drawIsoCube(
+      canvas,
+      ventBase,
+      w: 6.0,
+      d: 6.0,
+      h: 8.0,
+      topColor: const Color(0xFF334155),
+      leftColor: const Color(0xFF1E293B),
+      rightColor: const Color(0xFF0F172A),
+    );
+
+    // Yükselen Voksel Kömür Dumanı
+    if (animTime > 0) {
+      final double puffY = (animTime * 16.0) % 20.0;
+      final double alpha = (1.0 - (puffY / 20.0)).clamp(0.0, 1.0);
+      drawIsoCube(
+        canvas,
+        Offset(ventBase.dx + math.sin(animTime * 2.5) * 2.0, ventBase.dy - 8.0 - puffY),
+        w: 5.0 + (puffY / 20.0) * 3.0,
+        d: 5.0 + (puffY / 20.0) * 3.0,
+        h: 4.0,
+        topColor: const Color(0xFF94A3B8).withValues(alpha: alpha * 0.7),
+        leftColor: const Color(0xFF64748B).withValues(alpha: alpha * 0.6),
+        rightColor: const Color(0xFF475569).withValues(alpha: alpha * 0.5),
+      );
+    }
+  }
+
+  /// Antik Bozkır Petroglif & Tamga Kazıma Çizgileri (Sis Karoları İçin)
+  static void drawVoxelPetroglyph(Canvas canvas, Offset center, {required int seed, double animTime = 0.0}) {
+    final int variant = seed % 4;
+    final double pulse = 0.35 + 0.15 * math.sin(animTime * 1.5 + (seed % 10));
+    final Paint runePaint = Paint()
+      ..color = const Color(0xFFD97706).withValues(alpha: pulse)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8
+      ..strokeCap = StrokeCap.round;
+
+    final Paint glowPaint = Paint()
+      ..color = const Color(0xFFFBBF24).withValues(alpha: pulse * 0.4)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.5
+      ..strokeCap = StrokeCap.round;
+
+    final Path rune = Path();
+
+    switch (variant) {
+      case 0:
+        // Variant 0: Bozkır Boynuz / Geyik Tamgası
+        rune.moveTo(center.dx - 8, center.dy - 4);
+        rune.lineTo(center.dx, center.dy + 4);
+        rune.lineTo(center.dx + 8, center.dy - 4);
+        rune.moveTo(center.dx, center.dy + 4);
+        rune.lineTo(center.dx, center.dy + 10);
+        rune.moveTo(center.dx - 5, center.dy - 1);
+        rune.lineTo(center.dx + 5, center.dy - 1);
+        break;
+      case 1:
+        // Variant 1: Dört Yön Kağan Tamgası (Güneş Rünü)
+        rune.moveTo(center.dx, center.dy - 8);
+        rune.lineTo(center.dx, center.dy + 8);
+        rune.moveTo(center.dx - 8, center.dy);
+        rune.lineTo(center.dx + 8, center.dy);
+        rune.addOval(Rect.fromCircle(center: center, radius: 4.0));
+        break;
+      case 2:
+        // Variant 2: Bozkır Dağ Keçisi Rünü
+        rune.moveTo(center.dx - 6, center.dy - 6);
+        rune.quadraticBezierTo(center.dx - 2, center.dy - 10, center.dx, center.dy - 4);
+        rune.lineTo(center.dx, center.dy + 6);
+        rune.lineTo(center.dx - 4, center.dy + 10);
+        rune.moveTo(center.dx, center.dy + 6);
+        rune.lineTo(center.dx + 4, center.dy + 10);
+        break;
+      case 3:
+      default:
+        // Variant 3: Ok ve Yay / And İmzası
+        rune.moveTo(center.dx - 7, center.dy + 6);
+        rune.lineTo(center.dx + 7, center.dy - 6);
+        rune.moveTo(center.dx + 7, center.dy - 6);
+        rune.lineTo(center.dx + 2, center.dy - 6);
+        rune.moveTo(center.dx + 7, center.dy - 6);
+        rune.lineTo(center.dx + 7, center.dy - 1);
+        rune.moveTo(center.dx - 2, center.dy + 1);
+        rune.lineTo(center.dx + 2, center.dy - 3);
+        break;
+    }
+
+    canvas.drawPath(rune, glowPaint);
+    canvas.drawPath(rune, runePaint);
   }
 
   /// 3D Voxel Kule (Gece Feneri)

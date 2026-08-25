@@ -129,16 +129,9 @@ class HexTileComponent extends PositionComponent {
       ..strokeWidth = 1.0;
     canvas.drawPath(path, border);
 
-    VoxelIsometricRenderer.drawIsoCube(
-      canvas,
-      Offset(center.dx, center.dy + 6),
-      w: 8.0,
-      d: 8.0,
-      h: 8.0,
-      topColor: const Color(0xFF475569),
-      leftColor: const Color(0xFF334155),
-      rightColor: const Color(0xFF1E293B),
-    );
+    // Bozkır Petrogilf & Tamga Kazıma Çizgileri (Arkeolojik Rün)
+    final int seed = (coord.q * 37 + coord.r * 19).abs();
+    VoxelIsometricRenderer.drawVoxelPetroglyph(canvas, center, seed: seed, animTime: _animTimer);
   }
 
   void _render3DExtrudedWalls(Canvas canvas, List<Offset> corners, double elevation) {
@@ -261,7 +254,7 @@ class HexTileComponent extends PositionComponent {
           VoxelIsometricRenderer.drawVoxelWatchtower(canvas, center, isNight: isNight);
           break;
         case BuildingType.mine:
-          VoxelIsometricRenderer.drawVoxelMine(canvas, center);
+          VoxelIsometricRenderer.drawVoxelMine(canvas, center, animTime: _animTimer, isNight: isNight);
           break;
         case BuildingType.bridge:
           VoxelIsometricRenderer.drawVoxelBridge(canvas, center);

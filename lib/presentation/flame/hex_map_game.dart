@@ -134,7 +134,16 @@ class HexMapGame extends FlameGame {
 
       if (tile.hasBuilding) {
         final b = tile.building!;
-        if (b.accumulatedResource > 0) {
+        if (b.type == BuildingType.castle) {
+          gameWorld.add(
+            FloatingResourceNumberComponent(
+              position: tileVec,
+              text: '+1 GIDA',
+              bgColor: const Color(0xFF10B981),
+              textColor: Colors.black,
+            ),
+          );
+        } else if (b.accumulatedResource > 0) {
           gameWorld.add(
             FloatingResourceNumberComponent(
               position: tileVec,
