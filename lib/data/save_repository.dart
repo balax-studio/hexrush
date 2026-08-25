@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../domain/models/game_state_model.dart';
 import '../domain/models/hex_tile_model.dart';
+import '../domain/models/quest_model.dart';
 
 class SaveDataBundle {
   final int timestamp;
@@ -13,6 +14,7 @@ class SaveDataBundle {
   final Map<String, dynamic> toreTalents;
   final Map<String, dynamic> titles;
   final Map<String, dynamic> stats;
+  final List<QuestModel> quests;
 
   const SaveDataBundle({
     required this.timestamp,
@@ -24,6 +26,7 @@ class SaveDataBundle {
     this.toreTalents = const {},
     this.titles = const {},
     this.stats = const {},
+    this.quests = const [],
   });
 }
 
@@ -39,41 +42,60 @@ class SaveRepository {
     }
 
     try {
-      final Map<String, dynamic> data =
-          jsonDecode(rawJson) as Map<String, dynamic>;
+      final dynamic decoded = jsonDecode(rawJson);
+      if (decoded is! Map) return null;
+      final Map<String, dynamic> data = Map<String, dynamic>.from(decoded);
+
       final int timestamp = data['timestamp'] as int? ??
           DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
-      final resources = data.containsKey('resources')
-          ? ResourcesModel.fromJson(data['resources'] as Map<String, dynamic>)
+      final resources = data['resources'] is Map
+          ? ResourcesModel.fromJson(Map<String, dynamic>.from(data['resources'] as Map))
           : const ResourcesModel();
 
-      final progression = data.containsKey('progression')
-          ? ProgressionModel.fromJson(
-              data['progression'] as Map<String, dynamic>)
+      final progression = data['progression'] is Map
+          ? ProgressionModel.fromJson(Map<String, dynamic>.from(data['progression'] as Map))
           : const ProgressionModel();
 
-      final season = data.containsKey('season')
-          ? SeasonModel.fromJson(data['season'] as Map<String, dynamic>)
+      final season = data['season'] is Map
+          ? SeasonModel.fromJson(Map<String, dynamic>.from(data['season'] as Map))
           : const SeasonModel();
 
-      final settings = data.containsKey('settings')
-          ? SettingsModel.fromJson(data['settings'] as Map<String, dynamic>)
+      final settings = data['settings'] is Map
+          ? SettingsModel.fromJson(Map<String, dynamic>.from(data['settings'] as Map))
           : const SettingsModel();
 
       final List<HexTileModel> tiles = [];
-      if (data.containsKey('tiles') && data['tiles'] is List) {
+      if (data['tiles'] is List) {
         for (final item in (data['tiles'] as List)) {
-          if (item is Map<String, dynamic>) {
-            tiles.add(HexTileModel.fromJson(item));
+          if (item is Map) {
+            try {
+              tiles.add(HexTileModel.fromJson(Map<String, dynamic>.from(item)));
+            } catch (_) {}
           }
         }
       }
 
-      final toreTalents =
-          data['tore']?['tore_talents'] as Map<String, dynamic>? ?? {};
-      final titles = data['titles'] as Map<String, dynamic>? ?? {};
-      final stats = data['stats'] as Map<String, dynamic>? ?? {};
+      final List<QuestModel> quests = [];
+      if (data['quests'] is List) {
+        for (final item in (data['quests'] as List)) {
+          if (item is Map) {
+            try {
+              quests.add(QuestModel.fromJson(Map<String, dynamic>.from(item)));
+            } catch (_) {}
+          }
+        }
+      }
+
+      final toreTalents = data['tore'] is Map && (data['tore'] as Map)['tore_talents'] is Map
+          ? Map<String, dynamic>.from((data['tore'] as Map)['tore_talents'] as Map)
+          : <String, dynamic>{};
+      final titles = data['titles'] is Map
+          ? Map<String, dynamic>.from(data['titles'] as Map)
+          : <String, dynamic>{};
+      final stats = data['stats'] is Map
+          ? Map<String, dynamic>.from(data['stats'] as Map)
+          : <String, dynamic>{};
 
       return SaveDataBundle(
         timestamp: timestamp,
@@ -85,6 +107,7 @@ class SaveRepository {
         toreTalents: toreTalents,
         titles: titles,
         stats: stats,
+        quests: quests,
       );
     } catch (e) {
       // JSON parse error fallback
@@ -102,6 +125,7 @@ class SaveRepository {
     Map<String, dynamic> toreTalents = const {},
     Map<String, dynamic> titles = const {},
     Map<String, dynamic> stats = const {},
+    List<QuestModel> quests = const [],
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final data = {
@@ -115,6 +139,7 @@ class SaveRepository {
       'tore': {'tore_talents': toreTalents},
       'titles': titles,
       'stats': stats,
+      'quests': quests.map((q) => q.toJson()).toList(),
     };
 
     return prefs.setString(_saveKey, jsonEncode(data));

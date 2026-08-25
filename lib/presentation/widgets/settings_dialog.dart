@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/audio/tactile_audio_service.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../providers/game_state_notifier.dart';
 import 'icons/game_vector_icons.dart';
+import 'tactile_neo_button.dart';
 
 class SettingsDialog extends ConsumerWidget {
   const SettingsDialog({super.key});
@@ -41,23 +43,16 @@ class SettingsDialog extends ConsumerWidget {
                     const SizedBox(width: 8),
                     Text(
                       GameLocalization.get('settings', lang: lang).toUpperCase(),
-                      style: NeoBrutalistTheme.fontTitle,
+                      style: NeoBrutalistTheme.fontHeaderMonolith,
                     ),
                   ],
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF334155),
-                    borderRadius: NeoBrutalistTheme.sharpRadius,
-                    border: Border.all(color: Colors.black, width: 1.5),
-                    boxShadow: NeoBrutalistTheme.hardShadowSmall,
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white, size: 16),
-                    onPressed: () => Navigator.of(context).pop(),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
-                  ),
+                TactileNeoButton(
+                  onTap: () => Navigator.of(context).pop(),
+                  backgroundColor: const Color(0xFF334155),
+                  shadowOffset: 2.0,
+                  padding: const EdgeInsets.all(5),
+                  child: const Icon(Icons.close, color: Colors.white, size: 16),
                 ),
               ],
             ),
@@ -90,30 +85,58 @@ class SettingsDialog extends ConsumerWidget {
                   GameLocalization.get('sound', lang: lang).toUpperCase(),
                   style: NeoBrutalistTheme.fontLabel,
                 ),
-                IconButton(
-                  icon: Icon(
-                    settings.sfxMuted ? Icons.volume_off : Icons.volume_up,
-                    color: settings.sfxMuted ? const Color(0xFFEF4444) : const Color(0xFF10B981),
+                TactileNeoButton(
+                  onTap: () => notifier.toggleMute(),
+                  backgroundColor: settings.sfxMuted ? const Color(0xFF7F1D1D) : const Color(0xFF065F46),
+                  borderColor: Colors.black,
+                  shadowOffset: 2.0,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        settings.sfxMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        settings.sfxMuted ? 'KAPALI' : 'AÇIK',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
                   ),
-                  onPressed: () => notifier.toggleMute(),
                 ),
               ],
             ),
-            if (!settings.sfxMuted)
-              Slider(
-                value: settings.sfxVolume,
-                min: 0.0,
-                max: 1.0,
-                activeColor: const Color(0xFFFFC700),
-                inactiveColor: const Color(0xFF0F172A),
-                onChanged: (val) => notifier.setSfxVolume(val),
+            if (!settings.sfxMuted) ...[
+              const SizedBox(height: 6),
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  thumbColor: const Color(0xFFFFC700),
+                  activeTrackColor: const Color(0xFFFFC700),
+                  inactiveTrackColor: const Color(0xFF0F172A),
+                  trackHeight: 4,
+                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                ),
+                child: Slider(
+                  value: settings.sfxVolume,
+                  min: 0.0,
+                  max: 1.0,
+                  onChanged: (val) => notifier.setSfxVolume(val),
+                ),
               ),
+            ],
 
             const SizedBox(height: 16),
 
             // Sıfırlama Butonu
-            ElevatedButton.icon(
-              onPressed: () {
+            TactileNeoButton(
+              onTap: () {
                 showDialog(
                   context: context,
                   builder: (ctx) => AlertDialog(
@@ -132,35 +155,42 @@ class SettingsDialog extends ConsumerWidget {
                         onPressed: () => Navigator.of(ctx).pop(),
                         child: const Text('İPTAL', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w900)),
                       ),
-                      ElevatedButton(
-                        onPressed: () {
+                      TactileNeoButton(
+                        onTap: () {
                           Navigator.of(ctx).pop();
                           notifier.resetGame();
                           Navigator.of(context).pop();
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFEF4444),
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: NeoBrutalistTheme.sharpRadius,
-                            side: BorderSide(color: Colors.black, width: 1.5),
-                          ),
-                        ),
+                        backgroundColor: const Color(0xFFEF4444),
+                        borderColor: Colors.black,
+                        shadowOffset: 2.0,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                         child: const Text('SIFIRLA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
                       ),
                     ],
                   ),
                 );
               },
-              icon: const Icon(Icons.refresh, size: 16),
-              label: Text(GameLocalization.get('reset_game', lang: lang).toUpperCase()),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF991B1B),
-                foregroundColor: Colors.white,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: NeoBrutalistTheme.sharpRadius,
-                  side: BorderSide(color: Colors.black, width: 1.8),
-                ),
-                elevation: 0,
+              backgroundColor: const Color(0xFF991B1B),
+              borderColor: Colors.black,
+              shadowColor: const Color(0xFF450A0A),
+              shadowOffset: 2.5,
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.refresh_rounded, size: 16, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Text(
+                    GameLocalization.get('reset_game', lang: lang).toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 11,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
               ),
             ),
 
@@ -178,26 +208,19 @@ class SettingsDialog extends ConsumerWidget {
   }
 
   Widget _buildLangButton(BuildContext context, GameStateNotifier notifier, String code, String label, bool isSelected) {
-    return InkWell(
+    return TactileNeoButton(
       onTap: () => notifier.setLanguage(code),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFFFC700) : const Color(0xFF0F172A),
-          borderRadius: NeoBrutalistTheme.sharpRadius,
-          border: Border.all(
-            color: Colors.black,
-            width: 1.8,
-          ),
-          boxShadow: NeoBrutalistTheme.hardShadowSmall,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.black : Colors.white70,
-            fontSize: 12,
-            fontWeight: FontWeight.w900,
-          ),
+      backgroundColor: isSelected ? const Color(0xFFFFC700) : const Color(0xFF0F172A),
+      borderColor: isSelected ? const Color(0xFFFBBF24) : Colors.black,
+      shadowOffset: 2.0,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      soundType: TactileSoundType.tap,
+      child: Text(
+        label,
+        style: TextStyle(
+          color: isSelected ? Colors.black : Colors.white70,
+          fontSize: 12,
+          fontWeight: FontWeight.w900,
         ),
       ),
     );

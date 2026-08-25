@@ -21,6 +21,10 @@ enum GameIconType {
   spring,
   summer,
   autumn,
+  desert,
+  tundra,
+  volcano,
+  wetland,
 }
 
 class GameVectorIcon extends StatelessWidget {
@@ -112,6 +116,18 @@ class _GameIconPainter extends CustomPainter {
         break;
       case GameIconType.autumn:
         _drawAutumn(canvas, s, h);
+        break;
+      case GameIconType.desert:
+        _drawDesert(canvas, s, h);
+        break;
+      case GameIconType.tundra:
+        _drawTundra(canvas, s, h);
+        break;
+      case GameIconType.volcano:
+        _drawVolcano(canvas, s, h);
+        break;
+      case GameIconType.wetland:
+        _drawWetland(canvas, s, h);
         break;
     }
   }
@@ -539,6 +555,78 @@ class _GameIconPainter extends CustomPainter {
 
     canvas.drawPath(leaf, fill);
     canvas.drawPath(leaf, stroke);
+  }
+
+  void _drawDesert(Canvas canvas, double w, double h) {
+    final Paint fill = Paint()..color = customColor ?? const Color(0xFFF59E0B);
+    final Paint stroke = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+
+    final Path dune = Path()
+      ..moveTo(w * 0.1, h * 0.8)
+      ..quadraticBezierTo(w * 0.4, h * 0.3, w * 0.7, h * 0.6)
+      ..quadraticBezierTo(w * 0.85, h * 0.5, w * 0.95, h * 0.8)
+      ..close();
+
+    canvas.drawPath(dune, fill);
+    canvas.drawPath(dune, stroke);
+  }
+
+  void _drawTundra(Canvas canvas, double w, double h) {
+    final Paint fill = Paint()..color = customColor ?? const Color(0xFF93C5FD);
+    final Paint stroke = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+
+    final Path spire = Path()
+      ..moveTo(w * 0.5, h * 0.15)
+      ..lineTo(w * 0.75, h * 0.8)
+      ..lineTo(w * 0.25, h * 0.8)
+      ..close();
+
+    canvas.drawPath(spire, fill);
+    canvas.drawPath(spire, stroke);
+  }
+
+  void _drawVolcano(Canvas canvas, double w, double h) {
+    final Paint fill = Paint()..color = customColor ?? const Color(0xFFDC2626);
+    final Paint stroke = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+
+    final Path volc = Path()
+      ..moveTo(w * 0.35, h * 0.3)
+      ..lineTo(w * 0.65, h * 0.3)
+      ..lineTo(w * 0.85, h * 0.85)
+      ..lineTo(w * 0.15, h * 0.85)
+      ..close();
+
+    canvas.drawPath(volc, fill);
+    canvas.drawPath(volc, stroke);
+  }
+
+  void _drawWetland(Canvas canvas, double w, double h) {
+    final Paint fill = Paint()..color = customColor ?? const Color(0xFF059669);
+    final Paint stroke = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+
+    final Path reed = Path()
+      ..moveTo(w * 0.3, h * 0.85)
+      ..lineTo(w * 0.3, h * 0.2)
+      ..moveTo(w * 0.5, h * 0.85)
+      ..lineTo(w * 0.5, h * 0.15)
+      ..moveTo(w * 0.7, h * 0.85)
+      ..lineTo(w * 0.7, h * 0.3);
+
+    canvas.drawRect(Rect.fromLTWH(w * 0.15, h * 0.75, w * 0.7, h * 0.12), fill);
+    canvas.drawRect(Rect.fromLTWH(w * 0.15, h * 0.75, w * 0.7, h * 0.12), stroke);
+    canvas.drawPath(reed, stroke..strokeWidth = 1.5);
   }
 
   @override

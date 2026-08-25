@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../flame/flame_interactive_map.dart';
 import '../widgets/diorama_lens_overlay.dart';
 import '../widgets/market_dialog.dart';
+import '../widgets/quest_tracker_hud.dart';
 import '../widgets/settings_dialog.dart';
 import '../widgets/tile_action_sheet.dart';
 import '../widgets/toast_overlay.dart';
@@ -29,7 +30,16 @@ class GameScreen extends ConsumerWidget {
             child: DioramaLensOverlay(),
           ),
 
-          // 3. Üst HUD Barı (Kaynaklar, Sezon, Pazar, Töre, Ayarlar)
+          // 3. Görev Takipçisi (Sol Üst - HUD Altı)
+          const Positioned(
+            top: 88,
+            left: 12,
+            child: SafeArea(
+              child: QuestTrackerHUD(),
+            ),
+          ),
+
+          // 4. Üst HUD Barı (Kaynaklar, Sezon, Pazar, Töre, Ayarlar)
           Positioned(
             top: 0,
             left: 0,
@@ -59,7 +69,7 @@ class GameScreen extends ConsumerWidget {
             ),
           ),
 
-          // 4. Seçili Karo Aksiyon Menüsü (Alt Kısım)
+          // 5. Seçili Karo Aksiyon Menüsü (Alt Kısım)
           const Positioned(
             bottom: 0,
             left: 0,
@@ -70,7 +80,7 @@ class GameScreen extends ConsumerWidget {
             ),
           ),
 
-          // 5. Non-blocking Bildirim Toaster
+          // 6. Non-blocking Bildirim Toaster
           const ToastOverlay(),
         ],
       ),

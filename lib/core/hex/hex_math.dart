@@ -60,17 +60,20 @@ class HexMath {
   }
 
   /// Pointy-top altıgenin köşe noktalarını (Canvas Path/Polygon için) hesaplar.
+  /// [dilation] parametresi (varsayılan 0.6px) alt-piksel rasterization yırtılmalarını ve dikiş boşluklarını yok eder.
   static List<Offset> getHexCorners(
     Offset center, {
     double hexSize = defaultHexSize,
     double yScale = defaultYScale,
+    double dilation = 0.6,
   }) {
+    final double effectiveSize = hexSize + dilation;
     final List<Offset> corners = [];
     for (int i = 0; i < 6; i++) {
       final double angleDeg = 60.0 * i - 30.0;
       final double angleRad = angleDeg * (math.pi / 180.0);
-      final double px = center.dx + hexSize * math.cos(angleRad);
-      final double py = center.dy + hexSize * math.sin(angleRad) * yScale;
+      final double px = center.dx + effectiveSize * math.cos(angleRad);
+      final double py = center.dy + effectiveSize * math.sin(angleRad) * yScale;
       corners.add(Offset(px, py));
     }
     return corners;

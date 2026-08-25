@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/audio/tactile_audio_service.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../providers/game_state_notifier.dart';
 import 'icons/game_vector_icons.dart';
+import 'tactile_neo_button.dart';
 
 class MarketDialog extends ConsumerWidget {
   const MarketDialog({super.key});
@@ -77,43 +79,31 @@ class MarketDialog extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    const GameVectorIcon(type: GameIconType.market, size: 22),
-                    const SizedBox(width: 10),
+                    const GameVectorIcon(type: GameIconType.market, size: 20),
+                    const SizedBox(width: 8),
                     Text(
                       GameLocalization.get('market_title', lang: lang).toUpperCase(),
-                      style: NeoBrutalistTheme.fontTitle,
+                      style: NeoBrutalistTheme.fontHeaderMonolith,
                     ),
                   ],
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF334155),
-                    borderRadius: NeoBrutalistTheme.sharpRadius,
-                    border: Border.all(color: Colors.black, width: 1.5),
-                    boxShadow: NeoBrutalistTheme.hardShadowSmall,
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white, size: 16),
-                    onPressed: () => Navigator.of(context).pop(),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
-                  ),
+                TactileNeoButton(
+                  onTap: () => Navigator.of(context).pop(),
+                  backgroundColor: const Color(0xFF334155),
+                  shadowOffset: 2.0,
+                  padding: const EdgeInsets.all(5),
+                  child: const Icon(Icons.close, color: Colors.white, size: 16),
                 ),
               ],
             ),
-            const SizedBox(height: 6),
-            Text(
-              GameLocalization.get('market_desc', lang: lang),
-              style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w700),
-            ),
             const SizedBox(height: 12),
             const Divider(color: Colors.black, thickness: 1.5, height: 1.5),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             Flexible(
               child: ListView.separated(
                 shrinkWrap: true,
                 itemCount: recipes.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 8),
+                separatorBuilder: (context, index) => const SizedBox(height: 10),
                 itemBuilder: (ctx, i) {
                   final r = recipes[i];
                   final bool canAfford = r['canAfford'] as bool;
@@ -125,7 +115,7 @@ class MarketDialog extends ConsumerWidget {
                       color: const Color(0xFF0F172A),
                       borderRadius: NeoBrutalistTheme.sharpRadius,
                       border: Border.all(
-                        color: canAfford ? const Color(0xFFFFC700) : Colors.black,
+                        color: canAfford ? const Color(0xFFFFC700) : const Color(0xFF334155),
                         width: 1.8,
                       ),
                       boxShadow: NeoBrutalistTheme.hardShadowSmall,
@@ -173,21 +163,23 @@ class MarketDialog extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        ElevatedButton(
-                          onPressed: canAfford ? () => notifier.executeMarketTrade(key) : null,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: canAfford ? const Color(0xFFFFC700) : const Color(0xFF475569),
-                            foregroundColor: Colors.black,
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: NeoBrutalistTheme.sharpRadius,
-                              side: BorderSide(color: Colors.black, width: 1.8),
-                            ),
-                            elevation: 0,
-                          ),
+                        TactileNeoButton(
+                          onTap: canAfford ? () => notifier.executeMarketTrade(key) : null,
+                          isEnabled: canAfford,
+                          backgroundColor: const Color(0xFFFFC700),
+                          borderColor: Colors.black,
+                          shadowColor: const Color(0xFF78350F),
+                          shadowOffset: 2.0,
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          soundType: TactileSoundType.market,
                           child: Text(
                             GameLocalization.get('trade', lang: lang).toUpperCase(),
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.3),
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.3,
+                            ),
                           ),
                         ),
                       ],

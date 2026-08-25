@@ -1,0 +1,44 @@
+# Yerel Dağıtım, Performans, State ve Kayıt Standartları
+
+Bu kural belgesi, HexRush projesinde yerel çalışma prensiplerini, Flame render optimizasyonunu, Riverpod mimari sınırlarını, kayıt bütünlüğünü ve dokunsal geri bildirimleri tanımlar.
+
+---
+
+## 1. Yerel Öncelikli Çalışma ve Dağıtım Kilidi (Deployment Guard)
+- **Kesin Kural:** Kullanıcı açıkça *"push et"*, *"web build al"*, *"deploy et"* talimatı vermediği sürece ajanlar:
+  - Asla `git push` komutu çalıştıramaz.
+  - Asla `flutter build web` veya otomatik CI/CD dağıtımını tetikleyen komutlar çalıştıramaz.
+- **Yerel Doğrulama:** Tüm yeni özellikler ve hata düzeltmeleri yerel testlerle (`flutter test`) veya yerel çalıştırmalarla doğrulanır.
+
+---
+
+## 2. Flame Motoru Render & Bellek Bütçesi (Zero-GC Standard)
+- **Garbage Collector Yükünü Sıfırlama:**
+  - `render(Canvas canvas)` veya `update(double dt)` döngüsü içerisinde her karede (`60 FPS = her 16ms`) `new Paint()`, `new Path()` veya dinamik `Rect` oluşturulması yasaktır.
+  - Sık kullanılan fırçalar, gölgeler ve stiller `static final Paint _xxx = Paint()...` veya bileşen sınıfı seviyesinde bir kez oluşturulup tekrar kullanılır.
+- **Viewport Kırpma (Culling):**
+  - Kamera görüş alanının dışında kalan altıgen karoların karmaşık alt nesneleri çizilmemeli, render maliyeti düşürülmelidir.
+
+---
+
+## 3. İmmutable State & Katman Ayrımı
+- **Riverpod ve GameState Bütünlüğü:**
+  - `GameState`, `HexTileModel`, `BuildingModel` ve tüm veri modelleri daima `@immutable` kalmalıdır.
+  - Durum güncellemeleri yalnızca `state = state.copyWith(...)` veya saf fonksiyonlar üzerinden yapılır; doğrudan referans mutasyonu yasaktır.
+- **UI Katmanından Mantık İzolasyonu:**
+  - Zamanlayıcılar, hammadde çarpanları, offline gelir hesaplamaları ve biyom kuralları doğrudan Widget'lar içine yazılamaz. Bu mantıklar `EconomyCalculator` ve `GameStateNotifier` içinde yer almalıdır.
+
+---
+
+## 4. Kayıt Bütünlüğü ve Şema Sürümleme (Save Integrity)
+- **Kayıt Şeması ve Migrasyon:**
+  - `SharedPreferences` veya yerel JSON deposuna kaydedilen verilerde mutlaka bir `schemaVersion` (örn. `version: 2`) alanı tutulmalıdır.
+  - Yeni bir veri alanı eklendiğinde eski kayıtların bozulmaması için varsayılan değerler atanmalı ve geriye dönük uyumlu `fromJson` / `toJson` migrasyonu işletilmelidir.
+
+---
+
+## 5. Dokunsal Ses ve Haptik Standardı (Tactile Audio & Haptics)
+- **Organik Ses Tasarımı:**
+  - Oyunun Arkeolojik Bozkır Neo-Brutalizm kimliğine uygun olarak dijital/bip sesleri yerine taş sürtünmesi, çekiç darbesi, ahşap tokmağı ve bozkır rüzgarı gibi taktil ses efektleri tercih edilmelidir.
+- **Fiziksel Haptik Geri Bildirim:**
+  - Tıklanan tüm butonlar, inşa edilen binalar ve fethedilen karolarda `HapticFeedback.lightImpact()` veya `HapticFeedback.mediumImpact()` ile dokunsal onay sağlanmalıdır.

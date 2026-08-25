@@ -14,6 +14,30 @@ class MarketTradeResult {
   });
 }
 
+class NetResourceRates {
+  final double food;
+  final double wood;
+  final double stone;
+  final double iron;
+  final double flour;
+  final double plank;
+  final double bread;
+  final double furniture;
+  final double fish;
+
+  const NetResourceRates({
+    this.food = 0.0,
+    this.wood = 0.0,
+    this.stone = 0.0,
+    this.iron = 0.0,
+    this.flour = 0.0,
+    this.plank = 0.0,
+    this.bread = 0.0,
+    this.furniture = 0.0,
+    this.fish = 0.0,
+  });
+}
+
 class OfflineGainsResult {
   final int seconds;
   final double food;
@@ -133,12 +157,31 @@ class EconomyCalculator {
     );
 
     double base = 5.0;
-    if (biome == TileBiome.forest) {
-      base = 10.0;
-    } else if (biome == TileBiome.sea) {
-      base = 15.0;
-    } else if (biome == TileBiome.mountain) {
-      base = 20.0;
+    switch (biome) {
+      case TileBiome.meadow:
+        base = 5.0;
+        break;
+      case TileBiome.desert:
+        base = 8.0;
+        break;
+      case TileBiome.forest:
+        base = 10.0;
+        break;
+      case TileBiome.wetland:
+        base = 12.0;
+        break;
+      case TileBiome.sea:
+        base = 15.0;
+        break;
+      case TileBiome.tundra:
+        base = 18.0;
+        break;
+      case TileBiome.mountain:
+        base = 20.0;
+        break;
+      case TileBiome.volcano:
+        base = 25.0;
+        break;
     }
 
     // C(n) = C_base * 1.6^n * W(n)
@@ -377,6 +420,74 @@ class EconomyCalculator {
       stone: gainedStone,
       iron: gainedIron,
       fish: gainedFish,
+    );
+  }
+
+  /// Anlık Saniyelik Net Üretim/Tüketim Debisi (HUD Rozetleri ve Analitik için)
+  static NetResourceRates calculateNetRates({
+    required List<HexTileModel> tiles,
+    required double globalMultiplier,
+    required double seasonMultiplier,
+    required double shrineMultiplier,
+  }) {
+    final double totalMult = globalMultiplier * seasonMultiplier * shrineMultiplier;
+
+    double netFood = 0.0;
+    double netWood = 0.0;
+    double netStone = 0.0;
+    double netIron = 0.0;
+    double netFlour = 0.0;
+    double netPlank = 0.0;
+    double netBread = 0.0;
+    double netFurniture = 0.0;
+    double netFish = 0.0;
+
+    for (final t in tiles) {
+      if (!t.isOwned || !t.hasBuilding) continue;
+      final b = t.building!;
+      final double rate = (b.baseProductionRate * math.pow(1.5, b.level - 1)) * totalMult;
+
+      switch (b.type) {
+        case BuildingType.corn:
+          netFood += rate;
+          break;
+        case BuildingType.lumberjack:
+          netWood += rate;
+          break;
+        case BuildingType.windmill:
+          netFlour += rate;
+          break;
+        case BuildingType.sawmill:
+          netPlank += rate;
+          break;
+        case BuildingType.bakery:
+          netBread += rate;
+          break;
+        case BuildingType.furniture:
+          netFurniture += rate;
+          break;
+        case BuildingType.mine:
+          netStone += rate;
+          netIron += rate * 0.3;
+          break;
+        case BuildingType.fisherman:
+          netFish += rate;
+          break;
+        default:
+          break;
+      }
+    }
+
+    return NetResourceRates(
+      food: netFood,
+      wood: netWood,
+      stone: netStone,
+      iron: netIron,
+      flour: netFlour,
+      plank: netPlank,
+      bread: netBread,
+      furniture: netFurniture,
+      fish: netFish,
     );
   }
 }

@@ -1,4 +1,4 @@
-# HexRush ⚔️👑
+# HexRush
 
 <div align="center">
 
@@ -10,28 +10,28 @@
 
 **A tactile hexagonal idle conquest and tactical diorama builder in an isometric voxel world.**
 
-[🎮 Play Live Web Demo](https://ismailgulbag95.github.io/altigen.vs1/) • [📦 Store Assets & ASO](store_assets/ASO_AND_STORE_READINESS.md) • [🔒 Privacy Policy](store_assets/PRIVACY_POLICY.md)
+[Play Live Web Demo](https://ismailgulbag95.github.io/altigen.vs1/) • [Store Assets & ASO](store_assets/ASO_AND_STORE_READINESS.md) • [Privacy Policy](store_assets/PRIVACY_POLICY.md)
 
 </div>
 
 ---
 
-## 🌟 Overview
+## Overview
 
-**HexRush** blends the instant dopamine gratification of tile-conquest mechanics with relaxing isometric voxel aesthetics and deep idle strategy. Start with a solitary Castle diorama, clear the fog of war, capture rich hexagonal resource nodes, establish automated production chains, and master the royal marketplace to build a thriving kingdom.
+HexRush combines tactical tile-conquest mechanics with relaxing isometric voxel aesthetics and idle economy management. Players expand outwards from a central Castle diorama, clear the fog of war across hex tiles, construct production chains, trade in the royal marketplace, and unlock persistent talents.
 
-### 🎮 Core Gameplay Loops
+### Core Gameplay Loops
 
-- **Tactile Tile Conquest:** Clear the fog of war tile-by-tile with satisfying poof particle animations, floating resource yield popups, and smooth haptic feedback.
-- **Isometric Voxel Diorama:** Real-time 2.5D voxel rendering with layered terrain heights, natural color palettes, and diorama lens camera controls (pan, zoom, frame).
-- **Automated Production Guilds:** Construct and upgrade Timber Camps, Stone Quarries, Windmills, Bakeries, Foundries, and Watchtowers to boost your economy per second.
-- **Dynamic Marketplace:** Exploit fluctuating market prices to trade surplus flour, wood, or stone for high-value strategic yields.
-- **Royal Talents & Prestige Titles:** Earn Royal Crowns to ascend through the kingdom's talent tree and unlock sovereign titles with permanent production multipliers.
-- **100% Offline-First:** Zero ads, zero tracking, and instant offline saving on your device.
+- **Tile Conquest:** Expand territory tile-by-tile across distinct biomes (meadow, forest, mountain, sea) with tactile feedback.
+- **Isometric Voxel Diorama:** Real-time 2.5D voxel rendering with layered terrain heights, natural color palettes, and camera pan/zoom controls.
+- **Automated Production Guilds:** Build and upgrade Timber Camps, Stone Quarries, Windmills, Bakeries, Foundries, and Watchtowers.
+- **Dynamic Marketplace:** Trade excess goods for high-tier construction materials and Royal Crowns.
+- **Talents & Titles:** Ascend through the kingdom's talent tree and claim sovereign titles for global production bonuses.
+- **Offline Progression:** Offline calculation and local device persistence without external tracking.
 
 ---
 
-## 🛠️ Architecture & Tech Stack
+## Architecture & Tech Stack
 
 ```
 lib/
@@ -55,7 +55,7 @@ lib/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Flutter SDK `^3.13.0` or higher
@@ -92,16 +92,19 @@ flutter build ipa --release
 
 ---
 
-## 📱 Store Compliance & Readiness
+## Store Compliance & Readiness
 
-HexRush is pre-configured and audited for zero-friction store submission:
-- **Apple App Store:** `PrivacyInfo.xcprivacy` manifest included, `ITSAppUsesNonExemptEncryption = false` configured, and passes **Greenlight Preflight** with 0 issues.
-- **Google Play Store:** Automated release keystore loading (`key.properties`), optimized ProGuard/R8 rules (`proguard-rules.pro`), and minimal permissions.
-- **ASO Package:** Complete multi-language titles, keywords, screenshot storyboards, and nutrition label questionnaires located in [`store_assets/ASO_AND_STORE_READINESS.md`](store_assets/ASO_AND_STORE_READINESS.md).
+HexRush is configured and audited for store submission:
+- **Apple App Store:** `PrivacyInfo.xcprivacy` manifest included, `ITSAppUsesNonExemptEncryption = false` configured, and passes Greenlight Preflight with 0 issues.
+- **Google Play Store:** Automated release keystore loading (`key.properties`), optimized ProGuard rules (`proguard-rules.pro`), and minimal permission footprints.
+- **ASO Package:** Multi-language titles, keywords, screenshot storyboards, and privacy documentation located in [`store_assets/ASO_AND_STORE_READINESS.md`](store_assets/ASO_AND_STORE_READINESS.md).
 
 ---
 
-## 📄 License & Credits
+## License & Credits
+
+Developed by **Balax Games / Studio**.  
+Licensed under the [MIT License](LICENSE).� License & Credits
 
 Developed with ❤️ by **Balax Games / Studio**.  
 Licensed under the [MIT License](LICENSE).

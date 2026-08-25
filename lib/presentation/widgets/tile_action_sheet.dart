@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/audio/tactile_audio_service.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/economy/economy_calculator.dart';
@@ -7,138 +8,170 @@ import '../../domain/models/building_model.dart';
 import '../../domain/models/hex_tile_model.dart';
 import '../providers/game_state_notifier.dart';
 import 'icons/game_vector_icons.dart';
+import 'tactile_neo_button.dart';
 
-class TileActionSheet extends ConsumerWidget {
+class TileActionSheet extends ConsumerStatefulWidget {
   const TileActionSheet({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TileActionSheet> createState() => _TileActionSheetState();
+}
+
+class _TileActionSheetState extends ConsumerState<TileActionSheet>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _slideController;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _slideController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 260),
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 1.2),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: NeoBrutalistTheme.springSlideCurve,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _slideController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final gameState = ref.watch(gameStateProvider);
     final selectedCoord = gameState.selectedCoord;
-    if (selectedCoord == null) return const SizedBox.shrink();
+
+    if (selectedCoord == null) {
+      if (_slideController.isCompleted) {
+        _slideController.reverse();
+      }
+      return const SizedBox.shrink();
+    }
 
     final tile = gameState.tiles[selectedCoord];
-    if (tile == null || tile.isFog) return const SizedBox.shrink();
+    if (tile == null || tile.isFog) {
+      return const SizedBox.shrink();
+    }
+
+    if (!_slideController.isAnimating && _slideController.value == 0.0) {
+      _slideController.forward();
+    }
 
     final lang = gameState.settings.language;
 
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Container(
-        margin: const EdgeInsets.all(12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: NeoBrutalistTheme.surface,
-          borderRadius: NeoBrutalistTheme.standardRadius,
-          border: Border.all(color: Colors.black, width: 2.5),
-          boxShadow: NeoBrutalistTheme.hardShadow(offset: 4.0),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Tutorial Hint Section
-            if (gameState.progression.tutorialStep < 9)
-              _buildTutorialHint(gameState.progression.tutorialStep, lang),
+    return SlideTransition(
+      position: _slideAnimation,
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          margin: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: NeoBrutalistTheme.surface,
+            borderRadius: NeoBrutalistTheme.standardRadius,
+            border: Border.all(color: Colors.black, width: 2.5),
+            boxShadow: NeoBrutalistTheme.hardShadow(offset: 4.0),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Tutorial Hint Section
+              if (gameState.progression.tutorialStep < 9)
+                _buildTutorialHint(gameState.progression.tutorialStep, lang),
 
-            // Header: Biyom Adı ve Kapat Butonu
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    _getBiomeVectorIcon(tile.biome),
-                    const SizedBox(width: 8),
-                    Text(
-                      _getBiomeTitle(tile.biome, lang),
-                      style: NeoBrutalistTheme.fontTitle,
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: tile.isOwned ? const Color(0xFF10B981) : const Color(0xFF64748B),
-                        borderRadius: NeoBrutalistTheme.sharpRadius,
-                        border: Border.all(color: Colors.black, width: 1.5),
-                        boxShadow: NeoBrutalistTheme.hardShadowSmall,
+              // Header: Biyom Adı, Durum ve Kapat Butonu
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      _getBiomeVectorIcon(tile.biome),
+                      const SizedBox(width: 8),
+                      Text(
+                        _getBiomeTitle(tile.biome, lang),
+                        style: NeoBrutalistTheme.fontHeaderMonolith,
                       ),
-                      child: Text(
-                        tile.isOwned ? 'SAHİPLİ' : 'KEŞFEDİLDİ',
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
-                    if (tile.isWarmed) ...[
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF97316),
+                          color: tile.isOwned ? const Color(0xFF10B981) : const Color(0xFF64748B),
                           borderRadius: NeoBrutalistTheme.sharpRadius,
                           border: Border.all(color: Colors.black, width: 1.5),
                           boxShadow: NeoBrutalistTheme.hardShadowSmall,
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const GameVectorIcon(type: GameIconType.frenzy, size: 10, color: Colors.black),
-                            const SizedBox(width: 4),
-                            Text(
-                              'ISITILDI (${tile.warmTimer.toInt()}s)',
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          tile.isOwned ? 'SAHİPLİ' : 'KEŞFEDİLDİ',
+                          style: NeoBrutalistTheme.fontBadge.copyWith(color: Colors.black),
                         ),
                       ),
+                      if (tile.isWarmed) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF97316),
+                            borderRadius: NeoBrutalistTheme.sharpRadius,
+                            border: Border.all(color: Colors.black, width: 1.5),
+                            boxShadow: NeoBrutalistTheme.hardShadowSmall,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const GameVectorIcon(type: GameIconType.frenzy, size: 10, color: Colors.black),
+                              const SizedBox(width: 4),
+                              Text(
+                                'ISITILDI (${tile.warmTimer.toInt()}s)',
+                                style: NeoBrutalistTheme.fontBadge.copyWith(color: Colors.black),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF334155),
-                    borderRadius: NeoBrutalistTheme.sharpRadius,
-                    border: Border.all(color: Colors.black, width: 1.5),
-                    boxShadow: NeoBrutalistTheme.hardShadowSmall,
                   ),
-                  child: IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white, size: 16),
-                    onPressed: () {
+                  TactileNeoButton(
+                    onTap: () {
                       ref.read(gameStateProvider.notifier).clearSelection();
                     },
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
+                    backgroundColor: const Color(0xFF334155),
+                    shadowOffset: 2.0,
+                    padding: const EdgeInsets.all(5),
+                    child: const Icon(Icons.close, color: Colors.white, size: 16),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Divider(color: Colors.black, thickness: 1.5, height: 1.5),
-            const SizedBox(height: 12),
+                ],
+              ),
+              const SizedBox(height: 10),
+              const Divider(color: Colors.black, thickness: 1.5, height: 1.5),
+              const SizedBox(height: 10),
 
-            // Durum 1: Keşfedilmiş ama Sahipsiz (Fethet Butonu)
-            if (!tile.isOwned) ...[
-              _buildConquerSection(context, ref, tile, lang),
-            ]
-            // Durum 2: Sahipli ve Şato
-            else if (tile.building?.type == BuildingType.castle) ...[
-              _buildCastleSection(context, ref, tile, gameState, lang),
-            ]
-            // Durum 3: Sahipli ve Üretim Binası Var
-            else if (tile.hasBuilding) ...[
-              _buildBuildingDetailSection(context, ref, tile, gameState, lang),
-            ]
-            // Durum 4: Sahipli ve Boş (İnşaat Seçenekleri)
-            else ...[
-              _buildBuildOptionsSection(context, ref, tile, gameState, lang),
+              // Durum 1: Keşfedilmiş ama Sahipsiz (Fethet Butonu)
+              if (!tile.isOwned) ...[
+                _buildConquerSection(context, ref, tile, lang),
+              ]
+              // Durum 2: Sahipli ve Şato
+              else if (tile.building?.type == BuildingType.castle) ...[
+                _buildCastleSection(context, ref, tile, gameState, lang),
+              ]
+              // Durum 3: Sahipli ve Üretim Binası Var
+              else if (tile.hasBuilding) ...[
+                _buildBuildingDetailSection(context, ref, tile, gameState, lang),
+              ]
+              // Durum 4: Sahipli ve Boş (İnşaat Seçenekleri)
+              else ...[
+                _buildBuildOptionsSection(context, ref, tile, gameState, lang),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -150,6 +183,7 @@ class TileActionSheet extends ConsumerWidget {
     final double cost = notifier.calculateExpansionCost(tile.biome);
     final double currentFood = ref.watch(gameStateProvider).resources.food;
     final bool canAfford = currentFood >= cost;
+    final double deficit = cost - currentFood;
 
     return Column(
       children: [
@@ -172,36 +206,56 @@ class TileActionSheet extends ConsumerWidget {
                     fontWeight: FontWeight.w900,
                   ),
                 ),
+                if (!canAfford) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF7F1D1D),
+                      borderRadius: BorderRadius.circular(2),
+                      border: Border.all(color: const Color(0xFFEF4444), width: 1),
+                    ),
+                    child: Text(
+                      'Eksik: -${deficit.toInt()}',
+                      style: const TextStyle(
+                        color: Color(0xFFFCA5A5),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        ElevatedButton(
-          onPressed: () {
-            notifier.conquerTile(tile.coord);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: canAfford ? const Color(0xFFFFC700) : const Color(0xFF475569),
-            foregroundColor: Colors.black,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            shape: const RoundedRectangleBorder(
-              borderRadius: NeoBrutalistTheme.sharpRadius,
-              side: BorderSide(color: Colors.black, width: 2),
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          child: TactileNeoButton(
+            onTap: canAfford ? () => notifier.conquerTile(tile.coord) : null,
+            isEnabled: canAfford,
+            backgroundColor: const Color(0xFFFFC700),
+            borderColor: Colors.black,
+            shadowColor: const Color(0xFF78350F),
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            soundType: TactileSoundType.conquer,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const GameVectorIcon(type: GameIconType.land, size: 16, color: Colors.black),
+                const SizedBox(width: 8),
+                Text(
+                  GameLocalization.get('conquer', lang: lang).toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 13,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
             ),
-            elevation: 0,
-            shadowColor: Colors.transparent,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const GameVectorIcon(type: GameIconType.land, size: 16, color: Colors.black),
-              const SizedBox(width: 8),
-              Text(
-                GameLocalization.get('conquer', lang: lang).toUpperCase(),
-                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5),
-              ),
-            ],
           ),
         ),
       ],
@@ -219,10 +273,6 @@ class TileActionSheet extends ConsumerWidget {
 
     final bool canAfford = gameState.resources.food >= nextFood &&
         gameState.resources.wood >= nextWood;
-
-    final String costLabel = nextWood > 0
-        ? '${nextFood.toInt()} GIDA + ${nextWood.toInt()} ODUN'
-        : '${nextFood.toInt()} GIDA';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,38 +293,68 @@ class TileActionSheet extends ConsumerWidget {
                   : (lvl == 3
                       ? 'Seviye 4\'te Mobilyacı & Kağan Unvanı açılır!'
                       : 'Maksimum Krallık Gücü!')),
-          style: const TextStyle(
-              color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w700),
+          style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700),
         ),
-        const SizedBox(height: 12),
-        ElevatedButton(
-          onPressed: () => notifier.upgradeCastle(),
-          style: ElevatedButton.styleFrom(
-            backgroundColor:
-                canAfford ? const Color(0xFF8B5CF6) : const Color(0xFF475569),
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            shape: const RoundedRectangleBorder(
-              borderRadius: NeoBrutalistTheme.sharpRadius,
-              side: BorderSide(color: Colors.black, width: 2),
-            ),
-            elevation: 0,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const GameVectorIcon(
-                  type: GameIconType.crown, size: 16, color: Colors.white),
-              const SizedBox(width: 8),
-              Text(
-                '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} ($costLabel)',
-                style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 12,
-                    letterSpacing: 0.3),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: TactileNeoButton(
+                onTap: canAfford ? () => notifier.upgradeCastle() : null,
+                isEnabled: canAfford,
+                backgroundColor: const Color(0xFF8B5CF6),
+                borderColor: Colors.black,
+                shadowColor: const Color(0xFF4C1D95),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                soundType: TactileSoundType.upgrade,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const GameVectorIcon(type: GameIconType.crown, size: 14, color: Colors.white),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} (${nextFood.toInt()} GIDA${nextWood > 0 ? ' + ${nextWood.toInt()} ODUN' : ''})',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 11,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              flex: 2,
+              child: TactileNeoButton(
+                onTap: () => notifier.collectFromTile(tile.coord),
+                backgroundColor: const Color(0xFF10B981),
+                borderColor: Colors.black,
+                shadowColor: const Color(0xFF065F46),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                soundType: TactileSoundType.tap,
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GameVectorIcon(type: GameIconType.food, size: 14, color: Colors.black),
+                    SizedBox(width: 4),
+                    Text(
+                      'İAŞE (+1)',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 11,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -299,12 +379,12 @@ class TileActionSheet extends ConsumerWidget {
               '${b.type.name.toUpperCase()} (LV.${b.level})',
               style: const TextStyle(
                   color: Color(0xFFFFD700),
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.w900),
             ),
             Text(
               '+${b.currentProductionRate.toStringAsFixed(2)}${GameLocalization.get('per_sec', lang: lang)}',
-              style: const TextStyle(color: Color(0xFF10B981), fontSize: 13, fontWeight: FontWeight.w900),
+              style: const TextStyle(color: Color(0xFF10B981), fontSize: 12, fontWeight: FontWeight.w900),
             ),
           ],
         ),
@@ -314,73 +394,82 @@ class TileActionSheet extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('BİRİKMİŞ STOK:',
-                  style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w800)),
+                  style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w800)),
               Text(
                 '+${b.accumulatedResource.toStringAsFixed(1)}',
                 style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
-                    fontSize: 13),
+                    fontSize: 12),
               ),
             ],
           ),
         ],
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         Row(
           children: [
             if (hasAccum) ...[
               Expanded(
-                child: ElevatedButton(
-                  onPressed: () => notifier.collectFromTile(tile.coord),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
-                    foregroundColor: Colors.black,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: NeoBrutalistTheme.sharpRadius,
-                      side: BorderSide(color: Colors.black, width: 2),
+                child: TactileNeoButton(
+                  onTap: () => notifier.collectFromTile(tile.coord),
+                  backgroundColor: const Color(0xFF10B981),
+                  borderColor: Colors.black,
+                  shadowOffset: 2.5,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  soundType: TactileSoundType.tap,
+                  child: Center(
+                    child: Text(
+                      GameLocalization.get('collect', lang: lang).toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 11,
+                      ),
                     ),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    GameLocalization.get('collect', lang: lang).toUpperCase(),
-                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
             ],
             Expanded(
-              child: ElevatedButton(
-                onPressed: () => notifier.upgradeBuilding(tile.coord),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: canUpgrade ? const Color(0xFFFFC700) : const Color(0xFF475569),
-                  foregroundColor: Colors.black,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: NeoBrutalistTheme.sharpRadius,
-                    side: BorderSide(color: Colors.black, width: 2),
+              child: TactileNeoButton(
+                onTap: canUpgrade ? () => notifier.upgradeBuilding(tile.coord) : null,
+                isEnabled: canUpgrade,
+                backgroundColor: const Color(0xFFFFC700),
+                borderColor: Colors.black,
+                shadowOffset: 2.5,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                soundType: TactileSoundType.upgrade,
+                child: Center(
+                  child: Text(
+                    '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} (${cost.toInt()})',
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 11,
+                    ),
                   ),
-                  elevation: 0,
-                ),
-                child: Text(
-                  '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} (${cost.toInt()})',
-                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
                 ),
               ),
             ),
             if (isWinter && !tile.isWarmed) ...[
               const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: canWarm ? () => notifier.warmTile(tile.coord) : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: canWarm ? const Color(0xFFF97316) : const Color(0xFF475569),
-                  foregroundColor: Colors.white,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: NeoBrutalistTheme.sharpRadius,
-                    side: BorderSide(color: Colors.black, width: 2),
+              TactileNeoButton(
+                onTap: canWarm ? () => notifier.warmTile(tile.coord) : null,
+                isEnabled: canWarm,
+                backgroundColor: const Color(0xFFF97316),
+                borderColor: Colors.black,
+                shadowOffset: 2.5,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                soundType: TactileSoundType.tap,
+                child: const Text(
+                  'ISIT (5 ODUN)',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
                   ),
-                  elevation: 0,
                 ),
-                child: const Text('ISIT (5 ODUN)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900)),
               ),
             ],
           ],
@@ -401,79 +490,63 @@ class TileActionSheet extends ConsumerWidget {
         const Text(
           'İNŞA EDİLEBİLİR YAPILAR:',
           style: TextStyle(
-              color: Colors.white70,
-              fontSize: 12,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.4),
+              color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.4),
         ),
         const SizedBox(height: 8),
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: 6,
+          runSpacing: 6,
           children: available.map((type) {
             final dummy = BuildingModel(type: type);
             final int requiredLvl = _getRequiredCastleLevel(type);
             final bool isUnlocked = castleLvl >= requiredLvl;
             final bool canAfford = gameState.resources.food >= dummy.baseCost;
 
-            return InkWell(
+            return TactileNeoButton(
               onTap: isUnlocked
                   ? () => notifier.buildStructure(tile.coord, type)
                   : () {
                       notifier.showToast(
                           'Bu yapı için Kale Seviye $requiredLvl gereklidir!');
                     },
-              child: Container(
-                width: (MediaQuery.of(context).size.width - 48) / 2,
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: !isUnlocked
-                      ? const Color(0xFF0F172A)
-                      : (canAfford
-                          ? const Color(0xFF1E3A8A)
-                          : const Color(0xFF334155)),
-                  borderRadius: NeoBrutalistTheme.sharpRadius,
-                  border: Border.all(
-                    color: Colors.black,
-                    width: 1.8,
-                  ),
-                  boxShadow: NeoBrutalistTheme.hardShadowSmall,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        _getBuildingVectorIcon(type, isUnlocked),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            isUnlocked
-                                ? '${_getBuildingName(type, lang)} (${dummy.baseCost.toInt()})'
-                                : '${_getBuildingName(type, lang)} (LV.$requiredLvl)',
-                            style: TextStyle(
-                              color: !isUnlocked
-                                  ? Colors.grey.shade500
-                                  : (canAfford ? Colors.white : Colors.white70),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w900,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
+              backgroundColor: !isUnlocked
+                  ? const Color(0xFF0F172A)
+                  : (canAfford ? const Color(0xFF1E3A8A) : const Color(0xFF334155)),
+              borderColor: Colors.black,
+              shadowOffset: 2.0,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+              soundType: TactileSoundType.build,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _getBuildingVectorIcon(type, isUnlocked),
+                  const SizedBox(width: 5),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isUnlocked
+                            ? '${_getBuildingName(type, lang)} (${dummy.baseCost.toInt()})'
+                            : '${_getBuildingName(type, lang)} (LV.$requiredLvl)',
+                        style: TextStyle(
+                          color: !isUnlocked
+                              ? Colors.grey.shade500
+                              : (canAfford ? Colors.white : Colors.white70),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _getBuildingDescription(type, lang),
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.6),
-                        fontSize: 9,
-                        fontWeight: FontWeight.w600,
                       ),
-                    ),
-                  ],
-                ),
+                      Text(
+                        _getBuildingDescription(type, lang),
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.6),
+                          fontSize: 8,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             );
           }).toList(),
@@ -624,53 +697,86 @@ class TileActionSheet extends ConsumerWidget {
           BuildingType.fisherman,
           BuildingType.fishermanHut,
         ];
+      case TileBiome.desert:
+        return [
+          BuildingType.windmill,
+          BuildingType.worker,
+          BuildingType.watchtower,
+        ];
+      case TileBiome.tundra:
+        return [
+          BuildingType.mine,
+          BuildingType.worker,
+          BuildingType.watchtower,
+        ];
+      case TileBiome.volcano:
+        return [
+          BuildingType.mine,
+          BuildingType.watchtower,
+          BuildingType.worker,
+        ];
+      case TileBiome.wetland:
+        return [
+          BuildingType.bridge,
+          BuildingType.fisherman,
+          BuildingType.fishermanHut,
+          BuildingType.worker,
+        ];
     }
   }
 
   Widget _getBiomeVectorIcon(TileBiome biome) {
     switch (biome) {
       case TileBiome.meadow:
-        return const GameVectorIcon(type: GameIconType.food, size: 18);
+        return const GameVectorIcon(type: GameIconType.food, size: 16);
       case TileBiome.forest:
-        return const GameVectorIcon(type: GameIconType.wood, size: 18);
+        return const GameVectorIcon(type: GameIconType.wood, size: 16);
       case TileBiome.mountain:
-        return const GameVectorIcon(type: GameIconType.stone, size: 18);
+        return const GameVectorIcon(type: GameIconType.stone, size: 16);
       case TileBiome.sea:
-        return const GameVectorIcon(type: GameIconType.winter, size: 18);
+        return const GameVectorIcon(type: GameIconType.winter, size: 16);
+      case TileBiome.desert:
+        return const GameVectorIcon(type: GameIconType.desert, size: 16);
+      case TileBiome.tundra:
+        return const GameVectorIcon(type: GameIconType.tundra, size: 16);
+      case TileBiome.volcano:
+        return const GameVectorIcon(type: GameIconType.volcano, size: 16);
+      case TileBiome.wetland:
+        return const GameVectorIcon(type: GameIconType.wetland, size: 16);
     }
   }
 
   Widget _getBuildingVectorIcon(BuildingType type, bool isUnlocked) {
     if (!isUnlocked) {
-      return const Icon(Icons.lock, size: 14, color: Colors.grey);
+      return const Icon(Icons.lock, size: 13, color: Colors.grey);
     }
     switch (type) {
       case BuildingType.castle:
-        return const GameVectorIcon(type: GameIconType.crown, size: 14);
+        return const GameVectorIcon(type: GameIconType.crown, size: 13);
       case BuildingType.corn:
-        return const GameVectorIcon(type: GameIconType.food, size: 14);
+        return const GameVectorIcon(type: GameIconType.food, size: 13);
       case BuildingType.lumberjack:
-        return const GameVectorIcon(type: GameIconType.wood, size: 14);
+        return const GameVectorIcon(type: GameIconType.wood, size: 13);
       case BuildingType.windmill:
-        return const GameVectorIcon(type: GameIconType.flour, size: 14);
+        return const GameVectorIcon(type: GameIconType.flour, size: 13);
       case BuildingType.sawmill:
-        return const GameVectorIcon(type: GameIconType.plank, size: 14);
+        return const GameVectorIcon(type: GameIconType.plank, size: 13);
       case BuildingType.bakery:
-        return const GameVectorIcon(type: GameIconType.bread, size: 14);
+        return const GameVectorIcon(type: GameIconType.bread, size: 13);
       case BuildingType.furniture:
-        return const GameVectorIcon(type: GameIconType.furniture, size: 14);
+        return const GameVectorIcon(type: GameIconType.furniture, size: 13);
       case BuildingType.worker:
-        return const GameVectorIcon(type: GameIconType.land, size: 14);
+        return const GameVectorIcon(type: GameIconType.land, size: 13);
       case BuildingType.watchtower:
-        return const GameVectorIcon(type: GameIconType.frenzy, size: 14);
+        return const GameVectorIcon(type: GameIconType.frenzy, size: 13);
       case BuildingType.mine:
-        return const GameVectorIcon(type: GameIconType.iron, size: 14);
+        return const GameVectorIcon(type: GameIconType.iron, size: 13);
       case BuildingType.bridge:
-        return const GameVectorIcon(type: GameIconType.land, size: 14);
+        return const GameVectorIcon(type: GameIconType.land, size: 13);
       case BuildingType.fisherman:
-        return const GameVectorIcon(type: GameIconType.food, size: 14);
+        return const GameVectorIcon(type: GameIconType.food, size: 13);
       case BuildingType.fishermanHut:
-        return const GameVectorIcon(type: GameIconType.land, size: 14);
+        return const GameVectorIcon(type: GameIconType.land, size: 13);
     }
   }
 
@@ -684,6 +790,14 @@ class TileActionSheet extends ConsumerWidget {
         return GameLocalization.get('biome_mountain', lang: lang).toUpperCase();
       case TileBiome.sea:
         return GameLocalization.get('biome_sea', lang: lang).toUpperCase();
+      case TileBiome.desert:
+        return GameLocalization.get('biome_desert', lang: lang).toUpperCase();
+      case TileBiome.tundra:
+        return GameLocalization.get('biome_tundra', lang: lang).toUpperCase();
+      case TileBiome.volcano:
+        return GameLocalization.get('biome_volcano', lang: lang).toUpperCase();
+      case TileBiome.wetland:
+        return GameLocalization.get('biome_wetland', lang: lang).toUpperCase();
     }
   }
 
