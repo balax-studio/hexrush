@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flame/components.dart';
+import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import '../../../core/hex/hex_coordinates.dart';
 import '../../../core/hex/hex_math.dart';
@@ -7,7 +8,7 @@ import '../../../domain/models/building_model.dart';
 import '../../../domain/models/hex_tile_model.dart';
 import '../renderers/voxel_isometric_renderer.dart';
 
-class HexTileComponent extends PositionComponent {
+class HexTileComponent extends PositionComponent with TapCallbacks {
   final HexAxial coord;
   HexTileModel tileModel;
   bool isSelected;
@@ -15,12 +16,24 @@ class HexTileComponent extends PositionComponent {
   bool isZud;
   bool isNight;
 
+  final void Function(HexAxial coord)? onTileTapped;
+
   double _animTimer = 0.0;
   double _bounceTimer = 0.0;
   static const double _bounceDuration = 0.25;
 
   double _buildBounceTimer = 0.0;
   static const double _buildBounceDuration = 0.35;
+
+  // Sis Dağılma & Keşif Efekti (Fog of War Reveal Engine)
+  double _revealTimer = 0.0;
+  static const double _revealDuration = 0.65;
+
+  // Organik Mevsim Geçişi (Season Cross-Fade & Melting Engine)
+  String _previousSeason = 'SPRING';
+  String _currentSeason = 'SPRING';
+  double _seasonTransitionTimer = 0.0;
+  static const double _seasonTransitionDuration = 2.0;
 
   static const double hexRadius = 52.0;
   static const double baseDepth3D = 20.0;
@@ -32,7 +45,10 @@ class HexTileComponent extends PositionComponent {
     required this.season,
     required this.isZud,
     this.isNight = false,
-  }) : super(
+    this.onTileTapped,
+  })  : _previousSeason = season,
+        _currentSeason = season,
+        super(
           position: Vector2(
             HexMath.hexToPixel(coord, hexSize: hexRadius).dx,
             HexMath.hexToPixel(coord, hexSize: hexRadius).dy,
@@ -64,11 +80,30 @@ class HexTileComponent extends PositionComponent {
       _buildBounceTimer = _buildBounceDuration;
     }
 
+    // Sis Açılma Geçişi Tespiti (Fog -> Discovered)
+    if (tileModel.isFog && !newTileModel.isFog) {
+      _revealTimer = _revealDuration;
+    }
+
+    // Mevsim Değişimi Geçişi Tespiti
+    if (newSeason != _currentSeason) {
+      _previousSeason = _currentSeason;
+      _currentSeason = newSeason;
+      _seasonTransitionTimer = _seasonTransitionDuration;
+    }
+
     tileModel = newTileModel;
     isSelected = newIsSelected;
     season = newSeason;
     isZud = newIsZud;
     if (newIsNight != null) isNight = newIsNight;
+  }
+
+  @override
+  void onTapDown(TapDownEvent event) {
+    super.onTapDown(event);
+    triggerTapBounce();
+    onTileTapped?.call(coord);
   }
 
   @override
@@ -80,6 +115,12 @@ class HexTileComponent extends PositionComponent {
     }
     if (_buildBounceTimer > 0) {
       _buildBounceTimer = (_buildBounceTimer - dt).clamp(0.0, _buildBounceDuration);
+    }
+    if (_revealTimer > 0) {
+      _revealTimer = (_revealTimer - dt).clamp(0.0, _revealDuration);
+    }
+    if (_seasonTransitionTimer > 0) {
+      _seasonTransitionTimer = (_seasonTransitionTimer - dt).clamp(0.0, _seasonTransitionDuration);
     }
   }
 
@@ -99,15 +140,38 @@ class HexTileComponent extends PositionComponent {
     final Offset center = Offset(size.x / 2, size.y / 2 - elevation);
     final corners = HexMath.getHexCorners(center, hexSize: hexRadius, yScale: HexMath.defaultYScale);
 
+    // 1. TAM SİSLİ KARO
     if (tileModel.isFog) {
-      _renderVoxelFog(canvas, corners, center);
+      _renderVoxelFog(canvas, corners, center, alpha: 1.0, floatY: 0.0);
       return;
     }
 
+    // 2. SİS DAĞILMA GEÇİŞİ (0.65s Organic Dissolve & Ground Rise)
+    if (_revealTimer > 0) {
+      final double progress = 1.0 - (_revealTimer / _revealDuration);
+      final double eased = Curves.easeOutCubic.transform(progress);
+
+      // Yükselen zemin (Aşağıdan yumuşakça yükselerek belirir)
+      final double groundElevation = elevation - (1.0 - eased) * 14.0;
+      final Offset groundCenter = Offset(size.x / 2, size.y / 2 - groundElevation);
+      final groundCorners = HexMath.getHexCorners(groundCenter, hexSize: hexRadius, yScale: HexMath.defaultYScale);
+
+      _render3DExtrudedWalls(canvas, groundCorners, groundElevation);
+      _renderIsometricTopFace(canvas, groundCorners, groundCenter);
+      _renderVoxelObjects(canvas, groundCenter, groundCorners);
+      _renderBrutalistBadges(canvas, groundCenter);
+
+      // Yukarı doğru dağılarak kaybolan sis katmanı
+      final double mistAlpha = (1.0 - eased).clamp(0.0, 1.0);
+      final double mistFloatY = eased * 30.0;
+      _renderVoxelFog(canvas, corners, center, alpha: mistAlpha, floatY: mistFloatY);
+      return;
+    }
+
+    // 3. NORMAL AÇIK KARO RENDER
     _render3DExtrudedWalls(canvas, corners, elevation);
     _renderIsometricTopFace(canvas, corners, center);
     _renderVoxelObjects(canvas, center, corners);
-    _renderRoads(canvas, center);
 
     // İnşaat / Yükseltme Sırasında Voksel Toz Patlaması (Construction Poof)
     if (_buildBounceTimer > 0) {
@@ -136,20 +200,31 @@ class HexTileComponent extends PositionComponent {
     }
   }
 
-  void _renderVoxelFog(Canvas canvas, List<Offset> corners, Offset center) {
-    final Path path = Path()..moveTo(corners[0].dx, corners[0].dy);
+  void _renderVoxelFog(
+    Canvas canvas,
+    List<Offset> corners,
+    Offset center, {
+    double alpha = 1.0,
+    double floatY = 0.0,
+  }) {
+    if (alpha <= 0.01) return;
+
+    final Offset mistCenter = Offset(center.dx, center.dy - floatY);
+    final mistCorners = HexMath.getHexCorners(mistCenter, hexSize: hexRadius, yScale: HexMath.defaultYScale);
+
+    final Path path = Path()..moveTo(mistCorners[0].dx, mistCorners[0].dy);
     for (int i = 1; i < 6; i++) {
-      path.lineTo(corners[i].dx, corners[i].dy);
+      path.lineTo(mistCorners[i].dx, mistCorners[i].dy);
     }
     path.close();
 
     final Paint fogFill = Paint()
-      ..color = const Color(0xFF0F172A).withValues(alpha: 0.92)
+      ..color = const Color(0xFF0F172A).withValues(alpha: (0.92 * alpha).clamp(0.0, 1.0))
       ..style = PaintingStyle.fill;
     canvas.drawPath(path, fogFill);
 
     final Paint border = Paint()
-      ..color = const Color(0xFF1E293B)
+      ..color = const Color(0xFF1E293B).withValues(alpha: alpha.clamp(0.0, 1.0))
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
     canvas.drawPath(path, border);
@@ -161,12 +236,14 @@ class HexTileComponent extends PositionComponent {
 
     VoxelIsometricRenderer.drawVoxelMysteryFog(
       canvas,
-      center,
+      mistCenter,
       seed: seed,
       hiddenBiome: tileModel.biome,
       hasShrine: tileModel.hasShrine,
       isBorderFog: isBorderFog,
       animTime: _animTimer,
+      alpha: alpha,
+      disperseRise: floatY,
     );
   }
 
@@ -220,37 +297,18 @@ class HexTileComponent extends PositionComponent {
       canvas.drawPath(topPath, warm);
     }
 
+    // Seçili Karo Neo-Brutalist Sarı Vurgusu
     if (isSelected) {
-      final Paint selBorder = Paint()
+      final Paint selectBorder = Paint()
         ..color = const Color(0xFFFFD700)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3.0;
-      canvas.drawPath(topPath, selBorder);
-
-      final Paint selGlow = Paint()
-        ..color = const Color(0x44FFD700)
-        ..style = PaintingStyle.fill;
-      canvas.drawPath(topPath, selGlow);
-    }
-  }
-
-  void _renderRoads(Canvas canvas, Offset center) {
-    // Şato ve diğer binalar arasında minik bağlantı patikası
-    if (tileModel.isOwned && tileModel.hasBuilding && coord != const HexAxial(0, 0)) {
-      final castlePixel = HexMath.hexToPixel(const HexAxial(0, 0), hexSize: hexRadius);
-      final myPixel = HexMath.hexToPixel(coord, hexSize: hexRadius);
-      final Offset dir = Offset(castlePixel.dx - myPixel.dx, castlePixel.dy - myPixel.dy);
-
-      final double len = math.sqrt(dir.dx * dir.dx + dir.dy * dir.dy);
-      if (len > 0 && len < hexRadius * 2.2) {
-        final Offset roadEnd = Offset(center.dx + (dir.dx / len) * 20.0, center.dy + (dir.dy / len) * 20.0);
-        VoxelIsometricRenderer.drawVoxelRoadSegment(canvas, center, roadEnd);
-      }
+      canvas.drawPath(topPath, selectBorder);
     }
   }
 
   void _renderVoxelObjects(Canvas canvas, Offset center, List<Offset> corners) {
-    final int seed = (coord.q * 31 + coord.r * 17).abs();
+    final int seed = (coord.q * 37 + coord.r * 19).abs();
 
     if (tileModel.hasShrine) {
       VoxelIsometricRenderer.drawVoxelAncientShrine(
@@ -331,10 +389,6 @@ class HexTileComponent extends PositionComponent {
           break;
       }
     }
-
-    if (isNight && (tileModel.biome == TileBiome.forest || tileModel.biome == TileBiome.meadow || tileModel.biome == TileBiome.wetland)) {
-      VoxelIsometricRenderer.drawVoxelFireflies(canvas, center, animTime: _animTimer, seed: seed);
-    }
   }
 
   void _renderLivingForest(Canvas canvas, Offset center, int seed) {
@@ -345,29 +399,27 @@ class HexTileComponent extends PositionComponent {
       case 0:
         VoxelIsometricRenderer.drawVoxelTree(
           canvas,
-          Offset(center.dx - 6, center.dy + 4),
-          scale: 0.95,
+          Offset(center.dx - 8, center.dy - 6),
+          scale: 1.1,
           animTime: _animTimer,
         );
-        VoxelIsometricRenderer.drawVoxelPine(
+        VoxelIsometricRenderer.drawVoxelBirchTree(
           canvas,
-          Offset(center.dx + 12, center.dy - 6),
-          scale: 0.85,
+          Offset(center.dx + 10, center.dy + 2),
+          scale: 0.8,
           animTime: _animTimer,
         );
-        VoxelIsometricRenderer.drawVoxelMushroom(canvas, Offset(center.dx - 14, center.dy - 2), scale: 0.9);
+        VoxelIsometricRenderer.drawVoxelMushroom(
+          canvas,
+          Offset(center.dx + 4, center.dy + 8),
+          scale: 0.9,
+        );
         break;
       case 1:
-        VoxelIsometricRenderer.drawVoxelBirchTree(
+        VoxelIsometricRenderer.drawVoxelPine(
           canvas,
-          Offset(center.dx - 8, center.dy + 2),
-          scale: 1.0,
-          animTime: _animTimer,
-        );
-        VoxelIsometricRenderer.drawVoxelBirchTree(
-          canvas,
-          Offset(center.dx + 10, center.dy - 8),
-          scale: 0.75,
+          Offset(center.dx, center.dy - 6),
+          scale: 1.15,
           animTime: _animTimer,
         );
         if (isAutumn) {
@@ -436,22 +488,42 @@ class HexTileComponent extends PositionComponent {
           flowerColor: const Color(0xFFF43F5E),
           scale: 0.75,
         );
+        // Ara sıra dinlenen yalnız koyun
+        if (seed % 2 == 0) {
+          VoxelIsometricRenderer.drawVoxelSheep(
+            canvas,
+            Offset(center.dx - 4, center.dy - 2),
+            animTime: _animTimer,
+            seed: seed * 11 + 3,
+            scale: 0.85,
+          );
+        }
         break;
+
       case 1:
+        // Anne Koyun & Küçük Kuzu Sürüsü
         VoxelIsometricRenderer.drawVoxelSheep(
           canvas,
-          Offset(center.dx + 4, center.dy),
+          Offset(center.dx + 6, center.dy - 3),
           animTime: _animTimer,
           seed: seed,
-          scale: 0.9,
+          scale: 0.95,
+        );
+        VoxelIsometricRenderer.drawVoxelSheep(
+          canvas,
+          Offset(center.dx - 10, center.dy + 5),
+          animTime: _animTimer,
+          seed: seed * 19 + 7,
+          scale: 0.72,
         );
         VoxelIsometricRenderer.drawVoxelFlowers(
           canvas,
-          Offset(center.dx - 12, center.dy - 4),
+          Offset(center.dx + 12, center.dy + 8),
           flowerColor: const Color(0xFF38BDF8),
           scale: 0.8,
         );
         break;
+
       case 2:
         VoxelIsometricRenderer.drawVoxelTree(
           canvas,
@@ -469,7 +541,18 @@ class HexTileComponent extends PositionComponent {
           leftColor: const Color(0xFF84CC16),
           rightColor: const Color(0xFF65A30D),
         );
+        // Ağaç altında otlayan koyun
+        if (seed % 3 == 0) {
+          VoxelIsometricRenderer.drawVoxelSheep(
+            canvas,
+            Offset(center.dx + 4, center.dy + 4),
+            animTime: _animTimer,
+            seed: seed * 13 + 5,
+            scale: 0.85,
+          );
+        }
         break;
+
       case 3:
       default:
         VoxelIsometricRenderer.drawVoxelBirchTree(
@@ -513,7 +596,6 @@ class HexTileComponent extends PositionComponent {
       return;
     }
 
-    // Doğal Kıyı Şeridi ve Dinamik Dalga Köpükleri
     VoxelIsometricRenderer.drawVoxelShorelineWaves(
       canvas,
       center,
@@ -529,17 +611,19 @@ class HexTileComponent extends PositionComponent {
       w: 14.0,
       d: 5.0,
       h: 2.0,
-      topColor: const Color(0xFFBAE6FD),
-      leftColor: const Color(0xFF7DD3FC),
-      rightColor: const Color(0xFF38BDF8),
+      topColor: const Color(0xFFBAE6FD).withValues(alpha: 0.7),
+      leftColor: const Color(0xFF7DD3FC).withValues(alpha: 0.5),
+      rightColor: const Color(0xFF38BDF8).withValues(alpha: 0.5),
     );
 
-    VoxelIsometricRenderer.drawVoxelLeapingFish(
-      canvas,
-      center,
-      animTime: _animTimer,
-      seed: seed,
-    );
+    if (seed % 3 == 0) {
+      VoxelIsometricRenderer.drawVoxelLeapingFish(
+        canvas,
+        center,
+        animTime: _animTimer,
+        seed: seed,
+      );
+    }
   }
 
   void _renderLivingDesert(Canvas canvas, Offset center, int seed) {
@@ -683,9 +767,20 @@ class HexTileComponent extends PositionComponent {
   }
 
   Color _getBiomeTopColor(TileBiome biome, int seed) {
-    final bool isWinter = season == 'WINTER' || isZud;
-    final bool isAutumn = season == 'AUTUMN';
-    final bool isSummer = season == 'SUMMER';
+    final double blend = _seasonTransitionTimer > 0
+        ? (1.0 - (_seasonTransitionTimer / _seasonTransitionDuration)).clamp(0.0, 1.0)
+        : 1.0;
+
+    final Color fromColor = _getBiomeTopColorForSeason(biome, _previousSeason, false, seed);
+    final Color toColor = _getBiomeTopColorForSeason(biome, _currentSeason, isZud, seed);
+
+    return Color.lerp(fromColor, toColor, blend) ?? toColor;
+  }
+
+  Color _getBiomeTopColorForSeason(TileBiome biome, String targetSeason, bool targetZud, int seed) {
+    final bool isWinter = targetSeason == 'WINTER' || targetZud;
+    final bool isAutumn = targetSeason == 'AUTUMN';
+    final bool isSummer = targetSeason == 'SUMMER';
 
     Color baseColor;
     switch (biome) {
@@ -770,7 +865,6 @@ class HexTileComponent extends PositionComponent {
         break;
     }
 
-    // Doğal Ton Çeşitliliği (Procedural Shade Variance): Bitişik aynı biyomların mozaik gibi ayrışmasını sağlar
     final int shadeVariant = seed % 4;
     switch (shadeVariant) {
       case 0:
@@ -786,7 +880,22 @@ class HexTileComponent extends PositionComponent {
   }
 
   (Color, Color, Color) _getBiome3DWallColors(TileBiome biome) {
-    final bool isWinter = season == 'WINTER' || isZud;
+    final double blend = _seasonTransitionTimer > 0
+        ? (1.0 - (_seasonTransitionTimer / _seasonTransitionDuration)).clamp(0.0, 1.0)
+        : 1.0;
+
+    final (fL, fR, fB) = _getBiome3DWallColorsForSeason(biome, _previousSeason, false);
+    final (tL, tR, tB) = _getBiome3DWallColorsForSeason(biome, _currentSeason, isZud);
+
+    return (
+      Color.lerp(fL, tL, blend) ?? tL,
+      Color.lerp(fR, tR, blend) ?? tR,
+      Color.lerp(fB, tB, blend) ?? tB,
+    );
+  }
+
+  (Color, Color, Color) _getBiome3DWallColorsForSeason(TileBiome biome, String targetSeason, bool targetZud) {
+    final bool isWinter = targetSeason == 'WINTER' || targetZud;
     switch (biome) {
       case TileBiome.meadow:
       case TileBiome.forest:

@@ -67,7 +67,7 @@ class WorkerAgentComponent extends PositionComponent {
         break;
 
       case WorkerState.unloadingAtCastle:
-        _walkAnim += dt * 2.0; // Şatoda dururken hafif nefes/bekleme
+        _walkAnim += dt * 2.5; // Şatoda dururken alın teri silme / esneme
         _stateTimer += dt;
         if (_stateTimer >= _unloadDuration) {
           _state = WorkerState.walkingToBuilding;
@@ -86,7 +86,7 @@ class WorkerAgentComponent extends PositionComponent {
         break;
 
       case WorkerState.loadingAtBuilding:
-        _walkAnim += dt * 3.5; // Hammadde yükleme/çalışma ritmi
+        _walkAnim += dt * 4.0; // Hammadde yükleme/kazma-balta sallama ritmi
         _stateTimer += dt;
         if (_stateTimer >= _loadDuration) {
           _state = WorkerState.walkingToCastle;
@@ -104,12 +104,27 @@ class WorkerAgentComponent extends PositionComponent {
     final Offset center = Offset(size.x / 2, size.y / 2);
     final bool hasCargo = _state == WorkerState.walkingToCastle || _state == WorkerState.unloadingAtCastle;
 
+    // Yön tespiti (Hareket yönüne göre karakter yönü)
+    final bool isMovingToCastle = _state == WorkerState.walkingToCastle || _state == WorkerState.unloadingAtCastle;
+    final bool facingLeft = isMovingToCastle ? (endPos.x < startPos.x) : (startPos.x < endPos.x);
+
+    // Eylem durumu tespiti
+    int actionState = 0; // 0: yürüme
+    if (_state == WorkerState.loadingAtBuilding) {
+      actionState = 1; // 1: çalışma / kazma
+    } else if (_state == WorkerState.unloadingAtCastle) {
+      actionState = 2; // 2: boşaltma / dinlenme
+    }
+
     VoxelIsometricRenderer.drawVoxelWorker(
       canvas,
       center,
       cargoColor: cargoColor,
       walkAnim: _walkAnim,
       hasCargo: hasCargo,
+      facingLeft: facingLeft,
+      seed: seed,
+      actionState: actionState,
     );
   }
 }
