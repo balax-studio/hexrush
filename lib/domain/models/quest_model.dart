@@ -107,20 +107,29 @@ class QuestModel {
 
   factory QuestModel.fromJson(Map<String, dynamic> json) {
     return QuestModel(
-      id: json['id'] as String,
-      titleTr: json['titleTr'] as String,
-      titleEn: json['titleEn'] as String,
-      descriptionTr: json['descriptionTr'] as String,
-      descriptionEn: json['descriptionEn'] as String,
-      type: QuestType.values.byName(json['type'] as String),
+      id: json['id'] as String? ?? 'quest_${DateTime.now().millisecondsSinceEpoch}',
+      titleTr: json['titleTr'] as String? ?? 'Görev',
+      titleEn: json['titleEn'] as String? ?? 'Quest',
+      descriptionTr: json['descriptionTr'] as String? ?? '',
+      descriptionEn: json['descriptionEn'] as String? ?? '',
+      type: QuestType.values.firstWhere(
+        (e) => e.name == json['type'],
+        orElse: () => QuestType.buildStructure,
+      ),
       targetBuilding: json['targetBuilding'] != null
-          ? BuildingType.values.byName(json['targetBuilding'] as String)
+          ? BuildingType.values.firstWhere(
+              (e) => e.name == json['targetBuilding'],
+              orElse: () => BuildingType.corn,
+            )
           : null,
       targetResource: json['targetResource'] as String?,
-      targetAmount: (json['targetAmount'] as num).toInt(),
+      targetAmount: (json['targetAmount'] as num?)?.toInt() ?? 1,
       currentAmount: (json['currentAmount'] as num?)?.toInt() ?? 0,
-      rewardType: QuestRewardType.values.byName(json['rewardType'] as String),
-      rewardAmount: (json['rewardAmount'] as num).toInt(),
+      rewardType: QuestRewardType.values.firstWhere(
+        (e) => e.name == json['rewardType'],
+        orElse: () => QuestRewardType.food,
+      ),
+      rewardAmount: (json['rewardAmount'] as num?)?.toInt() ?? 10,
       isCompleted: json['isCompleted'] as bool? ?? false,
       isClaimed: json['isClaimed'] as bool? ?? false,
     );

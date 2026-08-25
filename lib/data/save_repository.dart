@@ -42,50 +42,60 @@ class SaveRepository {
     }
 
     try {
-      final Map<String, dynamic> data =
-          jsonDecode(rawJson) as Map<String, dynamic>;
+      final dynamic decoded = jsonDecode(rawJson);
+      if (decoded is! Map) return null;
+      final Map<String, dynamic> data = Map<String, dynamic>.from(decoded);
+
       final int timestamp = data['timestamp'] as int? ??
           DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
-      final resources = data.containsKey('resources')
-          ? ResourcesModel.fromJson(data['resources'] as Map<String, dynamic>)
+      final resources = data['resources'] is Map
+          ? ResourcesModel.fromJson(Map<String, dynamic>.from(data['resources'] as Map))
           : const ResourcesModel();
 
-      final progression = data.containsKey('progression')
-          ? ProgressionModel.fromJson(
-              data['progression'] as Map<String, dynamic>)
+      final progression = data['progression'] is Map
+          ? ProgressionModel.fromJson(Map<String, dynamic>.from(data['progression'] as Map))
           : const ProgressionModel();
 
-      final season = data.containsKey('season')
-          ? SeasonModel.fromJson(data['season'] as Map<String, dynamic>)
+      final season = data['season'] is Map
+          ? SeasonModel.fromJson(Map<String, dynamic>.from(data['season'] as Map))
           : const SeasonModel();
 
-      final settings = data.containsKey('settings')
-          ? SettingsModel.fromJson(data['settings'] as Map<String, dynamic>)
+      final settings = data['settings'] is Map
+          ? SettingsModel.fromJson(Map<String, dynamic>.from(data['settings'] as Map))
           : const SettingsModel();
 
       final List<HexTileModel> tiles = [];
-      if (data.containsKey('tiles') && data['tiles'] is List) {
+      if (data['tiles'] is List) {
         for (final item in (data['tiles'] as List)) {
-          if (item is Map<String, dynamic>) {
-            tiles.add(HexTileModel.fromJson(item));
+          if (item is Map) {
+            try {
+              tiles.add(HexTileModel.fromJson(Map<String, dynamic>.from(item)));
+            } catch (_) {}
           }
         }
       }
 
       final List<QuestModel> quests = [];
-      if (data.containsKey('quests') && data['quests'] is List) {
+      if (data['quests'] is List) {
         for (final item in (data['quests'] as List)) {
-          if (item is Map<String, dynamic>) {
-            quests.add(QuestModel.fromJson(item));
+          if (item is Map) {
+            try {
+              quests.add(QuestModel.fromJson(Map<String, dynamic>.from(item)));
+            } catch (_) {}
           }
         }
       }
 
-      final toreTalents =
-          data['tore']?['tore_talents'] as Map<String, dynamic>? ?? {};
-      final titles = data['titles'] as Map<String, dynamic>? ?? {};
-      final stats = data['stats'] as Map<String, dynamic>? ?? {};
+      final toreTalents = data['tore'] is Map && (data['tore'] as Map)['tore_talents'] is Map
+          ? Map<String, dynamic>.from((data['tore'] as Map)['tore_talents'] as Map)
+          : <String, dynamic>{};
+      final titles = data['titles'] is Map
+          ? Map<String, dynamic>.from(data['titles'] as Map)
+          : <String, dynamic>{};
+      final stats = data['stats'] is Map
+          ? Map<String, dynamic>.from(data['stats'] as Map)
+          : <String, dynamic>{};
 
       return SaveDataBundle(
         timestamp: timestamp,

@@ -171,57 +171,61 @@ class GameStateNotifier extends StateNotifier<GameState> {
   }
 
   Future<void> initialize() async {
-    final save = await SaveRepository.loadGame();
-    if (!mounted) return;
+    try {
+      final save = await SaveRepository.loadGame();
+      if (!mounted) return;
 
-    if (save != null && save.tiles.isNotEmpty) {
-      final tilesMap = {for (final t in save.tiles) t.coord: t};
-      state = state.copyWith(
-        tiles: tilesMap,
-        resources: save.resources,
-        progression: save.progression,
-        season: save.season,
-        settings: save.settings,
-        toreTalents: save.toreTalents,
-        titles: save.titles,
-        stats: save.stats,
-        quests: save.quests.isNotEmpty ? save.quests : _generateInitialQuests(),
-      );
-
-      _syncQuestProgress();
-
-      // Offline gelir hesapla
-      final double globalMult = EconomyCalculator.getGlobalMultiplier(
-        castleLevel: save.progression.castleLevel,
-        crowns: save.resources.crowns,
-        toreTalents: save.toreTalents,
-        titles: save.titles,
-      );
-      final double elapsed =
-          (DateTime.now().millisecondsSinceEpoch ~/ 1000 - save.timestamp)
-              .toDouble();
-      final offline = EconomyCalculator.calculateOfflineGains(
-        tiles: save.tiles,
-        elapsedSeconds: elapsed,
-        globalMultiplier: globalMult,
-      );
-
-      if (offline.hasGains && mounted) {
+      if (save != null && save.tiles.isNotEmpty) {
+        final tilesMap = {for (final t in save.tiles) t.coord: t};
         state = state.copyWith(
-          resources: state.resources.copyWith(
-            food: state.resources.food + offline.food,
-            wood: state.resources.wood + offline.wood,
-            flour: state.resources.flour + offline.flour,
-            plank: state.resources.plank + offline.plank,
-            bread: state.resources.bread + offline.bread,
-            furniture: state.resources.furniture + offline.furniture,
-            stone: state.resources.stone + offline.stone,
-            iron: state.resources.iron + offline.iron,
-          ),
-          activeToast:
-              'Çevrimdışı Gelir: +${offline.food.toStringAsFixed(1)} Gıda, +${offline.wood.toStringAsFixed(1)} Odun',
+          tiles: tilesMap,
+          resources: save.resources,
+          progression: save.progression,
+          season: save.season,
+          settings: save.settings,
+          toreTalents: save.toreTalents,
+          titles: save.titles,
+          stats: save.stats,
+          quests: save.quests.isNotEmpty ? save.quests : _generateInitialQuests(),
         );
+
+        _syncQuestProgress();
+
+        // Offline gelir hesapla
+        final double globalMult = EconomyCalculator.getGlobalMultiplier(
+          castleLevel: save.progression.castleLevel,
+          crowns: save.resources.crowns,
+          toreTalents: save.toreTalents,
+          titles: save.titles,
+        );
+        final double elapsed =
+            (DateTime.now().millisecondsSinceEpoch ~/ 1000 - save.timestamp)
+                .toDouble();
+        final offline = EconomyCalculator.calculateOfflineGains(
+          tiles: save.tiles,
+          elapsedSeconds: elapsed,
+          globalMultiplier: globalMult,
+        );
+
+        if (offline.hasGains && mounted) {
+          state = state.copyWith(
+            resources: state.resources.copyWith(
+              food: state.resources.food + offline.food,
+              wood: state.resources.wood + offline.wood,
+              flour: state.resources.flour + offline.flour,
+              plank: state.resources.plank + offline.plank,
+              bread: state.resources.bread + offline.bread,
+              furniture: state.resources.furniture + offline.furniture,
+              stone: state.resources.stone + offline.stone,
+              iron: state.resources.iron + offline.iron,
+            ),
+            activeToast:
+                'Çevrimdışı Gelir: +${offline.food.toStringAsFixed(1)} Gıda, +${offline.wood.toStringAsFixed(1)} Odun',
+          );
+        }
       }
+    } catch (_) {
+      // Güvenli başlatma: Hata durumunda varsayılan harita korunur
     }
 
     _startGameLoop();
