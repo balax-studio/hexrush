@@ -10,7 +10,7 @@
 
 **A tactile hexagonal idle conquest and tactical diorama builder in an isometric voxel world.**
 
-[🎮 Play Live Web Demo](https://balax-studio.github.io/hexrush/) • [📦 Store Assets & ASO](store_assets/ASO_AND_STORE_READINESS.md) • [🔒 Privacy Policy](store_assets/PRIVACY_POLICY.md)
+[🎮 Play Live Web Demo](https://ismailgulbag95.github.io/altigen.vs1/) • [📦 Store Assets & ASO](store_assets/ASO_AND_STORE_READINESS.md) • [🔒 Privacy Policy](store_assets/PRIVACY_POLICY.md)
 
 </div>
 
@@ -64,8 +64,8 @@ lib/
 ### Installation & Local Run
 ```bash
 # Clone the repository
-git clone https://github.com/balax-studio/hexrush.git
-cd hexrush
+git clone https://github.com/ismailgulbag95/altigen.vs1.git
+cd altigen.vs1
 
 # Install dependencies
 flutter pub get
@@ -81,7 +81,7 @@ flutter run
 
 ```bash
 # Web (GitHub Pages / Web Hosting)
-flutter build web --release --base-href /hexrush/
+flutter build web --release --base-href /altigen.vs1/ --no-web-resources-cdn
 
 # Android App Bundle (.aab for Google Play)
 flutter build appbundle --release

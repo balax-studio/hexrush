@@ -38,7 +38,7 @@ jobs:
         run: flutter test
 
       - name: Build Web
-        run: flutter build web --release --base-href /hexrush/
+        run: flutter build web --release --base-href /altigen.vs1/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
