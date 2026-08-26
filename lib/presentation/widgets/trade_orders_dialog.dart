@@ -108,7 +108,7 @@ class TradeOrdersDialog extends ConsumerWidget {
 
     final List<Widget> reqWidgets = [];
     for (final req in order.requiredResources.entries) {
-      final double current = switch (req.key.toLowerCase()) {
+      final double current = (switch (req.key.toLowerCase()) {
         'food' => currentRes.food,
         'wood' => currentRes.wood,
         'flour' => currentRes.flour,
@@ -122,7 +122,7 @@ class TradeOrdersDialog extends ConsumerWidget {
         'felt' => currentRes.felt,
         'damascus_steel' || 'damascussteel' => currentRes.damascusSteel,
         _ => 0.0,
-      };
+      } as num).toDouble();
 
       final bool hasEnough = current >= req.value;
       if (!hasEnough) canAffordAll = false;
