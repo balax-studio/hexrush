@@ -22,6 +22,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
     with SingleTickerProviderStateMixin {
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
+  bool _showLockedBuildings = false;
 
   @override
   void initState() {
@@ -47,8 +48,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
 
   @override
   Widget build(BuildContext context) {
-    final gameState = ref.watch(gameStateProvider);
-    final selectedCoord = gameState.selectedCoord;
+    final selectedCoord = ref.watch(gameStateProvider.select((s) => s.selectedCoord));
 
     if (selectedCoord == null) {
       if (_slideController.isCompleted) {
@@ -57,6 +57,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
       return const SizedBox.shrink();
     }
 
+    final gameState = ref.watch(gameStateProvider);
     final tile = gameState.tiles[selectedCoord];
     if (tile == null || tile.isFog) {
       return const SizedBox.shrink();
@@ -67,159 +68,168 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
     }
 
     final lang = gameState.settings.language;
+    final theme = NeoBrutalistTheme.getTheme(gameState.settings.activeThemePalette);
 
-    return SlideTransition(
-      position: _slideAnimation,
+    final maxHeight = MediaQuery.of(context).size.height * 0.70;
+
+    return RepaintBoundary(
+      child: SlideTransition(
+        position: _slideAnimation,
       child: Align(
         alignment: Alignment.bottomCenter,
         child: Container(
+          constraints: BoxConstraints(maxHeight: maxHeight, maxWidth: 540),
           margin: const EdgeInsets.all(12),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: NeoBrutalistTheme.surface,
+            color: theme.surface,
             borderRadius: NeoBrutalistTheme.standardRadius,
-            border: Border.all(color: Colors.black, width: 2.5),
-            boxShadow: NeoBrutalistTheme.hardShadow(offset: 4.0),
+            border: Border.all(color: theme.border, width: 2.5),
+            boxShadow: theme.hardShadow(offset: 4.0),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Tutorial Hint Section
-              if (gameState.progression.tutorialStep < 9)
-                _buildTutorialHint(gameState.progression.tutorialStep, lang),
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Tutorial Hint Section
+                if (gameState.progression.tutorialStep < 9)
+                  _buildTutorialHint(gameState.progression.tutorialStep, lang, theme),
 
-              // Header: Yapı/Biyom Adı, Durum ve Kapat Butonu
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        if (tile.building?.type == BuildingType.castle)
-                          const GameVectorIcon(type: GameIconType.crown, size: 18, color: Color(0xFFFFD700))
-                        else if (tile.hasBuilding)
-                          _getBuildingVectorIcon(tile.building!.type, true)
-                        else if (tile.hasShrine)
-                          const GameVectorIcon(type: GameIconType.crown, size: 18, color: Color(0xFFFFD700))
-                        else
-                          _getBiomeVectorIcon(tile.biome),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            tile.building?.type == BuildingType.castle
-                                ? '${GameLocalization.get('castle_title', lang: lang).toUpperCase()} (LV.${gameState.progression.castleLevel})'
-                                : (tile.hasBuilding
-                                    ? '${_getBuildingName(tile.building!.type, lang).toUpperCase()} (LV.${tile.building!.level})'
-                                    : (tile.hasShrine
-                                        ? 'KUTLU TAPINAK'
-                                        : _getBiomeTitle(tile.biome, lang))),
-                            style: NeoBrutalistTheme.fontHeaderMonolith,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: tile.building?.type == BuildingType.castle
-                                ? const Color(0xFF8B5CF6)
-                                : (tile.isOwned ? const Color(0xFF10B981) : const Color(0xFF64748B)),
-                            borderRadius: NeoBrutalistTheme.sharpRadius,
-                            border: Border.all(color: Colors.black, width: 1.5),
-                            boxShadow: NeoBrutalistTheme.hardShadowSmall,
-                          ),
-                          child: Text(
-                            tile.building?.type == BuildingType.castle
-                                ? 'KAĞAN OTAĞI'
-                                : (tile.isOwned ? 'SAHİPLİ' : 'KEŞFEDİLDİ'),
-                            style: NeoBrutalistTheme.fontBadge.copyWith(
-                              color: tile.building?.type == BuildingType.castle ? Colors.white : Colors.black,
-                            ),
-                          ),
-                        ),
-                        if (tile.hasBuilding && tile.building?.type != BuildingType.castle) ...[
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1E293B),
-                              borderRadius: NeoBrutalistTheme.sharpRadius,
-                              border: Border.all(color: const Color(0xFF475569), width: 1),
-                            ),
+                // Header: Yapı/Biyom Adı, Durum ve Kapat Butonu
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          if (tile.building?.type == BuildingType.castle)
+                            GameVectorIcon(type: GameIconType.crown, size: 18, color: theme.primaryGold)
+                          else if (tile.hasBuilding)
+                            _getBuildingVectorIcon(tile.building!.type, true)
+                          else if (tile.hasShrine)
+                            GameVectorIcon(type: GameIconType.crown, size: 18, color: theme.primaryGold)
+                          else
+                            _getBiomeVectorIcon(tile.biome),
+                          const SizedBox(width: 8),
+                          Flexible(
                             child: Text(
-                              _getBiomeTitle(tile.biome, lang),
-                              style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9, fontWeight: FontWeight.w800),
+                              tile.building?.type == BuildingType.castle
+                                  ? '${GameLocalization.get('castle_title', lang: lang).toUpperCase()} (LV.${gameState.progression.castleLevel})'
+                                  : (tile.hasBuilding
+                                      ? '${_getBuildingName(tile.building!.type, lang).toUpperCase()} (LV.${tile.building!.level})'
+                                      : (tile.hasShrine
+                                          ? 'KUTLU TAPINAK'
+                                          : _getBiomeTitle(tile.biome, lang))),
+                              style: NeoBrutalistTheme.fontHeaderMonolith,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        ],
-                        if (tile.isWarmed) ...[
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF97316),
+                              color: tile.building?.type == BuildingType.castle
+                                  ? const Color(0xFF8B5CF6)
+                                  : (tile.isOwned ? const Color(0xFF10B981) : const Color(0xFF64748B)),
                               borderRadius: NeoBrutalistTheme.sharpRadius,
-                              border: Border.all(color: Colors.black, width: 1.5),
-                              boxShadow: NeoBrutalistTheme.hardShadowSmall,
+                              border: Border.all(color: theme.border, width: 1.5),
+                              boxShadow: theme.hardShadowSmall,
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const GameVectorIcon(type: GameIconType.frenzy, size: 10, color: Colors.black),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'ISITILDI (${tile.warmTimer.toInt()}s)',
-                                  style: NeoBrutalistTheme.fontBadge.copyWith(color: Colors.black),
-                                ),
-                              ],
+                            child: Text(
+                              tile.building?.type == BuildingType.castle
+                                  ? 'BAŞKENT'
+                                  : (tile.isOwned
+                                      ? GameLocalization.get('owned', lang: lang).toUpperCase()
+                                      : GameLocalization.get('wild', lang: lang).toUpperCase()),
+                              style: NeoBrutalistTheme.fontBadge,
                             ),
                           ),
+                          if (tile.hasBuilding && tile.building?.type != BuildingType.castle) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: theme.surfaceLight,
+                                borderRadius: NeoBrutalistTheme.sharpRadius,
+                                border: Border.all(color: theme.slateBorder, width: 1),
+                              ),
+                              child: Text(
+                                _getBiomeTitle(tile.biome, lang),
+                                style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9, fontWeight: FontWeight.w800),
+                              ),
+                            ),
+                          ],
+                          if (tile.isWarmed) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF97316),
+                                borderRadius: NeoBrutalistTheme.sharpRadius,
+                                border: Border.all(color: theme.border, width: 1.5),
+                                boxShadow: theme.hardShadowSmall,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const GameVectorIcon(type: GameIconType.frenzy, size: 10, color: Colors.black),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'ISITILDI (${tile.warmTimer.toInt()}s)',
+                                    style: NeoBrutalistTheme.fontBadge.copyWith(color: Colors.black),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  TactileNeoButton(
-                    onTap: () {
-                      ref.read(gameStateProvider.notifier).clearSelection();
-                    },
-                    backgroundColor: const Color(0xFF334155),
-                    shadowOffset: 2.0,
-                    padding: const EdgeInsets.all(5),
-                    child: const Icon(Icons.close, color: Colors.white, size: 16),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              const Divider(color: Colors.black, thickness: 1.5, height: 1.5),
-              const SizedBox(height: 10),
+                    const SizedBox(width: 8),
+                    TactileNeoButton(
+                      onTap: () {
+                        ref.read(gameStateProvider.notifier).clearSelection();
+                      },
+                      backgroundColor: theme.slateBorder,
+                      borderColor: theme.border,
+                      shadowOffset: 2.0,
+                      padding: const EdgeInsets.all(5),
+                      soundType: TactileSoundType.tap,
+                      child: const Icon(Icons.close, color: Colors.white, size: 16),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
 
-              // Durum 1: Keşfedilmiş ama Sahipsiz (Fethet Butonu)
-              if (!tile.isOwned) ...[
-                _buildConquerSection(context, ref, tile, lang),
-              ]
-              // Durum 2: Sahipli ve Şato
-              else if (tile.building?.type == BuildingType.castle) ...[
-                _buildCastleSection(context, ref, tile, gameState, lang),
-              ]
-              // Durum 3: Sahipli ve Üretim Binası Var
-              else if (tile.hasBuilding) ...[
-                _buildBuildingDetailSection(context, ref, tile, gameState, lang),
-              ]
-              // Durum 4: Sahipli ve Boş (İnşaat Seçenekleri)
-              else ...[
-                _buildBuildOptionsSection(context, ref, tile, gameState, lang),
+                // Durum 1: Sahipsiz (Fethet)
+                if (!tile.isOwned) ...[
+                  _buildConquerSection(context, ref, tile, lang, theme),
+                ]
+                // Durum 2: Kağan Otağı Seçili (Geliştirme & Prestij)
+                else if (tile.building?.type == BuildingType.castle) ...[
+                  _buildCastleSection(context, ref, tile, gameState, lang, theme),
+                ]
+                // Durum 3: Üretim/İşleme Binası Seçili (Detay & Seviye Atlama)
+                else if (tile.hasBuilding) ...[
+                  _buildBuildingDetailSection(context, ref, tile, gameState, lang, theme),
+                ]
+                // Durum 4: Sahipli ve Boş (İnşaat Seçenekleri)
+                else ...[
+                  _buildBuildOptionsSection(context, ref, tile, gameState, lang, theme),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
+    ),
     );
   }
 
   Widget _buildConquerSection(
-      BuildContext context, WidgetRef ref, HexTileModel tile, String lang) {
+      BuildContext context, WidgetRef ref, HexTileModel tile, String lang, NeoBrutalistThemeData theme) {
     final notifier = ref.read(gameStateProvider.notifier);
     final double cost = notifier.calculateExpansionCost(tile.coord);
     final double currentFood = ref.watch(gameStateProvider).resources.food;
@@ -242,7 +252,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 Text(
                   '${cost.toInt()} ${GameLocalization.get('food', lang: lang)}',
                   style: TextStyle(
-                    color: canAfford ? const Color(0xFFFBBF24) : const Color(0xFFEF4444),
+                    color: canAfford ? theme.primaryGold : const Color(0xFFEF4444),
                     fontSize: 13,
                     fontWeight: FontWeight.w900,
                   ),
@@ -276,9 +286,10 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
           child: TactileNeoButton(
             onTap: canAfford ? () => notifier.conquerTile(tile.coord) : null,
             isEnabled: canAfford,
-            backgroundColor: const Color(0xFFFFC700),
-            borderColor: Colors.black,
-            shadowColor: const Color(0xFF78350F),
+            backgroundColor: theme.primaryGold,
+            borderColor: theme.border,
+            shadowColor: theme.shadowColor,
+            shadowOffset: 3.0,
             padding: const EdgeInsets.symmetric(vertical: 10),
             soundType: TactileSoundType.conquer,
             child: Row(
@@ -304,7 +315,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
   }
 
   Widget _buildCastleSection(BuildContext context, WidgetRef ref,
-      HexTileModel tile, GameState gameState, String lang) {
+      HexTileModel tile, GameState gameState, String lang, NeoBrutalistThemeData theme) {
     final notifier = ref.read(gameStateProvider.notifier);
     final int lvl = gameState.progression.castleLevel;
     final int nextLvl = lvl + 1;
@@ -345,14 +356,15 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 onTap: canAfford ? () => notifier.upgradeCastle() : null,
                 isEnabled: canAfford,
                 backgroundColor: const Color(0xFF8B5CF6),
-                borderColor: Colors.black,
-                shadowColor: const Color(0xFF4C1D95),
+                borderColor: theme.border,
+                shadowColor: theme.shadowColor,
+                shadowOffset: 3.0,
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 soundType: TactileSoundType.upgrade,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const GameVectorIcon(type: GameIconType.crown, size: 14, color: Colors.white),
+                    GameVectorIcon(type: GameIconType.crown, size: 14, color: theme.primaryGold),
                     const SizedBox(width: 6),
                     Text(
                       '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} (${nextFood.toInt()} GIDA${nextWood > 0 ? ' + ${nextWood.toInt()} ODUN' : ''})',
@@ -373,8 +385,9 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
               child: TactileNeoButton(
                 onTap: () => notifier.collectFromTile(tile.coord),
                 backgroundColor: const Color(0xFF10B981),
-                borderColor: Colors.black,
-                shadowColor: const Color(0xFF065F46),
+                borderColor: theme.border,
+                shadowColor: theme.shadowColor,
+                shadowOffset: 3.0,
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 soundType: TactileSoundType.tap,
                 child: const Row(
@@ -402,7 +415,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
   }
 
   Widget _buildBuildingDetailSection(BuildContext context, WidgetRef ref,
-      HexTileModel tile, GameState gameState, String lang) {
+      HexTileModel tile, GameState gameState, String lang, NeoBrutalistThemeData theme) {
     final notifier = ref.read(gameStateProvider.notifier);
     final b = tile.building!;
     final double cost = b.upgradeCost;
@@ -434,8 +447,8 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
           children: [
             Text(
               '${_getBuildingName(b.type, lang).toUpperCase()} (LV.${b.level})',
-              style: const TextStyle(
-                  color: Color(0xFFFFD700),
+              style: TextStyle(
+                  color: theme.primaryGold,
                   fontSize: 13,
                   fontWeight: FontWeight.w900),
             ),
@@ -450,37 +463,37 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: const Color(0xFF0F172A),
+              color: theme.surfaceLight,
               borderRadius: NeoBrutalistTheme.sharpRadius,
               border: Border.all(
                 color: activeSynergies.any((s) => s.startsWith('+'))
-                    ? const Color(0xFFD97706)
-                    : const Color(0xFF334155),
+                    ? theme.accentColor
+                    : theme.slateBorder,
                 width: 1.5,
               ),
               boxShadow: activeSynergies.any((s) => s.startsWith('+'))
-                  ? NeoBrutalistTheme.hardShadowSmall
+                  ? theme.hardShadowSmall
                   : null,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (activeSynergies.any((s) => s.startsWith('+')))
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 4),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         GameVectorIcon(
                           type: GameIconType.crown,
                           size: 10,
-                          color: Color(0xFFD97706),
+                          color: theme.accentColor,
                         ),
-                        SizedBox(width: 4),
+                        const SizedBox(width: 4),
                         Text(
                           'SİNERJİ PARILTISI',
                           style: TextStyle(
-                            color: Color(0xFFD97706),
+                            color: theme.accentColor,
                             fontSize: 9,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 0.3,
@@ -532,10 +545,10 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
+                    color: theme.surfaceLight,
                     borderRadius: NeoBrutalistTheme.sharpRadius,
                     border: Border.all(
-                      color: isLevel2 ? const Color(0xFFFFD700) : const Color(0xFF10B981),
+                      color: isLevel2 ? theme.primaryGold : const Color(0xFF10B981),
                       width: 1.5,
                     ),
                   ),
@@ -545,7 +558,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                       GameVectorIcon(
                         type: GameIconType.land,
                         size: 11,
-                        color: isLevel2 ? const Color(0xFFFFD700) : const Color(0xFF10B981),
+                        color: isLevel2 ? theme.primaryGold : const Color(0xFF10B981),
                       ),
                       const SizedBox(width: 5),
                       Text(
@@ -553,7 +566,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                             ? 'ARAZİ UZMANLIĞI: SEVİYE 2 (+%10 VERİM)'
                             : 'ARAZİ UZMANLIĞI: SEVİYE 1 (+%5 VERİM)',
                         style: TextStyle(
-                          color: isLevel2 ? const Color(0xFFFFD700) : const Color(0xFF10B981),
+                          color: isLevel2 ? theme.primaryGold : const Color(0xFF10B981),
                           fontSize: 9,
                           fontWeight: FontWeight.w900,
                         ),
@@ -591,7 +604,8 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 child: TactileNeoButton(
                   onTap: () => notifier.collectFromTile(tile.coord),
                   backgroundColor: const Color(0xFF10B981),
-                  borderColor: Colors.black,
+                  borderColor: theme.border,
+                  shadowColor: theme.shadowColor,
                   shadowOffset: 2.5,
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   soundType: TactileSoundType.tap,
@@ -613,8 +627,9 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
               child: TactileNeoButton(
                 onTap: canUpgrade ? () => notifier.upgradeBuilding(tile.coord) : null,
                 isEnabled: canUpgrade,
-                backgroundColor: const Color(0xFFFFC700),
-                borderColor: Colors.black,
+                backgroundColor: theme.primaryGold,
+                borderColor: theme.border,
+                shadowColor: theme.shadowColor,
                 shadowOffset: 2.5,
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 soundType: TactileSoundType.upgrade,
@@ -636,7 +651,8 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 onTap: canWarm ? () => notifier.warmTile(tile.coord) : null,
                 isEnabled: canWarm,
                 backgroundColor: const Color(0xFFF97316),
-                borderColor: Colors.black,
+                borderColor: theme.border,
+                shadowColor: theme.shadowColor,
                 shadowOffset: 2.5,
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 soundType: TactileSoundType.tap,
@@ -653,9 +669,10 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
             if (b.type != BuildingType.castle) ...[
               const SizedBox(width: 8),
               TactileNeoButton(
-                onTap: () => _confirmDemolish(context, notifier, tile, b),
+                onTap: () => _confirmDemolish(context, notifier, tile, b, theme),
                 backgroundColor: const Color(0xFFDC2626),
-                borderColor: Colors.black,
+                borderColor: theme.border,
+                shadowColor: theme.shadowColor,
                 shadowOffset: 2.5,
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 soundType: TactileSoundType.tap,
@@ -669,25 +686,25 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
   }
 
   void _confirmDemolish(BuildContext context, GameStateNotifier notifier,
-      HexTileModel tile, BuildingModel b) {
+      HexTileModel tile, BuildingModel b, NeoBrutalistThemeData theme) {
     final lang = ref.read(gameStateProvider).settings.language;
     final double refund = (b.baseCost * 0.5).roundToDouble();
     showDialog<void>(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.65),
       builder: (ctx) => Dialog(
-        backgroundColor: NeoBrutalistTheme.surface,
-        shape: const RoundedRectangleBorder(
+        backgroundColor: theme.surface,
+        shape: RoundedRectangleBorder(
           borderRadius: NeoBrutalistTheme.standardRadius,
-          side: BorderSide(color: Colors.black, width: 2.5),
+          side: BorderSide(color: theme.border, width: 2.5),
         ),
         child: Container(
           padding: const EdgeInsets.all(16),
           constraints: const BoxConstraints(maxWidth: 320),
           decoration: BoxDecoration(
-            color: NeoBrutalistTheme.surface,
+            color: theme.surface,
             borderRadius: NeoBrutalistTheme.standardRadius,
-            boxShadow: NeoBrutalistTheme.hardShadow(offset: 4.0),
+            boxShadow: theme.hardShadow(offset: 4.0),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -708,8 +725,8 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                   Expanded(
                     child: TactileNeoButton(
                       onTap: () => Navigator.of(ctx).pop(),
-                      backgroundColor: const Color(0xFF334155),
-                      borderColor: Colors.black,
+                      backgroundColor: theme.slateBorder,
+                      borderColor: theme.border,
                       shadowOffset: 2.0,
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: const Center(
@@ -732,7 +749,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                         notifier.demolishBuilding(tile.coord);
                       },
                       backgroundColor: const Color(0xFFDC2626),
-                      borderColor: Colors.black,
+                      borderColor: theme.border,
                       shadowOffset: 2.0,
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: const Center(
@@ -757,125 +774,330 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
   }
 
   Widget _buildBuildOptionsSection(BuildContext context, WidgetRef ref,
-      HexTileModel tile, GameState gameState, String lang) {
-    final notifier = ref.read(gameStateProvider.notifier);
+      HexTileModel tile, GameState gameState, String lang, NeoBrutalistThemeData theme) {
     final available = _getAvailableBuildingsForBiome(tile.biome);
     final int castleLvl = gameState.progression.castleLevel;
+    final int tutorialStep = gameState.progression.tutorialStep;
 
     final neighborTiles = tile.coord.neighbors
         .map((nc) => gameState.tiles[nc])
         .whereType<HexTileModel>()
         .toList();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'İNŞA EDİLEBİLİR YAPILAR:',
-          style: TextStyle(
-              color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.4),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: available.map((type) {
-            final dummy = BuildingModel(type: type);
-            final int requiredLvl = _getRequiredCastleLevel(type);
-            final bool isUnlocked = castleLvl >= requiredLvl;
-            final bool canAfford = gameState.resources.food >= dummy.baseCost;
+    final unlocked = available.where((type) => castleLvl >= _getRequiredCastleLevel(type)).toList();
+    final locked = available.where((type) => castleLvl < _getRequiredCastleLevel(type)).toList();
 
-            final previewTile = tile.copyWith(
-              building: BuildingModel(type: type, level: 1),
-            );
-            final previewSynergies = EconomyCalculator.getActiveSynergyLabels(
-              targetTile: previewTile,
-              neighborTiles: neighborTiles,
-              season: gameState.season.current,
-              isZud: gameState.season.isZud,
-            );
+    BuildingType? tutorialTargetType;
+    if (tutorialStep == 2) tutorialTargetType = BuildingType.corn;
+    if (tutorialStep == 3) tutorialTargetType = BuildingType.worker;
+    if (tutorialStep == 7) tutorialTargetType = BuildingType.lumberjack;
 
-            return TactileNeoButton(
-              onTap: isUnlocked
-                  ? () => notifier.buildStructure(tile.coord, type)
-                  : () {
-                      notifier.showToast(
-                          'Bu yapı için Kağan Otağı Seviye $requiredLvl gereklidir!');
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double cardWidth = (constraints.maxWidth - 8) / 2;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'İNŞA SEÇENEKLERİ (${unlocked.length} AKTİF)',
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                if (locked.isNotEmpty)
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        _showLockedBuildings = !_showLockedBuildings;
+                      });
                     },
-              backgroundColor: !isUnlocked
-                  ? const Color(0xFF0F172A)
-                  : (canAfford ? const Color(0xFF1E3A8A) : const Color(0xFF334155)),
-              borderColor: Colors.black,
-              shadowOffset: 2.0,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-              soundType: TactileSoundType.build,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _getBuildingVectorIcon(type, isUnlocked),
-                  const SizedBox(width: 5),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: _showLockedBuildings ? theme.amberRune : theme.surfaceLight,
+                        borderRadius: NeoBrutalistTheme.sharpRadius,
+                        border: Border.all(
+                          color: _showLockedBuildings ? theme.primaryGold : theme.slateBorder,
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          Icon(
+                            _showLockedBuildings ? Icons.lock_open : Icons.lock_outline,
+                            size: 11,
+                            color: _showLockedBuildings ? Colors.black : const Color(0xFF94A3B8),
+                          ),
+                          const SizedBox(width: 4),
                           Text(
-                            isUnlocked
-                                ? '${_getBuildingName(type, lang)} (${dummy.baseCost.toInt()})'
-                                : '${_getBuildingName(type, lang)} (LV.$requiredLvl)',
+                            '${locked.length} KİLİTLİ',
                             style: TextStyle(
-                              color: !isUnlocked
-                                  ? Colors.grey.shade500
-                                  : (canAfford ? Colors.white : Colors.white70),
-                              fontSize: 10,
+                              color: _showLockedBuildings ? Colors.black : const Color(0xFF94A3B8),
+                              fontSize: 9,
                               fontWeight: FontWeight.w900,
                             ),
                           ),
-                          if (previewSynergies.isNotEmpty) ...[
-                            const SizedBox(width: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: previewSynergies.first.startsWith('+')
-                                    ? const Color(0xFF064E3B)
-                                    : const Color(0xFF7F1D1D),
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                              child: Text(
-                                previewSynergies.first.split(' ').first,
-                                style: TextStyle(
-                                  color: previewSynergies.first.startsWith('+')
-                                      ? const Color(0xFF6EE7B7)
-                                      : const Color(0xFFFCA5A5),
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                            ),
-                          ],
+                          const SizedBox(width: 2),
+                          Icon(
+                            _showLockedBuildings ? Icons.expand_less : Icons.expand_more,
+                            size: 13,
+                            color: _showLockedBuildings ? Colors.black : const Color(0xFF94A3B8),
+                          ),
                         ],
                       ),
-                      Text(
-                        _getBuildingDescription(type, lang),
-                        style: const TextStyle(
-                          color: Colors.white60,
-                          fontSize: 8,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ],
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // 2 Sütunlu Dengeli Açık Yapılar Grid'i
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: unlocked.map((type) {
+                return _buildBuildingCard(
+                  context,
+                  ref,
+                  tile,
+                  type,
+                  gameState,
+                  lang,
+                  theme,
+                  neighborTiles,
+                  isUnlocked: true,
+                  isTutorialTarget: type == tutorialTargetType,
+                  width: cardWidth,
+                );
+              }).toList(),
+            ),
+
+            // Katlanabilir Kilitli Yapılar Bölümü
+            if (_showLockedBuildings && locked.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: theme.bgDark,
+                  borderRadius: NeoBrutalistTheme.sharpRadius,
+                  border: Border.all(color: theme.slateBorder, width: 1.5),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'YÜKSEK SEVİYE KAĞAN OTAĞI GEREKTİREN YAPILAR:',
+                      style: TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: locked.map((type) {
+                        return _buildBuildingCard(
+                          context,
+                          ref,
+                          tile,
+                          type,
+                          gameState,
+                          lang,
+                          theme,
+                          neighborTiles,
+                          isUnlocked: false,
+                          isTutorialTarget: false,
+                          width: cardWidth,
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
               ),
-            );
-          }).toList(),
-        ),
-      ],
+            ],
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildTutorialHint(int step, String lang) {
+  Widget _buildBuildingCard(
+    BuildContext context,
+    WidgetRef ref,
+    HexTileModel tile,
+    BuildingType type,
+    GameState gameState,
+    String lang,
+    NeoBrutalistThemeData theme,
+    List<HexTileModel> neighborTiles, {
+    required bool isUnlocked,
+    required bool isTutorialTarget,
+    required double width,
+  }) {
+    final notifier = ref.read(gameStateProvider.notifier);
+    final dummy = BuildingModel(type: type);
+    final int requiredLvl = _getRequiredCastleLevel(type);
+    final bool canAfford = gameState.resources.food >= dummy.baseCost;
+
+    final previewTile = tile.copyWith(
+      building: BuildingModel(type: type, level: 1),
+    );
+    final previewSynergies = EconomyCalculator.getActiveSynergyLabels(
+      targetTile: previewTile,
+      neighborTiles: neighborTiles,
+      season: gameState.season.current,
+      isZud: gameState.season.isZud,
+    );
+
+    final Color bgColor;
+    final Color borderColor;
+    if (isTutorialTarget) {
+      bgColor = const Color(0xFF1E3A8A);
+      borderColor = theme.primaryGold;
+    } else if (!isUnlocked) {
+      bgColor = theme.surfaceLight;
+      borderColor = theme.slateBorder;
+    } else if (canAfford) {
+      bgColor = const Color(0xFF1E293B);
+      borderColor = theme.border;
+    } else {
+      bgColor = const Color(0xFF0F172A);
+      borderColor = theme.slateBorder;
+    }
+
+    return SizedBox(
+      width: width,
+      child: TactileNeoButton(
+        onTap: isUnlocked
+            ? () => notifier.buildStructure(tile.coord, type)
+            : () {
+                notifier.showToast(
+                    'Bu yapı için Kağan Otağı Seviye $requiredLvl gereklidir!');
+              },
+        backgroundColor: bgColor,
+        borderColor: borderColor,
+        shadowColor: isTutorialTarget ? theme.primaryGold.withValues(alpha: 0.4) : theme.shadowColor,
+        shadowOffset: isTutorialTarget ? 3.0 : 2.0,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+        soundType: TactileSoundType.build,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                _getBuildingVectorIcon(type, isUnlocked),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    _getBuildingName(type, lang),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: !isUnlocked
+                          ? Colors.grey.shade500
+                          : (isTutorialTarget ? theme.primaryGold : Colors.white),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                if (isTutorialTarget) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: theme.primaryGold,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                    child: const Text(
+                      'HEDEF',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 7,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ] else if (previewSynergies.isNotEmpty) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: previewSynergies.first.startsWith('+')
+                          ? const Color(0xFF064E3B)
+                          : const Color(0xFF7F1D1D),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                    child: Text(
+                      previewSynergies.first.split(' ').first,
+                      style: TextStyle(
+                        color: previewSynergies.first.startsWith('+')
+                            ? const Color(0xFF6EE7B7)
+                            : const Color(0xFFFCA5A5),
+                        fontSize: 8,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    _getBuildingDescription(type, lang),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: isUnlocked ? Colors.white60 : Colors.white38,
+                      fontSize: 8,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5),
+                  decoration: BoxDecoration(
+                    color: !isUnlocked
+                        ? const Color(0xFF334155)
+                        : (canAfford ? const Color(0xFF064E3B) : const Color(0xFF451A03)),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                  child: Text(
+                    isUnlocked ? '${dummy.baseCost.toInt()} Erzak' : 'LV.$requiredLvl',
+                    style: TextStyle(
+                      color: !isUnlocked
+                          ? const Color(0xFF94A3B8)
+                          : (canAfford ? const Color(0xFF34D399) : const Color(0xFFFBBF24)),
+                      fontSize: 8,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+  Widget _buildTutorialHint(int step, String lang, NeoBrutalistThemeData theme) {
     String hint = "";
     switch (step) {
       case 0:
@@ -911,10 +1133,10 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: const Color(0xFFFBBF24),
+        color: theme.primaryGold,
         borderRadius: NeoBrutalistTheme.sharpRadius,
-        border: Border.all(color: Colors.black, width: 2),
-        boxShadow: NeoBrutalistTheme.hardShadowSmall,
+        border: Border.all(color: theme.border, width: 2),
+        boxShadow: theme.hardShadowSmall,
       ),
       child: Row(
         children: [

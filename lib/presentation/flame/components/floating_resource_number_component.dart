@@ -11,6 +11,8 @@ class FloatingResourceNumberComponent extends PositionComponent {
 
   double _elapsed = 0.0;
   final Vector2 _initialPos;
+  late final TextPainter _textPainter;
+  late final Rect _baseRect;
 
   FloatingResourceNumberComponent({
     required Vector2 position,
@@ -19,7 +21,28 @@ class FloatingResourceNumberComponent extends PositionComponent {
     this.bgColor = const Color(0xFFFFD700),
     this.duration = 1.4,
   })  : _initialPos = position.clone(),
-        super(position: position, priority: 200);
+        super(position: position, priority: 200) {
+    _textPainter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          color: textColor,
+          fontSize: 11.0,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.3,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    const double padX = 7.0;
+    const double padY = 3.5;
+    _baseRect = Rect.fromCenter(
+      center: Offset.zero,
+      width: _textPainter.width + padX * 2,
+      height: _textPainter.height + padY * 2,
+    );
+  }
 
   @override
   void update(double dt) {
@@ -42,6 +65,7 @@ class FloatingResourceNumberComponent extends PositionComponent {
   static final Paint _borderPaint = Paint()
     ..style = PaintingStyle.stroke
     ..strokeWidth = 1.5;
+  static final Paint _layerAlphaPaint = Paint();
 
   @override
   void render(Canvas canvas) {
@@ -59,51 +83,42 @@ class FloatingResourceNumberComponent extends PositionComponent {
     canvas.save();
     canvas.scale(scale);
 
-    final textSpan = TextSpan(
-      text: text,
-      style: TextStyle(
-        color: textColor.withValues(alpha: alpha),
-        fontSize: 11.0,
-        fontWeight: FontWeight.w900,
-        letterSpacing: 0.3,
-      ),
-    );
-    final textPainter = TextPainter(text: textSpan, textDirection: TextDirection.ltr)..layout();
-
-    const double padX = 7.0;
-    const double padY = 3.5;
-    final Rect rect = Rect.fromCenter(
-      center: Offset.zero,
-      width: textPainter.width + padX * 2,
-      height: textPainter.height + padY * 2,
-    );
-
     // 1. Sert Siyah Gölge
     _shadowPaint.color = Colors.black.withValues(alpha: alpha * 0.8);
     canvas.drawRect(
-      rect.shift(const Offset(2.0, 2.0)),
+      _baseRect.shift(const Offset(2.0, 2.0)),
       _shadowPaint,
     );
 
     // 2. Arka Plan Kartı
     _bgPaint.color = bgColor.withValues(alpha: alpha);
     canvas.drawRect(
-      rect,
+      _baseRect,
       _bgPaint,
     );
 
     // 3. Siyah Çerçeve
     _borderPaint.color = Colors.black.withValues(alpha: alpha);
     canvas.drawRect(
-      rect,
+      _baseRect,
       _borderPaint,
     );
 
-    // 4. Metin
-    textPainter.paint(
-      canvas,
-      Offset(-textPainter.width / 2, -textPainter.height / 2),
-    );
+    // 4. Önceden Hesaplanmış Metin Çizimi (Zero Allocation)
+    if (alpha < 0.99) {
+      _layerAlphaPaint.color = Color.fromRGBO(255, 255, 255, alpha);
+      canvas.saveLayer(null, _layerAlphaPaint);
+      _textPainter.paint(
+        canvas,
+        Offset(-_textPainter.width / 2, -_textPainter.height / 2),
+      );
+      canvas.restore();
+    } else {
+      _textPainter.paint(
+        canvas,
+        Offset(-_textPainter.width / 2, -_textPainter.height / 2),
+      );
+    }
 
     canvas.restore();
   }

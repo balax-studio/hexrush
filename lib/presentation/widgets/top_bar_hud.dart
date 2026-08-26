@@ -36,6 +36,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
     required GameIconType iconType,
     required Color iconColor,
     required String description,
+    required NeoBrutalistThemeData theme,
     String? currentStock,
     String? netRate,
     String? strategicHint,
@@ -48,18 +49,18 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
       barrierColor: Colors.black.withValues(alpha: 0.65),
       builder: (ctx) {
         return Dialog(
-          backgroundColor: NeoBrutalistTheme.surface,
-          shape: const RoundedRectangleBorder(
+          backgroundColor: theme.surface,
+          shape: RoundedRectangleBorder(
             borderRadius: NeoBrutalistTheme.sharpRadius,
-            side: BorderSide(color: Colors.black, width: 2.5),
+            side: BorderSide(color: theme.border, width: 2.5),
           ),
           child: Container(
             constraints: const BoxConstraints(maxWidth: 380),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: NeoBrutalistTheme.surface,
+              color: theme.surface,
               borderRadius: NeoBrutalistTheme.sharpRadius,
-              boxShadow: NeoBrutalistTheme.hardShadow(offset: 4.0),
+              boxShadow: theme.hardShadow(offset: 4.0),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -71,9 +72,9 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0F172A),
+                        color: theme.surfaceLight,
                         borderRadius: NeoBrutalistTheme.sharpRadius,
-                        border: Border.all(color: Colors.black, width: 1.8),
+                        border: Border.all(color: theme.border, width: 2.0),
                       ),
                       child: GameVectorIcon(type: iconType, size: 22, color: iconColor),
                     ),
@@ -105,7 +106,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     ),
                     TactileNeoButton(
                       onTap: () => Navigator.of(ctx).pop(),
-                      backgroundColor: const Color(0xFF334155),
+                      backgroundColor: theme.slateBorder,
+                      borderColor: theme.border,
                       shadowOffset: 2.0,
                       padding: const EdgeInsets.all(5),
                       child: const Icon(Icons.close, color: Colors.white, size: 16),
@@ -113,7 +115,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   ],
                 ),
                 const SizedBox(height: 10),
-                const Divider(color: Colors.black, thickness: 1.5, height: 1.5),
+                Divider(color: theme.border, thickness: 1.5, height: 1.5),
                 const SizedBox(height: 10),
 
                 // Net Üretim Bilgisi (Varsa)
@@ -121,9 +123,9 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0F172A),
+                      color: theme.surfaceLight,
                       borderRadius: NeoBrutalistTheme.sharpRadius,
-                      border: Border.all(color: const Color(0xFF334155), width: 1.5),
+                      border: Border.all(color: theme.slateBorder, width: 1.5),
                     ),
                     child: Row(
                       children: [
@@ -152,42 +154,42 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0F172A),
+                    color: theme.surfaceLight,
                     borderRadius: NeoBrutalistTheme.sharpRadius,
-                    border: Border.all(color: const Color(0xFF1E293B), width: 1.5),
+                    border: Border.all(color: theme.slateBorder, width: 1.5),
                   ),
                   child: Text(
                     description,
                     style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFCBD5E1),
+                      fontSize: 11.5,
                       height: 1.4,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
 
-                // Taktiksel İpucu (Varsa)
+                // Stratejik İpucu (Varsa)
                 if (strategicHint != null) ...[
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
+                      color: const Color(0xFF10B981).withValues(alpha: 0.12),
                       borderRadius: NeoBrutalistTheme.sharpRadius,
-                      border: Border.all(color: const Color(0xFFD97706), width: 1.5),
+                      border: Border.all(color: const Color(0xFF10B981), width: 1.5),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.lightbulb_outline, color: Color(0xFFFBBF24), size: 14),
+                        const Icon(Icons.lightbulb_outline, color: Color(0xFF10B981), size: 15),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             strategicHint,
                             style: const TextStyle(
-                              color: Color(0xFFFEF08A),
-                              fontSize: 10,
+                              color: Color(0xFF6EE7B7),
+                              fontSize: 10.5,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -200,8 +202,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                 const SizedBox(height: 12),
                 TactileNeoButton(
                   onTap: () => Navigator.of(ctx).pop(),
-                  backgroundColor: const Color(0xFF10B981),
-                  borderColor: Colors.black,
+                  backgroundColor: theme.primaryGold,
+                  borderColor: theme.border,
                   shadowOffset: 2.0,
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: const Text(
@@ -227,6 +229,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
     final gameState = ref.watch(gameStateProvider);
     final resources = gameState.resources;
     final lang = gameState.settings.language;
+    final theme = NeoBrutalistTheme.getTheme(gameState.settings.activeThemePalette);
 
     final double globalMult = EconomyCalculator.getGlobalMultiplier(
       castleLevel: gameState.progression.castleLevel,
@@ -253,17 +256,18 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
     final bool canUpgradeCastle = resources.food >= (castleCosts['food'] ?? double.infinity) &&
         resources.wood >= (castleCosts['wood'] ?? 0);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: const BoxDecoration(
-        color: NeoBrutalistTheme.surface,
+    return RepaintBoundary(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: theme.surface,
         border: Border(
-          bottom: BorderSide(color: Colors.black, width: 2.5),
+          bottom: BorderSide(color: theme.border, width: 2.5),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black,
-            offset: Offset(0, 3),
+            color: theme.shadowColor,
+            offset: const Offset(0, 3),
             blurRadius: 0,
           ),
         ],
@@ -281,6 +285,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   value: resources.food,
                   color: const Color(0xFFFBBF24),
                   rate: netRates.food,
+                  theme: theme,
                   onTap: () => _showResourceExplanation(
                     context,
                     title: 'GIDA (İAŞE)',
@@ -290,6 +295,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     netRate: '${netRates.food >= 0 ? '+' : ''}${netRates.food.toStringAsFixed(1)}/saniye',
                     description: 'Kağanlığın temel besin kaynağı. Yeni altıgen toprakları fethetmek ve oba halkını doyurmak için harcanır.',
                     strategicHint: 'Tarlalar, Bozkır Göçer İaşesi doktrini ve Kağan Otağı\'ndan toplanır.',
+                    theme: theme,
                   ),
                 ),
                 const SizedBox(width: 6),
@@ -298,6 +304,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   value: resources.wood,
                   color: const Color(0xFFD97706),
                   rate: netRates.wood,
+                  theme: theme,
                   onTap: () => _showResourceExplanation(
                     context,
                     title: 'ODUN',
@@ -307,6 +314,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     netRate: '${netRates.wood >= 0 ? '+' : ''}${netRates.wood.toStringAsFixed(1)}/saniye',
                     description: 'İnşaat, atölye üretimi ve kış aylarında donan karoları ısıtmanın ana yakıtı.',
                     strategicHint: 'Oduncu kulübelerinden toplanır. Kalas ve mobilya üretimi için harcanır.',
+                    theme: theme,
                   ),
                 ),
                 const SizedBox(width: 6),
@@ -316,6 +324,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     value: resources.stone,
                     color: const Color(0xFF94A3B8),
                     rate: netRates.stone,
+                    theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
                       title: 'TAŞ',
@@ -325,6 +334,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       netRate: '${netRates.stone >= 0 ? '+' : ''}${netRates.stone.toStringAsFixed(1)}/saniye',
                       description: 'Gelişmiş binalar, taş fırınlar ve anıtsal harikalar inşa etmek için gereklidir.',
                       strategicHint: 'Dağ maden ocaklarından çıkarılır ve pazardan takas edilir.',
+                      theme: theme,
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -334,6 +344,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   value: resources.crowns.toDouble(),
                   color: const Color(0xFFFFD700),
                   isInt: true,
+                  theme: theme,
                   onTap: () => _showResourceExplanation(
                     context,
                     title: 'ŞAN (HÜKÜMDAR İTİBARI)',
@@ -342,11 +353,13 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     currentStock: '${resources.crowns} Şan',
                     description: 'Görevleri tamamlayarak ve fetihler yaparak kazanılan itibar puanı.',
                     strategicHint: 'Töre Meclisinde yeni doktrin kartlarını kabul etmek ve yetenek yükseltmek için kullanılır.',
+                    theme: theme,
                   ),
                 ),
                 const SizedBox(width: 6),
                 _buildLandChip(
                   gameState.progression.ownedCount,
+                  theme,
                   onTap: () => _showResourceExplanation(
                     context,
                     title: 'HÜKÜM SÜRÜLEN TOPRAKLAR',
@@ -355,6 +368,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     currentStock: '${gameState.progression.ownedCount} Altıgen',
                     description: 'Egemenliğiniz altındaki karoların sayısı. Toprak sayısı arttıkça yeni yapay sinerjiler ve kaynaklar açılır.',
                     strategicHint: 'Bitişik karolara tıklayıp Gıda harcayarak yeni topraklar fethedin.',
+                    theme: theme,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -363,11 +377,11 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                 _buildIconButton(
                   icon: Icon(
                     _isDrawerExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                    color: _isDrawerExpanded ? const Color(0xFFFFD700) : Colors.white,
+                    color: _isDrawerExpanded ? theme.primaryGold : Colors.white,
                     size: 16,
                   ),
-                  backgroundColor: _isDrawerExpanded ? const Color(0xFF1E3A8A) : const Color(0xFF334155),
-                  borderColor: _isDrawerExpanded ? const Color(0xFFFFD700) : Colors.black,
+                  backgroundColor: _isDrawerExpanded ? theme.surfaceLight : theme.slateBorder,
+                  borderColor: _isDrawerExpanded ? theme.primaryGold : theme.border,
                   onPressed: () {
                     setState(() {
                       _isDrawerExpanded = !_isDrawerExpanded;
@@ -382,6 +396,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   icon: const GameVectorIcon(type: GameIconType.market, size: 15),
                   onPressed: widget.onOpenMarket,
                   tooltip: GameLocalization.get('market_title', lang: lang),
+                  backgroundColor: theme.slateBorder,
+                  borderColor: theme.border,
                 ),
                 const SizedBox(width: 5),
 
@@ -393,6 +409,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       icon: const GameVectorIcon(type: GameIconType.tore, size: 15),
                       onPressed: widget.onOpenTore,
                       tooltip: 'Töre & Kurultay Meclisi',
+                      backgroundColor: theme.slateBorder,
+                      borderColor: theme.border,
                     ),
                     if (resources.crowns > 0)
                       Positioned(
@@ -402,9 +420,9 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                           width: 8,
                           height: 8,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFD700),
+                            color: theme.primaryGold,
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.black, width: 1.5),
+                            border: Border.all(color: theme.border, width: 1.5),
                           ),
                         ),
                       ),
@@ -419,8 +437,9 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   },
                   backgroundColor: gameState.frenzyTimer > 0
                       ? const Color(0xFFEF4444)
-                      : const Color(0xFF8B5CF6),
-                  shadowColor: const Color(0xFF4C1D95),
+                      : theme.accentColor,
+                  borderColor: theme.border,
+                  shadowColor: theme.shadowColor,
                   shadowOffset: 2.0,
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
                   child: Row(
@@ -452,6 +471,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       icon: const GameVectorIcon(type: GameIconType.settings, size: 15),
                       onPressed: widget.onOpenSettings,
                       tooltip: 'Ayarlar',
+                      backgroundColor: theme.slateBorder,
+                      borderColor: theme.border,
                     ),
                     if (gameState.settings.notifications.storageFullAlert ||
                         gameState.settings.notifications.seasonChangeAlert ||
@@ -488,6 +509,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     value: resources.flour,
                     color: const Color(0xFFFEF08A),
                     rate: netRates.flour,
+                    theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
                       title: 'UN (İŞLENMİŞ GIDA)',
@@ -496,6 +518,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       currentStock: resources.flour.toStringAsFixed(1),
                       netRate: '${netRates.flour >= 0 ? '+' : ''}${netRates.flour.toStringAsFixed(1)}/saniye',
                       description: 'Değirmende mısırdan öğütülen hammadde. Taş fırında ekmek pişirmek ve pazarda takas için kullanılır.',
+                      theme: theme,
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -504,6 +527,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     value: resources.plank,
                     color: const Color(0xFFD97706),
                     rate: netRates.plank,
+                    theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
                       title: 'KERESTE (KALAS)',
@@ -512,6 +536,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       currentStock: resources.plank.toStringAsFixed(1),
                       netRate: '${netRates.plank >= 0 ? '+' : ''}${netRates.plank.toStringAsFixed(1)}/saniye',
                       description: 'Kereste fabrikasında kütüklerden biçilen tahtalar. Mobilya ve gelişmiş yapılar için elzemdir.',
+                      theme: theme,
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -520,6 +545,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     value: resources.bread,
                     color: const Color(0xFFF59E0B),
                     rate: netRates.bread,
+                    theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
                       title: 'EKMEK (İŞLENMİŞ BESİN)',
@@ -528,6 +554,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       currentStock: resources.bread.toStringAsFixed(1),
                       netRate: '${netRates.bread >= 0 ? '+' : ''}${netRates.bread.toStringAsFixed(1)}/saniye',
                       description: 'Taş köz fırınında un ve gıda harcanarak pişirilen yüksek besleyici gıda. Otağ geliştirmeleri için gereklidir.',
+                      theme: theme,
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -536,6 +563,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     value: resources.furniture,
                     color: const Color(0xFFB45309),
                     rate: netRates.furniture,
+                    theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
                       title: 'AHŞAP İŞLEME (TİCARET MALI)',
@@ -544,6 +572,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       currentStock: resources.furniture.toStringAsFixed(1),
                       netRate: '${netRates.furniture >= 0 ? '+' : ''}${netRates.furniture.toStringAsFixed(1)}/saniye',
                       description: 'Marangoz otağında keresteden üretilir. Yüksek pazar takas değerine sahiptir.',
+                      theme: theme,
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -552,6 +581,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     value: resources.iron,
                     color: const Color(0xFFCBD5E1),
                     rate: netRates.iron,
+                    theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
                       title: 'DEMİR CEVHERİ',
@@ -560,6 +590,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       currentStock: resources.iron.toStringAsFixed(1),
                       netRate: '${netRates.iron >= 0 ? '+' : ''}${netRates.iron.toStringAsFixed(1)}/saniye',
                       description: 'Madenlerden çıkarılan dayanıklı metal. Ağır donanım, kuleler ve anıtlar için kullanılır.',
+                      theme: theme,
                     ),
                   ),
                 ],
@@ -578,6 +609,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   _buildSeasonBadge(
                     gameState.season,
                     lang,
+                    theme,
                     onTap: () {
                       showDialog<void>(
                         context: context,
@@ -600,8 +632,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       decoration: BoxDecoration(
                         color: const Color(0xFFEF4444),
                         borderRadius: NeoBrutalistTheme.sharpRadius,
-                        border: Border.all(color: Colors.black, width: 1.5),
-                        boxShadow: NeoBrutalistTheme.hardShadowSmall,
+                        border: Border.all(color: theme.border, width: 1.5),
+                        boxShadow: theme.hardShadowSmall,
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
@@ -627,10 +659,11 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   context,
                   title: 'KAĞAN OTAĞI & KÜRESEL BONUS',
                   iconType: GameIconType.crown,
-                  iconColor: const Color(0xFFFFD700),
+                  iconColor: theme.primaryGold,
                   currentStock: 'Kağan Otağı Seviye ${gameState.progression.castleLevel}',
                   description: 'Kağanlığınızın ana yönetim merkezi. Otağı büyüttükçe tüm obanın küresel üretim hızı katlanır, yeni yapılar ve kurultay yuvaları açılır.',
                   strategicHint: 'Otağı merkez karoya dokunarak gerekli erzak ve malzemelerle büyütebilirsiniz.',
+                  theme: theme,
                 ),
                 child: Stack(
                   clipBehavior: Clip.none,
@@ -638,18 +671,18 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0F172A),
+                        color: theme.surfaceLight,
                         borderRadius: NeoBrutalistTheme.sharpRadius,
-                        border: Border.all(color: Colors.black, width: 1.5),
-                        boxShadow: NeoBrutalistTheme.hardShadowSmall,
+                        border: Border.all(color: theme.border, width: 1.8),
+                        boxShadow: theme.hardShadowSmall,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             'OTAĞ LV.${gameState.progression.castleLevel}',
-                            style: const TextStyle(
-                              color: Color(0xFFFFD700),
+                            style: TextStyle(
+                              color: theme.primaryGold,
                               fontSize: 10,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 0.4,
@@ -701,7 +734,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
             child: Container(
               height: 3,
               width: double.infinity,
-              color: const Color(0xFF1E293B),
+              color: theme.slateBorder,
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: FractionallySizedBox(
@@ -715,6 +748,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
           ),
         ],
       ),
+    ),
     );
   }
 
@@ -746,17 +780,17 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
     );
   }
 
-  Widget _buildLandChip(int count, {VoidCallback? onTap}) {
+  Widget _buildLandChip(int count, NeoBrutalistThemeData theme, {VoidCallback? onTap}) {
     final lang = ref.watch(gameStateProvider).settings.language;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
         decoration: BoxDecoration(
-          color: const Color(0xFF0F172A),
+          color: theme.surfaceLight,
           borderRadius: NeoBrutalistTheme.sharpRadius,
-          border: Border.all(color: Colors.black, width: 1.8),
-          boxShadow: NeoBrutalistTheme.hardShadowSmall,
+          border: Border.all(color: theme.border, width: 1.8),
+          boxShadow: theme.hardShadowSmall,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -786,7 +820,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
     );
   }
 
-  Widget _buildSeasonBadge(dynamic season, String lang, {VoidCallback? onTap}) {
+  Widget _buildSeasonBadge(dynamic season, String lang, NeoBrutalistThemeData theme, {VoidCallback? onTap}) {
     GameIconType iconType = GameIconType.spring;
     String name = GameLocalization.get('spring', lang: lang);
     Color color = const Color(0xFF4ADE80);
@@ -810,10 +844,10 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
-          color: const Color(0xFF0F172A),
+          color: theme.surfaceLight,
           borderRadius: NeoBrutalistTheme.sharpRadius,
-          border: Border.all(color: Colors.black, width: 1.6),
-          boxShadow: NeoBrutalistTheme.hardShadowSmall,
+          border: Border.all(color: theme.border, width: 1.8),
+          boxShadow: theme.hardShadowSmall,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -844,6 +878,7 @@ class ResourcePulseChip extends StatefulWidget {
   final bool isInt;
   final double? rate;
   final VoidCallback? onTap;
+  final NeoBrutalistThemeData? theme;
 
   const ResourcePulseChip({
     super.key,
@@ -853,6 +888,7 @@ class ResourcePulseChip extends StatefulWidget {
     this.isInt = false,
     this.rate,
     this.onTap,
+    this.theme,
   });
 
   @override
@@ -868,25 +904,28 @@ class _ResourcePulseChipState extends State<ResourcePulseChip> with SingleTicker
   void initState() {
     super.initState();
     _lastValue = widget.value;
+    final defaultBg = widget.theme?.surfaceLight ?? const Color(0xFF0F172A);
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 350),
     );
     _colorAnimation = ColorTween(
-      begin: const Color(0xFF0F172A),
-      end: const Color(0xFF0F172A),
+      begin: defaultBg,
+      end: defaultBg,
     ).animate(_controller);
   }
 
   @override
   void didUpdateWidget(covariant ResourcePulseChip oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if ((widget.value - oldWidget.value).abs() >= 0.1) {
+    final defaultBg = widget.theme?.surfaceLight ?? const Color(0xFF0F172A);
+    // Pasif saniyelik mikro artışlarda CPU döngüsünü korumak için sadece belirgin (>= 10) değişimlerde darbe animasyonu başlat
+    if ((widget.value - oldWidget.value).abs() >= 10.0) {
       final bool increased = widget.value > oldWidget.value;
       _lastValue = widget.value;
       _colorAnimation = ColorTween(
-        begin: increased ? const Color(0xFF78350F) : const Color(0xFF7F1D1D),
-        end: const Color(0xFF0F172A),
+        begin: increased ? (widget.theme?.primaryGold.withValues(alpha: 0.45) ?? const Color(0xFF78350F)) : const Color(0xFF7F1D1D),
+        end: defaultBg,
       ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
       _controller.forward(from: 0.0);
     }
@@ -902,25 +941,27 @@ class _ResourcePulseChipState extends State<ResourcePulseChip> with SingleTicker
   Widget build(BuildContext context) {
     final bool hasRate = widget.rate != null && widget.rate!.abs() >= 0.01;
     final bool isPositive = widget.rate != null && widget.rate! > 0;
+    final theme = widget.theme ?? NeoBrutalistTheme.basaltTheme;
 
-    return GestureDetector(
-      onTap: widget.onTap,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-            decoration: BoxDecoration(
-              color: _colorAnimation.value ?? const Color(0xFF0F172A),
-              borderRadius: NeoBrutalistTheme.sharpRadius,
-              border: Border.all(
-                color: _controller.isAnimating
-                    ? (widget.value >= _lastValue ? const Color(0xFFD97706) : const Color(0xFFEF4444))
-                    : Colors.black,
-                width: 1.8,
+    return RepaintBoundary(
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+              decoration: BoxDecoration(
+                color: _controller.isAnimating ? (_colorAnimation.value ?? theme.surfaceLight) : theme.surfaceLight,
+                borderRadius: NeoBrutalistTheme.sharpRadius,
+                border: Border.all(
+                  color: _controller.isAnimating
+                      ? (widget.value >= _lastValue ? theme.primaryGold : const Color(0xFFEF4444))
+                      : theme.border,
+                  width: 1.8,
+                ),
+                boxShadow: theme.hardShadowSmall,
               ),
-              boxShadow: NeoBrutalistTheme.hardShadowSmall,
-            ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -951,6 +992,7 @@ class _ResourcePulseChipState extends State<ResourcePulseChip> with SingleTicker
           );
         },
       ),
+    ),
     );
   }
 }

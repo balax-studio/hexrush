@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/theme/neo_brutalist_theme.dart';
 import '../flame/flame_interactive_map.dart';
+import '../providers/game_state_notifier.dart';
 import '../widgets/diorama_lens_overlay.dart';
 import '../widgets/market_dialog.dart';
 import '../widgets/quest_tracker_hud.dart';
@@ -15,8 +17,11 @@ class GameScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final activePalette = ref.watch(gameStateProvider.select((s) => s.settings.activeThemePalette));
+    final theme = NeoBrutalistTheme.getTheme(activePalette);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: theme.bgDark,
       body: Stack(
         fit: StackFit.expand,
         children: [

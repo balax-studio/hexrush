@@ -1,5 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import '../hex_map_game.dart';
 import '../renderers/voxel_isometric_renderer.dart';
 
 /// 3D Voxel Gökyüzü Bulutu (Adayı süsleyen yüzen 3D bulutlar)
@@ -37,6 +38,18 @@ class FloatingVoxelCloudComponent extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
+    // Frustum / Viewport Culling: Ekran dışındaki bulutları çizme
+    final game = findGame();
+    if (game is HexMapGame) {
+      final Rect bounds = game.visibleWorldBounds;
+      if (position.x < bounds.left - 60 ||
+          position.x > bounds.right + 60 ||
+          position.y < bounds.top - 60 ||
+          position.y > bounds.bottom + 60) {
+        return;
+      }
+    }
+
     final Offset center = Offset(size.x / 2, size.y / 2);
 
     // Yeryüzüne vuran yumuşak bulut gölgesi

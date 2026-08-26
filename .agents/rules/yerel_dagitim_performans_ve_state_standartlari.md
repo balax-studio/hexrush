@@ -61,3 +61,18 @@ Bu kural belgesi, HexRush projesinde yerel çalışma prensiplerini, Flame rende
 - **Bina Yıkma ve Yeniden Yapılandırma Özgürlüğü:**
   - Merkez Han Şatosu hariç tüm yapılarda oyuncunun karoyu boşaltabilmesi için yıkma (`demolishBuilding`) ve %50 gıda iadesi mekanizması sağlanmalıdır.
 
+---
+
+## 8. Flutter HUD / Widget Katmanı Render ve Ticker İzolasyonu (Zero-Stutter UI Rebuilds)
+- **Granüler Riverpod Dinleyicileri:**
+  - Arayüz bileşenlerinde (`TopBarHUD`, `QuestTrackerHUD`, `TileActionSheet` vb.) asla doğrudan `ref.watch(gameStateProvider)` kullanılmamalıdır.
+  - Sadece ihtiyaç duyulan alt alanlar `ref.watch(gameStateProvider.select((s) => s.alan))` şeklinde dinlenerek saniyelik pasif sayaç artışlarında tüm arayüzün gereksiz yere baştan inşa edilmesi önlenmelidir.
+- **Ticker ve Animasyon Kontrolcüsü Tasarrufu:**
+  - Boşta duran veya tamamlanmamış görev kutularında `AnimationController.repeat` gibi sürekli 60 FPS çalışan kontrolcüler kesinlikle durdurulmalıdır (`stop()`).
+  - Pasif mikro-kaynak artışlarında (örneğin her saniye +0.1 gıda gelmesi) her sayaç çipine 60 FPS darbe animasyonu başlatılmamalıdır.
+- **RepaintBoundary İzolasyonu:**
+  - HUD katmanları (`TopBarHUD`, `QuestTrackerHUD`, `TileActionSheet`, `ResourcePulseChip`) `RepaintBoundary` ile sarılarak Flame oyun tuvali ve diğer arayüz katmanlarından tamamen izole edilmelidir.
+- **Frustum Culling Payı (Margin Guard):**
+  - Ekranda çizilen altıgen karoların viewport kırpma kontrolünde (`bounds`) ani nesne kaybolmasını (pop-in) engellemek için `margin = hexRadius * 1.6` güvenli kırpma mesafesi uygulanmalıdır.
+
+

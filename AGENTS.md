@@ -75,7 +75,16 @@ Bu dosya, projede çalışan tüm yapay zeka ajanları ve geliştiriciler için 
     - Açık karolar ile karanlık sis alanı arasında yumuşak atmosferik geçiş (Border Fog & Multi-Stop Radial Vignette) sağlanmalıdır.
     - `render()` ve `update()` döngülerinde her karede yeni `Paint()` veya `Path()` nesnesi oluşturulamaz; `static final` veya önceden tahsis edilmiş havuzlar korunmalıdır (`.agents/rules/organik_desenkronizasyon_ve_zero_gc_render_standartlari.md`).
 
-17. **Kadim Bozkır Terminolojisi ve Tarihsel Uyum Standardı (Anti-Feudal & Anti-Arcade Slop):**
-    - Batı feodalizmi, modern sanayi veya jenerik fantastik slop terimlerinin (örn. *"Şato"*, *"Krallık"*, *"Taç"*, *"Mısır Tarlası"*, *"Kereste Fabrikası"*, *"Mobilyacı"*, *"Mithril"*, *"Tier X"*, *"Frenzy/Çılgınlık"*) kullanımı KESİNLİKLE YASAKTIR.
-    - Tüm arayüz, yerelleştirme, görevler ve bildirimler Göktürk ve Avrasya bozkır devlet nizamına uygun terminoloji ile yazılmalıdır (*"Kağan Otağı"*, *"HexRush Kağanlığı"*, *"Kut / Hanlık Şanı"*, *"Buğday Tarlası"*, *"Hızar Otağı"*, *"Marangoz Otağı"*, *"Gök Demiri"*, *"Toy Coşkusu / Akın Narası"*, *"Bozkır Kurultay Pazarı"*). Detaylar `.agents/rules/ui_ux_ve_icerik_standartlari.md` belgesindedir.
+18. **Flutter HUD / Widget Katmanı Render ve Ticker İzolasyonu (Zero-Stutter UI Rebuilds):**
+    - Arayüz bileşenlerinde (TopBarHUD, QuestTrackerHUD, TileActionSheet vb.) `ref.watch(gameStateProvider)` şeklinde tüm state'i dinleyen geniş dinleyiciler yasaktır; her zaman hassas `ref.watch(gameStateProvider.select((s) => ...))` kullanılmalıdır.
+    - Saniyede 60 kare çalışan döngüsel `AnimationController` nesneleri sadece aktif bir animasyon gerektiğinde çalıştırılmalı, boşta (idle) veya tamamlanmamış görev kutularında durdurulmalıdır (`stop()`).
+    - HUD bileşenleri ve bağımsız animasyon yongaları mutlaka `RepaintBoundary` ile sarılarak Flame oyun motoru ve diğer ekran katmanlarından izole edilmelidir.
+    - Ağır hesaplamalar (örn. `calculateNetRates`) sadece karolar, seviye veya mevsim değiştiğinde yapılmalı; saniyelik pasif kaynak sayaç artışlarında tüm harita döngüleri baştan çalıştırılmamalıdır.
+
+19. **Doğal Düzensizlik İçinde Düzen ve Organik Çeşitlilik Standardı (Procedural Organic Variance):**
+    - Her çayır, çöl veya orman karosu tekdüze kopyala-yapıştır varlık ve hayvan içeremez; tohum (`seed = (q*37 + r*19).abs()`) tabanlı organik dağılım zorunludur.
+    - Çayır karolarında yalnızca %50 ihtimalle hayvan bulunur; atlar (4 farklı don: Doru, Yağız, Kır, Alaca), koyunlar, koçlar ve kuzular yön (`flipX`) ve konum ofsetleriyle çeşitlendirilir.
+    - Parçacıklar (çöl tozu, tundra ışıltısı, deniz balıkları) her karoda değil, 1/4 veya 1/5 sıklıkta seyrek dağıtılmalıdır.
+    - Gökyüzü kuşları sabit 3'lü dizilim yerine döngüsel çoklu tür filoları (Kartal, Turna, Kırlangıç, Martı) halinde uçmalıdır.
+
 

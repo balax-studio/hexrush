@@ -103,10 +103,18 @@ class HexMapGame extends FlameGame {
     // Pürüzsüz kamera sürükleme sönümlemesi (Pan Inertia)
     if (_panVelocity.length2 > 1.0) {
       gameCamera.viewfinder.position += _panVelocity * dt;
-      _panVelocity *= 0.90; // Sönümleme katsayısı
+      _clampCameraPosition();
+      _panVelocity *= 0.88; // Sönümleme katsayısı
     } else {
       _panVelocity = Vector2.zero();
     }
+  }
+
+  /// Haritanın ekrandan tamamen çıkıp kaybolmasını ve kilitlenme hissi yaratmasını engeller
+  void _clampCameraPosition() {
+    final pos = gameCamera.viewfinder.position;
+    pos.x = pos.x.clamp(-1200.0, 1200.0);
+    pos.y = pos.y.clamp(-1000.0, 1000.0);
   }
 
   void _initFloatingClouds() {
@@ -230,23 +238,39 @@ class HexMapGame extends FlameGame {
   }
 
   void panCamera(Offset delta) {
+    if (delta.dx.isNaN || delta.dy.isNaN) return;
     final panDelta = Vector2(-delta.dx, -delta.dy) / _currentZoom;
     gameCamera.viewfinder.position += panDelta;
-    _panVelocity = panDelta * 8.0; // Harekete atalet momentumu ekle
+    _clampCameraPosition();
+    _panVelocity = panDelta * 4.0; // Harekete atalet momentumu ekle
   }
 
   void zoomCamera(double delta) {
+    if (delta.isNaN) return;
     _currentZoom = (_currentZoom + delta).clamp(0.45, 2.2);
     gameCamera.viewfinder.zoom = _currentZoom;
+    _clampCameraPosition();
   }
 
   void syncGameState(GameState state) {
+    final prev = _lastState;
     _lastState = state;
     if (!isLoaded) return;
 
-    _updateTiles(state);
-    _updateWorkers(state);
-    _updateWeather(state);
+    final bool tilesRefChanged = prev == null || !identical(prev.tiles, state.tiles);
+    final bool selectionChanged = prev?.selectedCoord != state.selectedCoord;
+    final bool seasonChanged = prev?.season.current != state.season.current || prev?.season.isZud != state.season.isZud;
+    final bool themeChanged = prev?.settings.activeThemePalette != state.settings.activeThemePalette;
+
+    if (tilesRefChanged || selectionChanged || seasonChanged || themeChanged) {
+      _updateTiles(state, prev: prev);
+    }
+    if (tilesRefChanged) {
+      _updateWorkers(state);
+    }
+    if (seasonChanged) {
+      _updateWeather(state);
+    }
   }
 
   void _buildWorldFromState(GameState state) {
@@ -265,11 +289,23 @@ class HexMapGame extends FlameGame {
     _updateWeather(state);
   }
 
-  void _updateTiles(GameState state) {
+  void _updateTiles(GameState state, {GameState? prev}) {
+    final bool globalChange = prev == null ||
+        prev.season.current != state.season.current ||
+        prev.season.isZud != state.season.isZud ||
+        prev.settings.activeThemePalette != state.settings.activeThemePalette;
+
     for (final entry in state.tiles.entries) {
       final coord = entry.key;
       final tile = entry.value;
       final bool isSel = state.selectedCoord == coord;
+      final bool wasSel = prev?.selectedCoord == coord;
+      final prevTile = prev?.tiles[coord];
+
+      // Değişmeyen ve seçimi değişmeyen karoları atla (Saniyelik tam harita tarama yükünü sıfırlar)
+      if (!globalChange && prevTile == tile && isSel == wasSel && _tileComponents.containsKey(coord)) {
+        continue;
+      }
 
       if (_tileComponents.containsKey(coord)) {
         _tileComponents[coord]!.updateData(
@@ -278,6 +314,7 @@ class HexMapGame extends FlameGame {
           newSeason: state.season.current,
           newIsZud: state.season.isZud,
           newIsNight: _isNight,
+          newThemePalette: state.settings.activeThemePalette,
         );
       } else {
         final comp = HexTileComponent(
@@ -287,6 +324,7 @@ class HexMapGame extends FlameGame {
           season: state.season.current,
           isZud: state.season.isZud,
           isNight: _isNight,
+          themePalette: state.settings.activeThemePalette,
         );
         final pixelPos = HexMath.hexToPixel(coord, hexSize: HexTileComponent.hexRadius);
         comp.priority = (pixelPos.dy + 1000).toInt();

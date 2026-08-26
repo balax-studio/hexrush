@@ -22,6 +22,8 @@ final gameStateProvider =
 class GameStateNotifier extends StateNotifier<GameState> {
   Timer? _gameLoopTimer;
   Timer? _autoSaveTimer;
+  bool _isSaveDirty = false;
+  int _autoSaveTickCounter = 0;
 
   GameStateNotifier() : super(_createInitialState()) {
     initialize();
@@ -364,11 +366,18 @@ class GameStateNotifier extends StateNotifier<GameState> {
   void _startAutoSave() {
     _autoSaveTimer?.cancel();
     _autoSaveTimer = Timer.periodic(const Duration(seconds: 10), (_) {
-      if (mounted) saveGame();
+      if (mounted && _isSaveDirty) {
+        saveGame();
+      }
     });
   }
 
   void _tick() {
+    _autoSaveTickCounter++;
+    if (_autoSaveTickCounter >= 30) {
+      _isSaveDirty = true;
+      _autoSaveTickCounter = 0;
+    }
     final double globalMult = EconomyCalculator.getGlobalMultiplier(
           castleLevel: state.progression.castleLevel,
           crowns: state.resources.crowns,
@@ -1587,6 +1596,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
   }
 
   Future<void> saveGame() async {
+    _isSaveDirty = false;
     await SaveRepository.saveGame(
       resources: state.resources,
       progression: state.progression,

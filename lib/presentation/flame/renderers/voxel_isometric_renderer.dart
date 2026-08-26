@@ -341,7 +341,17 @@ class VoxelIsometricRenderer {
     double animTime = 0.0,
     double scale = 1.0,
     int seed = 0,
+    bool flipX = false,
   }) {
+    if (flipX) {
+      canvas.save();
+      canvas.translate(pos.dx, pos.dy);
+      canvas.scale(-1.0, 1.0);
+      drawVoxelSheep(canvas, Offset.zero, animTime: animTime, scale: scale, seed: seed, flipX: false);
+      canvas.restore();
+      return;
+    }
+
     final int behaviorMode = seed % 4;
     final int coatVariant = ((seed * 7) ~/ 3) % 4;
     final bool hasRamHorns = (seed % 7) == 0;
@@ -642,8 +652,16 @@ class VoxelIsometricRenderer {
     );
   }
 
-  /// 3D Voxel Uçan Kuş
-  static void drawVoxelBird(Canvas canvas, Offset pos, {required double wingAnim, double scale = 1.0}) {
+  /// 3D Voxel Uçan Kuş / Kartal / Turna / Martı
+  static void drawVoxelBird(
+    Canvas canvas,
+    Offset pos, {
+    required double wingAnim,
+    double scale = 1.0,
+    Color bodyColor = const Color(0xFFFFFFFF),
+    Color wingColor = const Color(0xFFF8FAFC),
+    Color wingTipColor = const Color(0xFF94A3B8),
+  }) {
     final double wingAngle = math.sin(wingAnim) * 0.5;
 
     drawIsoCube(
@@ -652,9 +670,9 @@ class VoxelIsometricRenderer {
       w: 5.0 * scale,
       d: 7.0 * scale,
       h: 3.5 * scale,
-      topColor: const Color(0xFFFFFFFF),
-      leftColor: const Color(0xFFE2E8F0),
-      rightColor: const Color(0xFFCBD5E1),
+      topColor: bodyColor,
+      leftColor: wingTipColor,
+      rightColor: wingTipColor,
     );
 
     final Offset leftWing = Offset(pos.dx - 4 * cosIso * scale, pos.dy - 1 * scale + wingAngle * 4);
@@ -664,9 +682,9 @@ class VoxelIsometricRenderer {
       w: 6.0 * scale,
       d: 3.0 * scale,
       h: 1.5 * scale,
-      topColor: const Color(0xFFF8FAFC),
-      leftColor: const Color(0xFFE2E8F0),
-      rightColor: const Color(0xFF94A3B8),
+      topColor: wingColor,
+      leftColor: bodyColor,
+      rightColor: wingTipColor,
     );
 
     final Offset rightWing = Offset(pos.dx + 4 * cosIso * scale, pos.dy - 1 * scale + wingAngle * 4);
@@ -676,10 +694,215 @@ class VoxelIsometricRenderer {
       w: 6.0 * scale,
       d: 3.0 * scale,
       h: 1.5 * scale,
-      topColor: const Color(0xFFF8FAFC),
-      leftColor: const Color(0xFFCBD5E1),
-      rightColor: const Color(0xFF64748B),
+      topColor: wingColor,
+      leftColor: wingTipColor,
+      rightColor: wingTipColor,
     );
+  }
+
+  /// 3D Voxel Asil Bozkır Yılkı Atı (Yele, Kuyruk, Baş Sallama ve Yaylanma)
+  static void drawVoxelHorse(
+    Canvas canvas,
+    Offset pos, {
+    double animTime = 0.0,
+    double scale = 1.0,
+    int seed = 0,
+    bool flipX = false,
+  }) {
+    if (flipX) {
+      canvas.save();
+      canvas.translate(pos.dx, pos.dy);
+      canvas.scale(-1.0, 1.0);
+      drawVoxelHorse(canvas, Offset.zero, animTime: animTime, scale: scale, seed: seed, flipX: false);
+      canvas.restore();
+      return;
+    }
+
+    final double timeOffset = (seed * 2.83) % 20.0;
+    final double t = animTime + timeOffset;
+    final int coatVariant = seed % 4; // 0: Doru (Kahve), 1: Yağız (Siyah), 2: Kır (Beyaz), 3: Alaca
+    final int pose = (seed ~/ 4) % 3;
+
+    double bobY = 0.0;
+    double headTilt = 0.0;
+    double headYaw = 0.0;
+    final double tailSwing = math.sin(t * 4.0) * 1.8 * scale;
+
+    Color coatTop, coatLeft, coatRight;
+    Color maneColor;
+
+    switch (coatVariant) {
+      case 0: // Doru At
+        coatTop = const Color(0xFFB45309);
+        coatLeft = const Color(0xFF92400E);
+        coatRight = const Color(0xFF78350F);
+        maneColor = const Color(0xFF0F172A);
+        break;
+      case 1: // Yağız At
+        coatTop = const Color(0xFF334155);
+        coatLeft = const Color(0xFF1E293B);
+        coatRight = const Color(0xFF0F172A);
+        maneColor = const Color(0xFF020617);
+        break;
+      case 2: // Kır At
+        coatTop = const Color(0xFFF1F5F9);
+        coatLeft = const Color(0xFFCBD5E1);
+        coatRight = const Color(0xFF94A3B8);
+        maneColor = const Color(0xFFE2E8F0);
+        break;
+      case 3: // Kestane / Alaca
+      default:
+        coatTop = const Color(0xFFD97706);
+        coatLeft = const Color(0xFFB45309);
+        coatRight = const Color(0xFF92400E);
+        maneColor = const Color(0xFFFEF08A);
+        break;
+    }
+
+    if (pose == 0) {
+      final double cycle = t % 6.0;
+      if (cycle < 4.0) {
+        headTilt = 4.5 * scale;
+        bobY = math.sin(t * 2.0) * 0.4 * scale;
+      } else {
+        headTilt = -1.0 * scale;
+        headYaw = math.sin(t * 1.5) * 1.5 * scale;
+      }
+    } else if (pose == 1) {
+      bobY = math.sin(t * 1.2) * 0.5 * scale;
+      headYaw = math.sin(t * 1.8) * 1.2 * scale;
+      headTilt = -1.5 * scale;
+    } else {
+      final double stride = (t % 2.5) / 2.5;
+      bobY = math.sin(stride * math.pi * 2).abs() * 1.6 * scale;
+    }
+
+    // Gövde
+    drawIsoCube(
+      canvas,
+      Offset(pos.dx, pos.dy - 8 * scale - bobY),
+      w: 16.0 * scale,
+      d: 9.0 * scale,
+      h: 9.0 * scale,
+      topColor: coatTop,
+      leftColor: coatLeft,
+      rightColor: coatRight,
+      drawShadow: true,
+      shadowOpacity: 0.28,
+    );
+
+    // Boyun
+    final Offset neckPos = Offset(
+      pos.dx - 8 * cosIso * scale + headYaw * cosIso,
+      pos.dy - 12 * scale - bobY + 2 * sinIso * scale + headTilt,
+    );
+    drawIsoCube(
+      canvas,
+      neckPos,
+      w: 6.0 * scale,
+      d: 6.0 * scale,
+      h: 10.0 * scale,
+      topColor: coatTop,
+      leftColor: coatLeft,
+      rightColor: coatRight,
+    );
+
+    // Yele
+    drawIsoCube(
+      canvas,
+      Offset(neckPos.dx + 2 * cosIso * scale, neckPos.dy - 4 * scale),
+      w: 3.0 * scale,
+      d: 4.0 * scale,
+      h: 8.0 * scale,
+      topColor: maneColor,
+      leftColor: maneColor,
+      rightColor: maneColor,
+    );
+
+    // Baş
+    final Offset headPos = Offset(
+      neckPos.dx - 4 * cosIso * scale,
+      neckPos.dy - 8 * scale,
+    );
+    drawIsoCube(
+      canvas,
+      headPos,
+      w: 5.5 * scale,
+      d: 5.0 * scale,
+      h: 5.0 * scale,
+      topColor: coatTop,
+      leftColor: coatLeft,
+      rightColor: coatRight,
+    );
+
+    // Burun / Ağız
+    drawIsoCube(
+      canvas,
+      Offset(headPos.dx - 3.5 * cosIso * scale, headPos.dy + 2 * sinIso * scale),
+      w: 3.5 * scale,
+      d: 3.5 * scale,
+      h: 3.5 * scale,
+      topColor: const Color(0xFF1E293B),
+      leftColor: const Color(0xFF0F172A),
+      rightColor: const Color(0xFF020617),
+    );
+
+    // Kulaklar
+    drawIsoCube(
+      canvas,
+      Offset(headPos.dx - 1 * cosIso * scale, headPos.dy - 3.5 * scale),
+      w: 1.5 * scale,
+      d: 1.5 * scale,
+      h: 2.5 * scale,
+      topColor: coatTop,
+      leftColor: coatLeft,
+      rightColor: coatRight,
+    );
+
+    // Kuyruk
+    drawIsoCube(
+      canvas,
+      Offset(pos.dx + 9 * cosIso * scale + tailSwing, pos.dy - 4 * scale - bobY - 4 * sinIso * scale),
+      w: 3.0 * scale,
+      d: 3.0 * scale,
+      h: 9.0 * scale,
+      topColor: maneColor,
+      leftColor: maneColor,
+      rightColor: maneColor,
+    );
+
+    // 4 Bacak
+    final double legH = 7.0 * scale;
+    final List<Offset> legOffsets = [
+      Offset(pos.dx - 5 * cosIso * scale, pos.dy - 1 * scale),
+      Offset(pos.dx - 2 * cosIso * scale, pos.dy - 4 * scale),
+      Offset(pos.dx + 4 * cosIso * scale, pos.dy - 1 * scale),
+      Offset(pos.dx + 7 * cosIso * scale, pos.dy - 4 * scale),
+    ];
+
+    for (final lPos in legOffsets) {
+      drawIsoCube(
+        canvas,
+        Offset(lPos.dx, lPos.dy),
+        w: 2.5 * scale,
+        d: 2.5 * scale,
+        h: legH,
+        topColor: coatTop,
+        leftColor: coatLeft,
+        rightColor: coatRight,
+      );
+      // Toynak
+      drawIsoCube(
+        canvas,
+        Offset(lPos.dx, lPos.dy + legH - 1.5),
+        w: 2.5 * scale,
+        d: 2.5 * scale,
+        h: 1.5 * scale,
+        topColor: const Color(0xFF0F172A),
+        leftColor: const Color(0xFF020617),
+        rightColor: const Color(0xFF020617),
+      );
+    }
   }
 
   // --- PATİKA YOLLAR (ROADS) ---

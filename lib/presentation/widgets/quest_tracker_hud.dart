@@ -27,7 +27,7 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
     _glowController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
-    )..repeat(reverse: true);
+    );
 
     _borderColorAnimation = ColorTween(
       begin: const Color(0xFFD97706),
@@ -46,12 +46,14 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
 
   @override
   Widget build(BuildContext context) {
-    final gameState = ref.watch(gameStateProvider);
+    final quests = ref.watch(gameStateProvider.select((s) => s.quests));
+    final isTr = ref.watch(gameStateProvider.select((s) => s.settings.language == 'tr'));
     final notifier = ref.read(gameStateProvider.notifier);
-    final isTr = gameState.settings.language == 'tr';
+    final activePalette = ref.watch(gameStateProvider.select((s) => s.settings.activeThemePalette));
+    final theme = NeoBrutalistTheme.getTheme(activePalette);
 
     // İlk teslim alınmamış görevi bul
-    final activeQuest = gameState.quests.firstWhere(
+    final activeQuest = quests.firstWhere(
       (q) => !q.isClaimed,
       orElse: () => const QuestModel(
         id: 'done',
@@ -76,23 +78,35 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
     final String description =
         isTr ? activeQuest.descriptionTr : activeQuest.descriptionEn;
 
-    return AnimatedBuilder(
-      animation: _borderColorAnimation,
-      builder: (context, child) {
+    // Animasyon Ticker'ı sadece görev tamamlandığında çalıştırılır (60 FPS CPU döngüsünü sıfırlar)
+    if (isCompleted) {
+      if (!_glowController.isAnimating) {
+        _glowController.repeat(reverse: true);
+      }
+    } else {
+      if (_glowController.isAnimating) {
+        _glowController.stop();
+      }
+    }
+
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _borderColorAnimation,
+        builder: (context, child) {
         return Container(
           width: 250,
           decoration: BoxDecoration(
-            color: const Color(0xFF0F172A),
+            color: theme.surface,
             borderRadius: BorderRadius.circular(4),
             border: Border.all(
               color: isCompleted
-                  ? (_borderColorAnimation.value ?? const Color(0xFFD97706))
-                  : const Color(0xFF334155),
+                  ? (_borderColorAnimation.value ?? theme.accentColor)
+                  : theme.border,
               width: isCompleted ? 2.2 : 2.0,
             ),
             boxShadow: [
               BoxShadow(
-                color: isCompleted ? const Color(0xFF78350F) : const Color(0xFF020617),
+                color: isCompleted ? theme.shadowColor : const Color(0xFF020617),
                 offset: const Offset(3, 3),
                 blurRadius: 0,
               ),
@@ -113,8 +127,8 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   color: isCompleted
-                      ? const Color(0xFF78350F)
-                      : const Color(0xFF1E293B),
+                      ? theme.shadowColor
+                      : theme.surfaceLight,
                   child: Row(
                     children: [
                       Icon(
@@ -123,7 +137,7 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                             : Icons.explore_rounded,
                         size: 15,
                         color: isCompleted
-                            ? const Color(0xFFFBBF24)
+                            ? theme.primaryGold
                             : const Color(0xFF94A3B8),
                       ),
                       const SizedBox(width: 6),
@@ -202,14 +216,14 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                           borderRadius: BorderRadius.circular(2),
                           child: Container(
                             height: 6,
-                            color: const Color(0xFF1E293B),
+                            color: theme.surfaceLight,
                             child: FractionallySizedBox(
                               alignment: Alignment.centerLeft,
                               widthFactor: progressRatio,
                               child: Container(
                                 color: activeQuest.isCompleted
                                     ? const Color(0xFF10B981)
-                                    : const Color(0xFFD97706),
+                                    : theme.accentColor,
                               ),
                             ),
                           ),
@@ -224,9 +238,9 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                               onTap: () {
                                 notifier.claimQuestReward(activeQuest.id);
                               },
-                              backgroundColor: const Color(0xFFD97706),
-                              borderColor: const Color(0xFFFBBF24),
-                              shadowColor: const Color(0xFF78350F),
+                              backgroundColor: theme.primaryGold,
+                              borderColor: theme.border,
+                              shadowColor: theme.shadowColor,
                               shadowOffset: 2.5,
                               padding: const EdgeInsets.symmetric(vertical: 6),
                               soundType: TactileSoundType.reward,
@@ -259,20 +273,20 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 3),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1E293B),
+                              color: theme.surfaceLight,
                               borderRadius: BorderRadius.circular(3),
                               border: Border.all(
-                                color: const Color(0xFF334155),
+                                color: theme.slateBorder,
                                 width: 1,
                               ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.card_giftcard_rounded,
                                   size: 11,
-                                  color: Color(0xFFF59E0B),
+                                  color: theme.primaryGold,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
@@ -280,7 +294,7 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                                       ? 'Ödül: +${activeQuest.rewardAmount} ${activeQuest.rewardType.name.toUpperCase()}'
                                       : 'Reward: +${activeQuest.rewardAmount} ${activeQuest.rewardType.name.toUpperCase()}',
                                   style: NeoBrutalistTheme.fontBadge.copyWith(
-                                    color: const Color(0xFFF59E0B),
+                                    color: theme.primaryGold,
                                   ),
                                 ),
                               ],
@@ -294,6 +308,7 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
           ),
         );
       },
+    ),
     );
   }
 }

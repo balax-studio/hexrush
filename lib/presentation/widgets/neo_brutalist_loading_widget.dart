@@ -169,7 +169,7 @@ class _NeoBrutalistHexLoaderState extends State<NeoBrutalistHexLoader>
   }
 }
 
-/// Çift Katmanlı Dönen Altıgen & Rün Çizici
+/// 3D İzometrik Voksel Karo, Kadim Tamga & Uçuşan Kaynak Küpleri Çizici
 class _NeoHexagonPainter extends CustomPainter {
   final double progress;
 
@@ -177,70 +177,187 @@ class _NeoHexagonPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final outerRadius = size.width * 0.46;
-    final middleRadius = size.width * 0.32;
-    final innerRadius = size.width * 0.16;
+    final w = size.width;
+    final h = size.height;
+    final cx = w / 2;
+    final cy = h * 0.52;
 
-    // 1. Dış Altıgen (Saat Yönünde Dönen Çerçeve)
-    final outerPaint = Paint()
+    final rw = w * 0.44;
+    final rh = h * 0.24;
+    final extrudeH = h * 0.18;
+
+    // 1. 3D Sol Kaya Duvarı (Extruded Bedrock Left Wall)
+    final leftWallPaint = Paint()
+      ..color = const Color(0xFF0F172A)
+      ..style = PaintingStyle.fill;
+    final wallBorderPaint = Paint()
       ..color = const Color(0xFF334155)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5;
+      ..strokeWidth = 2.0
+      ..strokeJoin = StrokeJoin.round;
 
-    final outerPath = _getHexagonPath(center, outerRadius, rotation: progress * 2 * math.pi);
-    canvas.drawPath(outerPath, outerPaint);
+    final leftWallPath = Path()
+      ..moveTo(cx - rw, cy)
+      ..lineTo(cx, cy + rh)
+      ..lineTo(cx, cy + rh + extrudeH)
+      ..lineTo(cx - rw, cy + extrudeH)
+      ..close();
+    canvas.drawPath(leftWallPath, leftWallPaint);
+    canvas.drawPath(leftWallPath, wallBorderPaint);
 
-    // 2. Köşe Vurguları (Altın Dikdörtgen Rünler)
-    final dotPaint = Paint()
-      ..color = const Color(0xFFD97706)
+    // 2. 3D Sağ Kaya Duvarı (Extruded Bedrock Right Wall)
+    final rightWallPaint = Paint()
+      ..color = const Color(0xFF090D1A)
       ..style = PaintingStyle.fill;
 
-    for (int i = 0; i < 6; i++) {
-      final angle = (i * 60 * math.pi / 180) + (progress * 2 * math.pi);
-      final dotPos = Offset(
-        center.dx + outerRadius * math.cos(angle),
-        center.dy + outerRadius * math.sin(angle),
-      );
-      canvas.drawRect(
-        Rect.fromCenter(center: dotPos, width: 4, height: 4),
-        dotPaint,
-      );
-    }
+    final rightWallPath = Path()
+      ..moveTo(cx, cy + rh)
+      ..lineTo(cx + rw, cy)
+      ..lineTo(cx + rw, cy + extrudeH)
+      ..lineTo(cx, cy + rh + extrudeH)
+      ..close();
+    canvas.drawPath(rightWallPath, rightWallPaint);
+    canvas.drawPath(rightWallPath, wallBorderPaint);
 
-    // 3. Orta Ters Dönen Altıgen
-    final middlePaint = Paint()
-      ..color = const Color(0xFFFFC700)
+    // 3. İzometrik Üst Yüzey (Isometric Top Face)
+    final topFacePaint = Paint()
+      ..color = const Color(0xFF1E293B)
+      ..style = PaintingStyle.fill;
+    final topBorderPaint = Paint()
+      ..color = const Color(0xFFD97706)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
+      ..strokeWidth = 2.5
+      ..strokeJoin = StrokeJoin.round;
 
-    final middlePath = _getHexagonPath(center, middleRadius, rotation: -progress * 2 * math.pi);
-    canvas.drawPath(middlePath, middlePaint);
+    final topPath = Path()
+      ..moveTo(cx, cy - rh)
+      ..lineTo(cx + rw, cy)
+      ..lineTo(cx, cy + rh)
+      ..lineTo(cx - rw, cy)
+      ..close();
+    canvas.drawPath(topPath, topFacePaint);
+    canvas.drawPath(topPath, topBorderPaint);
 
-    // 4. İç Çekirdek Nabız Rünü (Dolu Çokgen)
-    final pulseScale = 0.85 + 0.3 * (math.sin(progress * 4 * math.pi).abs());
-    final corePaint = Paint()
-      ..color = const Color(0xFFD97706)
-      ..style = PaintingStyle.fill;
+    // 4. İç İzometrik Girinti (Inner Steppe Inset)
+    final inW = rw * 0.72;
+    final inH = rh * 0.72;
+    final inPath = Path()
+      ..moveTo(cx, cy - inH)
+      ..lineTo(cx + inW, cy)
+      ..lineTo(cx, cy + inH)
+      ..lineTo(cx - inW, cy)
+      ..close();
+    final inFillPaint = Paint()..color = const Color(0xFF0F172A);
+    final inBorderPaint = Paint()
+      ..color = const Color(0xFF334155)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    canvas.drawPath(inPath, inFillPaint);
+    canvas.drawPath(inPath, inBorderPaint);
 
-    final corePath = _getHexagonPath(center, innerRadius * pulseScale, rotation: progress * math.pi);
-    canvas.drawPath(corePath, corePaint);
+    // 5. Kadim Göktürk Kağanlık Tamgası (Pulsing Center Tamga Rune)
+    final pulse = 0.8 + 0.25 * math.sin(progress * 2 * math.pi).abs();
+    final runePaint = Paint()
+      ..color = Color.lerp(const Color(0xFFD97706), const Color(0xFFFFC700), pulse)!
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.2
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final runeH = rh * 0.55;
+    final runeW = inW * 0.45;
+
+    // Omurga çizgisi
+    canvas.drawLine(Offset(cx, cy - runeH), Offset(cx, cy + runeH), runePaint);
+    // Üst Kağan Yayı
+    final topBow = Path()
+      ..moveTo(cx - runeW, cy - runeH * 0.4)
+      ..lineTo(cx, cy - runeH)
+      ..lineTo(cx + runeW, cy - runeH * 0.4);
+    canvas.drawPath(topBow, runePaint);
+    // Orta Kut Dalı
+    canvas.drawLine(Offset(cx - runeW * 0.7, cy), Offset(cx + runeW * 0.7, cy), runePaint);
+    // Alt Dağ / Tengri Çapası
+    final bottomAnchor = Path()
+      ..moveTo(cx - runeW, cy + runeH * 0.4)
+      ..lineTo(cx, cy + runeH)
+      ..lineTo(cx + runeW, cy + runeH * 0.4);
+    canvas.drawPath(bottomAnchor, runePaint);
+
+    // 6. Üç Adet Uçuşan İzometrik Kaynak Voksel Küpü (Floating Voxel Cubes)
+    _drawVoxelCube(
+      canvas,
+      Offset(cx - rw * 0.6, cy - rh * 1.1 + math.sin(progress * 2 * math.pi) * 4),
+      size: w * 0.09,
+      topColor: const Color(0xFFFBBF24),
+      leftColor: const Color(0xFFD97706),
+      rightColor: const Color(0xFFB45309),
+    );
+
+    _drawVoxelCube(
+      canvas,
+      Offset(cx, cy - rh * 1.6 + math.sin(progress * 2 * math.pi + 1.2) * 5),
+      size: w * 0.095,
+      topColor: const Color(0xFF34D399),
+      leftColor: const Color(0xFF10B981),
+      rightColor: const Color(0xFF047857),
+    );
+
+    _drawVoxelCube(
+      canvas,
+      Offset(cx + rw * 0.6, cy - rh * 1.1 + math.sin(progress * 2 * math.pi + 2.4) * 4),
+      size: w * 0.09,
+      topColor: const Color(0xFF60A5FA),
+      leftColor: const Color(0xFF3B82F6),
+      rightColor: const Color(0xFF1D4ED8),
+    );
   }
 
-  Path _getHexagonPath(Offset center, double radius, {double rotation = 0}) {
-    final path = Path();
-    for (int i = 0; i < 6; i++) {
-      final angle = (i * 60 * math.pi / 180) + rotation;
-      final x = center.dx + radius * math.cos(angle);
-      final y = center.dy + radius * math.sin(angle);
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-    path.close();
-    return path;
+  void _drawVoxelCube(
+    Canvas canvas,
+    Offset pos, {
+    required double size,
+    required Color topColor,
+    required Color leftColor,
+    required Color rightColor,
+  }) {
+    final strokePaint = Paint()
+      ..color = const Color(0xFF020617)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+
+    final dx = size * 0.866;
+    final dy = size * 0.5;
+
+    // Top
+    final topPath = Path()
+      ..moveTo(pos.dx, pos.dy - dy)
+      ..lineTo(pos.dx + dx, pos.dy)
+      ..lineTo(pos.dx, pos.dy + dy)
+      ..lineTo(pos.dx - dx, pos.dy)
+      ..close();
+    canvas.drawPath(topPath, Paint()..color = topColor);
+    canvas.drawPath(topPath, strokePaint);
+
+    // Left
+    final leftPath = Path()
+      ..moveTo(pos.dx - dx, pos.dy)
+      ..lineTo(pos.dx, pos.dy + dy)
+      ..lineTo(pos.dx, pos.dy + dy + size)
+      ..lineTo(pos.dx - dx, pos.dy + size)
+      ..close();
+    canvas.drawPath(leftPath, Paint()..color = leftColor);
+    canvas.drawPath(leftPath, strokePaint);
+
+    // Right
+    final rightPath = Path()
+      ..moveTo(pos.dx, pos.dy + dy)
+      ..lineTo(pos.dx + dx, pos.dy)
+      ..lineTo(pos.dx + dx, pos.dy + size)
+      ..lineTo(pos.dx, pos.dy + dy + size)
+      ..close();
+    canvas.drawPath(rightPath, Paint()..color = rightColor);
+    canvas.drawPath(rightPath, strokePaint);
   }
 
   @override

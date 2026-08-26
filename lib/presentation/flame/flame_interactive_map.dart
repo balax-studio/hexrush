@@ -2,6 +2,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/theme/neo_brutalist_theme.dart';
 import '../providers/game_state_notifier.dart';
 import 'hex_map_game.dart';
 
@@ -65,21 +66,28 @@ class _FlameInteractiveMapState extends ConsumerState<FlameInteractiveMap> {
               final Offset delta = details.localFocalPoint - _lastFocalPoint;
               _lastFocalPoint = details.localFocalPoint;
 
-              if (details.scale == 1.0) {
-                // Pan
+              // Tek parmak veya fare sürüklemesinde her zaman kaydırma (Pan) yap
+              if (details.pointerCount <= 1) {
                 _game.panCamera(delta);
               } else {
-                // Pinch to Zoom
-                final double zoomDelta = (details.scale - 1.0) * 0.05;
-                _game.zoomCamera(zoomDelta);
+                // Çok parmaklı dokunmada hem kaydır hem yakınlaştır (Pinch-to-zoom)
+                _game.panCamera(delta);
+                if ((details.scale - 1.0).abs() > 0.005) {
+                  final double zoomDelta = (details.scale - 1.0) * 0.05;
+                  _game.zoomCamera(zoomDelta);
+                }
               }
             },
             child: ClipRect(
               child: GameWidget(
                 game: _game,
-                backgroundBuilder: (context) => Container(
-                  color: const Color(0xFF0F172A),
-                ),
+                backgroundBuilder: (context) {
+                  final activePalette = ref.watch(gameStateProvider.select((s) => s.settings.activeThemePalette));
+                  final theme = NeoBrutalistTheme.getTheme(activePalette);
+                  return Container(
+                    color: theme.bgDark,
+                  );
+                },
               ),
             ),
           ),

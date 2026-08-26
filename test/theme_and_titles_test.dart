@@ -1,6 +1,10 @@
+import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hex_rush/core/hex/hex_coordinates.dart';
 import 'package:hex_rush/core/theme/neo_brutalist_theme.dart';
 import 'package:hex_rush/domain/models/game_state_model.dart';
+import 'package:hex_rush/domain/models/hex_tile_model.dart';
+import 'package:hex_rush/presentation/flame/components/hex_tile_component.dart';
 import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -55,6 +59,42 @@ void main() {
       expect(success, isTrue);
       expect(notifier.state.settings.activeTitle, equals('nomad'));
       expect(notifier.state.settings.activeThemePalette, equals('basalt'));
+    });
+
+    test('HexTileComponent updates themePalette and renders with new palette', () {
+      const tile = HexTileModel(
+        coord: HexAxial(0, 0),
+        biome: TileBiome.meadow,
+        state: TileState.owned,
+      );
+
+      final component = HexTileComponent(
+        coord: const HexAxial(0, 0),
+        tileModel: tile,
+        isSelected: false,
+        season: 'SUMMER',
+        isZud: false,
+        themePalette: 'basalt',
+      );
+
+      expect(component.themePalette, equals('basalt'));
+
+      // Update to 'jade'
+      component.updateData(
+        newTileModel: tile,
+        newIsSelected: true,
+        newSeason: 'SUMMER',
+        newIsZud: false,
+        newThemePalette: 'jade',
+      );
+
+      expect(component.themePalette, equals('jade'));
+      expect(component.isSelected, isTrue);
+
+      // Verify render does not crash
+      final recorder = PictureRecorder();
+      final canvas = Canvas(recorder);
+      expect(() => component.render(canvas), returnsNormally);
     });
   });
 }

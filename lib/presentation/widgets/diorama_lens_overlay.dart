@@ -23,90 +23,92 @@ class DioramaLensOverlay extends ConsumerWidget {
       seasonTint = Colors.transparent;
     }
 
-    return IgnorePointer(
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // 1. Kenar Vinyet ve Atmosferik Sis Gradyanı (Yumuşak Geçiş & Odak)
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment.center,
-                radius: 1.05,
-                colors: [
-                  Colors.transparent,
-                  Colors.transparent,
-                  const Color(0xFF0F172A).withValues(alpha: 0.18),
-                  const Color(0xFF0F172A).withValues(alpha: 0.48),
-                  const Color(0xFF060913).withValues(alpha: 0.82),
-                ],
-                stops: const [0.0, 0.48, 0.72, 0.88, 1.0],
-              ),
-            ),
-          ),
-
-          // 2. Mevsimsel Atmosferik Renk Katmanı
-          if (seasonTint != Colors.transparent)
+    return RepaintBoundary(
+      child: IgnorePointer(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // 1. Kenar Vinyet ve Atmosferik Sis Gradyanı (Yumuşak Geçiş & Odak)
             DecoratedBox(
               decoration: BoxDecoration(
                 gradient: RadialGradient(
                   center: Alignment.center,
-                  radius: 1.2,
+                  radius: 1.05,
                   colors: [
                     Colors.transparent,
-                    seasonTint,
+                    Colors.transparent,
+                    const Color(0xFF0F172A).withValues(alpha: 0.18),
+                    const Color(0xFF0F172A).withValues(alpha: 0.48),
+                    const Color(0xFF060913).withValues(alpha: 0.82),
                   ],
-                  stops: const [0.6, 1.0],
+                  stops: const [0.0, 0.48, 0.72, 0.88, 1.0],
                 ),
               ),
             ),
 
-          // 3. Kış & Zud Buzlanma / Kar Kristali Katmanı (CustomPainter)
-          if (isWinter)
-            const Positioned.fill(
-              child: CustomPaint(
-                painter: _WinterFrostPainter(),
+            // 2. Mevsimsel Atmosferik Renk Katmanı
+            if (seasonTint != Colors.transparent)
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: Alignment.center,
+                    radius: 1.2,
+                    colors: [
+                      Colors.transparent,
+                      seasonTint,
+                    ],
+                    stops: const [0.6, 1.0],
+                  ),
+                ),
               ),
-            ),
 
-          // 4. Üst ve Alt Tilt-Shift Derinlik Gradyanı
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 100,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    const Color(0xFF0F172A).withValues(alpha: 0.6),
-                    Colors.transparent,
-                  ],
+            // 3. Kış & Zud Buzlanma / Kar Kristali Katmanı (CustomPainter)
+            if (isWinter)
+              const Positioned.fill(
+                child: CustomPaint(
+                  painter: _WinterFrostPainter(),
+                ),
+              ),
+
+            // 4. Üst ve Alt Tilt-Shift Derinlik Gradyanı
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 100,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      const Color(0xFF0F172A).withValues(alpha: 0.6),
+                      Colors.transparent,
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 100,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    const Color(0xFF0F172A).withValues(alpha: 0.6),
-                    Colors.transparent,
-                  ],
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 100,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      const Color(0xFF0F172A).withValues(alpha: 0.6),
+                      Colors.transparent,
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
