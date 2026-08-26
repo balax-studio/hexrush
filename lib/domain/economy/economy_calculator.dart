@@ -1,9 +1,13 @@
 import 'dart:math' as math;
 import '../../core/hex/hex_coordinates.dart';
+import '../models/ancestral_kurgan_model.dart';
 import '../models/building_model.dart';
+import '../models/caravan_route_model.dart';
+import '../models/celestial_omen_model.dart';
 import '../models/doctrine_model.dart';
 import '../models/game_state_model.dart';
 import '../models/hex_tile_model.dart';
+import '../services/symbiosis_engine.dart';
 
 class MarketTradeResult {
   final bool success;
@@ -1184,5 +1188,66 @@ class EconomyCalculator {
       }
     }
     return 5.0;
+  }
+
+  /// 1. Yaylak-Kışlak & Toprak Dinlendirme Çarpanı (Soil Health & Respiration Boost)
+  static double calculateSoilHealthMultiplier(HexTileModel tile) {
+    if (tile.isResting) {
+      return 0.0; // Dinlenen arazi üretim yapmaz, enerji biriktirir
+    }
+    if (tile.restTimeAccumulated >= 10.0) {
+      return 2.5; // Bereket Patlaması (Respiration Boost)
+    }
+    return (0.7 + 0.3 * tile.soilHealth.clamp(0.0, 1.0));
+  }
+
+  /// 2. Kervan İpek Yolu Takas Rezonansı (+25% Çarpan)
+  static double calculateCaravanRouteMultiplier(HexAxial coord, List<CaravanRoute> routes) {
+    final bool hasRoute = routes.any((r) => r.startCoord == coord || r.endCoord == coord);
+    return hasRoute ? 1.25 : 1.0;
+  }
+
+  /// 3. Ekolojik Biyom Simbiyoz Çarpanı (+50% Çarpan)
+  static double calculateSymbiosisMultiplier(HexTileModel tile) {
+    return SymbiosisEngine.getSymbiosisMultiplier(tile.symbiosis);
+  }
+
+  /// 4. 12 Hayvanlı Göksel Alamet Kaynak Çarpanı
+  static double calculateCelestialOmenMultiplier(CelestialOmen omen, {required String resourceType}) {
+    switch (resourceType.toLowerCase()) {
+      case 'wood':
+        return omen.woodMultiplier;
+      case 'meat':
+      case 'food':
+      case 'bread':
+      case 'fish':
+        return omen.meatMultiplier;
+      case 'gold':
+      case 'crowns':
+        return omen.goldMultiplier;
+      case 'iron':
+      case 'stone':
+      case 'obsidian':
+        return omen.ironMultiplier;
+      default:
+        return 1.0;
+    }
+  }
+
+  /// 5. Keşfedilen Ata Kurganları Prestij Mirası Çarpanı
+  static double calculateAncestralRelicMultiplier(List<AncestralKurgan> kurgans) {
+    double boost = 0.0;
+    for (final kurgan in kurgans) {
+      if (kurgan.isDiscovered) {
+        boost += kurgan.bonusMultiplier;
+      }
+    }
+    return 1.0 + boost;
+  }
+
+  /// 8. Dokunsal Ritim Ahenk Çarpanı (1.0x -> 3.0x)
+  static double calculateRhythmComboMultiplier(int combo) {
+    final int clamped = combo.clamp(0, 5);
+    return 1.0 + (clamped * 0.4);
   }
 }

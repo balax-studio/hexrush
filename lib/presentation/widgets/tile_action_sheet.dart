@@ -7,7 +7,9 @@ import '../../domain/economy/economy_calculator.dart';
 import '../../domain/models/building_model.dart';
 import '../../domain/models/game_state.dart';
 import '../../domain/models/hex_tile_model.dart';
+import '../../domain/services/symbiosis_engine.dart';
 import '../providers/game_state_notifier.dart';
+import 'caravan_link_sheet.dart';
 import 'icons/game_vector_icons.dart';
 import 'tactile_neo_button.dart';
 
@@ -203,6 +205,76 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 ),
                 const SizedBox(height: 10),
 
+                // Ata Kurganı Keşif Rozeti
+                if (tile.ancestralKurgan != null && !tile.ancestralKurgan!.isDiscovered) ...[
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF78350F),
+                      border: Border.all(color: const Color(0xFFF59E0B), width: 1.8),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.auto_awesome, color: Color(0xFFFDE68A), size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'KADİM ATA KURGANI KALINTISI',
+                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                              ),
+                              Text(
+                                '${tile.ancestralKurgan!.formerBuildingType.name.toUpperCase()} (Sv ${tile.ancestralKurgan!.formerLevel}) - +%${(tile.ancestralKurgan!.bonusMultiplier * 100).toInt()} Kalıcı Miras',
+                                style: const TextStyle(color: Color(0xFFFDE68A), fontSize: 10),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFF59E0B),
+                            foregroundColor: Colors.black,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+                          ),
+                          onPressed: () {
+                            ref.read(gameStateProvider.notifier).discoverAncestralKurgan(tile.coord);
+                          },
+                          child: const Text('UYANDIR', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                // Ekolojik Simbiyoz Hibrit Bilgi Rozeti
+                if (tile.symbiosis != SymbiosisType.none) ...[
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF064E3B),
+                      border: Border.all(color: const Color(0xFF10B981), width: 1.5),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.eco, color: Color(0xFF6EE7B7), size: 16),
+                        const SizedBox(width: 6),
+                        Text(
+                          'EKOLOJİK SİMBİYOZ: ${SymbiosisEngine.getSymbiosisName(tile.symbiosis)} (+%50 Bereket)',
+                          style: const TextStyle(color: Color(0xFFD1FAE5), fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
                 // Durum 1: Sahipsiz (Fethet)
                 if (!tile.isOwned) ...[
                   _buildConquerSection(context, ref, tile, lang, theme),
@@ -214,10 +286,14 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 // Durum 3: Üretim/İşleme Binası Seçili (Detay & Seviye Atlama)
                 else if (tile.hasBuilding) ...[
                   _buildBuildingDetailSection(context, ref, tile, gameState, lang, theme),
+                  const SizedBox(height: 10),
+                  _buildCaravanAndSoilRow(context, ref, tile, gameState, theme),
                 ]
                 // Durum 4: Sahipli ve Boş (İnşaat Seçenekleri)
                 else ...[
                   _buildBuildOptionsSection(context, ref, tile, gameState, lang, theme),
+                  const SizedBox(height: 10),
+                  _buildCaravanAndSoilRow(context, ref, tile, gameState, theme),
                 ],
               ],
             ),
@@ -225,6 +301,63 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         ),
       ),
     ),
+    );
+  }
+
+  Widget _buildCaravanAndSoilRow(
+      BuildContext context, WidgetRef ref, HexTileModel tile, GameState state, NeoBrutalistThemeData theme) {
+    final bool hasRoute = state.caravanRoutes.any((r) => r.startCoord == tile.coord || r.endCoord == tile.coord);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: theme.surfaceLight,
+        border: Border.all(color: theme.border, width: 1.5),
+        borderRadius: BorderRadius.circular(3),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Icon(
+                tile.isResting ? Icons.spa : Icons.terrain,
+                size: 16,
+                color: tile.isResting ? const Color(0xFF10B981) : theme.primaryGold,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                tile.isResting
+                    ? 'Dinleniyor (Bereket +2.5x)'
+                    : 'Toprak: %${(tile.soilHealth * 100).toInt()}',
+                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: hasRoute ? const Color(0xFF047857) : theme.slateBorder,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+            ),
+            icon: Icon(hasRoute ? Icons.check : Icons.swap_calls, size: 14),
+            label: Text(
+              hasRoute ? 'KERVAN AKTİF' : 'KERVAN BAĞLA',
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+            ),
+            onPressed: () {
+              showModalBottomSheet<void>(
+                context: context,
+                backgroundColor: Colors.transparent,
+                isScrollControlled: true,
+                builder: (_) => CaravanLinkSheet(startCoord: tile.coord),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 

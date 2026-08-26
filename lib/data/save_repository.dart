@@ -1,5 +1,8 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../domain/models/ancestral_kurgan_model.dart';
+import '../domain/models/caravan_route_model.dart';
+import '../domain/models/celestial_omen_model.dart';
 import '../domain/models/doctrine_model.dart';
 import '../domain/models/game_state_model.dart';
 import '../domain/models/hex_tile_model.dart';
@@ -18,6 +21,10 @@ class SaveDataBundle {
   final List<QuestModel> quests;
   final List<DoctrineCardModel> doctrines;
   final Map<DoctrineSlotType, String?> activeDoctrineSlots;
+  final List<CaravanRoute> caravanRoutes;
+  final CelestialOmen? celestialOmen;
+  final int yearIndex;
+  final List<AncestralKurgan> discoveredKurgans;
 
   const SaveDataBundle({
     required this.timestamp,
@@ -32,6 +39,10 @@ class SaveDataBundle {
     this.quests = const [],
     this.doctrines = const [],
     this.activeDoctrineSlots = const {},
+    this.caravanRoutes = const [],
+    this.celestialOmen,
+    this.yearIndex = 0,
+    this.discoveredKurgans = const [],
   });
 }
 
@@ -113,6 +124,37 @@ class SaveRepository {
         }
       }
 
+      final List<CaravanRoute> caravanRoutes = [];
+      if (data['caravan_routes'] is List) {
+        for (final item in (data['caravan_routes'] as List)) {
+          if (item is Map) {
+            try {
+              caravanRoutes.add(CaravanRoute.fromJson(Map<String, dynamic>.from(item)));
+            } catch (_) {}
+          }
+        }
+      }
+
+      CelestialOmen? omen;
+      if (data['celestial_omen'] is Map) {
+        try {
+          omen = CelestialOmen.fromJson(Map<String, dynamic>.from(data['celestial_omen'] as Map));
+        } catch (_) {}
+      }
+
+      final int yearIndex = data['year_index'] as int? ?? 0;
+
+      final List<AncestralKurgan> discoveredKurgans = [];
+      if (data['discovered_kurgans'] is List) {
+        for (final item in (data['discovered_kurgans'] as List)) {
+          if (item is Map) {
+            try {
+              discoveredKurgans.add(AncestralKurgan.fromJson(Map<String, dynamic>.from(item)));
+            } catch (_) {}
+          }
+        }
+      }
+
       final toreTalents = data['tore'] is Map && (data['tore'] as Map)['tore_talents'] is Map
           ? Map<String, dynamic>.from((data['tore'] as Map)['tore_talents'] as Map)
           : <String, dynamic>{};
@@ -136,6 +178,10 @@ class SaveRepository {
         quests: quests,
         doctrines: doctrines,
         activeDoctrineSlots: activeSlots,
+        caravanRoutes: caravanRoutes,
+        celestialOmen: omen,
+        yearIndex: yearIndex,
+        discoveredKurgans: discoveredKurgans,
       );
     } catch (e) {
       // JSON parse error fallback
@@ -156,6 +202,10 @@ class SaveRepository {
     List<QuestModel> quests = const [],
     List<DoctrineCardModel> doctrines = const [],
     Map<DoctrineSlotType, String?> activeDoctrineSlots = const {},
+    List<CaravanRoute> caravanRoutes = const [],
+    CelestialOmen? celestialOmen,
+    int yearIndex = 0,
+    List<AncestralKurgan> discoveredKurgans = const [],
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final slotsJson = <String, String?>{};
@@ -164,7 +214,7 @@ class SaveRepository {
     });
 
     final data = {
-      'version': 2,
+      'version': 4,
       'timestamp': DateTime.now().millisecondsSinceEpoch ~/ 1000,
       'resources': resources.toJson(),
       'progression': progression.toJson(),
@@ -177,6 +227,10 @@ class SaveRepository {
       'quests': quests.map((q) => q.toJson()).toList(),
       'doctrines': doctrines.map((d) => d.toJson()).toList(),
       'active_doctrine_slots': slotsJson,
+      'caravan_routes': caravanRoutes.map((c) => c.toJson()).toList(),
+      'celestial_omen': celestialOmen?.toJson(),
+      'year_index': yearIndex,
+      'discovered_kurgans': discoveredKurgans.map((k) => k.toJson()).toList(),
     };
 
     return prefs.setString(_saveKey, jsonEncode(data));

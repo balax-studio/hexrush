@@ -12,6 +12,7 @@ import 'components/flying_voxel_bird_component.dart';
 import 'components/hex_tile_component.dart';
 import 'components/snow_particle_emitter.dart';
 import 'components/steppe_messenger_component.dart';
+import 'components/caravan_convoy_component.dart';
 import 'components/tile_conquer_poof_emitter.dart';
 import 'components/worker_agent_component.dart';
 
@@ -22,6 +23,7 @@ class HexMapGame extends FlameGame {
 
   final Map<HexAxial, HexTileComponent> _tileComponents = {};
   final Map<HexAxial, WorkerAgentComponent> _workerComponents = {};
+  final Map<String, CaravanConvoyComponent> _caravanComponents = {};
   final List<FloatingVoxelCloudComponent> _cloudComponents = [];
   late final SnowParticleEmitter _snowEmitter;
   late final FlyingVoxelBirdComponent _flyingBirds;
@@ -275,6 +277,8 @@ class HexMapGame extends FlameGame {
     final bool selectionChanged = prev?.selectedCoord != state.selectedCoord;
     final bool seasonChanged = prev?.season.current != state.season.current || prev?.season.isZud != state.season.isZud;
     final bool themeChanged = prev?.settings.activeThemePalette != state.settings.activeThemePalette;
+    final bool caravanChanged = prev == null || prev.caravanRoutes.length != state.caravanRoutes.length;
+    final bool macroChanged = prev?.isMacroOverview != state.isMacroOverview;
 
     if (tilesRefChanged || selectionChanged || seasonChanged || themeChanged) {
       _updateTiles(state, prev: prev);
@@ -282,8 +286,15 @@ class HexMapGame extends FlameGame {
     if (tilesRefChanged) {
       _updateWorkers(state);
     }
+    if (caravanChanged) {
+      _updateCaravans(state);
+    }
     if (seasonChanged) {
       _updateWeather(state);
+    }
+    if (macroChanged) {
+      _currentZoom = state.isMacroOverview ? 0.45 : 1.0;
+      gameCamera.viewfinder.zoom = _currentZoom;
     }
   }
 
@@ -298,9 +309,35 @@ class HexMapGame extends FlameGame {
     }
     _workerComponents.clear();
 
+    for (final c in _caravanComponents.values) {
+      c.removeFromParent();
+    }
+    _caravanComponents.clear();
+
     _updateTiles(state);
     _updateWorkers(state);
+    _updateCaravans(state);
     _updateWeather(state);
+  }
+
+  void _updateCaravans(GameState state) {
+    final Set<String> activeIds = state.caravanRoutes.map((r) => r.id).toSet();
+    _caravanComponents.removeWhere((id, comp) {
+      if (!activeIds.contains(id)) {
+        comp.removeFromParent();
+        return true;
+      }
+      return false;
+    });
+
+    for (final route in state.caravanRoutes) {
+      if (!_caravanComponents.containsKey(route.id)) {
+        final comp = CaravanConvoyComponent(route: route);
+        comp.priority = 2500;
+        _caravanComponents[route.id] = comp;
+        gameWorld.add(comp);
+      }
+    }
   }
 
   void _updateTiles(GameState state, {GameState? prev}) {

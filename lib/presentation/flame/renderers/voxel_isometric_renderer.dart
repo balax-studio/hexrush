@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../../../domain/models/building_model.dart';
 import '../../../domain/models/hex_tile_model.dart';
+import '../../../domain/services/symbiosis_engine.dart';
 
 /// 3D Voxel / Isometric Canlı Diorama Çizim Motoru
 /// Rüzgar salınımı, gece pencereleri, ateşböcekleri, sıçrayan balıklar, taş patikalar ve partiküller.
@@ -4971,6 +4973,330 @@ class VoxelIsometricRenderer {
       rightColor: const Color(0xFF92400E),
       drawShadow: true,
       shadowOpacity: 0.2,
+    );
+  }
+
+  /// 1. İpek Yolu Kervan Devesi ve Heybe Yükleri (Voxel Caravan Camel)
+  static void drawVoxelCaravanCamel(
+    Canvas canvas,
+    Offset center, {
+    required double animTime,
+    double walkCycle = 0.0,
+    bool flipX = false,
+  }) {
+    final double bob = (math.sin(walkCycle * math.pi * 4).abs()) * 1.5;
+    final double legSwing = math.sin(walkCycle * math.pi * 4) * 2.0;
+    final double sign = flipX ? -1.0 : 1.0;
+
+    // Gövde (Dual Hump Camel Body)
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy - 6.0 - bob),
+      w: 8.0,
+      d: 5.0,
+      h: 5.0,
+      topColor: const Color(0xFFD97706),
+      leftColor: const Color(0xFFB45309),
+      rightColor: const Color(0xFF92400E),
+      drawShadow: true,
+      shadowOpacity: 0.3,
+    );
+
+    // Ön ve Arka Hörgüç
+    drawIsoCube(
+      canvas,
+      Offset(center.dx - 2.5 * sign, center.dy - 11.0 - bob),
+      w: 2.8,
+      d: 2.8,
+      h: 3.5,
+      topColor: const Color(0xFFF59E0B),
+      leftColor: const Color(0xFFD97706),
+      rightColor: const Color(0xFFB45309),
+    );
+    drawIsoCube(
+      canvas,
+      Offset(center.dx + 2.5 * sign, center.dy - 11.0 - bob),
+      w: 2.8,
+      d: 2.8,
+      h: 3.5,
+      topColor: const Color(0xFFF59E0B),
+      leftColor: const Color(0xFFD97706),
+      rightColor: const Color(0xFFB45309),
+    );
+
+    // Kervan Sandıkları / İpek Heybeleri
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy - 8.0 - bob),
+      w: 5.0,
+      d: 6.5,
+      h: 3.0,
+      topColor: const Color(0xFF991B1B), // Kırmızı İpek Sandığı
+      leftColor: const Color(0xFF7F1D1D),
+      rightColor: const Color(0xFF450A0A),
+    );
+
+    // Boyun ve Baş
+    drawIsoCube(
+      canvas,
+      Offset(center.dx + 4.5 * sign, center.dy - 10.0 - bob),
+      w: 2.5,
+      d: 2.5,
+      h: 5.0,
+      topColor: const Color(0xFFD97706),
+      leftColor: const Color(0xFFB45309),
+      rightColor: const Color(0xFF92400E),
+    );
+    drawIsoCube(
+      canvas,
+      Offset(center.dx + 6.0 * sign, center.dy - 14.0 - bob),
+      w: 3.0,
+      d: 2.2,
+      h: 2.0,
+      topColor: const Color(0xFFF59E0B),
+      leftColor: const Color(0xFFD97706),
+      rightColor: const Color(0xFF92400E),
+    );
+
+    // Bacaklar
+    drawIsoCube(
+      canvas,
+      Offset(center.dx - 3.0 * sign + legSwing, center.dy - 1.0),
+      w: 1.6,
+      d: 1.6,
+      h: 5.0,
+      topColor: const Color(0xFFB45309),
+      leftColor: const Color(0xFF92400E),
+      rightColor: const Color(0xFF78350F),
+    );
+    drawIsoCube(
+      canvas,
+      Offset(center.dx + 3.0 * sign - legSwing, center.dy - 1.0),
+      w: 1.6,
+      d: 1.6,
+      h: 5.0,
+      topColor: const Color(0xFFB45309),
+      leftColor: const Color(0xFF92400E),
+      rightColor: const Color(0xFF78350F),
+    );
+  }
+
+  /// 2. Ata Kurganı Balbal Dikilitaşı (Ancestral Kurgan Balbal Stele)
+  static void drawVoxelAncestralBalbal(
+    Canvas canvas,
+    Offset center, {
+    required double animTime,
+    required int level,
+  }) {
+    // Taş Kaide
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy + 2.0),
+      w: 10.0,
+      d: 10.0,
+      h: 2.5,
+      topColor: const Color(0xFF475569),
+      leftColor: const Color(0xFF334155),
+      rightColor: const Color(0xFF1E293B),
+      drawShadow: true,
+      shadowOpacity: 0.35,
+    );
+
+    // Dikilitaş Gövdesi (Balbal Gövde)
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy - 12.0),
+      w: 5.0,
+      d: 4.5,
+      h: 14.0,
+      topColor: const Color(0xFF64748B),
+      leftColor: const Color(0xFF475569),
+      rightColor: const Color(0xFF334155),
+    );
+
+    // Balbal Başlığı ve Kazınmış Kadeh Motifi
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy - 20.0),
+      w: 4.0,
+      d: 4.0,
+      h: 4.5,
+      topColor: const Color(0xFF94A3B8),
+      leftColor: const Color(0xFF64748B),
+      rightColor: const Color(0xFF475569),
+    );
+
+    // Göksel Rün Işıltısı (Pulsing Golden Inscription)
+    final double pulse = 0.5 + 0.5 * math.sin(animTime * 2.5);
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy - 11.0),
+      w: 1.5,
+      d: 1.0,
+      h: 6.0,
+      topColor: Color.lerp(const Color(0xFFD97706), const Color(0xFFFDE047), pulse)!,
+      leftColor: const Color(0xFFB45309),
+      rightColor: const Color(0xFF92400E),
+    );
+  }
+
+  /// 3. Ekolojik Simbiyoz Parçacık Aurası (Symbiosis Ecological Aura)
+  static void drawVoxelSymbiosisSparks(
+    Canvas canvas,
+    Offset center, {
+    required double animTime,
+    required SymbiosisType type,
+  }) {
+    if (type == SymbiosisType.none) return;
+
+    Color sparkTop;
+    Color sparkSide;
+    switch (type) {
+      case SymbiosisType.wildGlade:
+        sparkTop = const Color(0xFF10B981);
+        sparkSide = const Color(0xFF047857);
+        break;
+      case SymbiosisType.canyonOasis:
+        sparkTop = const Color(0xFF06B6D4);
+        sparkSide = const Color(0xFF0891B2);
+        break;
+      case SymbiosisType.crystalSpring:
+        sparkTop = const Color(0xFF38BDF8);
+        sparkSide = const Color(0xFF0284C7);
+        break;
+      case SymbiosisType.volcanicGeothermal:
+        sparkTop = const Color(0xFFF97316);
+        sparkSide = const Color(0xFFC2410C);
+        break;
+      case SymbiosisType.none:
+        return;
+    }
+
+    for (int i = 0; i < 4; i++) {
+      final double angle = animTime * 1.5 + (i * (math.pi / 2.0));
+      final double rx = 16.0 * math.cos(angle);
+      final double ry = 8.0 * math.sin(angle) - 4.0;
+      final double floatY = math.sin(animTime * 3.0 + i) * 3.0;
+
+      drawIsoCube(
+        canvas,
+        Offset(center.dx + rx, center.dy + ry + floatY),
+        w: 2.0,
+        d: 2.0,
+        h: 2.0,
+        topColor: sparkTop,
+        leftColor: sparkSide,
+        rightColor: sparkSide.withValues(alpha: 0.8),
+      );
+    }
+  }
+
+  /// 4. Dokunsal Ritim Dalga Halkası (Tactile Rhythm Resonance Ring)
+  static void drawVoxelTactileRing(
+    Canvas canvas,
+    Offset center, {
+    required double progress,
+    required int combo,
+  }) {
+    if (progress >= 1.0) return;
+
+    final double radius = 6.0 + progress * 24.0;
+    final double alpha = (1.0 - progress) * 0.8;
+
+    Color ringColor;
+    if (combo >= 5) {
+      ringColor = const Color(0xFFEC4899); // Pembe Efsanevi Ritim
+    } else if (combo >= 3) {
+      ringColor = const Color(0xFFF59E0B); // Altın Şamanik Ritim
+    } else {
+      ringColor = const Color(0xFF38BDF8); // Mavi Bozkır Ritmi
+    }
+
+    _sharedStrokePaint
+      ..color = ringColor.withValues(alpha: alpha)
+      ..strokeWidth = 2.5
+      ..style = PaintingStyle.stroke;
+
+    canvas.drawCircle(center, radius, _sharedStrokePaint);
+  }
+
+  /// 5. Komşuluk Sinerji Hayalet Göstergesi (Adjacency Ghost Preview)
+  static void drawVoxelAdjacencyGhost(
+    Canvas canvas,
+    Offset center, {
+    required BuildingType type,
+    required double animTime,
+  }) {
+    final double pulse = 0.4 + 0.3 * math.sin(animTime * 4.0);
+
+    drawIsoCube(
+      canvas,
+      Offset(center.dx, center.dy - 6.0),
+      w: 12.0,
+      d: 12.0,
+      h: 8.0,
+      topColor: const Color(0xFF38BDF8).withValues(alpha: pulse),
+      leftColor: const Color(0xFF0284C7).withValues(alpha: pulse * 0.7),
+      rightColor: const Color(0xFF0369A1).withValues(alpha: pulse * 0.5),
+    );
+  }
+
+  /// 6. Kuş Bakışı Taktiksel Makro Karo (Macro Overview Hex Badge)
+  static void drawVoxelMacroTile(
+    Canvas canvas,
+    Offset center, {
+    required TileBiome biome,
+    required bool isOwned,
+    bool hasBuilding = false,
+    bool hasKurgan = false,
+    bool isResting = false,
+  }) {
+    Color fillColor;
+    switch (biome) {
+      case TileBiome.meadow:
+        fillColor = isResting ? const Color(0xFF4ADE80) : const Color(0xFF15803D);
+        break;
+      case TileBiome.forest:
+        fillColor = const Color(0xFF166534);
+        break;
+      case TileBiome.desert:
+        fillColor = const Color(0xFFD97706);
+        break;
+      case TileBiome.mountain:
+        fillColor = const Color(0xFF64748B);
+        break;
+      case TileBiome.sea:
+        fillColor = const Color(0xFF0284C7);
+        break;
+      case TileBiome.wetland:
+        fillColor = const Color(0xFF0D9488);
+        break;
+      case TileBiome.tundra:
+        fillColor = const Color(0xFFE2E8F0);
+        break;
+      case TileBiome.volcano:
+        fillColor = const Color(0xFFDC2626);
+        break;
+      case TileBiome.celestialCrater:
+      case TileBiome.kurganValley:
+      case TileBiome.crystalChasm:
+        fillColor = const Color(0xFFA855F7);
+        break;
+    }
+
+    if (!isOwned) {
+      fillColor = fillColor.withValues(alpha: 0.35);
+    }
+
+    drawIsoCube(
+      canvas,
+      center,
+      w: 14.0,
+      d: 14.0,
+      h: hasBuilding ? 6.0 : 2.5,
+      topColor: fillColor,
+      leftColor: fillColor.withValues(alpha: 0.75),
+      rightColor: fillColor.withValues(alpha: 0.55),
     );
   }
 }

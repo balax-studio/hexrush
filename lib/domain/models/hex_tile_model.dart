@@ -1,4 +1,6 @@
 import '../../core/hex/hex_coordinates.dart';
+import '../services/symbiosis_engine.dart';
+import 'ancestral_kurgan_model.dart';
 import 'building_model.dart';
 
 enum TileBiome {
@@ -36,6 +38,11 @@ class HexTileModel {
   final bool isWarmed;
   final double warmTimer;
   final ShrineType shrine;
+  final double soilHealth; // 0.0 to 1.0 (1.0 = fresh soil, 0.0 = exhausted)
+  final bool isResting; // True when placed in transhumance pasture rest
+  final double restTimeAccumulated; // Seconds spent resting, used for respiration burst
+  final SymbiosisType symbiosis; // Cascading ecological hybrid state
+  final AncestralKurgan? ancestralKurgan; // Ancient relic tomb from previous migration
 
   const HexTileModel({
     required this.coord,
@@ -45,6 +52,11 @@ class HexTileModel {
     this.isWarmed = false,
     this.warmTimer = 0.0,
     this.shrine = ShrineType.none,
+    this.soilHealth = 1.0,
+    this.isResting = false,
+    this.restTimeAccumulated = 0.0,
+    this.symbiosis = SymbiosisType.none,
+    this.ancestralKurgan,
   });
 
   bool get hasBuilding => building != null;
@@ -52,6 +64,8 @@ class HexTileModel {
   bool get isDiscovered => state == TileState.discovered;
   bool get isFog => state == TileState.fog;
   bool get hasShrine => shrine != ShrineType.none;
+  bool get hasKurgan => ancestralKurgan != null;
+  bool get isSymbiotic => symbiosis != SymbiosisType.none;
 
   HexTileModel copyWith({
     HexAxial? coord,
@@ -62,6 +76,12 @@ class HexTileModel {
     bool? isWarmed,
     double? warmTimer,
     ShrineType? shrine,
+    double? soilHealth,
+    bool? isResting,
+    double? restTimeAccumulated,
+    SymbiosisType? symbiosis,
+    AncestralKurgan? ancestralKurgan,
+    bool? clearKurgan,
   }) {
     return HexTileModel(
       coord: coord ?? this.coord,
@@ -71,6 +91,11 @@ class HexTileModel {
       isWarmed: isWarmed ?? this.isWarmed,
       warmTimer: warmTimer ?? this.warmTimer,
       shrine: shrine ?? this.shrine,
+      soilHealth: soilHealth ?? this.soilHealth,
+      isResting: isResting ?? this.isResting,
+      restTimeAccumulated: restTimeAccumulated ?? this.restTimeAccumulated,
+      symbiosis: symbiosis ?? this.symbiosis,
+      ancestralKurgan: clearKurgan == true ? null : (ancestralKurgan ?? this.ancestralKurgan),
     );
   }
 
@@ -84,6 +109,11 @@ class HexTileModel {
       'is_warmed': isWarmed,
       'warm_timer': warmTimer,
       'shrine': shrine.index,
+      'soil_health': soilHealth,
+      'is_resting': isResting,
+      'rest_time_accumulated': restTimeAccumulated,
+      'symbiosis': symbiosis.index,
+      'ancestral_kurgan': ancestralKurgan?.toJson(),
     };
   }
 
@@ -93,6 +123,7 @@ class HexTileModel {
     final int biomeIdx = json['type'] as int? ?? 0;
     final int stateIdx = json['state'] as int? ?? 0;
     final int shrineIdx = json['shrine'] as int? ?? 0;
+    final int symbiosisIdx = json['symbiosis'] as int? ?? 0;
 
     BuildingModel? b;
     if (json.containsKey('building') && json['building'] != null) {
@@ -105,6 +136,11 @@ class HexTileModel {
       b = BuildingModel.fromLegacy(bType, bLvl, bAccum);
     }
 
+    AncestralKurgan? kurgan;
+    if (json.containsKey('ancestral_kurgan') && json['ancestral_kurgan'] != null) {
+      kurgan = AncestralKurgan.fromJson(json['ancestral_kurgan'] as Map<String, dynamic>);
+    }
+
     return HexTileModel(
       coord: HexAxial(q, r),
       biome: TileBiome.values[biomeIdx.clamp(0, TileBiome.values.length - 1)],
@@ -113,6 +149,11 @@ class HexTileModel {
       isWarmed: json['is_warmed'] as bool? ?? false,
       warmTimer: (json['warm_timer'] as num?)?.toDouble() ?? 0.0,
       shrine: ShrineType.values[shrineIdx.clamp(0, ShrineType.values.length - 1)],
+      soilHealth: (json['soil_health'] as num?)?.toDouble() ?? 1.0,
+      isResting: json['is_resting'] as bool? ?? false,
+      restTimeAccumulated: (json['rest_time_accumulated'] as num?)?.toDouble() ?? 0.0,
+      symbiosis: SymbiosisType.values[symbiosisIdx.clamp(0, SymbiosisType.values.length - 1)],
+      ancestralKurgan: kurgan,
     );
   }
 }

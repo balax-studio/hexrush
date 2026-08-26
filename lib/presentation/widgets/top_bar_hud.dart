@@ -7,9 +7,11 @@ import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/economy/economy_calculator.dart';
 import '../../domain/models/game_state_model.dart';
 import '../providers/game_state_notifier.dart';
+import 'celestial_omen_hud.dart';
 import 'icons/game_vector_icons.dart';
 import 'season_calendar_widget.dart';
 import 'tactile_neo_button.dart';
+import 'transhumance_banner_widget.dart';
 
 class TopBarHUD extends ConsumerStatefulWidget {
   final VoidCallback onOpenMarket;
@@ -625,6 +627,10 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       );
                     },
                   ),
+                  const SizedBox(width: 6),
+                  const CelestialOmenHud(),
+                  const SizedBox(width: 6),
+                  const TranshumanceBannerWidget(),
                   if (gameState.season.isZud) ...[
                     const SizedBox(width: 6),
                     Container(

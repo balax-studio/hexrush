@@ -6,6 +6,7 @@ import '../../../core/hex/hex_math.dart';
 import '../../../core/theme/neo_brutalist_theme.dart';
 import '../../../domain/models/building_model.dart';
 import '../../../domain/models/hex_tile_model.dart';
+import '../../../domain/services/symbiosis_engine.dart';
 import '../hex_map_game.dart';
 import '../renderers/voxel_isometric_renderer.dart';
 
@@ -623,6 +624,53 @@ class HexTileComponent extends PositionComponent {
           _renderLivingChasm(canvas, center, seed);
           break;
       }
+    }
+
+    // 1. Ata Kurganı Balbal Dikilitaşı
+    if (tileModel.ancestralKurgan != null) {
+      VoxelIsometricRenderer.drawVoxelAncestralBalbal(
+        canvas,
+        center,
+        animTime: tTime,
+        level: tileModel.ancestralKurgan!.formerLevel,
+      );
+    }
+
+    // 2. Ekolojik Biyom Simbiyoz Parçacıkları
+    if (tileModel.symbiosis != SymbiosisType.none) {
+      VoxelIsometricRenderer.drawVoxelSymbiosisSparks(
+        canvas,
+        center,
+        animTime: tTime,
+        type: tileModel.symbiosis,
+      );
+    }
+
+    // 3. Yaylak-Kışlak Toprak Nefesi ve Bereket Patlaması Aurası
+    if (tileModel.isResting) {
+      final double breathPulse = 0.35 + 0.25 * math.sin(tTime * 2.0);
+      VoxelIsometricRenderer.drawIsoCube(
+        canvas,
+        Offset(center.dx, center.dy - 2.0),
+        w: 12.0,
+        d: 12.0,
+        h: 1.5,
+        topColor: const Color(0xFF22C55E).withValues(alpha: breathPulse),
+        leftColor: const Color(0xFF16A34A).withValues(alpha: breathPulse * 0.7),
+        rightColor: const Color(0xFF15803D).withValues(alpha: breathPulse * 0.5),
+      );
+    } else if (tileModel.restTimeAccumulated >= 10.0) {
+      final double boostPulse = 0.45 + 0.35 * math.sin(tTime * 4.0);
+      VoxelIsometricRenderer.drawIsoCube(
+        canvas,
+        Offset(center.dx, center.dy - 3.0),
+        w: 14.0,
+        d: 14.0,
+        h: 2.0,
+        topColor: const Color(0xFFFACC15).withValues(alpha: boostPulse),
+        leftColor: const Color(0xFFEAB308).withValues(alpha: boostPulse * 0.7),
+        rightColor: const Color(0xFFCA8A04).withValues(alpha: boostPulse * 0.5),
+      );
     }
   }
 

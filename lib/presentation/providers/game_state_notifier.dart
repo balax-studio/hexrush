@@ -7,13 +7,17 @@ import '../../core/hex/hex_coordinates.dart';
 import '../../core/hex/hex_math.dart';
 import '../../data/save_repository.dart';
 import '../../domain/economy/economy_calculator.dart';
+import '../../domain/models/ancestral_kurgan_model.dart';
 import '../../domain/models/building_model.dart';
+import '../../domain/models/caravan_route_model.dart';
+import '../../domain/models/celestial_omen_model.dart';
 import '../../domain/models/doctrine_model.dart';
 import '../../domain/models/game_state.dart';
 import '../../domain/models/game_state_model.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/models/hex_tile_model.dart';
 import '../../domain/models/quest_model.dart';
+import '../../domain/services/symbiosis_engine.dart';
 
 final gameStateProvider =
     StateNotifierProvider<GameStateNotifier, GameState>((ref) {
@@ -281,6 +285,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
       progression: const ProgressionModel(castleLevel: 1, ownedCount: 1),
       quests: _generateInitialQuests(),
       doctrines: DoctrineCardModel.getInitialDoctrines(),
+      celestialOmen: CelestialOmen.fromYearIndex(0),
+      yearIndex: 0,
     );
   }
 
@@ -312,6 +318,10 @@ class GameStateNotifier extends StateNotifier<GameState> {
           quests: save.quests.isNotEmpty ? save.quests : _generateInitialQuests(),
           doctrines: save.doctrines.isNotEmpty ? save.doctrines : DoctrineCardModel.getInitialDoctrines(),
           activeDoctrineSlots: save.activeDoctrineSlots.isNotEmpty ? save.activeDoctrineSlots : state.activeDoctrineSlots,
+          caravanRoutes: save.caravanRoutes,
+          celestialOmen: save.celestialOmen ?? CelestialOmen.fromYearIndex(save.yearIndex),
+          yearIndex: save.yearIndex,
+          discoveredKurgans: save.discoveredKurgans,
         );
 
         _syncQuestProgress();
@@ -403,6 +413,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
     bool newIsZud = state.season.isZud;
     double newLerp = math.min(1.0, state.seasonLerpProgress + (1.0 / 60.0));
 
+    int newYearIndex = state.yearIndex;
+    CelestialOmen? newOmen = state.celestialOmen;
+
     if (newSeasonTimer >= 300.0) {
       newSeasonTimer = 0.0;
       newLerp = 0.0; // Yeni mevsim başladığında lerp sıfırlanır
@@ -421,6 +434,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
         newSeason = 'SPRING';
         newYear += 1;
         newIsZud = false;
+        newYearIndex = (state.yearIndex + 1) % 12;
+        newOmen = CelestialOmen.fromYearIndex(newYearIndex);
+        showToast('GÖKSEL ALAMET: ${newOmen.name} (${newOmen.description})');
       }
     }
 
@@ -550,12 +566,27 @@ class GameStateNotifier extends StateNotifier<GameState> {
         activeDoctrines: activeDoctrines,
       );
 
+      final double soilMult = EconomyCalculator.calculateSoilHealthMultiplier(tile);
+      final double caravanMult = EconomyCalculator.calculateCaravanRouteMultiplier(tile.coord, state.caravanRoutes);
+      final double symbiosisMult = EconomyCalculator.calculateSymbiosisMultiplier(tile);
+      final double ancestralMult = EconomyCalculator.calculateAncestralRelicMultiplier(state.discoveredKurgans);
+      final double omenMult = state.celestialOmen != null
+          ? EconomyCalculator.calculateCelestialOmenMultiplier(
+              state.celestialOmen!,
+              resourceType: b.type == BuildingType.lumberjack || b.type == BuildingType.sawmill
+                  ? 'wood'
+                  : b.type == BuildingType.mine || b.type == BuildingType.quarry
+                      ? 'iron'
+                      : 'food',
+            )
+          : 1.0;
+
       final double rate = EconomyCalculator.calculateBuildingProduction(
         type: b.type,
         level: b.level,
         baseRate: b.baseProductionRate,
-        globalMultiplier: globalMult * docMult,
-        seasonMultiplier: seasonMult,
+        globalMultiplier: globalMult * docMult * caravanMult * symbiosisMult * ancestralMult * omenMult,
+        seasonMultiplier: seasonMult * soilMult,
         synergyMultiplier: totalSynergy,
         workerMultiplier: 1.0, // Kapasite sistemi geldiği için oran sabitlendi
         shrineMultiplier: state.shrineMultiplier,
@@ -594,6 +625,18 @@ class GameStateNotifier extends StateNotifier<GameState> {
         } else {
           canProduce = false;
         }
+      }
+
+      double newSoil = tile.soilHealth;
+      double newRestTime = tile.restTimeAccumulated;
+      if (tile.isResting) {
+        newSoil = math.min(1.0, newSoil + 0.05);
+        newRestTime += 1.0;
+      } else if (tile.hasBuilding) {
+        if (newRestTime > 0.0) {
+          newRestTime = math.max(0.0, newRestTime - 1.0);
+        }
+        newSoil = math.max(0.1, newSoil - 0.001);
       }
 
       if (canProduce) {
@@ -706,12 +749,16 @@ class GameStateNotifier extends StateNotifier<GameState> {
           building: b.copyWith(accumulatedResource: newAccum),
           isWarmed: isWarmed,
           warmTimer: warmTimer,
+          soilHealth: newSoil,
+          restTimeAccumulated: newRestTime,
         );
       } else {
-        // Üretim yapılamadı (kaynak yok), sadece ısıtma timerı güncellensin
+        // Üretim yapılamadı (kaynak yok), sadece ısıtma timerı ve toprak durumu güncellensin
         updatedTiles[entry.key] = tile.copyWith(
           isWarmed: isWarmed,
           warmTimer: warmTimer,
+          soilHealth: newSoil,
+          restTimeAccumulated: newRestTime,
         );
       }
     }
@@ -738,6 +785,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
       frenzyTimer: newFrenzyTimer,
       frenzyMultiplier: newFrenzyMultiplier,
       seasonLerpProgress: newLerp,
+      yearIndex: newYearIndex,
+      celestialOmen: newOmen,
     );
   }
 
@@ -857,6 +906,13 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
     final updatedTiles = Map<HexAxial, HexTileModel>.from(state.tiles);
     updatedTiles[coord] = tile.copyWith(state: TileState.owned);
+
+    // Ekolojik Biyom Simbiyoz Kontrolü
+    final symbiosis = SymbiosisEngine.evaluateSymbiosis(coord, updatedTiles);
+    if (symbiosis != SymbiosisType.none) {
+      updatedTiles[coord] = updatedTiles[coord]!.copyWith(symbiosis: symbiosis);
+      showToast('EKOLOJİK SİMBİYOZ: ${SymbiosisEngine.getSymbiosisName(symbiosis)} Doğdu! (+%50 Bereket)');
+    }
 
     // Çevresindeki fog karoları açığa çıkar (4 Radius Disk)
     final revealRange = coord.getRange(4);
@@ -1631,6 +1687,10 @@ class GameStateNotifier extends StateNotifier<GameState> {
       quests: state.quests,
       doctrines: state.doctrines,
       activeDoctrineSlots: state.activeDoctrineSlots,
+      caravanRoutes: state.caravanRoutes,
+      celestialOmen: state.celestialOmen,
+      yearIndex: state.yearIndex,
+      discoveredKurgans: state.discoveredKurgans,
     );
   }
 
@@ -1725,8 +1785,176 @@ class GameStateNotifier extends StateNotifier<GameState> {
     return true;
   }
 
+  void addCaravanRoute(HexAxial startCoord, HexAxial endCoord) {
+    final startTile = state.tiles[startCoord];
+    final endTile = state.tiles[endCoord];
+    if (startTile == null || !startTile.isOwned || endTile == null || !endTile.isOwned) {
+      showToast('Kervan yolu yalnızca fethedilmiş araziler arasına kurulabilir.');
+      return;
+    }
+    if (startCoord == endCoord) {
+      showToast('Kervan yolu iki farklı arazi arasında olmalıdır.');
+      return;
+    }
+    final int dist = startCoord.distanceTo(endCoord);
+    if (dist > 8) {
+      showToast('Kervan yolu çok uzun (Maksimum 8 Hex).');
+      return;
+    }
+
+    final bool exists = state.caravanRoutes.any((r) =>
+        (r.startCoord == startCoord && r.endCoord == endCoord) ||
+        (r.startCoord == endCoord && r.endCoord == startCoord));
+    if (exists) {
+      showToast('Bu araziler arasında zaten bir kervan yolu mevcut.');
+      return;
+    }
+
+    const double plankCost = 30.0;
+    const double breadCost = 20.0;
+    if (state.resources.plank < plankCost || state.resources.bread < breadCost) {
+      showToast('Yetersiz Kaynak: Kervan yolu için 30 Kalas ve 20 Ekmek gerekir.');
+      return;
+    }
+
+    final newRoute = CaravanRoute(
+      id: 'caravan_${DateTime.now().millisecondsSinceEpoch}',
+      startCoord: startCoord,
+      endCoord: endCoord,
+    );
+
+    final updatedRoutes = [...state.caravanRoutes, newRoute];
+    state = state.copyWith(
+      caravanRoutes: updatedRoutes,
+      resources: state.resources.copyWith(
+        plank: state.resources.plank - plankCost,
+        bread: state.resources.bread - breadCost,
+      ),
+      activeToast: 'İpek Yolu Kervan Hattı Kuruldu! (+%25 Takas Rezonansı)',
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.build);
+    saveGame();
+  }
+
+  void removeCaravanRoute(String routeId) {
+    final updatedRoutes = state.caravanRoutes.where((r) => r.id != routeId).toList();
+    state = state.copyWith(
+      caravanRoutes: updatedRoutes,
+      activeToast: 'Kervan yolu kaldırıldı.',
+    );
+    TactileAudioService.instance.play(TactileSoundType.tap);
+    saveGame();
+  }
+
+  void toggleTranshumance() {
+    final updatedTiles = <HexAxial, HexTileModel>{};
+    int toggledCount = 0;
+    bool anyResting = false;
+
+    for (final entry in state.tiles.entries) {
+      final tile = entry.value;
+      if (tile.isOwned && (tile.biome == TileBiome.meadow || tile.building?.type == BuildingType.pasture)) {
+        final bool newResting = !tile.isResting;
+        updatedTiles[entry.key] = tile.copyWith(isResting: newResting);
+        toggledCount++;
+        if (newResting) anyResting = true;
+      } else {
+        updatedTiles[entry.key] = tile;
+      }
+    }
+
+    if (toggledCount == 0) {
+      showToast('Dinlendirilecek çayır veya otlak arazisi bulunamadı.');
+      return;
+    }
+
+    state = state.copyWith(
+      tiles: updatedTiles,
+      activeToast: anyResting
+          ? 'Yaylak Göçü: Çayırlar dinlenmeye alındı (Toprak yenileniyor, 2.5x Bereket birikiyor).'
+          : 'Kışlak Dönüşü: Sürüler otlaklara döndü (Üretim yeniden başladı).',
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.stoneClick);
+    saveGame();
+  }
+
+  void recordRhythmTap() {
+    final double now = DateTime.now().millisecondsSinceEpoch.toDouble();
+    final double last = state.lastRhythmTapTime;
+    final double diffSec = (now - last) / 1000.0;
+
+    int newCombo = 1;
+    if (diffSec >= 0.35 && diffSec <= 0.70) {
+      newCombo = math.min(5, state.rhythmCombo + 1);
+    } else {
+      newCombo = 1;
+    }
+
+    final double multiplier = EconomyCalculator.calculateRhythmComboMultiplier(newCombo);
+
+    state = state.copyWith(
+      lastRhythmTapTime: now,
+      rhythmCombo: newCombo,
+      rhythmMultiplier: multiplier,
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.tap);
+  }
+
+  void discoverAncestralKurgan(HexAxial coord) {
+    final tile = state.tiles[coord];
+    if (tile == null || tile.ancestralKurgan == null) return;
+
+    final kurgan = tile.ancestralKurgan!;
+    if (kurgan.isDiscovered) return;
+
+    final discoveredKurgan = kurgan.copyWith(isDiscovered: true);
+    final updatedTile = tile.copyWith(ancestralKurgan: discoveredKurgan);
+
+    final updatedTiles = Map<HexAxial, HexTileModel>.from(state.tiles);
+    updatedTiles[coord] = updatedTile;
+
+    final updatedDiscovered = [...state.discoveredKurgans, discoveredKurgan];
+
+    state = state.copyWith(
+      tiles: updatedTiles,
+      discoveredKurgans: updatedDiscovered,
+      activeToast: 'Ata Kurganı Keşfedildi! (${kurgan.relicTitle} - +${(kurgan.bonusMultiplier * 100).toInt()}% Kalıcı Miras)',
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.upgrade);
+    saveGame();
+  }
+
+  void toggleMacroOverview() {
+    state = state.copyWith(isMacroOverview: !state.isMacroOverview);
+  }
+
+  void toggleDioramaMode() {
+    state = state.copyWith(isDioramaMode: !state.isDioramaMode);
+  }
+
   void resetGame() {
     SaveRepository.deleteSave();
+
+    // Geçmiş göçün binalarını Ata Kurganı olarak derle
+    final List<AncestralKurgan> accumulatedKurgans = [...state.discoveredKurgans];
+    for (final entry in state.tiles.entries) {
+      final tile = entry.value;
+      if (tile.isOwned && tile.hasBuilding && tile.building!.type != BuildingType.castle) {
+        accumulatedKurgans.add(AncestralKurgan(
+          id: 'kurgan_${state.progression.totalMigrations}_${tile.coord.q}_${tile.coord.r}',
+          coord: tile.coord,
+          formerBuildingType: tile.building!.type,
+          formerLevel: tile.building!.level,
+          relicTitle: '${tile.building!.type.name.toUpperCase()} Kalıntısı',
+          bonusMultiplier: 0.05 * tile.building!.level,
+          isDiscovered: true,
+        ));
+      }
+    }
 
     // Prestige (Tamga) Hesaplama: (Hex Sayısı + Sunak Sayısı) / 2
     final int ownedHexes = state.progression.ownedCount;
@@ -1763,7 +1991,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
         cumulativeBiomeCounts: preservedBiomes,
         totalSessions: preservedSessions,
       ),
-      activeToast: 'Göç Tamamlandı. +$newTamgas Tamga Kazanıldı (Yeni Çarpan: x${tamgaMult.toStringAsFixed(1)}).',
+      discoveredKurgans: accumulatedKurgans,
+      activeToast: 'Büyük Göç Tamamlandı. +$newTamgas Tamga & Geçmiş Göç Kalıntıları Miras Kaldı!',
     );
 
     saveGame();
