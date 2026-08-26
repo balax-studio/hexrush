@@ -21,7 +21,7 @@ try:
 except ImportError:
     psutil = None
 
-# Bilinen IDE süreçleri ve pencere anahtar kelimeleri
+# Bilinen IDE ve Flutter süreçleri ile pencere anahtar kelimeleri
 KNOWN_PROCESS_NAMES = {
     "antigravity ide.exe",
     "antigravity.exe",
@@ -30,6 +30,12 @@ KNOWN_PROCESS_NAMES = {
     "windsurf.exe",
     "vscodium.exe",
     "electron.exe",
+    "flutter.exe",
+    "dart.exe",
+    "flutter_tester.exe",
+    "hex_rush.exe",
+    "altigen.exe",
+    "main.exe",
 }
 
 KNOWN_TITLE_KEYWORDS = [
@@ -38,6 +44,10 @@ KNOWN_TITLE_KEYWORDS = [
     "cursor",
     "windsurf",
     "vscodium",
+    "flutter",
+    "hexrush",
+    "hex_rush",
+    "dart",
 ]
 
 user32 = ctypes.windll.user32
@@ -76,11 +86,13 @@ def is_ide_window(hwnd, filter_title=None):
             return True
 
     cls_name = win32gui.GetClassName(hwnd)
-    if cls_name == "Chrome_WidgetWin_1":
-        _, pid = win32process.GetWindowThreadProcessId(hwnd)
-        pname = get_process_name_by_pid(pid)
-        if pname in KNOWN_PROCESS_NAMES:
-            return True
+    if cls_name == "FLUTTER_RUNNER_WIN32_WINDOW":
+        return True
+
+    _, pid = win32process.GetWindowThreadProcessId(hwnd)
+    pname = get_process_name_by_pid(pid)
+    if pname in KNOWN_PROCESS_NAMES:
+        return True
 
     return False
 

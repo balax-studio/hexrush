@@ -102,3 +102,16 @@ Bu dosya, projede çalışan tüm yapay zeka ajanları ve geliştiriciler için 
       - `ButtonSize.lg` (40px - 42px): Ana fetih butonu (42px), Kağan Otağı geliştirme (40px), Diorama aksiyonları (40px).
       - `BuildGridCard`: İnşaat seçim kartları sabit 56px yükseklik ve `MainAxisAlignment.spaceBetween` ile hizalanmalıdır.
     - Tüm buton içerikleri `alignment: Alignment.center` veya `MainAxisAlignment.center` ile dikeyde tam ortalanmalıdır.
+
+22. **Kayıpsız Git Senkronizasyon ve Akıllı Birleştirme Protokolü (Lossless Git Sync & Smart Merge):**
+    - Uzak depodan (`origin/main`) kod çekilirken (pull / rebase / fetch) hiçbir yerel geliştirme veya script doğrudan ezilemez/silinemez.
+    - Birleştirme öncesinde `git log HEAD..origin/main` ve yerel diff analizi yapılarak iki taraftaki tüm özelliklerin nihai kodda eksiksiz harmanlanması sağlanır.
+    - `git stash save` -> `git pull --rebase` -> `git stash pop` akışı uygulanır; çakışmalarda her iki özelliğin de korunduğu kapsayıcı birleştirme yapılır.
+    - İşlem sonrası `flutter test` çalıştırılarak tüm testlerin eksiksiz geçtiği doğrulanır (`.agents/rules/kayipsiz_git_senkronizasyon_ve_birlestirme_protokolu.md`).
+
+23. **Cerrahi Arama, Ripgrep ve Token Tasarrufu Standardı (Surgical Phased Retrieval):**
+    - Kod analizi ve düzenleme taleplerinde dosyaları körü körüne topluca okumak (bulk read) yasaktır; hedef sınıf/fonksiyon öncelikle `ripgrep` / `grep_search` ile taranmalıdır.
+    - Kademeli arama protokolü (standart -> `-u` gizli dosyalar -> `-tdart` / `-tjson` dosya tipi filtreleme) uygulanır.
+    - Cerrahi müdahale öncesinde kod bloğunun yaşam döngüsü ve yan etkileri incelenmeli, gereksiz token tüketimi ve bağlam kirliliği engellenmelidir (`.agents/rules/cerrahi_arama_ve_ripgrep_tasarruf_standartlari.md`).
+
+

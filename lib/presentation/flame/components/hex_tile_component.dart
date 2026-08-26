@@ -83,12 +83,16 @@ class HexTileComponent extends PositionComponent {
     ..style = PaintingStyle.fill;
   static final Paint _badgeShadowPaint = Paint()..color = Colors.black;
   static final Paint _unownedTopScrimPaint = Paint()
-    ..color = const Color(0x33090E17)
+    ..color = const Color(0x44020617)
     ..style = PaintingStyle.fill;
   static final Paint _unownedBorderPaint = Paint()
-    ..color = const Color(0x3A000000)
+    ..color = const Color(0x55000000)
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 1.0;
+    ..strokeWidth = 1.2;
+  static final Paint _ownedTerritoryBorderPaint = Paint()
+    ..color = const Color(0x33D97706)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.5;
 
   static final Path _fogPath = Path();
   static final Path _wallPath = Path();
@@ -382,6 +386,8 @@ class HexTileComponent extends PositionComponent {
     if (!tileModel.isOwned) {
       canvas.drawPath(_topPath, _unownedTopScrimPaint);
       canvas.drawPath(_topPath, _unownedBorderPaint);
+    } else if (!isSelected) {
+      canvas.drawPath(_topPath, _ownedTerritoryBorderPaint);
     }
 
     if (tileModel.isWarmed) {
