@@ -11,6 +11,10 @@ class TactileNeoButton extends StatefulWidget {
   final Color shadowColor;
   final double shadowOffset;
   final double borderRadius;
+  final double? height;
+  final double? width;
+  final double? minWidth;
+  final AlignmentGeometry? alignment;
   final EdgeInsetsGeometry padding;
   final bool isEnabled;
   final TactileSoundType soundType;
@@ -24,6 +28,10 @@ class TactileNeoButton extends StatefulWidget {
     this.shadowColor = Colors.black,
     this.shadowOffset = 3.0,
     this.borderRadius = 3.0,
+    this.height,
+    this.width,
+    this.minWidth,
+    this.alignment,
     this.padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
     this.isEnabled = true,
     this.soundType = TactileSoundType.tap,
@@ -74,6 +82,12 @@ class _TactileNeoButtonState extends State<TactileNeoButton> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 60),
           curve: Curves.easeOutQuad,
+          height: widget.height,
+          width: widget.width,
+          constraints: widget.minWidth != null
+              ? BoxConstraints(minWidth: widget.minWidth!)
+              : null,
+          alignment: widget.alignment,
           padding: widget.padding,
           decoration: BoxDecoration(
             color: active

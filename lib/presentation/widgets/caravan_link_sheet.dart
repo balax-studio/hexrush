@@ -4,6 +4,7 @@ import '../../core/hex/hex_coordinates.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/models/game_state.dart';
 import '../providers/game_state_notifier.dart';
+import 'tactile_neo_button.dart';
 
 class CaravanLinkSheet extends ConsumerWidget {
   final HexAxial startCoord;
@@ -138,22 +139,28 @@ class CaravanLinkSheet extends ConsumerWidget {
                               ),
                             )
                           else
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: canAfford ? const Color(0xFFF59E0B) : const Color(0xFF334155),
-                                foregroundColor: Colors.black,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
-                              ),
-                              onPressed: canAfford
+                            TactileNeoButton(
+                              onTap: canAfford
                                   ? () {
                                       ref.read(gameStateProvider.notifier).addCaravanRoute(startCoord, target.coord);
                                       Navigator.of(context).pop();
                                     }
                                   : null,
-                              child: const Text('HAT ÇEK'),
+                              isEnabled: canAfford,
+                              backgroundColor: const Color(0xFFF59E0B),
+                              borderColor: Colors.black,
+                              shadowOffset: 2.0,
+                              height: 30,
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              alignment: Alignment.center,
+                              child: const Text(
+                                'HAT ÇEK',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
                             ),
                         ],
                       ),
@@ -162,17 +169,20 @@ class CaravanLinkSheet extends ConsumerWidget {
                 ),
               ),
             const SizedBox(height: 12),
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFF334155)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-              ),
-              onPressed: () => Navigator.of(context).pop(),
+            TactileNeoButton(
+              onTap: () => Navigator.of(context).pop(),
+              backgroundColor: const Color(0xFF1E293B),
+              borderColor: const Color(0xFF334155),
+              shadowOffset: 2.0,
+              height: 36,
+              padding: EdgeInsets.zero,
+              alignment: Alignment.center,
               child: const Text(
                 'KAPAT',
                 style: TextStyle(
                   color: Color(0xFFCBD5E1),
                   fontSize: 12,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
             ),

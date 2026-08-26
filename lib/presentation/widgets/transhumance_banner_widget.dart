@@ -18,8 +18,9 @@ class TranshumanceBannerWidget extends ConsumerWidget {
         // 1. Dokunsal Ritim Ahenk Rozeti (Tactile Chimes Combo)
         if (combo > 1)
           Container(
+            height: 26,
             margin: const EdgeInsets.only(right: 6),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             decoration: BoxDecoration(
               color: combo >= 5
                   ? const Color(0xFF831843)
@@ -37,10 +38,11 @@ class TranshumanceBannerWidget extends ConsumerWidget {
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Icon(
                   Icons.music_note,
-                  size: 14,
+                  size: 13,
                   color: combo >= 5
                       ? const Color(0xFFFDA4AF)
                       : (combo >= 3 ? const Color(0xFFFDE68A) : const Color(0xFFBAE6FD)),
@@ -64,7 +66,8 @@ class TranshumanceBannerWidget extends ConsumerWidget {
             ref.read(gameStateProvider.notifier).toggleTranshumance();
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            height: 26,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             decoration: BoxDecoration(
               color: anyResting ? const Color(0xFF064E3B) : const Color(0xFF1E293B),
               border: Border.all(
@@ -78,13 +81,14 @@ class TranshumanceBannerWidget extends ConsumerWidget {
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Icon(
                   anyResting ? Icons.spa : Icons.terrain,
-                  size: 16,
+                  size: 14,
                   color: anyResting ? const Color(0xFF10B981) : const Color(0xFF94A3B8),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 5),
                 Text(
                   anyResting ? 'YAYLAKTA DİNLENİYOR' : 'KIŞLAKTA OTLUYOR',
                   style: TextStyle(

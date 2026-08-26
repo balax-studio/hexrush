@@ -3,6 +3,7 @@ import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/models/game_state_model.dart';
 import 'icons/game_vector_icons.dart';
+import 'tactile_neo_button.dart';
 
 class SeasonCalendarWidget extends StatelessWidget {
   final SeasonModel season;
@@ -66,16 +67,17 @@ class SeasonCalendarWidget extends StatelessWidget {
                 ],
               ),
               if (onClose != null)
-                GestureDetector(
+                TactileNeoButton(
                   onTap: onClose,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
-                      borderRadius: NeoBrutalistTheme.sharpRadius,
-                      border: Border.all(color: const Color(0xFF475569), width: 1.5),
-                    ),
-                    child: const Icon(
+                  backgroundColor: const Color(0xFF1E293B),
+                  borderColor: const Color(0xFF475569),
+                  shadowOffset: 1.5,
+                  height: 24,
+                  width: 24,
+                  padding: EdgeInsets.zero,
+                  alignment: Alignment.center,
+                  child: const Center(
+                    child: Icon(
                       Icons.close,
                       size: 14,
                       color: Colors.white70,

@@ -443,12 +443,14 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   borderColor: theme.border,
                   shadowColor: theme.shadowColor,
                   shadowOffset: 2.0,
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                  height: 30,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  alignment: Alignment.center,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const GameVectorIcon(type: GameIconType.frenzy, size: 13, color: Colors.white),
-                      const SizedBox(width: 3),
+                      const SizedBox(width: 4),
                       Text(
                         gameState.frenzyTimer > 0
                             ? '${gameState.frenzyTimer.toInt()}s'
@@ -634,7 +636,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   if (gameState.season.isZud) ...[
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      height: 26,
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
                       decoration: BoxDecoration(
                         color: const Color(0xFFEF4444),
                         borderRadius: NeoBrutalistTheme.sharpRadius,
@@ -643,6 +646,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           GameVectorIcon(type: GameIconType.zud, size: 12, color: Colors.white),
                           SizedBox(width: 4),
@@ -675,7 +679,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   clipBehavior: Clip.none,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      height: 26,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       decoration: BoxDecoration(
                         color: theme.surfaceLight,
                         borderRadius: NeoBrutalistTheme.sharpRadius,
@@ -684,6 +689,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
                             'OTAĞ LV.${gameState.progression.castleLevel}',
@@ -778,10 +784,13 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
       backgroundColor: backgroundColor,
       borderColor: borderColor,
       shadowOffset: 2.0,
-      padding: const EdgeInsets.all(6),
+      height: 30,
+      width: 30,
+      padding: EdgeInsets.zero,
+      alignment: Alignment.center,
       child: Tooltip(
         message: tooltip,
-        child: icon,
+        child: Center(child: icon),
       ),
     );
   }
@@ -791,7 +800,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+        height: 30,
+        padding: const EdgeInsets.symmetric(horizontal: 7),
         decoration: BoxDecoration(
           color: theme.surfaceLight,
           borderRadius: NeoBrutalistTheme.sharpRadius,
@@ -800,6 +810,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const GameVectorIcon(type: GameIconType.land, size: 14),
             const SizedBox(width: 5),
@@ -848,7 +859,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        height: 26,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
           color: theme.surfaceLight,
           borderRadius: NeoBrutalistTheme.sharpRadius,
@@ -857,6 +869,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             GameVectorIcon(type: iconType, size: 13),
             const SizedBox(width: 5),
@@ -864,7 +877,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
               '$name · ${GameLocalization.get('year', lang: lang)} ${season.year}',
               style: TextStyle(
                 color: color,
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 0.3,
               ),
@@ -956,7 +969,8 @@ class _ResourcePulseChipState extends State<ResourcePulseChip> with SingleTicker
           animation: _controller,
           builder: (context, child) {
             return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+              height: 30,
+              padding: const EdgeInsets.symmetric(horizontal: 7),
               decoration: BoxDecoration(
                 color: _controller.isAnimating ? (_colorAnimation.value ?? theme.surfaceLight) : theme.surfaceLight,
                 borderRadius: NeoBrutalistTheme.sharpRadius,
@@ -970,6 +984,7 @@ class _ResourcePulseChipState extends State<ResourcePulseChip> with SingleTicker
               ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 GameVectorIcon(type: widget.type, size: 14),
                 const SizedBox(width: 5),

@@ -92,3 +92,13 @@ Bu dosya, projede çalışan tüm yapay zeka ajanları ve geliştiriciler için 
     - **Önce Basitlik ve Minimalizm (Simplicity First):** Talep edilmeyen hiçbir soyutlama, ekstra özellik veya spekülatif esneklik ekleme. Minimum ve en yalın kodla çöz.
     - **Cerrahi Değişiklikler (Surgical Changes):** Yalnızca görevin doğrudan gerektirdiği satırlara dokun. Çevre kodlarda veya ilgisiz dosyalarda refactoring/temizlik yapma.
     - **Hedef Odaklı Yürütme (Goal-Driven Execution):** Her adımı somut doğrulama kriterlerine bağla ve testlerle teyit etmeden görevi tamamlandı sayma.
+
+21. **Buton Boyut, Yükseklik ve Taktil Hiyerarşi Standardı (Uniform Tactile Button Tokens):**
+    - Ham Flutter `ElevatedButton`, `OutlinedButton` veya `TextButton` kullanımı KESİNLİKLE YASAKTIR; tüm interaktif butonlar `TactileNeoButton` ile oluşturulmalıdır.
+    - Buton yükseklikleri keyfi dolgu (padding) yerine tanımlı yükseklik jetonlarıyla yönetilmelidir:
+      - `ButtonSize.xs` (24px - 28px): Modal/HUD kapatma butonları (28x28px / 24x24px), Otağ seviye ve sinerji sayaçları (26px).
+      - `ButtonSize.sm` (26px - 30px): TopBarHUD kaynak çipleri ve Frenzy (30px), Mevsim/Zud rozetleri (26px), Kehanet ve Göç bannerları (26px), Kurgan/Kervan aksiyonları (30px), Meclis sekmeleri ve doktrin aksiyonları (30px).
+      - `ButtonSize.md` (32px - 38px): Görev tamamlama butonu (32px), Pazar takas butonları (34px), Dil seçim butonları (34px x 50px), Harita FAB butonları (36x36px), Bina topla/yükselt/ısıt/yık aksiyonları (38px).
+      - `ButtonSize.lg` (40px - 42px): Ana fetih butonu (42px), Kağan Otağı geliştirme (40px), Diorama aksiyonları (40px).
+      - `BuildGridCard`: İnşaat seçim kartları sabit 56px yükseklik ve `MainAxisAlignment.spaceBetween` ile hizalanmalıdır.
+    - Tüm buton içerikleri `alignment: Alignment.center` veya `MainAxisAlignment.center` ile dikeyde tam ortalanmalıdır.

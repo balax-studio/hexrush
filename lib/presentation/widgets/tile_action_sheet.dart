@@ -234,18 +234,24 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                             ],
                           ),
                         ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFF59E0B),
-                            foregroundColor: Colors.black,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-                          ),
-                          onPressed: () {
+                        TactileNeoButton(
+                          onTap: () {
                             ref.read(gameStateProvider.notifier).discoverAncestralKurgan(tile.coord);
                           },
-                          child: const Text('UYANDIR', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                          backgroundColor: const Color(0xFFF59E0B),
+                          borderColor: theme.border,
+                          shadowOffset: 2.0,
+                          height: 30,
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          alignment: Alignment.center,
+                          child: const Text(
+                            'UYANDIR',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -334,20 +340,8 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
               ),
             ],
           ),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: hasRoute ? const Color(0xFF047857) : theme.slateBorder,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-            ),
-            icon: Icon(hasRoute ? Icons.check : Icons.swap_calls, size: 14),
-            label: Text(
-              hasRoute ? 'KERVAN AKTİF' : 'KERVAN BAĞLA',
-              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-            ),
-            onPressed: () {
+          TactileNeoButton(
+            onTap: () {
               showModalBottomSheet<void>(
                 context: context,
                 backgroundColor: Colors.transparent,
@@ -355,6 +349,27 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 builder: (_) => CaravanLinkSheet(startCoord: tile.coord),
               );
             },
+            backgroundColor: hasRoute ? const Color(0xFF047857) : theme.slateBorder,
+            borderColor: theme.border,
+            shadowOffset: 2.0,
+            height: 30,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            alignment: Alignment.center,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(hasRoute ? Icons.check : Icons.swap_calls, size: 14, color: Colors.white),
+                const SizedBox(width: 4),
+                Text(
+                  hasRoute ? 'KERVAN AKTİF' : 'KERVAN BAĞLA',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -423,7 +438,9 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
             borderColor: theme.border,
             shadowColor: theme.shadowColor,
             shadowOffset: 3.0,
-            padding: const EdgeInsets.symmetric(vertical: 10),
+            height: 42,
+            padding: EdgeInsets.zero,
+            alignment: Alignment.center,
             soundType: TactileSoundType.conquer,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -492,7 +509,9 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 borderColor: theme.border,
                 shadowColor: theme.shadowColor,
                 shadowOffset: 3.0,
-                padding: const EdgeInsets.symmetric(vertical: 10),
+                height: 40,
+                padding: EdgeInsets.zero,
+                alignment: Alignment.center,
                 soundType: TactileSoundType.upgrade,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -521,7 +540,9 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 borderColor: theme.border,
                 shadowColor: theme.shadowColor,
                 shadowOffset: 3.0,
-                padding: const EdgeInsets.symmetric(vertical: 10),
+                height: 40,
+                padding: EdgeInsets.zero,
+                alignment: Alignment.center,
                 soundType: TactileSoundType.tap,
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -740,7 +761,9 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                   borderColor: theme.border,
                   shadowColor: theme.shadowColor,
                   shadowOffset: 2.5,
-                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  height: 38,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  alignment: Alignment.center,
                   soundType: TactileSoundType.tap,
                   child: Center(
                     child: Text(
@@ -764,7 +787,9 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 borderColor: theme.border,
                 shadowColor: theme.shadowColor,
                 shadowOffset: 2.5,
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                height: 38,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                alignment: Alignment.center,
                 soundType: TactileSoundType.upgrade,
                 child: Center(
                   child: Text(
@@ -787,7 +812,9 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 borderColor: theme.border,
                 shadowColor: theme.shadowColor,
                 shadowOffset: 2.5,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                height: 38,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                alignment: Alignment.center,
                 soundType: TactileSoundType.tap,
                 child: Text(
                   'ISIT (${warmWoodCost.toInt()} ODUN)',
@@ -807,7 +834,10 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 borderColor: theme.border,
                 shadowColor: theme.shadowColor,
                 shadowOffset: 2.5,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                height: 38,
+                width: 38,
+                padding: EdgeInsets.zero,
+                alignment: Alignment.center,
                 soundType: TactileSoundType.tap,
                 child: const Icon(Icons.delete_outline, color: Colors.white, size: 16),
               ),
@@ -861,7 +891,9 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                       backgroundColor: theme.slateBorder,
                       borderColor: theme.border,
                       shadowOffset: 2.0,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      height: 36,
+                      padding: EdgeInsets.zero,
+                      alignment: Alignment.center,
                       child: const Center(
                         child: Text(
                           'VAZGEÇ',
@@ -884,7 +916,9 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                       backgroundColor: const Color(0xFFDC2626),
                       borderColor: theme.border,
                       shadowOffset: 2.0,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      height: 36,
+                      padding: EdgeInsets.zero,
+                      alignment: Alignment.center,
                       child: const Center(
                         child: Text(
                           'YIK',
@@ -1122,11 +1156,12 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         borderColor: borderColor,
         shadowColor: isTutorialTarget ? theme.primaryGold.withValues(alpha: 0.4) : theme.shadowColor,
         shadowOffset: isTutorialTarget ? 3.0 : 2.0,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+        height: 56,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         soundType: TactileSoundType.build,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
               children: [
@@ -1185,7 +1220,6 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 ],
               ],
             ),
-            const SizedBox(height: 4),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

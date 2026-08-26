@@ -55,17 +55,16 @@ class MigrantMemoryDialog extends ConsumerWidget {
                     ),
                   ],
                 ),
-                GestureDetector(
+                TactileNeoButton(
                   onTap: () => Navigator.of(context).pop(),
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
-                      borderRadius: NeoBrutalistTheme.sharpRadius,
-                      border: Border.all(color: const Color(0xFF475569), width: 1.5),
-                    ),
-                    child: const Icon(Icons.close, size: 16, color: Colors.white70),
-                  ),
+                  backgroundColor: const Color(0xFF1E293B),
+                  borderColor: const Color(0xFF475569),
+                  shadowOffset: 2.0,
+                  height: 28,
+                  width: 28,
+                  padding: EdgeInsets.zero,
+                  alignment: Alignment.center,
+                  child: const Center(child: Icon(Icons.close, size: 16, color: Colors.white70)),
                 ),
               ],
             ),
@@ -218,7 +217,9 @@ class MigrantMemoryDialog extends ConsumerWidget {
               backgroundColor: const Color(0xFFD97706),
               borderColor: Colors.black,
               shadowOffset: 2.0,
-              padding: const EdgeInsets.symmetric(vertical: 10),
+              height: 38,
+              padding: EdgeInsets.zero,
+              alignment: Alignment.center,
               child: Text(
                 GameLocalization.get('close', lang: lang).toUpperCase(),
                 textAlign: TextAlign.center,

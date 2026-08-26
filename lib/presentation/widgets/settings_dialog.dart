@@ -51,8 +51,11 @@ class SettingsDialog extends ConsumerWidget {
                   onTap: () => Navigator.of(context).pop(),
                   backgroundColor: const Color(0xFF334155),
                   shadowOffset: 2.0,
-                  padding: const EdgeInsets.all(5),
-                  child: const Icon(Icons.close, color: Colors.white, size: 16),
+                  height: 28,
+                  width: 28,
+                  padding: EdgeInsets.zero,
+                  alignment: Alignment.center,
+                  child: const Center(child: Icon(Icons.close, color: Colors.white, size: 16)),
                 ),
               ],
             ),
@@ -90,7 +93,9 @@ class SettingsDialog extends ConsumerWidget {
                   backgroundColor: settings.sfxMuted ? const Color(0xFF7F1D1D) : const Color(0xFF065F46),
                   borderColor: Colors.black,
                   shadowOffset: 2.0,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  height: 30,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  alignment: Alignment.center,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -254,10 +259,17 @@ class SettingsDialog extends ConsumerWidget {
                       style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
                     ),
                     actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(ctx).pop(),
-                        child: const Text('İPTAL', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w900)),
+                      TactileNeoButton(
+                        onTap: () => Navigator.of(ctx).pop(),
+                        backgroundColor: const Color(0xFF334155),
+                        borderColor: Colors.black,
+                        shadowOffset: 2.0,
+                        height: 32,
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        alignment: Alignment.center,
+                        child: const Text('İPTAL', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w900)),
                       ),
+                      const SizedBox(width: 8),
                       TactileNeoButton(
                         onTap: () {
                           Navigator.of(ctx).pop();
@@ -267,7 +279,9 @@ class SettingsDialog extends ConsumerWidget {
                         backgroundColor: const Color(0xFFEF4444),
                         borderColor: Colors.black,
                         shadowOffset: 2.0,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        height: 32,
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        alignment: Alignment.center,
                         child: const Text('SIFIRLA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
                       ),
                     ],
@@ -278,22 +292,19 @@ class SettingsDialog extends ConsumerWidget {
               borderColor: Colors.black,
               shadowColor: const Color(0xFF450A0A),
               shadowOffset: 2.5,
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.refresh_rounded, size: 16, color: Colors.white),
-                  const SizedBox(width: 8),
-                  Text(
-                    GameLocalization.get('reset_game', lang: lang).toUpperCase(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 11,
-                      letterSpacing: 0.5,
-                    ),
+              height: 38,
+              padding: EdgeInsets.zero,
+              alignment: Alignment.center,
+              child: const Center(
+                child: Text(
+                  'OYUNU SIFIRLA & BAŞTAN BAŞLA',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.3,
                   ),
-                ],
+                ),
               ),
             ),
 
@@ -316,14 +327,19 @@ class SettingsDialog extends ConsumerWidget {
       backgroundColor: isSelected ? const Color(0xFFFFC700) : const Color(0xFF0F172A),
       borderColor: isSelected ? const Color(0xFFFBBF24) : Colors.black,
       shadowOffset: 2.0,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      height: 34,
+      width: 50,
+      padding: EdgeInsets.zero,
+      alignment: Alignment.center,
       soundType: TactileSoundType.tap,
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? Colors.black : Colors.white70,
-          fontSize: 12,
-          fontWeight: FontWeight.w900,
+      child: Center(
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.black : Colors.white70,
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+          ),
         ),
       ),
     );

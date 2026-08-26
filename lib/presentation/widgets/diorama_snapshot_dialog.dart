@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/game_state.dart';
 import '../providers/game_state_notifier.dart';
+import 'tactile_neo_button.dart';
 
 class DioramaSnapshotDialog extends ConsumerWidget {
   const DioramaSnapshotDialog({super.key});
@@ -86,35 +87,51 @@ class DioramaSnapshotDialog extends ConsumerWidget {
             Row(
               children: [
                 Expanded(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFF59E0B),
-                      foregroundColor: Colors.black,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    icon: const Icon(Icons.fullscreen, size: 18),
-                    label: const Text('TAM EKRAN DİORAMA', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
-                    onPressed: () {
+                  child: TactileNeoButton(
+                    onTap: () {
                       ref.read(gameStateProvider.notifier).toggleDioramaMode();
                       Navigator.of(context).pop();
                     },
+                    backgroundColor: const Color(0xFFF59E0B),
+                    borderColor: Colors.black,
+                    shadowColor: const Color(0xFF78350F),
+                    shadowOffset: 2.5,
+                    height: 40,
+                    padding: EdgeInsets.zero,
+                    alignment: Alignment.center,
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.fullscreen, size: 18, color: Colors.black),
+                        SizedBox(width: 6),
+                        Text(
+                          'TAM EKRAN DİORAMA',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 11,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFF334155)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  ),
-                  onPressed: () => Navigator.of(context).pop(),
+                TactileNeoButton(
+                  onTap: () => Navigator.of(context).pop(),
+                  backgroundColor: const Color(0xFF1E293B),
+                  borderColor: const Color(0xFF334155),
+                  shadowOffset: 2.0,
+                  height: 40,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  alignment: Alignment.center,
                   child: const Text(
                     'KAPAT',
                     style: TextStyle(
                       color: Color(0xFFCBD5E1),
                       fontSize: 12,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                 ),

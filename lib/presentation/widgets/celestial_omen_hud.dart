@@ -43,7 +43,8 @@ class CelestialOmenHud extends ConsumerWidget {
       message: '${omen.title}: ${omen.description}',
       preferBelow: true,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        height: 26,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
           color: const Color(0xFF1E293B),
           border: Border.all(color: const Color(0xFFD97706), width: 1.5),
@@ -54,9 +55,10 @@ class CelestialOmenHud extends ConsumerWidget {
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(getAnimalIcon(omen.animal), color: const Color(0xFFF59E0B), size: 16),
-            const SizedBox(width: 6),
+            Icon(getAnimalIcon(omen.animal), color: const Color(0xFFF59E0B), size: 14),
+            const SizedBox(width: 5),
             Text(
               omen.title.toUpperCase(),
               style: const TextStyle(

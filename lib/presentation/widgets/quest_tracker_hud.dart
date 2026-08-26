@@ -242,7 +242,9 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                               borderColor: theme.border,
                               shadowColor: theme.shadowColor,
                               shadowOffset: 2.5,
-                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              height: 32,
+                              padding: EdgeInsets.zero,
+                              alignment: Alignment.center,
                               soundType: TactileSoundType.reward,
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,

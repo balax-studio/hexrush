@@ -8,6 +8,7 @@ import '../widgets/diorama_snapshot_dialog.dart';
 import '../widgets/market_dialog.dart';
 import '../widgets/quest_tracker_hud.dart';
 import '../widgets/settings_dialog.dart';
+import '../widgets/tactile_neo_button.dart';
 import '../widgets/tile_action_sheet.dart';
 import '../widgets/toast_overlay.dart';
 import '../widgets/top_bar_hud.dart';
@@ -103,23 +104,19 @@ class GameScreen extends ConsumerWidget {
                   child: Column(
                     children: [
                       // Kuş Bakışı Mercek Butonu
-                      InkWell(
+                      TactileNeoButton(
                         onTap: () {
                           ref.read(gameStateProvider.notifier).toggleMacroOverview();
                         },
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: isMacroOverview ? theme.primaryGold : theme.surfaceLight,
-                            border: Border.all(
-                              color: isMacroOverview ? const Color(0xFFF59E0B) : theme.border,
-                              width: 1.5,
-                            ),
-                            borderRadius: BorderRadius.circular(3),
-                            boxShadow: const [
-                              BoxShadow(color: Color(0xFF020617), offset: Offset(2, 2)),
-                            ],
-                          ),
+                        backgroundColor: isMacroOverview ? theme.primaryGold : theme.surfaceLight,
+                        borderColor: isMacroOverview ? const Color(0xFFF59E0B) : theme.border,
+                        shadowColor: theme.shadowColor,
+                        shadowOffset: 2.0,
+                        height: 36,
+                        width: 36,
+                        padding: EdgeInsets.zero,
+                        alignment: Alignment.center,
+                        child: Center(
                           child: Icon(
                             isMacroOverview ? Icons.zoom_in : Icons.zoom_out_map,
                             size: 18,
@@ -129,24 +126,23 @@ class GameScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       // Diorama Mühür & Fotoğraf Butonu
-                      InkWell(
+                      TactileNeoButton(
                         onTap: () {
                           showDialog<void>(
                             context: context,
                             builder: (_) => const DioramaSnapshotDialog(),
                           );
                         },
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: theme.surfaceLight,
-                            border: Border.all(color: theme.border, width: 1.5),
-                            borderRadius: BorderRadius.circular(3),
-                            boxShadow: const [
-                              BoxShadow(color: Color(0xFF020617), offset: Offset(2, 2)),
-                            ],
-                          ),
-                          child: const Icon(
+                        backgroundColor: theme.surfaceLight,
+                        borderColor: theme.border,
+                        shadowColor: theme.shadowColor,
+                        shadowOffset: 2.0,
+                        height: 36,
+                        width: 36,
+                        padding: EdgeInsets.zero,
+                        alignment: Alignment.center,
+                        child: const Center(
+                          child: Icon(
                             Icons.camera_alt,
                             size: 18,
                             color: Colors.white,
@@ -163,22 +159,33 @@ class GameScreen extends ConsumerWidget {
                 top: 20,
                 right: 20,
                 child: SafeArea(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.primaryGold,
-                      foregroundColor: Colors.black,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    ),
-                    icon: const Icon(Icons.close, size: 16),
-                    label: const Text(
-                      'DİORAMADAN ÇIK',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
-                    ),
-                    onPressed: () {
+                  child: TactileNeoButton(
+                    onTap: () {
                       ref.read(gameStateProvider.notifier).toggleDioramaMode();
                     },
+                    backgroundColor: theme.primaryGold,
+                    borderColor: theme.border,
+                    shadowColor: theme.shadowColor,
+                    shadowOffset: 3.0,
+                    height: 38,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    alignment: Alignment.center,
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.close, size: 16, color: Colors.black),
+                        SizedBox(width: 6),
+                        Text(
+                          'DİORAMADAN ÇIK',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 11,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

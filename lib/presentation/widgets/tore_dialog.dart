@@ -62,8 +62,11 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                   onTap: () => Navigator.of(context).pop(),
                   backgroundColor: const Color(0xFF334155),
                   shadowOffset: 2.0,
-                  padding: const EdgeInsets.all(5),
-                  child: const Icon(Icons.close, color: Colors.white, size: 16),
+                  height: 28,
+                  width: 28,
+                  padding: EdgeInsets.zero,
+                  alignment: Alignment.center,
+                  child: const Center(child: Icon(Icons.close, color: Colors.white, size: 16)),
                 ),
               ],
             ),
@@ -139,7 +142,9 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
         backgroundColor: isSelected ? const Color(0xFF8B5CF6) : const Color(0xFF1E293B),
         borderColor: isSelected ? Colors.black : const Color(0xFF475569),
         shadowOffset: isSelected ? 2.0 : 0.0,
-        padding: const EdgeInsets.symmetric(vertical: 6),
+        height: 30,
+        padding: EdgeInsets.zero,
+        alignment: Alignment.center,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -327,7 +332,9 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                       backgroundColor: const Color(0xFF10B981),
                       borderColor: Colors.black,
                       shadowOffset: 2.0,
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      height: 30,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      alignment: Alignment.center,
                       child: const Text(
                         'ÇIKAR',
                         style: TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.w900),
@@ -349,7 +356,9 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                       borderColor: Colors.black,
                       shadowColor: const Color(0xFF4C1D95),
                       shadowOffset: 2.0,
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      height: 30,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      alignment: Alignment.center,
                       child: const Text(
                         'YUVAYA TAK',
                         style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
@@ -363,7 +372,9 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                       borderColor: Colors.black,
                       shadowColor: const Color(0xFF78350F),
                       shadowOffset: 2.0,
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      height: 30,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      alignment: Alignment.center,
                       child: Text(
                         castleLvl < doc.unlockCastleLevel
                             ? 'ŞATO LV.${doc.unlockCastleLevel}'
@@ -605,7 +616,9 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                     borderColor: Colors.black,
                     shadowColor: const Color(0xFF4C1D95),
                     shadowOffset: 2.0,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    height: 30,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    alignment: Alignment.center,
                     soundType: TactileSoundType.upgrade,
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -817,7 +830,9 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                       borderColor: Colors.black,
                       shadowColor: const Color(0xFF0369A1),
                       shadowOffset: 2.0,
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      height: 30,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      alignment: Alignment.center,
                       soundType: TactileSoundType.reward,
                       child: const Text(
                         'TEMAYI KUŞAN',
@@ -836,7 +851,9 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                       borderColor: Colors.black,
                       shadowColor: const Color(0xFF78350F),
                       shadowOffset: 2.0,
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      height: 30,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      alignment: Alignment.center,
                       soundType: TactileSoundType.reward,
                       child: Text(
                         GameLocalization.get('claim_title', lang: lang).toUpperCase(),
