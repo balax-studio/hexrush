@@ -708,12 +708,13 @@ class VoxelIsometricRenderer {
     double scale = 1.0,
     int seed = 0,
     bool flipX = false,
+    double startleProgress = 0.0,
   }) {
     if (flipX) {
       canvas.save();
       canvas.translate(pos.dx, pos.dy);
       canvas.scale(-1.0, 1.0);
-      drawVoxelHorse(canvas, Offset.zero, animTime: animTime, scale: scale, seed: seed, flipX: false);
+      drawVoxelHorse(canvas, Offset.zero, animTime: animTime, scale: scale, seed: seed, flipX: false, startleProgress: startleProgress);
       canvas.restore();
       return;
     }
@@ -759,7 +760,12 @@ class VoxelIsometricRenderer {
         break;
     }
 
-    if (pose == 0) {
+    // Dokunsal Dokunma İrkintisi (Startle Jump on Tap)
+    if (startleProgress > 0.0) {
+      final double startleJump = math.sin(startleProgress * math.pi) * 6.0 * scale;
+      bobY += startleJump;
+      headTilt = -4.0 * scale;
+    } else if (pose == 0) {
       final double cycle = t % 6.0;
       if (cycle < 4.0) {
         headTilt = 4.5 * scale;
@@ -790,6 +796,19 @@ class VoxelIsometricRenderer {
       drawShadow: true,
       shadowOpacity: 0.28,
     );
+
+    // Bozkır Kuşu (Atın sırtına konan minik sığırcık kuşu - Seyrek & Doğal)
+    if (pose == 2 && startleProgress <= 0.01) {
+      drawVoxelBird(
+        canvas,
+        Offset(pos.dx + 2 * cosIso * scale, pos.dy - 12 * scale - bobY),
+        scale: 0.35 * scale,
+        wingAnim: animTime * 0.5,
+        bodyColor: const Color(0xFF64748B),
+        wingColor: const Color(0xFF475569),
+        wingTipColor: const Color(0xFF334155),
+      );
+    }
 
     // Boyun
     final Offset neckPos = Offset(
@@ -871,38 +890,35 @@ class VoxelIsometricRenderer {
       rightColor: maneColor,
     );
 
-    // 4 Bacak
+    // 4 Bacak (Zero-GC, heap tahsisi olmadan sabit çizim)
     final double legH = 7.0 * scale;
-    final List<Offset> legOffsets = [
-      Offset(pos.dx - 5 * cosIso * scale, pos.dy - 1 * scale),
-      Offset(pos.dx - 2 * cosIso * scale, pos.dy - 4 * scale),
-      Offset(pos.dx + 4 * cosIso * scale, pos.dy - 1 * scale),
-      Offset(pos.dx + 7 * cosIso * scale, pos.dy - 4 * scale),
-    ];
+    _drawHorseLeg(canvas, Offset(pos.dx - 5 * cosIso * scale, pos.dy - 1 * scale), legH, scale, coatTop, coatLeft, coatRight);
+    _drawHorseLeg(canvas, Offset(pos.dx - 2 * cosIso * scale, pos.dy - 4 * scale), legH, scale, coatTop, coatLeft, coatRight);
+    _drawHorseLeg(canvas, Offset(pos.dx + 4 * cosIso * scale, pos.dy - 1 * scale), legH, scale, coatTop, coatLeft, coatRight);
+    _drawHorseLeg(canvas, Offset(pos.dx + 7 * cosIso * scale, pos.dy - 4 * scale), legH, scale, coatTop, coatLeft, coatRight);
+  }
 
-    for (final lPos in legOffsets) {
-      drawIsoCube(
-        canvas,
-        Offset(lPos.dx, lPos.dy),
-        w: 2.5 * scale,
-        d: 2.5 * scale,
-        h: legH,
-        topColor: coatTop,
-        leftColor: coatLeft,
-        rightColor: coatRight,
-      );
-      // Toynak
-      drawIsoCube(
-        canvas,
-        Offset(lPos.dx, lPos.dy + legH - 1.5),
-        w: 2.5 * scale,
-        d: 2.5 * scale,
-        h: 1.5 * scale,
-        topColor: const Color(0xFF0F172A),
-        leftColor: const Color(0xFF020617),
-        rightColor: const Color(0xFF020617),
-      );
-    }
+  static void _drawHorseLeg(Canvas canvas, Offset lPos, double legH, double scale, Color coatTop, Color coatLeft, Color coatRight) {
+    drawIsoCube(
+      canvas,
+      lPos,
+      w: 2.5 * scale,
+      d: 2.5 * scale,
+      h: legH,
+      topColor: coatTop,
+      leftColor: coatLeft,
+      rightColor: coatRight,
+    );
+    drawIsoCube(
+      canvas,
+      Offset(lPos.dx, lPos.dy + legH - 1.5),
+      w: 2.5 * scale,
+      d: 2.5 * scale,
+      h: 1.5 * scale,
+      topColor: const Color(0xFF0F172A),
+      leftColor: const Color(0xFF020617),
+      rightColor: const Color(0xFF020617),
+    );
   }
 
   // --- PATİKA YOLLAR (ROADS) ---
@@ -4718,5 +4734,243 @@ class VoxelIsometricRenderer {
       _sharedFillPaint.color = (i % 2 == 0 ? const Color(0xFFC084FC) : const Color(0xFF38BDF8)).withValues(alpha: alpha);
       canvas.drawCircle(Offset(x, y), 1.3, _sharedFillPaint);
     }
+  }
+
+  // --- CANLI VE ORGANİK BOZKIR DÜNYASI SİSTEMİ (LIVING STEPPE ECOSYSTEM) ---
+
+  /// Global Bozkır Rüzgar Dalgası: Harita boyunca yayılan organik, heterodin rüzgar dalgası (-1.0 .. 1.0)
+  static double getSteppeWindWave(double globalTime, int q, int r) {
+    final double w1 = math.sin(globalTime * 0.75 + q * 0.28 + r * 0.19);
+    final double w2 = math.sin(globalTime * 1.35 - q * 0.15 + r * 0.31) * 0.35;
+    return (w1 + w2).clamp(-1.0, 1.0);
+  }
+
+  /// 3D Voxel Ocak / Otağ Bacası Dumanı (Organik Yükselen, Rüzgara Eğilen, Asenkron Partiküller)
+  static void drawVoxelSmokePlume(
+    Canvas canvas,
+    Offset chimneyPos, {
+    required double animTime,
+    required int seed,
+    double windWave = 0.0,
+    double scale = 1.0,
+    Color? smokeColor,
+  }) {
+    final double timeOffset = (seed * 3.71) % 10.0;
+    final double t = animTime + timeOffset;
+
+    for (int i = 0; i < 3; i++) {
+      final double phase = (t * 0.65 + i * 0.33) % 1.0;
+      final double puffHeight = phase * 22.0 * scale;
+      final double puffDrift = (windWave * 8.0 + math.sin(t * 1.5 + i) * 2.0) * phase * scale;
+      final double puffSize = (3.0 + phase * 4.0) * scale;
+      final double alpha = (math.sin(phase * math.pi) * 0.65).clamp(0.0, 1.0);
+
+      final Color sColor = smokeColor ?? const Color(0xFFE2E8F0);
+
+      drawIsoCube(
+        canvas,
+        Offset(chimneyPos.dx + puffDrift, chimneyPos.dy - puffHeight),
+        w: puffSize,
+        d: puffSize,
+        h: puffSize * 0.8,
+        topColor: sColor.withValues(alpha: alpha),
+        leftColor: const Color(0xFF94A3B8).withValues(alpha: alpha * 0.8),
+        rightColor: const Color(0xFF64748B).withValues(alpha: alpha * 0.6),
+      );
+    }
+  }
+
+  /// Geceleyin Otağ, Fırın ve Dökümhane Tabanında Titreyen Sıcak Ocak Ateşi Parıltısı
+  static void drawVoxelHearthFirelight(
+    Canvas canvas,
+    Offset center, {
+    required double animTime,
+    required int seed,
+    double radius = 10.0,
+  }) {
+    final double flicker = 0.6 +
+        0.25 * math.sin(animTime * 4.3 + seed * 2.7) +
+        0.15 * math.sin(animTime * 9.1 + seed * 5.1);
+
+    _sharedFillPaint
+      ..color = const Color(0xFFF59E0B).withValues(alpha: (0.35 * flicker).clamp(0.0, 0.7))
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, radius * flicker, _sharedFillPaint);
+
+    _sharedFillPaint.color = const Color(0xFFFEF08A).withValues(alpha: (0.55 * flicker).clamp(0.0, 0.9));
+    canvas.drawCircle(center, (radius * 0.45) * flicker, _sharedFillPaint);
+  }
+
+  /// Dokunsal Su Dalgası Halkaları (Suya Dokunulduğunda 2 Kademeli Yayılma)
+  static void drawVoxelWaterRipple(
+    Canvas canvas,
+    Offset center, {
+    required double progress,
+  }) {
+    if (progress <= 0.0 || progress >= 1.0) return;
+
+    for (int i = 0; i < 2; i++) {
+      final double delay = i * 0.22;
+      final double subProgress = ((progress - delay) / (1.0 - delay)).clamp(0.0, 1.0);
+      if (subProgress <= 0.0 || subProgress >= 1.0) continue;
+
+      final double radiusX = subProgress * 28.0;
+      final double radiusY = radiusX * 0.58;
+      final double alpha = (1.0 - subProgress) * 0.75;
+
+      _sharedStrokePaint
+        ..color = const Color(0xFFBAE6FD).withValues(alpha: alpha)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = (2.2 * (1.0 - subProgress)).clamp(0.8, 2.2);
+
+      canvas.drawOval(
+        Rect.fromCenter(center: center, width: radiusX * 2, height: radiusY * 2),
+        _sharedStrokePaint,
+      );
+    }
+  }
+
+  /// Ormana Dokunulduğunda Ağaçtan Savrulan Voksel Yapraklar
+  static void drawVoxelLeafScatter(
+    Canvas canvas,
+    Offset center, {
+    required double progress,
+    required int seed,
+  }) {
+    if (progress <= 0.0 || progress >= 1.0) return;
+
+    for (int i = 0; i < 4; i++) {
+      final double angle = (seed * 0.5 + i * 1.57);
+      final double dist = progress * (18.0 + (seed % 7));
+      final double lx = center.dx + math.cos(angle) * dist;
+      final double ly = center.dy - 16.0 + math.sin(angle) * dist * 0.58 + (progress * progress * 14.0);
+      final double leafAlpha = (1.0 - progress).clamp(0.0, 1.0);
+
+      final Color leafCol = i % 2 == 0 ? const Color(0xFF4ADE80) : const Color(0xFFFBBF24);
+
+      drawIsoCube(
+        canvas,
+        Offset(lx, ly),
+        w: 2.0,
+        d: 2.0,
+        h: 1.5,
+        topColor: leafCol.withValues(alpha: leafAlpha),
+        leftColor: const Color(0xFF15803D).withValues(alpha: leafAlpha),
+        rightColor: const Color(0xFF166534).withValues(alpha: leafAlpha),
+      );
+    }
+  }
+
+  /// Çölde Sıcaklık Serabı (1-2 Piksel Yükselen Isı Dalgası)
+  static void drawVoxelDesertHeatShimmer(
+    Canvas canvas,
+    Offset center, {
+    required double animTime,
+    required int seed,
+  }) {
+    final double shimmer = math.sin(animTime * 3.5 + seed);
+    if (shimmer < 0.2) return;
+
+    final double sy = math.sin(animTime * 4.0 + seed * 2.0) * 1.5;
+    final double sx = math.cos(animTime * 2.5 + seed) * 3.0;
+
+    _sharedStrokePaint
+      ..color = const Color(0xFFFEF3C7).withValues(alpha: 0.22 * shimmer)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+
+    canvas.drawLine(
+      Offset(center.dx - 10 + sx, center.dy - 6 + sy),
+      Offset(center.dx + 10 + sx, center.dy - 6 - sy),
+      _sharedStrokePaint,
+    );
+  }
+
+  /// Dağ Zirvelerinde Rüzgarla Uçuşan İnce Toz Kar Sisi
+  static void drawVoxelSnowDrift(
+    Canvas canvas,
+    Offset peakPos, {
+    required double animTime,
+    required double windWave,
+    required int seed,
+  }) {
+    if (windWave.abs() < 0.2) return;
+
+    for (int i = 0; i < 3; i++) {
+      final double phase = ((animTime * 0.8 + seed * 0.3 + i * 0.35) % 1.0);
+      final double dx = phase * 20.0 * (windWave > 0 ? 1.0 : -1.0);
+      final double dy = -phase * 4.0 + math.sin(phase * math.pi) * 2.0;
+      final double alpha = math.sin(phase * math.pi) * 0.45 * windWave.abs();
+
+      drawIsoCube(
+        canvas,
+        Offset(peakPos.dx + dx, peakPos.dy + dy),
+        w: 1.5,
+        d: 1.5,
+        h: 1.2,
+        topColor: Colors.white.withValues(alpha: alpha),
+        leftColor: const Color(0xFFE0F2FE).withValues(alpha: alpha * 0.8),
+        rightColor: const Color(0xFFBAE6FD).withValues(alpha: alpha * 0.7),
+      );
+    }
+  }
+
+  /// Gayzer ve Volkanik Masiflerde 18-24 Saniyede Bir Patlayan Buhar Pufu
+  static void drawVoxelGeyserBurst(
+    Canvas canvas,
+    Offset ventPos, {
+    required double animTime,
+    required int seed,
+  }) {
+    final double cyclePeriod = 20.0 + (seed % 6);
+    final double phaseTime = (animTime + seed * 4.7) % cyclePeriod;
+    if (phaseTime > 3.0) return;
+
+    final double burstProgress = phaseTime / 3.0;
+    final double h = burstProgress * 28.0;
+    final double w = 4.0 + burstProgress * 8.0;
+    final double alpha = (1.0 - burstProgress) * 0.85;
+
+    drawIsoCube(
+      canvas,
+      Offset(ventPos.dx, ventPos.dy - h),
+      w: w,
+      d: w,
+      h: w * 0.7,
+      topColor: Colors.white.withValues(alpha: alpha),
+      leftColor: const Color(0xFFF1F5F9).withValues(alpha: alpha * 0.8),
+      rightColor: const Color(0xFFCBD5E1).withValues(alpha: alpha * 0.6),
+    );
+  }
+
+  /// Bozkırda Rüzgar Yönünde Yuvarlanan Voksel Çalı (Tumbleweed)
+  static void drawVoxelTumbleweed(
+    Canvas canvas,
+    Offset center, {
+    required double animTime,
+    required int seed,
+    double windWave = 0.0,
+  }) {
+    final double cyclePeriod = 35.0 + (seed % 15);
+    final double phaseTime = (animTime + seed * 3.1) % cyclePeriod;
+    if (phaseTime > 4.5) return;
+
+    final double progress = phaseTime / 4.5;
+    final double x = center.dx - 30.0 + progress * 60.0;
+    final double bounce = (math.sin(progress * math.pi * 6).abs()) * 6.0;
+    final double y = center.dy + 4.0 - bounce;
+
+    drawIsoCube(
+      canvas,
+      Offset(x, y),
+      w: 3.5,
+      d: 3.5,
+      h: 3.5,
+      topColor: const Color(0xFFD97706),
+      leftColor: const Color(0xFFB45309),
+      rightColor: const Color(0xFF92400E),
+      drawShadow: true,
+      shadowOpacity: 0.2,
+    );
   }
 }

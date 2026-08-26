@@ -3,6 +3,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import '../../../core/hex/hex_coordinates.dart';
 import '../../../core/hex/hex_math.dart';
+import '../../../core/theme/neo_brutalist_theme.dart';
 import '../../../domain/models/building_model.dart';
 import '../../../domain/models/hex_tile_model.dart';
 import '../hex_map_game.dart';
@@ -17,6 +18,7 @@ class HexTileComponent extends PositionComponent {
   String season;
   bool isZud;
   bool isNight;
+  String themePalette;
 
   // Zero-GC Cached Paint Objects
   static final Paint _workerRangeBorderPaint = Paint()
@@ -36,6 +38,7 @@ class HexTileComponent extends PositionComponent {
   final void Function(HexAxial coord)? onTileTapped;
 
   double _animTimer = 0.0;
+  double get tileAnimTime => _animTimer + ((coord.q * 37 + coord.r * 19).abs() % 100) * 0.05;
   double _bounceTimer = 0.0;
   static const double _bounceDuration = 0.25;
 
@@ -99,6 +102,7 @@ class HexTileComponent extends PositionComponent {
     required this.season,
     required this.isZud,
     this.isNight = false,
+    this.themePalette = 'basalt',
     this.onTileTapped,
   })  : _previousSeason = season,
         _currentSeason = season,
@@ -123,9 +127,13 @@ class HexTileComponent extends PositionComponent {
     required String newSeason,
     required bool newIsZud,
     bool? newIsNight,
+    String? newThemePalette,
   }) {
     if (!isSelected && newIsSelected) {
       triggerTapBounce();
+    }
+    if (newThemePalette != null) {
+      themePalette = newThemePalette;
     }
 
     final bool buildingAdded = !tileModel.hasBuilding && newTileModel.hasBuilding;
@@ -260,6 +268,12 @@ class HexTileComponent extends PositionComponent {
       case TileBiome.mountain:
       case TileBiome.volcano:
         return 20.0;
+      case TileBiome.celestialCrater:
+        return 14.0;
+      case TileBiome.kurganValley:
+        return 16.0;
+      case TileBiome.crystalChasm:
+        return 8.0;
     }
   }
 
@@ -393,80 +407,199 @@ class HexTileComponent extends PositionComponent {
 
   void _renderVoxelObjects(Canvas canvas, Offset center, List<Offset> corners) {
     final int seed = (coord.q * 37 + coord.r * 19).abs();
+    final double tTime = tileAnimTime;
+    final double windWave = VoxelIsometricRenderer.getSteppeWindWave(tTime, coord.q, coord.r);
+    final double tapProgress = _bounceTimer > 0 ? (1.0 - (_bounceTimer / _bounceDuration)) : 0.0;
 
     if (tileModel.hasShrine) {
       VoxelIsometricRenderer.drawVoxelAncientShrine(
         canvas,
         center,
         shrineType: tileModel.shrine,
-        animTime: _animTimer,
+        animTime: tTime,
         isNight: isNight,
       );
     } else if (tileModel.hasBuilding) {
       final b = tileModel.building!;
+      final int bVar = b.variant != 0 ? b.variant : ((tileModel.coord.q * 17 + tileModel.coord.r * 31).abs() % 3);
+
       switch (b.type) {
         case BuildingType.castle:
           VoxelIsometricRenderer.drawVoxelCastle(canvas, center, b.level, isNight: isNight);
+          VoxelIsometricRenderer.drawVoxelSmokePlume(
+            canvas,
+            Offset(center.dx + 12, center.dy - 26),
+            animTime: tTime,
+            seed: seed,
+            windWave: windWave,
+            scale: 1.1,
+          );
+          if (isNight) {
+            VoxelIsometricRenderer.drawVoxelHearthFirelight(
+              canvas,
+              Offset(center.dx, center.dy - 4),
+              animTime: tTime,
+              seed: seed,
+              radius: 12.0,
+            );
+          }
           break;
         case BuildingType.corn:
-          VoxelIsometricRenderer.drawVoxelCropField(canvas, center, animTime: _animTimer);
+          VoxelIsometricRenderer.drawVoxelCropField(canvas, center, animTime: tTime, variant: bVar);
+          break;
+        case BuildingType.barley:
+          VoxelIsometricRenderer.drawVoxelBarleyField(canvas, center, animTime: tTime, variant: bVar);
+          break;
+        case BuildingType.pasture:
+          VoxelIsometricRenderer.drawVoxelPasture(canvas, center, animTime: tTime, variant: bVar);
+          break;
+        case BuildingType.orchard:
+          VoxelIsometricRenderer.drawVoxelOrchard(canvas, center, animTime: tTime, variant: bVar);
+          break;
+        case BuildingType.quarry:
+          VoxelIsometricRenderer.drawVoxelQuarry(canvas, center, variant: bVar);
+          break;
+        case BuildingType.resinCamp:
+          VoxelIsometricRenderer.drawVoxelResinCamp(canvas, center, animTime: tTime, variant: bVar);
           break;
         case BuildingType.lumberjack:
-          VoxelIsometricRenderer.drawVoxelLumberjack(canvas, center);
+          VoxelIsometricRenderer.drawVoxelLumberjack(canvas, center, variant: bVar);
           break;
         case BuildingType.windmill:
-          VoxelIsometricRenderer.drawVoxelWindmill(canvas, center, _animTimer, isNight: isNight);
+          VoxelIsometricRenderer.drawVoxelWindmill(canvas, center, tTime, isNight: isNight, variant: bVar);
           break;
         case BuildingType.sawmill:
-          VoxelIsometricRenderer.drawVoxelSawmill(canvas, center);
+          VoxelIsometricRenderer.drawVoxelSawmill(canvas, center, variant: bVar);
           break;
         case BuildingType.bakery:
-          VoxelIsometricRenderer.drawVoxelBakery(canvas, center, _animTimer, isNight: isNight);
+          VoxelIsometricRenderer.drawVoxelBakery(canvas, center, tTime, isNight: isNight, variant: bVar);
+          VoxelIsometricRenderer.drawVoxelSmokePlume(
+            canvas,
+            Offset(center.dx + 8 * VoxelIsometricRenderer.cosIso, center.dy - 28.0 - 4 * VoxelIsometricRenderer.sinIso),
+            animTime: tTime,
+            seed: seed,
+            windWave: windWave,
+            scale: 0.9,
+          );
+          if (isNight) {
+            VoxelIsometricRenderer.drawVoxelHearthFirelight(
+              canvas,
+              Offset(center.dx, center.dy - 2),
+              animTime: tTime,
+              seed: seed,
+              radius: 8.0,
+            );
+          }
           break;
         case BuildingType.furniture:
-          VoxelIsometricRenderer.drawVoxelFurniture(canvas, center);
+          VoxelIsometricRenderer.drawVoxelFurniture(canvas, center, variant: bVar);
           break;
         case BuildingType.worker:
-          VoxelIsometricRenderer.drawVoxelLumberjack(canvas, center);
+          VoxelIsometricRenderer.drawVoxelLumberjack(canvas, center, variant: bVar);
           break;
         case BuildingType.watchtower:
-          VoxelIsometricRenderer.drawVoxelWatchtower(canvas, center, isNight: isNight, animTime: _animTimer);
+          VoxelIsometricRenderer.drawVoxelWatchtower(canvas, center, isNight: isNight, animTime: tTime);
           break;
         case BuildingType.mine:
-          VoxelIsometricRenderer.drawVoxelMine(canvas, center, animTime: _animTimer, isNight: isNight);
+          VoxelIsometricRenderer.drawVoxelMine(canvas, center, animTime: tTime, isNight: isNight, variant: bVar);
           break;
         case BuildingType.bridge:
           VoxelIsometricRenderer.drawVoxelBridge(canvas, center);
           break;
         case BuildingType.fisherman:
-          VoxelIsometricRenderer.drawVoxelFishermanBoat(canvas, center, animTime: _animTimer, isNight: isNight);
+          VoxelIsometricRenderer.drawVoxelFishermanBoat(canvas, center, animTime: tTime, isNight: isNight);
           break;
         case BuildingType.fishermanHut:
-          VoxelIsometricRenderer.drawVoxelFishermanHut(canvas, center, animTime: _animTimer, isNight: isNight);
+          VoxelIsometricRenderer.drawVoxelFishermanHut(canvas, center, animTime: tTime, isNight: isNight);
           break;
         case BuildingType.shrine:
           VoxelIsometricRenderer.drawVoxelAncientShrine(
             canvas,
             center,
             shrineType: tileModel.shrine,
-            animTime: _animTimer,
+            animTime: tTime,
             isNight: isNight,
           );
+          break;
+
+        // Özel Binalar
+        case BuildingType.oasisCistern:
+          VoxelIsometricRenderer.drawVoxelOasisCistern(canvas, center, animTime: tTime);
+          break;
+        case BuildingType.caravanserai:
+          VoxelIsometricRenderer.drawVoxelCaravanserai(canvas, center, animTime: tTime);
+          break;
+        case BuildingType.astrolabe:
+          VoxelIsometricRenderer.drawVoxelAstrolabe(canvas, center, animTime: tTime);
+          break;
+        case BuildingType.reindeerSanctuary:
+          VoxelIsometricRenderer.drawVoxelReindeerSanctuary(canvas, center, animTime: tTime);
+          break;
+        case BuildingType.geothermalBath:
+          VoxelIsometricRenderer.drawVoxelGeothermalBath(canvas, center, animTime: tTime);
+          break;
+        case BuildingType.permafrostDig:
+          VoxelIsometricRenderer.drawVoxelPermafrostDig(canvas, center, animTime: tTime);
+          break;
+        case BuildingType.steamVent:
+          VoxelIsometricRenderer.drawVoxelSteamVent(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelGeyserBurst(
+            canvas,
+            Offset(center.dx, center.dy - 6),
+            animTime: tTime,
+            seed: seed,
+          );
+          break;
+        case BuildingType.obsidianForge:
+          VoxelIsometricRenderer.drawVoxelObsidianForge(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelSmokePlume(
+            canvas,
+            Offset(center.dx, center.dy - 20),
+            animTime: tTime,
+            seed: seed,
+            windWave: windWave,
+            scale: 1.15,
+            smokeColor: const Color(0xFF64748B),
+          );
+          break;
+        case BuildingType.herbalistYurt:
+          VoxelIsometricRenderer.drawVoxelHerbalistYurt(canvas, center, animTime: tTime);
+          if (isNight) {
+            VoxelIsometricRenderer.drawVoxelHearthFirelight(
+              canvas,
+              Offset(center.dx, center.dy - 2),
+              animTime: tTime,
+              seed: seed,
+              radius: 7.0,
+            );
+          }
+          break;
+        case BuildingType.scribeWorkshop:
+          VoxelIsometricRenderer.drawVoxelScribeWorkshop(canvas, center, animTime: tTime);
+          break;
+        case BuildingType.celestialAnvil:
+          VoxelIsometricRenderer.drawVoxelCelestialAnvil(canvas, center, animTime: tTime);
+          break;
+        case BuildingType.ancestralTotem:
+          VoxelIsometricRenderer.drawVoxelAncestralTotem(canvas, center, animTime: tTime);
+          break;
+        case BuildingType.prismaticResonator:
+          VoxelIsometricRenderer.drawVoxelPrismaticResonator(canvas, center, animTime: tTime);
           break;
       }
     } else {
       switch (tileModel.biome) {
         case TileBiome.meadow:
-          _renderLivingMeadow(canvas, center, seed);
+          _renderLivingMeadow(canvas, center, seed, windWave: windWave, tapProgress: tapProgress);
           break;
         case TileBiome.forest:
-          _renderLivingForest(canvas, center, seed);
+          _renderLivingForest(canvas, center, seed, tapProgress: tapProgress);
           break;
         case TileBiome.mountain:
-          _renderLivingMountain(canvas, center, seed);
+          _renderLivingMountain(canvas, center, seed, windWave: windWave);
           break;
         case TileBiome.sea:
-          _renderLivingSea(canvas, center, corners, seed);
+          _renderLivingSea(canvas, center, corners, seed, tapProgress: tapProgress);
           break;
         case TileBiome.desert:
           _renderLivingDesert(canvas, center, seed);
@@ -478,13 +611,22 @@ class HexTileComponent extends PositionComponent {
           _renderLivingVolcano(canvas, center, seed);
           break;
         case TileBiome.wetland:
-          _renderLivingWetland(canvas, center, seed);
+          _renderLivingWetland(canvas, center, seed, tapProgress: tapProgress);
+          break;
+        case TileBiome.celestialCrater:
+          _renderLivingCrater(canvas, center, seed);
+          break;
+        case TileBiome.kurganValley:
+          _renderLivingKurgan(canvas, center, seed);
+          break;
+        case TileBiome.crystalChasm:
+          _renderLivingChasm(canvas, center, seed);
           break;
       }
     }
   }
 
-  void _renderLivingForest(Canvas canvas, Offset center, int seed) {
+  void _renderLivingForest(Canvas canvas, Offset center, int seed, {double tapProgress = 0.0}) {
     final int variant = seed % 4;
     final bool isAutumn = season == 'AUTUMN';
 
@@ -548,7 +690,7 @@ class HexTileComponent extends PositionComponent {
           canvas,
           Offset(center.dx + 6, center.dy - 4),
           scale: 1.05,
-          animTime: _animTimer,
+          animTime: tileAnimTime,
         );
         VoxelIsometricRenderer.drawVoxelPebbles(
           canvas,
@@ -557,11 +699,33 @@ class HexTileComponent extends PositionComponent {
         );
         break;
     }
+
+    // Dokunulduğunda Savrulan Yapraklar (Tactile Leaf Scatter)
+    if (tapProgress > 0.0) {
+      VoxelIsometricRenderer.drawVoxelLeafScatter(canvas, center, progress: tapProgress, seed: seed);
+    }
+
+    if (isNight && seed % 2 == 0) {
+      VoxelIsometricRenderer.drawVoxelFireflies(
+        canvas,
+        center,
+        animTime: tileAnimTime,
+        seed: seed,
+      );
+    }
   }
 
-  void _renderLivingMeadow(Canvas canvas, Offset center, int seed) {
-    final int variant = seed % 4;
+  void _renderLivingMeadow(
+    Canvas canvas,
+    Offset center,
+    int seed, {
+    double windWave = 0.0,
+    double tapProgress = 0.0,
+  }) {
+    final int variant = seed % 8;
+    final double tTime = tileAnimTime;
     final bool isSpring = season == 'SPRING';
+    final bool flip = seed % 2 == 0;
 
     void drawGrass(Offset pos, {double scale = 1.0}) {
       VoxelIsometricRenderer.drawIsoCube(
@@ -609,7 +773,7 @@ class HexTileComponent extends PositionComponent {
           VoxelIsometricRenderer.drawVoxelSheep(
             canvas,
             Offset(center.dx - 2, center.dy - 2),
-            animTime: _animTimer,
+            animTime: tTime,
             seed: seed * 11 + 3,
             scale: 0.85,
           );
@@ -621,14 +785,14 @@ class HexTileComponent extends PositionComponent {
         VoxelIsometricRenderer.drawVoxelSheep(
           canvas,
           Offset(center.dx + 6, center.dy - 3),
-          animTime: _animTimer,
+          animTime: tTime,
           seed: seed,
           scale: 0.95,
         );
         VoxelIsometricRenderer.drawVoxelSheep(
           canvas,
           Offset(center.dx - 10, center.dy + 5),
-          animTime: _animTimer,
+          animTime: tTime,
           seed: seed * 19 + 7,
           scale: 0.72,
         );
@@ -650,22 +814,15 @@ class HexTileComponent extends PositionComponent {
         break;
 
       case 2:
-        // Yoğun çiçek ve çimen öbeği
-        if (isSpring) {
-          VoxelIsometricRenderer.drawVoxelSpringPoppies(canvas, Offset(center.dx - 8, center.dy - 4), scale: 0.85);
-        } else {
-          VoxelIsometricRenderer.drawVoxelFlowers(
-            canvas,
-            Offset(center.dx - 10, center.dy - 4),
-            flowerColor: const Color(0xFFEC4899),
-            scale: 0.8,
-          );
-        }
-        VoxelIsometricRenderer.drawVoxelFlowers(
+        // 3. Asil Bozkır Yılkı Atı (Otlama, Dikilme, Sırt Kuşu & Dokunma İrkintisi)
+        VoxelIsometricRenderer.drawVoxelHorse(
           canvas,
-          Offset(center.dx + 4, center.dy - 6),
-          flowerColor: const Color(0xFFF59E0B),
-          scale: 0.85,
+          Offset(center.dx, center.dy),
+          animTime: tTime,
+          seed: seed,
+          scale: 0.95,
+          flipX: flip,
+          startleProgress: tapProgress,
         );
         VoxelIsometricRenderer.drawVoxelFlowers(
           canvas,
@@ -682,7 +839,7 @@ class HexTileComponent extends PositionComponent {
           VoxelIsometricRenderer.drawVoxelSheep(
             canvas,
             Offset(center.dx + 2, center.dy + 3),
-            animTime: _animTimer,
+            animTime: tTime,
             seed: seed * 13 + 5,
             scale: 0.85,
           );
@@ -710,28 +867,48 @@ class HexTileComponent extends PositionComponent {
           flowerColor: const Color(0xFF38BDF8),
           scale: 0.75,
         );
-        VoxelIsometricRenderer.drawVoxelFlowers(
-          canvas,
-          Offset(center.dx + 6, center.dy - 8),
-          flowerColor: const Color(0xFFFBBF24),
-          scale: 0.8,
-        );
         drawGrass(Offset(center.dx, center.dy), scale: 0.95);
         drawGrass(Offset(center.dx - 12, center.dy - 2), scale: 0.85);
         drawGrass(Offset(center.dx + 12, center.dy - 2), scale: 0.75);
         drawGrass(Offset(center.dx + 2, center.dy + 8), scale: 0.8);
         break;
     }
+
+    // Bozkırda Yuvarlanan Çalı (Tumbleweed)
+    VoxelIsometricRenderer.drawVoxelTumbleweed(
+      canvas,
+      center,
+      animTime: tileAnimTime,
+      seed: seed,
+      windWave: windWave,
+    );
+
+    if (isNight && seed % 4 == 0) {
+      VoxelIsometricRenderer.drawVoxelFireflies(
+        canvas,
+        center,
+        animTime: tileAnimTime,
+        seed: seed,
+      );
+    }
   }
 
-  void _renderLivingMountain(Canvas canvas, Offset center, int seed) {
+  void _renderLivingMountain(Canvas canvas, Offset center, int seed, {double windWave = 0.0}) {
     VoxelIsometricRenderer.drawVoxelMountainVariant(
       canvas,
       center,
       seed,
       season: season,
       isZud: isZud,
-      animTime: _animTimer,
+      animTime: tileAnimTime,
+    );
+    // Zirve Toz Kar Sürgünü
+    VoxelIsometricRenderer.drawVoxelSnowDrift(
+      canvas,
+      Offset(center.dx, center.dy - 24),
+      animTime: tileAnimTime,
+      windWave: windWave,
+      seed: seed,
     );
     if (seed % 2 == 0) {
       VoxelIsometricRenderer.drawVoxelPebbles(
@@ -742,10 +919,16 @@ class HexTileComponent extends PositionComponent {
     }
   }
 
-  void _renderLivingSea(Canvas canvas, Offset center, List<Offset> corners, int seed) {
+  void _renderLivingSea(
+    Canvas canvas,
+    Offset center,
+    List<Offset> corners,
+    int seed, {
+    double tapProgress = 0.0,
+  }) {
     final bool isWinter = season == 'WINTER' || isZud;
     if (isWinter) {
-      VoxelIsometricRenderer.drawVoxelIceFloes(canvas, center, scale: 0.9, animTime: _animTimer);
+      VoxelIsometricRenderer.drawVoxelIceFloes(canvas, center, scale: 0.9, animTime: tileAnimTime);
       return;
     }
 
@@ -753,11 +936,11 @@ class HexTileComponent extends PositionComponent {
       canvas,
       center,
       corners,
-      animTime: _animTimer,
+      animTime: tileAnimTime,
       seed: seed,
     );
 
-    final double waveOffset = math.sin(_animTimer * 2.0 + (seed % 5)) * 3.5;
+    final double waveOffset = math.sin(tileAnimTime * 2.0 + (seed % 5)) * 3.5;
     VoxelIsometricRenderer.drawIsoCube(
       canvas,
       Offset(center.dx + waveOffset, center.dy),
@@ -773,9 +956,14 @@ class HexTileComponent extends PositionComponent {
       VoxelIsometricRenderer.drawVoxelLeapingFish(
         canvas,
         center,
-        animTime: _animTimer,
+        animTime: tileAnimTime,
         seed: seed,
       );
+    }
+
+    // Dokunulduğunda Su Dalgası Halkaları (Tactile Water Ripple)
+    if (tapProgress > 0.0) {
+      VoxelIsometricRenderer.drawVoxelWaterRipple(canvas, center, progress: tapProgress);
     }
   }
 
@@ -799,6 +987,14 @@ class HexTileComponent extends PositionComponent {
         VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx + 8, center.dy + 4), scale: 0.8);
         break;
     }
+
+    // Sıcaklık Serabı
+    VoxelIsometricRenderer.drawVoxelDesertHeatShimmer(canvas, center, animTime: tileAnimTime, seed: seed);
+
+    // Her çöl karosunda uçuşan toz parçacığı olmasın, sadece nadir rüzgarlı karolarda (1/5)
+    if (seed % 5 == 0) {
+      VoxelIsometricRenderer.drawVoxelDesertDust(canvas, center, animTime: tileAnimTime, seed: seed);
+    }
   }
 
   void _renderLivingTundra(Canvas canvas, Offset center, int seed) {
@@ -817,9 +1013,13 @@ class HexTileComponent extends PositionComponent {
         break;
       case 3:
       default:
-        VoxelIsometricRenderer.drawVoxelPine(canvas, Offset(center.dx - 6, center.dy - 4), scale: 0.65, animTime: _animTimer);
+        VoxelIsometricRenderer.drawVoxelPine(canvas, Offset(center.dx - 6, center.dy - 4), scale: 0.65, animTime: tileAnimTime);
         VoxelIsometricRenderer.drawVoxelLichenRocks(canvas, Offset(center.dx + 8, center.dy + 4), scale: 0.8);
         break;
+    }
+    // Her tundra karosunda parıltı olmasın, sadece nadir buzul karolarında (1/5)
+    if (seed % 5 == 0) {
+      VoxelIsometricRenderer.drawVoxelIceSparkles(canvas, center, animTime: tileAnimTime, seed: seed);
     }
   }
 
@@ -827,43 +1027,71 @@ class HexTileComponent extends PositionComponent {
     final int variant = seed % 4;
     switch (variant) {
       case 0:
-        VoxelIsometricRenderer.drawVoxelObsidianPillars(canvas, Offset(center.dx - 6, center.dy - 2), scale: 0.95, animTime: _animTimer);
-        VoxelIsometricRenderer.drawVoxelMagmaVent(canvas, Offset(center.dx + 8, center.dy + 4), scale: 0.85, animTime: _animTimer);
+        VoxelIsometricRenderer.drawVoxelObsidianPillars(canvas, Offset(center.dx - 6, center.dy - 2), scale: 0.95, animTime: tileAnimTime);
+        VoxelIsometricRenderer.drawVoxelMagmaVent(canvas, Offset(center.dx + 8, center.dy + 4), scale: 0.85, animTime: tileAnimTime);
         break;
       case 1:
-        VoxelIsometricRenderer.drawVoxelMagmaVent(canvas, center, scale: 1.1, animTime: _animTimer);
+        VoxelIsometricRenderer.drawVoxelMagmaVent(canvas, center, scale: 1.1, animTime: tileAnimTime);
         break;
       case 2:
-        VoxelIsometricRenderer.drawVoxelObsidianPillars(canvas, center, scale: 1.15, animTime: _animTimer);
+        VoxelIsometricRenderer.drawVoxelObsidianPillars(canvas, center, scale: 1.15, animTime: tileAnimTime);
         break;
       case 3:
       default:
-        VoxelIsometricRenderer.drawVoxelObsidianPillars(canvas, Offset(center.dx + 6, center.dy - 4), scale: 0.9, animTime: _animTimer);
+        VoxelIsometricRenderer.drawVoxelObsidianPillars(canvas, Offset(center.dx + 6, center.dy - 4), scale: 0.9, animTime: tileAnimTime);
         VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx - 8, center.dy + 4), scale: 0.8);
         break;
     }
+    VoxelIsometricRenderer.drawVoxelVolcanoEmbers(canvas, center, animTime: tileAnimTime, seed: seed);
+    VoxelIsometricRenderer.drawVoxelGeyserBurst(canvas, Offset(center.dx, center.dy - 12), animTime: tileAnimTime, seed: seed);
   }
 
-  void _renderLivingWetland(Canvas canvas, Offset center, int seed) {
+  void _renderLivingWetland(Canvas canvas, Offset center, int seed, {double tapProgress = 0.0}) {
     final int variant = seed % 4;
     switch (variant) {
       case 0:
-        VoxelIsometricRenderer.drawVoxelReeds(canvas, Offset(center.dx - 6, center.dy - 2), scale: 0.95, animTime: _animTimer);
+        VoxelIsometricRenderer.drawVoxelReeds(canvas, Offset(center.dx - 6, center.dy - 2), scale: 0.95, animTime: tileAnimTime);
         VoxelIsometricRenderer.drawVoxelWaterLilies(canvas, Offset(center.dx + 8, center.dy + 4), scale: 0.85);
         break;
       case 1:
-        VoxelIsometricRenderer.drawVoxelReeds(canvas, center, scale: 1.1, animTime: _animTimer);
+        VoxelIsometricRenderer.drawVoxelReeds(canvas, center, scale: 1.1, animTime: tileAnimTime);
         break;
       case 2:
         VoxelIsometricRenderer.drawVoxelWaterLilies(canvas, Offset(center.dx - 4, center.dy), scale: 1.0);
-        VoxelIsometricRenderer.drawVoxelLeapingFish(canvas, Offset(center.dx + 8, center.dy + 4), animTime: _animTimer, seed: seed);
+        VoxelIsometricRenderer.drawVoxelLeapingFish(canvas, Offset(center.dx + 8, center.dy + 4), animTime: tileAnimTime, seed: seed);
         break;
       case 3:
       default:
-        VoxelIsometricRenderer.drawVoxelReeds(canvas, Offset(center.dx + 6, center.dy - 4), scale: 0.9, animTime: _animTimer);
-        VoxelIsometricRenderer.drawVoxelBirchTree(canvas, Offset(center.dx - 8, center.dy + 4), scale: 0.6, animTime: _animTimer);
+        VoxelIsometricRenderer.drawVoxelReeds(canvas, Offset(center.dx + 6, center.dy - 4), scale: 0.9, animTime: tileAnimTime);
+        VoxelIsometricRenderer.drawVoxelBirchTree(canvas, Offset(center.dx - 8, center.dy + 4), scale: 0.6, animTime: tileAnimTime);
         break;
     }
+    VoxelIsometricRenderer.drawVoxelDragonflies(canvas, center, animTime: tileAnimTime, seed: seed);
+
+    // Dokunulduğunda Su Dalgası Halkaları (Tactile Water Ripple)
+    if (tapProgress > 0.0) {
+      VoxelIsometricRenderer.drawVoxelWaterRipple(canvas, center, progress: tapProgress);
+    }
+  }
+
+  void _renderLivingCrater(Canvas canvas, Offset center, int seed) {
+    final double tTime = tileAnimTime;
+    VoxelIsometricRenderer.drawVoxelCelestialCraterGround(canvas, center, scale: 1.0, animTime: tTime);
+    VoxelIsometricRenderer.drawVoxelCelestialStardust(canvas, center, animTime: tTime, seed: seed);
+  }
+
+  void _renderLivingKurgan(Canvas canvas, Offset center, int seed) {
+    final double tTime = tileAnimTime;
+    VoxelIsometricRenderer.drawVoxelKurganBalbals(canvas, center, scale: 1.0, animTime: tTime);
+    if (seed % 2 == 0) {
+      VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx + 10, center.dy + 6), scale: 0.9);
+    }
+  }
+
+  void _renderLivingChasm(Canvas canvas, Offset center, int seed) {
+    final double tTime = tileAnimTime;
+    VoxelIsometricRenderer.drawVoxelCrystalChasmGround(canvas, center, scale: 1.0, animTime: tTime);
+    VoxelIsometricRenderer.drawVoxelCelestialStardust(canvas, center, animTime: tTime, seed: seed + 3);
   }
 
   void _renderBrutalistBadges(Canvas canvas, Offset center) {
@@ -1026,6 +1254,37 @@ class HexTileComponent extends PositionComponent {
           baseColor = const Color(0xFF34D399);
         }
         break;
+
+      case TileBiome.celestialCrater:
+        baseColor = const Color(0xFF1E1B4B);
+        break;
+
+      case TileBiome.kurganValley:
+        baseColor = const Color(0xFF475569);
+        break;
+
+      case TileBiome.crystalChasm:
+        baseColor = const Color(0xFF065F46);
+        break;
+    }
+
+    // Aktif tema paleti atmosferik harmanlama (Zero-GC deterministik tonlama)
+    final theme = NeoBrutalistTheme.getTheme(themePalette);
+    if (theme.id != 'basalt') {
+      switch (theme.id) {
+        case 'kurgan':
+          baseColor = Color.lerp(baseColor, const Color(0xFFB91C1C), 0.08)!;
+          break;
+        case 'jade':
+          baseColor = Color.lerp(baseColor, const Color(0xFF059669), 0.07)!;
+          break;
+        case 'tengri':
+          baseColor = Color.lerp(baseColor, const Color(0xFF0284C7), 0.07)!;
+          break;
+        case 'khagan':
+          baseColor = Color.lerp(baseColor, const Color(0xFFD97706), 0.07)!;
+          break;
+      }
     }
 
     final int shadeVariant = seed % 4;
@@ -1063,6 +1322,13 @@ class HexTileComponent extends PositionComponent {
       wB = Color.lerp(wB, const Color(0xFF020617), 0.35)!;
     }
 
+    final theme = NeoBrutalistTheme.getTheme(themePalette);
+    if (theme.id != 'basalt') {
+      wB = Color.lerp(wB, theme.slateBorder, 0.18)!;
+      wL = Color.lerp(wL, theme.surfaceLight, 0.12)!;
+      wR = Color.lerp(wR, theme.surface, 0.12)!;
+    }
+
     return (wL, wR, wB);
   }
 
@@ -1096,6 +1362,15 @@ class HexTileComponent extends PositionComponent {
 
       case TileBiome.wetland:
         return (const Color(0xFF059669), const Color(0xFF047857), const Color(0xFF064E3B));
+
+      case TileBiome.celestialCrater:
+        return (const Color(0xFF312E81), const Color(0xFF1E1B4B), const Color(0xFF0F0E2A));
+
+      case TileBiome.kurganValley:
+        return (const Color(0xFF334155), const Color(0xFF1E293B), const Color(0xFF0F172A));
+
+      case TileBiome.crystalChasm:
+        return (const Color(0xFF047857), const Color(0xFF065F46), const Color(0xFF022C22));
     }
   }
 }

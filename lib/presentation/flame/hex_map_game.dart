@@ -11,6 +11,7 @@ import 'components/floating_voxel_cloud_component.dart';
 import 'components/flying_voxel_bird_component.dart';
 import 'components/hex_tile_component.dart';
 import 'components/snow_particle_emitter.dart';
+import 'components/steppe_messenger_component.dart';
 import 'components/tile_conquer_poof_emitter.dart';
 import 'components/worker_agent_component.dart';
 
@@ -24,6 +25,7 @@ class HexMapGame extends FlameGame {
   final List<FloatingVoxelCloudComponent> _cloudComponents = [];
   late final SnowParticleEmitter _snowEmitter;
   late final FlyingVoxelBirdComponent _flyingBirds;
+  late final SteppeMessengerComponent _steppeMessenger;
 
   GameState? _lastState;
   double _currentZoom = 1.0;
@@ -38,6 +40,14 @@ class HexMapGame extends FlameGame {
   double get currentZoom => _currentZoom;
   Vector2 get cameraPosition => gameCamera.viewfinder.position;
   bool get isNight => _isNight;
+
+  /// Keşfedilmiş açık (sis olmayan) karo koordinatlarını döner
+  List<HexAxial> getDiscoveredTileCoords() {
+    return _tileComponents.entries
+        .where((e) => !e.value.tileModel.isFog)
+        .map((e) => e.key)
+        .toList(growable: false);
+  }
 
   /// Aktif kamera görüş alanının dünya koordinatlarındaki dikdörtgeni (Viewport Culling için)
   Rect get visibleWorldBounds {
@@ -74,6 +84,10 @@ class HexMapGame extends FlameGame {
       flightRadius: 260.0,
     );
     gameWorld.add(_flyingBirds);
+
+    // Seyrek Bozkır Kervanı / Ulak
+    _steppeMessenger = SteppeMessengerComponent();
+    gameWorld.add(_steppeMessenger);
 
     _snowEmitter = SnowParticleEmitter();
     gameWorld.add(_snowEmitter);
