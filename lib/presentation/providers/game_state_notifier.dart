@@ -19,6 +19,8 @@ import '../../domain/models/game_state_model.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/models/hex_tile_model.dart';
 import '../../domain/models/quest_model.dart';
+import '../../domain/models/trade_order_model.dart';
+import '../../domain/models/steppe_lore_tree_model.dart';
 import '../../domain/services/symbiosis_engine.dart';
 
 final gameStateProvider =
@@ -284,7 +286,11 @@ class GameStateNotifier extends StateNotifier<GameState> {
     return GameState(
       tiles: map,
       resources: const ResourcesModel(food: 100.0, wood: 50.0),
-      progression: const ProgressionModel(castleLevel: 1, ownedCount: 1),
+      progression: ProgressionModel(
+        castleLevel: 1,
+        ownedCount: 1,
+        activeTradeOrders: EconomyCalculator.generateInitialTradeOrders(),
+      ),
       quests: _generateInitialQuests(),
       doctrines: DoctrineCardModel.getInitialDoctrines(),
       celestialOmen: CelestialOmen.fromYearIndex(0),
@@ -305,12 +311,25 @@ class GameStateNotifier extends StateNotifier<GameState> {
       if (!mounted) return;
 
       if (save != null && save.tiles.isNotEmpty) {
-        final tilesMap = {for (final t in save.tiles) t.coord: t};
+        final tilesMap = {
+          for (final t in save.tiles)
+            t.coord: (t.building?.type == BuildingType.castle &&
+                    t.building!.level != save.progression.castleLevel)
+                ? t.copyWith(
+                    building: t.building!
+                        .copyWith(level: save.progression.castleLevel))
+                : t
+        };
+        final loadedOrders = save.progression.activeTradeOrders.isNotEmpty
+            ? save.progression.activeTradeOrders
+            : EconomyCalculator.generateInitialTradeOrders();
+
         state = state.copyWith(
           tiles: tilesMap,
           resources: save.resources,
           progression: save.progression.copyWith(
             totalSessions: save.progression.totalSessions + 1,
+            activeTradeOrders: loadedOrders,
           ),
           season: save.season,
           settings: save.settings,
@@ -473,6 +492,10 @@ class GameStateNotifier extends StateNotifier<GameState> {
     double addedFurniture = 0.0;
     double addedStone = 0.0;
     double addedIron = 0.0;
+    double addedWisdom = 0.0;
+    double addedKumis = 0.0;
+    double addedFelt = 0.0;
+    double addedDamascusSteel = 0.0;
 
     final activeDoctrines = getActiveDoctrines();
 
@@ -742,6 +765,18 @@ class GameStateNotifier extends StateNotifier<GameState> {
             addedWood += carriedAmount * 0.4 * mBonus;
             addedStone += carriedAmount * 0.4 * mBonus;
             break;
+          case BuildingType.runicStele:
+            addedWisdom += carriedAmount;
+            break;
+          case BuildingType.kumisYurt:
+            addedKumis += carriedAmount;
+            break;
+          case BuildingType.feltTentWorkshop:
+            addedFelt += carriedAmount;
+            break;
+          case BuildingType.damascusForge:
+            addedDamascusSteel += carriedAmount;
+            break;
           default:
             break;
         }
@@ -778,6 +813,10 @@ class GameStateNotifier extends StateNotifier<GameState> {
         furniture: math.max(0.0, state.resources.furniture + addedFurniture),
         stone: math.max(0.0, state.resources.stone + addedStone),
         iron: math.max(0.0, state.resources.iron + addedIron),
+        wisdom: math.max(0.0, state.resources.wisdom + addedWisdom),
+        kumis: math.max(0.0, state.resources.kumis + addedKumis),
+        felt: math.max(0.0, state.resources.felt + addedFelt),
+        damascusSteel: math.max(0.0, state.resources.damascusSteel + addedDamascusSteel),
       ),
       season: state.season.copyWith(
         timer: newSeasonTimer,
@@ -1020,6 +1059,10 @@ class GameStateNotifier extends StateNotifier<GameState> {
           BuildingType.bakery,
           BuildingType.worker,
           BuildingType.watchtower,
+          BuildingType.granaryVault,
+          BuildingType.kumisYurt,
+          BuildingType.feltTentWorkshop,
+          BuildingType.runicStele,
         ];
       case TileBiome.forest:
         return const [
@@ -1028,12 +1071,15 @@ class GameStateNotifier extends StateNotifier<GameState> {
           BuildingType.sawmill,
           BuildingType.furniture,
           BuildingType.worker,
+          BuildingType.granaryVault,
         ];
       case TileBiome.mountain:
         return const [
           BuildingType.mine,
           BuildingType.quarry,
           BuildingType.watchtower,
+          BuildingType.damascusForge,
+          BuildingType.runicStele,
         ];
       case TileBiome.sea:
         return const [
@@ -1046,17 +1092,21 @@ class GameStateNotifier extends StateNotifier<GameState> {
           BuildingType.oasisCistern,
           BuildingType.caravanserai,
           BuildingType.astrolabe,
+          BuildingType.feltTentWorkshop,
+          BuildingType.granaryVault,
         ];
       case TileBiome.tundra:
         return const [
           BuildingType.reindeerSanctuary,
           BuildingType.geothermalBath,
           BuildingType.permafrostDig,
+          BuildingType.feltTentWorkshop,
         ];
       case TileBiome.volcano:
         return const [
           BuildingType.steamVent,
           BuildingType.obsidianForge,
+          BuildingType.damascusForge,
         ];
       case TileBiome.wetland:
         return const [
@@ -1066,14 +1116,18 @@ class GameStateNotifier extends StateNotifier<GameState> {
       case TileBiome.celestialCrater:
         return const [
           BuildingType.celestialAnvil,
+          BuildingType.runicStele,
         ];
       case TileBiome.kurganValley:
         return const [
           BuildingType.ancestralTotem,
+          BuildingType.kumisYurt,
+          BuildingType.runicStele,
         ];
       case TileBiome.crystalChasm:
         return const [
           BuildingType.prismaticResonator,
+          BuildingType.runicStele,
         ];
     }
   }
@@ -1177,6 +1231,10 @@ class GameStateNotifier extends StateNotifier<GameState> {
     if (tile == null || tile.building == null) return false;
 
     final b = tile.building!;
+    if (b.type == BuildingType.castle) {
+      return upgradeCastle();
+    }
+
     final cost = b.upgradeCost;
 
     if (state.resources.food < cost) {
@@ -1529,7 +1587,17 @@ class GameStateNotifier extends StateNotifier<GameState> {
       return false;
     }
 
+    final updatedTiles = Map<HexAxial, HexTileModel>.from(state.tiles);
+    for (final entry in updatedTiles.entries) {
+      if (entry.value.building?.type == BuildingType.castle) {
+        updatedTiles[entry.key] = entry.value.copyWith(
+          building: entry.value.building!.copyWith(level: nextLvl),
+        );
+      }
+    }
+
     state = state.copyWith(
+      tiles: updatedTiles,
       resources: state.resources.copyWith(
         food: state.resources.food - foodCost,
         wood: state.resources.wood - woodCost,
@@ -1779,9 +1847,34 @@ class GameStateNotifier extends StateNotifier<GameState> {
         break;
     }
 
-    TactileAudioService.instance.play(TactileSoundType.reward);
+    unawaited(TactileAudioService.instance.play(TactileSoundType.reward));
     await saveGame();
     return true;
+  }
+
+  Future<void> claimOfflineGains(OfflineGainsResult gains, {bool isBoosted = false}) async {
+    final effectiveGains = isBoosted
+        ? EconomyCalculator.calculateOfflineAdBoostedGains(gains)
+        : gains;
+
+    state = state.copyWith(
+      resources: state.resources.copyWith(
+        food: state.resources.food + effectiveGains.food,
+        wood: state.resources.wood + effectiveGains.wood,
+        flour: state.resources.flour + effectiveGains.flour,
+        plank: state.resources.plank + effectiveGains.plank,
+        bread: state.resources.bread + effectiveGains.bread,
+        furniture: state.resources.furniture + effectiveGains.furniture,
+        stone: state.resources.stone + effectiveGains.stone,
+        iron: state.resources.iron + effectiveGains.iron,
+      ),
+      activeToast: isBoosted
+          ? 'Kervan bereketiyle 1.5x çevrimdışı kazanç ambara aktarıldı!'
+          : 'Çevrimdışı bozkır kazancı ambara aktarıldı.',
+    );
+
+    unawaited(TactileAudioService.instance.play(TactileSoundType.reward));
+    await saveGame();
   }
 
 
@@ -1854,11 +1947,17 @@ class GameStateNotifier extends StateNotifier<GameState> {
       return false;
     }
 
-    final b = tile.building!;
+    // BUG-004 Fix: Yıkım öncesinde binanın üzerinde birikmiş olan kaynakları otomatik olarak topla
+    if (tile.building!.accumulatedResource > 0) {
+      collectFromTile(coord);
+    }
+
+    final freshTile = state.tiles[coord] ?? tile;
+    final b = freshTile.building ?? tile.building!;
     final double refundFood = (b.baseCost * 0.5).roundToDouble();
 
     final updatedTiles = Map<HexAxial, HexTileModel>.from(state.tiles);
-    updatedTiles[coord] = tile.copyWith(
+    updatedTiles[coord] = freshTile.copyWith(
       clearBuilding: true,
     );
 
@@ -1870,9 +1969,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
       activeToast: '${b.type.name.toUpperCase()} yıkıldı (+${refundFood.toInt()} Gıda iade edildi).',
     );
 
-    TactileAudioService.instance.play(TactileSoundType.tap);
+    unawaited(TactileAudioService.instance.play(TactileSoundType.tap));
     _syncQuestProgress();
-    saveGame();
+    unawaited(saveGame());
     return true;
   }
 
@@ -2030,22 +2129,31 @@ class GameStateNotifier extends StateNotifier<GameState> {
   void resetGame() {
     SaveRepository.deleteSave();
 
-    // Geçmiş göçün binalarını Ata Kurganı olarak derle
-    final List<AncestralKurgan> accumulatedKurgans = [...state.discoveredKurgans];
+    // BUG-003 Fix: Koordinat bazlı harita ile aynı karoda üst üste kurgan çakışmasını engelle
+    final Map<HexAxial, AncestralKurgan> kurganMap = {
+      for (final k in state.discoveredKurgans) k.coord: k,
+    };
+
     for (final entry in state.tiles.entries) {
       final tile = entry.value;
       if (tile.isOwned && tile.hasBuilding && tile.building!.type != BuildingType.castle) {
-        accumulatedKurgans.add(AncestralKurgan(
+        final existing = kurganMap[tile.coord];
+        final double newBonus = 0.05 * tile.building!.level;
+        final int mergedLevel = existing != null ? math.max(existing.formerLevel, tile.building!.level) : tile.building!.level;
+        final double mergedBonus = existing != null ? math.max(existing.bonusMultiplier, newBonus) : newBonus;
+
+        kurganMap[tile.coord] = AncestralKurgan(
           id: 'kurgan_${state.progression.totalMigrations}_${tile.coord.q}_${tile.coord.r}',
           coord: tile.coord,
           formerBuildingType: tile.building!.type,
-          formerLevel: tile.building!.level,
+          formerLevel: mergedLevel,
           relicTitle: '${tile.building!.type.name.toUpperCase()} Kalıntısı',
-          bonusMultiplier: 0.05 * tile.building!.level,
+          bonusMultiplier: mergedBonus,
           isDiscovered: true,
-        ));
+        );
       }
     }
+    final List<AncestralKurgan> accumulatedKurgans = kurganMap.values.toList();
 
     // Prestige (Tamga) Hesaplama: (Hex Sayısı + Sunak Sayısı) / 2
     final int ownedHexes = state.progression.ownedCount;
@@ -2086,6 +2194,116 @@ class GameStateNotifier extends StateNotifier<GameState> {
       activeToast: 'Büyük Göç Tamamlandı. +$newTamgas Tamga & Geçmiş Göç Kalıntıları Miras Kaldı!',
     );
 
+    saveGame();
+  }
+
+  /// 1. İpek Yolu Elçi Siparişini (Han Buyruğu) Teslim Et
+  bool fulfillTradeOrder(String orderId) {
+    final orderIndex = state.progression.activeTradeOrders.indexWhere((o) => o.id == orderId);
+    if (orderIndex == -1) return false;
+
+    final order = state.progression.activeTradeOrders[orderIndex];
+    if (order.isFulfilled) return false;
+
+    // Kaynak yeterliliğini kontrol et
+    final currentRes = state.resources;
+    for (final req in order.requiredResources.entries) {
+      final double available = switch (req.key.toLowerCase()) {
+        'food' => currentRes.food,
+        'wood' => currentRes.wood,
+        'flour' => currentRes.flour,
+        'plank' => currentRes.plank,
+        'bread' => currentRes.bread,
+        'furniture' => currentRes.furniture,
+        'stone' => currentRes.stone,
+        'iron' => currentRes.iron,
+        'fish' => currentRes.fish,
+        'kumis' => currentRes.kumis,
+        'felt' => currentRes.felt,
+        'damascus_steel' || 'damascussteel' => currentRes.damascusSteel,
+        _ => 0.0,
+      };
+      if (available < req.value) {
+        showToast('Yetersiz Kaynak: ${req.key.toUpperCase()} miktarı eksik (${available.toInt()} / ${req.value.toInt()}).');
+        return false;
+      }
+    }
+
+    // Kaynakları düş
+    final updatedRes = currentRes.copyWith(
+      food: currentRes.food - (order.requiredResources['food'] ?? 0.0),
+      wood: currentRes.wood - (order.requiredResources['wood'] ?? 0.0),
+      flour: currentRes.flour - (order.requiredResources['flour'] ?? 0.0),
+      plank: currentRes.plank - (order.requiredResources['plank'] ?? 0.0),
+      bread: currentRes.bread - (order.requiredResources['bread'] ?? 0.0),
+      furniture: currentRes.furniture - (order.requiredResources['furniture'] ?? 0.0),
+      stone: currentRes.stone - (order.requiredResources['stone'] ?? 0.0),
+      iron: currentRes.iron - (order.requiredResources['iron'] ?? 0.0),
+      fish: currentRes.fish - (order.requiredResources['fish'] ?? 0.0),
+      kumis: currentRes.kumis - (order.requiredResources['kumis'] ?? 0.0),
+      felt: currentRes.felt - (order.requiredResources['felt'] ?? 0.0),
+      damascusSteel: currentRes.damascusSteel - (order.requiredResources['damascus_steel'] ?? order.requiredResources['damascussteel'] ?? 0.0),
+      crowns: currentRes.crowns + order.rewardCrowns,
+    );
+
+    // Siparişi tamamlandı olarak işaretle
+    final updatedOrders = List<TradeOrderModel>.from(state.progression.activeTradeOrders);
+    updatedOrders[orderIndex] = order.copyWith(isFulfilled: true);
+
+    state = state.copyWith(
+      resources: updatedRes,
+      progression: state.progression.copyWith(activeTradeOrders: updatedOrders),
+      frenzyMultiplier: math.max(state.frenzyMultiplier, (order.rewardSpeedMultiplier).toInt()),
+      frenzyTimer: state.frenzyTimer + order.buffDurationSeconds.toDouble(),
+      activeToast: '${order.title} tamamlandı! (+${order.rewardCrowns} Taç & Altın Çağ Hız Buff\'ı)',
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.reward);
+    saveGame();
+    return true;
+  }
+
+  /// 2. Orhun Bitig Taşları Töre Ağacında Bilgelik ile Kilit Aç
+  bool unlockSteppeLore(String loreId) {
+    if (state.progression.unlockedLoreIds.contains(loreId)) return false;
+
+    final node = SteppeLoreNode.defaultLoreTree.where((n) => n.id == loreId).firstOrNull;
+    if (node == null) return false;
+
+    if (state.resources.wisdom < node.costWisdom) {
+      showToast('Yetersiz Bilgelik: Bu töre için ${node.costWisdom.toInt()} Bitig Bilgeliği gerekir.');
+      return false;
+    }
+
+    final updatedLore = [...state.progression.unlockedLoreIds, loreId];
+    state = state.copyWith(
+      resources: state.resources.copyWith(
+        wisdom: state.resources.wisdom - node.costWisdom,
+      ),
+      progression: state.progression.copyWith(
+        unlockedLoreIds: updatedLore,
+      ),
+      activeToast: 'Töre Kanunu Kabul Edildi: ${node.title} (${node.description})',
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.upgrade);
+    saveGame();
+    return true;
+  }
+
+  /// 3. Büyük Göçte Yeni Bozkır Diyarı Seçimi
+  void selectMigrationRealm(String realmId) {
+    final cleanId = realmId.toLowerCase();
+    state = state.copyWith(
+      progression: state.progression.copyWith(activeRealmId: cleanId),
+      activeToast: cleanId == 'idil'
+          ? 'İdil-Yayık Nehir Havzası Seçildi: Balık ve Gıda bereketi 2x!'
+          : cleanId == 'karakum'
+              ? 'Karakum Vahaları Seçildi: İpek Yolu Kervanları ve Pazar bereketi 2x!'
+              : 'Altay Göksel Platoları Seçildi: Taş, Maden ve Şam Çeliği bereketi 2x!',
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.stoneClick);
     saveGame();
   }
 }

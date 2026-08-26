@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hex_rush/core/hex/hex_coordinates.dart';
 import 'package:hex_rush/presentation/flame/renderers/voxel_isometric_renderer.dart';
 import 'package:hex_rush/presentation/flame/components/steppe_messenger_component.dart';
 

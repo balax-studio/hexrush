@@ -8,6 +8,8 @@ import '../models/celestial_omen_model.dart';
 import '../models/doctrine_model.dart';
 import '../models/game_state_model.dart';
 import '../models/hex_tile_model.dart';
+import '../models/trade_order_model.dart';
+import '../models/steppe_lore_tree_model.dart';
 import '../services/symbiosis_engine.dart';
 
 class MarketTradeResult {
@@ -32,6 +34,10 @@ class NetResourceRates {
   final double bread;
   final double furniture;
   final double fish;
+  final double wisdom;
+  final double kumis;
+  final double felt;
+  final double damascusSteel;
 
   const NetResourceRates({
     this.food = 0.0,
@@ -43,6 +49,10 @@ class NetResourceRates {
     this.bread = 0.0,
     this.furniture = 0.0,
     this.fish = 0.0,
+    this.wisdom = 0.0,
+    this.kumis = 0.0,
+    this.felt = 0.0,
+    this.damascusSteel = 0.0,
   });
 }
 
@@ -57,6 +67,10 @@ class OfflineGainsResult {
   final double stone;
   final double iron;
   final double fish;
+  final double wisdom;
+  final double kumis;
+  final double felt;
+  final double damascusSteel;
 
   const OfflineGainsResult({
     required this.seconds,
@@ -69,6 +83,10 @@ class OfflineGainsResult {
     this.stone = 0.0,
     this.iron = 0.0,
     this.fish = 0.0,
+    this.wisdom = 0.0,
+    this.kumis = 0.0,
+    this.felt = 0.0,
+    this.damascusSteel = 0.0,
   });
 
   bool get hasGains =>
@@ -80,7 +98,11 @@ class OfflineGainsResult {
       furniture > 0 ||
       stone > 0 ||
       iron > 0 ||
-      fish > 0;
+      fish > 0 ||
+      wisdom > 0 ||
+      kumis > 0 ||
+      felt > 0 ||
+      damascusSteel > 0;
 }
 
 /// Krallık Ekonomisi, Töre Ağacı & Yetenek Hesaplayıcı (Pure Dart Engine)
@@ -671,7 +693,15 @@ class EconomyCalculator {
           gainedIron += hasWorkers
               ? rate * cappedSeconds
               : math.min(maxCap, rate * cappedSeconds);
+        case BuildingType.kumisYurt:
+          gainedFood += hasWorkers
+              ? rate * cappedSeconds
+              : math.min(maxCap, rate * cappedSeconds);
           break;
+        case BuildingType.feltTentWorkshop:
+        case BuildingType.damascusForge:
+        case BuildingType.runicStele:
+        case BuildingType.granaryVault:
         case BuildingType.shrine:
         case BuildingType.castle:
         case BuildingType.worker:
@@ -723,6 +753,10 @@ class EconomyCalculator {
     double netBread = 0.0;
     double netFurniture = 0.0;
     double netFish = 0.0;
+    double netWisdom = 0.0;
+    double netKumis = 0.0;
+    double netFelt = 0.0;
+    double netDamascusSteel = 0.0;
 
     final map = tileMap ?? {for (final t in tiles) t.coord: t};
 
@@ -812,6 +846,19 @@ class EconomyCalculator {
         case BuildingType.celestialAnvil:
           netIron += rate;
           break;
+        case BuildingType.kumisYurt:
+          netKumis += rate;
+          break;
+        case BuildingType.feltTentWorkshop:
+          netFelt += rate;
+          break;
+        case BuildingType.damascusForge:
+          netDamascusSteel += rate;
+          break;
+        case BuildingType.runicStele:
+          netWisdom += rate;
+          break;
+        case BuildingType.granaryVault:
         case BuildingType.shrine:
         case BuildingType.castle:
         case BuildingType.worker:
@@ -837,6 +884,10 @@ class EconomyCalculator {
       bread: netBread,
       furniture: netFurniture,
       fish: netFish,
+      wisdom: netWisdom,
+      kumis: netKumis,
+      felt: netFelt,
+      damascusSteel: netDamascusSteel,
     );
   }
 
@@ -1314,7 +1365,175 @@ class EconomyCalculator {
       stone: original.stone * boost,
       iron: original.iron * boost,
       fish: original.fish * boost,
+      wisdom: original.wisdom * boost,
+      kumis: original.kumis * boost,
+      felt: original.felt * boost,
+      damascusSteel: original.damascusSteel * boost,
     );
+  }
+
+  /// 13. Orhun Bitig Taşları Saniyelik Bilgelik (Lore) Üretimi
+  static double calculateWisdomProductionRate({
+    required Map<HexAxial, HexTileModel> tiles,
+    required int castleLevel,
+    List<String> unlockedLoreIds = const [],
+  }) {
+    double totalRate = 0.0;
+    for (final tile in tiles.values) {
+      if (tile.isOwned && tile.building?.type == BuildingType.runicStele) {
+        totalRate += tile.building!.currentProductionRate;
+      }
+    }
+    if (totalRate <= 0.0) return 0.0;
+
+    final double castleMult = 1.0 + (castleLevel - 1) * 0.15;
+    return totalRate * castleMult;
+  }
+
+  /// 14. Lojistik Kurgan Mahzenleri Bölgesel Taşıma ve Hasat Tampon Bonusu
+  static double getGranaryVaultBufferBonus(HexAxial coord, dynamic tiles) {
+    Iterable<HexTileModel> tileList;
+    if (tiles is Map) {
+      tileList = tiles.values.cast<HexTileModel>();
+    } else if (tiles is Iterable<HexTileModel>) {
+      tileList = tiles;
+    } else {
+      return 1.0;
+    }
+
+    for (final tile in tileList) {
+      if (tile.isOwned && tile.building?.type == BuildingType.granaryVault) {
+        final int dist = coord.distanceTo(tile.coord);
+        if (dist <= 3) {
+          return 1.50; // 3 Hex yarıçapında +%50 lojistik & toplama hız çarpanı
+        }
+      }
+    }
+    return 1.0;
+  }
+
+  /// 15. İleri Seviye Bozkır Zanaat Çıktı Oranları (Kımız, Keçe, Şam Çeliği)
+  static Map<String, double> calculateAdvancedCraftingYield({
+    required BuildingType buildingType,
+    required ResourcesModel resources,
+    double globalMultiplier = 1.0,
+    List<String> unlockedLoreIds = const [],
+  }) {
+    switch (buildingType) {
+      case BuildingType.kumisYurt:
+        // Gıda -> Kımız dönüşümü (1.0 gıda -> 0.25 kımız)
+        final double soilMultiplier = unlockedLoreIds.contains('lore_soil_2') ? 1.35 : 1.0;
+        final double maxCraft = (resources.food >= 1.0) ? 0.25 * globalMultiplier * soilMultiplier : 0.0;
+        return {
+          'consumed_food': maxCraft > 0 ? 1.0 : 0.0,
+          'gained_kumis': maxCraft,
+        };
+
+      case BuildingType.feltTentWorkshop:
+        // Odun + Gıda/Yün -> Keçe dönüşümü (0.5 odun + 0.5 gıda -> 0.22 keçe)
+        final double weatherMultiplier = unlockedLoreIds.contains('lore_weather_2') ? 1.40 : 1.0;
+        final bool canCraft = resources.wood >= 0.5 && resources.food >= 0.5;
+        final double maxCraft = canCraft ? 0.22 * globalMultiplier * weatherMultiplier : 0.0;
+        return {
+          'consumed_wood': canCraft ? 0.5 : 0.0,
+          'consumed_food': canCraft ? 0.5 : 0.0,
+          'gained_felt': maxCraft,
+        };
+
+      case BuildingType.damascusForge:
+        // Demir + Odun Kömürü -> Şam Çeliği dönüşümü (0.5 demir + 0.5 odun -> 0.18 şam çeliği)
+        final double metalMultiplier = unlockedLoreIds.contains('lore_metal_2') ? 1.50 : 1.0;
+        final bool canCraft = resources.iron >= 0.5 && resources.wood >= 0.5;
+        final double maxCraft = canCraft ? 0.18 * globalMultiplier * metalMultiplier : 0.0;
+        return {
+          'consumed_iron': canCraft ? 0.5 : 0.0,
+          'consumed_wood': canCraft ? 0.5 : 0.0,
+          'gained_damascus_steel': maxCraft,
+        };
+
+      default:
+        return const {};
+    }
+  }
+
+  /// 16. Büyük Göç Coğrafyaları Özellikleri ve Biyom Çarpanları (Altay, İdil, Karakum)
+  static Map<String, double> getMigrationRealmModifiers(String realmId) {
+    switch (realmId.toLowerCase()) {
+      case 'idil':
+        // İdil-Yayık Nehir Havzası: Balık, Gıda, Un, Kımız bereketi
+        return {
+          'food_mult': 2.0,
+          'fish_mult': 2.0,
+          'flour_mult': 1.5,
+          'kumis_mult': 1.5,
+          'sea_cost_discount': 0.30,
+        };
+      case 'karakum':
+        // Karakum & Tarım Havzası: Pazar, Kervan, Keçe, Taç bereketi
+        return {
+          'trade_order_speed': 2.0,
+          'caravan_mult': 2.0,
+          'felt_mult': 1.5,
+          'crowns_mult': 2.0,
+          'meadow_cost_discount': 0.25,
+        };
+      case 'altay':
+      default:
+        // Altay Göksel Platoları: Taş, Demir, Şam Çeliği, Kurgan bereketi
+        return {
+          'stone_mult': 2.0,
+          'iron_mult': 2.0,
+          'damascus_steel_mult': 2.0,
+          'mountain_cost_discount': 0.30,
+        };
+    }
+  }
+
+  /// 17. İpek Yolu Başlangıç Kervan Siparişleri (Han Buyrukları) Üretici
+  static List<TradeOrderModel> generateInitialTradeOrders() {
+    return [
+      const TradeOrderModel(
+        id: 'order_byzantine_1',
+        title: 'Bizans Sarayı Kereste Buyruğu',
+        requesterName: 'Konstantinopolis Elçisi',
+        requiredResources: {
+          'wood': 80.0,
+          'bread': 40.0,
+        },
+        rewardCrowns: 8,
+        rewardSpeedMultiplier: 1.35,
+        buffDurationSeconds: 600,
+        createdAt: '2026-08-26',
+      ),
+      const TradeOrderModel(
+        id: 'order_sogdian_1',
+        title: 'Soğd Kervanı Demir & Un Takası',
+        requesterName: 'Semerkant Başkâtibi',
+        requiredResources: {
+          'stone': 60.0,
+          'flour': 50.0,
+          'iron': 20.0,
+        },
+        rewardCrowns: 14,
+        rewardSpeedMultiplier: 1.50,
+        buffDurationSeconds: 900,
+        createdAt: '2026-08-26',
+      ),
+      const TradeOrderModel(
+        id: 'order_persian_1',
+        title: 'Sasani Hanı Kımız & Keçe Seferi',
+        requesterName: 'İsfahan Saray Kethüdası',
+        requiredResources: {
+          'furniture': 40.0,
+          'bread': 50.0,
+          'food': 100.0,
+        },
+        rewardCrowns: 20,
+        rewardSpeedMultiplier: 1.75,
+        buffDurationSeconds: 1200,
+        createdAt: '2026-08-26',
+      ),
+    ];
   }
 }
 

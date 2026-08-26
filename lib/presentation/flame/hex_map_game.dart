@@ -13,11 +13,13 @@ import 'components/hex_tile_component.dart';
 import 'components/snow_particle_emitter.dart';
 import 'components/steppe_messenger_component.dart';
 import 'components/caravan_convoy_component.dart';
+import 'components/harvest_sparkle_emitter.dart';
 import 'components/tile_conquer_poof_emitter.dart';
 import 'components/worker_agent_component.dart';
 
 class HexMapGame extends FlameGame {
   final void Function(HexAxial) onTileSelected;
+  final bool Function(HexAxial)? onTileHarvest;
   late final World gameWorld;
   late final CameraComponent gameCamera;
 
@@ -37,7 +39,10 @@ class HexMapGame extends FlameGame {
   // Kamera sürtünmesi / sönümleme (Smooth Pan Inertia)
   Vector2 _panVelocity = Vector2.zero();
 
-  HexMapGame({required this.onTileSelected});
+  HexMapGame({
+    required this.onTileSelected,
+    this.onTileHarvest,
+  });
 
   double get currentZoom => _currentZoom;
   Vector2 get cameraPosition => gameCamera.viewfinder.position;
@@ -226,6 +231,7 @@ class HexMapGame extends FlameGame {
       if (tile.hasBuilding) {
         final b = tile.building!;
         if (b.type == BuildingType.castle) {
+          onTileHarvest?.call(tappedCoord);
           gameWorld.add(
             FloatingResourceNumberComponent(
               position: tileVec,
@@ -234,13 +240,29 @@ class HexMapGame extends FlameGame {
               textColor: Colors.black,
             ),
           );
+          gameWorld.add(
+            HarvestSparkleEmitter(
+              centerPosition: tileVec,
+              isGolden: true,
+              particleCount: 8,
+            ),
+          );
         } else if (b.accumulatedResource > 0) {
+          final int amount = b.accumulatedResource.toInt();
+          onTileHarvest?.call(tappedCoord);
           gameWorld.add(
             FloatingResourceNumberComponent(
               position: tileVec,
-              text: '+${b.accumulatedResource.toInt()}',
+              text: _getHarvestResourceLabel(b.type, amount),
               bgColor: const Color(0xFF10B981),
               textColor: Colors.black,
+            ),
+          );
+          gameWorld.add(
+            HarvestSparkleEmitter(
+              centerPosition: tileVec,
+              isGolden: b.type == BuildingType.bakery || b.type == BuildingType.furniture,
+              particleCount: (8 + (amount ~/ 4)).clamp(8, 18),
             ),
           );
         }
@@ -250,6 +272,53 @@ class HexMapGame extends FlameGame {
       }
 
       onTileSelected(tappedCoord);
+    }
+  }
+
+  String _getHarvestResourceLabel(BuildingType type, int amount) {
+    switch (type) {
+      case BuildingType.corn:
+      case BuildingType.barley:
+      case BuildingType.pasture:
+      case BuildingType.orchard:
+      case BuildingType.reindeerSanctuary:
+      case BuildingType.herbalistYurt:
+      case BuildingType.oasisCistern:
+        return '+$amount GIDA';
+      case BuildingType.lumberjack:
+      case BuildingType.resinCamp:
+        return '+$amount ODUN';
+      case BuildingType.quarry:
+        return '+$amount TAŞ';
+      case BuildingType.fisherman:
+        return '+$amount BALIK';
+      case BuildingType.windmill:
+        return '+$amount UN';
+      case BuildingType.sawmill:
+      case BuildingType.scribeWorkshop:
+        return '+$amount KERESTE';
+      case BuildingType.bakery:
+      case BuildingType.caravanserai:
+        return '+$amount EKMEK';
+      case BuildingType.furniture:
+        return '+$amount MOBİLYA';
+      case BuildingType.mine:
+      case BuildingType.permafrostDig:
+      case BuildingType.obsidianForge:
+      case BuildingType.celestialAnvil:
+        return '+$amount MADEN';
+      case BuildingType.runicStele:
+        return '+$amount BİTİG';
+      case BuildingType.kumisYurt:
+        return '+$amount KIMIZ';
+      case BuildingType.feltTentWorkshop:
+        return '+$amount KEÇE';
+      case BuildingType.damascusForge:
+        return '+$amount ŞAM ÇELİĞİ';
+      case BuildingType.granaryVault:
+        return '+$amount AMBAR';
+      default:
+        return '+$amount HASAT';
     }
   }
 

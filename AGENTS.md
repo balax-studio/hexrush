@@ -114,4 +114,11 @@ Bu dosya, projede çalışan tüm yapay zeka ajanları ve geliştiriciler için 
     - Kademeli arama protokolü (standart -> `-u` gizli dosyalar -> `-tdart` / `-tjson` dosya tipi filtreleme) uygulanır.
     - Cerrahi müdahale öncesinde kod bloğunun yaşam döngüsü ve yan etkileri incelenmeli, gereksiz token tüketimi ve bağlam kirliliği engellenmelidir (`.agents/rules/cerrahi_arama_ve_ripgrep_tasarruf_standartlari.md`).
 
+24. **Görsel ve Taktil Mükemmellik, Voksel Derinlik ve Hasat Standartları (Visual Elevation & Tactile Polish Standards):**
+    - **Taktil Hasat & Parabolik Uçuş:** Doğrudan hasatta kaynak rozetleri (`FloatingResourceNumberComponent`) dikey doğrusal değil, hafif yatay salınımlı parabolik yayla süzülmelidir. Çift çerçeveli (`Double-Bezel` dış koyu kabuk + iç aydınlatma) neo-brutalist rozet stili korunmalıdır. Hasat ışıltıları 3D dönen voksel mikro-küpler ve tamga parıltılarıyla canlandırılmalıdır.
+    - **İzometrik Yönlü Gölge Projeksiyonu:** `drawIsoCube` içinde `drawShadow: true` olduğunda, gölge sadece taban kenarı değil, küpün yüksekliğine (`h`) orantılı olarak 45 derecelik izometrik ışık açısıyla arazi üzerine sert kenarlı yönlü gölge düşürmelidir.
+    - **Kinetik ve Çalışan Binalar:** Binalar üretim ve durumlarına göre canlı kinetik sinyaller yaymalıdır (değirmende dönen çarka bağlı savrulan un tozu zerrecikleri, demir madeninde akkor ocak koru ve baca dumanı, Kağan Otağı'nda seviyeye göre kademeli tuğ/sancak ve taç spiresi).
+    - **Hacimsel Atmosfer & Bulut Gölgeleri:** Bulutlar harita üzerinde geniş koordinat aralığında (-950px..+950px) süzülmeli ve zemin üzerine çift katmanlı yumuşak eliptik gölgeler düşürmelidir.
+    - **Sıfır Çöp Toplama (Zero-GC) Değişmezi:** Tüm yeni parçacık ve gölge çizimleri `static final Paint` / `static final Path` havuzlarından beslenmeli, render döngüsünde asla dinamik nesne oluşturulmamalıdır (`.agents/rules/gorsel_ve_taktil_mukemmellik_standartlari.md`).
+
 

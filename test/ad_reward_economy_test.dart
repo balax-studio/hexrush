@@ -37,7 +37,6 @@ void main() {
     });
 
     test('calculateCaravanAdBonus scales dynamically with castle level and rate', () {
-      const resources = ResourcesModel(food: 100, wood: 100);
       final bonusLvl1 = EconomyCalculator.calculateCaravanAdBonus(
         castleLevel: 1,
         crowns: 0,

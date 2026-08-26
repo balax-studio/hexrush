@@ -38,6 +38,12 @@ enum BuildingType {
   celestialAnvil,
   ancestralTotem,
   prismaticResonator,
+  // 5 Büyük Yeni Mekanik Binaları
+  granaryVault,
+  kumisYurt,
+  feltTentWorkshop,
+  damascusForge,
+  runicStele,
 }
 
 extension BuildingTypeExtension on BuildingType {
@@ -51,6 +57,7 @@ extension BuildingTypeExtension on BuildingType {
       case BuildingType.lumberjack:
       case BuildingType.worker:
       case BuildingType.shrine:
+      case BuildingType.granaryVault:
         return 1;
 
       case BuildingType.pasture:
@@ -61,6 +68,8 @@ extension BuildingTypeExtension on BuildingType {
       case BuildingType.watchtower:
       case BuildingType.oasisCistern:
       case BuildingType.herbalistYurt:
+      case BuildingType.runicStele:
+      case BuildingType.feltTentWorkshop:
         return 2;
 
       case BuildingType.bakery:
@@ -71,6 +80,8 @@ extension BuildingTypeExtension on BuildingType {
       case BuildingType.caravanserai:
       case BuildingType.scribeWorkshop:
       case BuildingType.reindeerSanctuary:
+      case BuildingType.kumisYurt:
+      case BuildingType.damascusForge:
         return 3;
 
       case BuildingType.fishermanHut:
@@ -193,6 +204,18 @@ class BuildingModel {
         return 250.0;
       case BuildingType.prismaticResonator:
         return 220.0;
+
+      // 5 Büyük Yeni Mekanik Binaları
+      case BuildingType.granaryVault:
+        return 40.0;
+      case BuildingType.kumisYurt:
+        return 70.0;
+      case BuildingType.feltTentWorkshop:
+        return 65.0;
+      case BuildingType.damascusForge:
+        return 120.0;
+      case BuildingType.runicStele:
+        return 80.0;
     }
   }
 
@@ -260,6 +283,18 @@ class BuildingModel {
         return 0.20; // Atalar bereketi
       case BuildingType.prismaticResonator:
         return 0.24; // Kristal rezonans
+
+      // 5 Büyük Yeni Mekanik Binaları
+      case BuildingType.granaryVault:
+        return 0.0; // Ambar üretim yapmaz, lojistik tamponudur
+      case BuildingType.kumisYurt:
+        return 0.25; // Kımız ve şifa üretimi
+      case BuildingType.feltTentWorkshop:
+        return 0.22; // Keçe ve zırh üretimi
+      case BuildingType.damascusForge:
+        return 0.18; // Şam çeliği üretimi
+      case BuildingType.runicStele:
+        return 0.15; // Saniyelik Bilgelik / Lore üretimi
       default:
         return 0.0;
     }
@@ -272,6 +307,8 @@ class BuildingModel {
         return 1.68;
       case BuildingType.fishermanHut:
         return 1.40;
+      case BuildingType.granaryVault:
+        return 2.50; // Kurgan Mahzeni yüksek lojistik taşıma kapasitesi sunar
       default:
         return 0.0;
     }

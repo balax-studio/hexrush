@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hex_rush/domain/economy/economy_calculator.dart';
 import 'package:hex_rush/domain/models/ad_reward_model.dart';
 import 'package:hex_rush/domain/services/ad_reward_service.dart';
-import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
 import 'package:hex_rush/presentation/widgets/offline_gains_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

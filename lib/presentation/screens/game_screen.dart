@@ -13,6 +13,9 @@ import '../widgets/tile_action_sheet.dart';
 import '../widgets/toast_overlay.dart';
 import '../widgets/top_bar_hud.dart';
 import '../widgets/tore_dialog.dart';
+import '../widgets/steppe_lore_tree_dialog.dart';
+import '../widgets/trade_orders_dialog.dart';
+import '../widgets/realm_selection_dialog.dart';
 
 class GameScreen extends ConsumerWidget {
   const GameScreen({super.key});
@@ -121,6 +124,81 @@ class GameScreen extends ConsumerWidget {
                             isMacroOverview ? Icons.zoom_in : Icons.zoom_out_map,
                             size: 18,
                             color: isMacroOverview ? Colors.black : Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Orhun Bitig Ağacı Butonu
+                      TactileNeoButton(
+                        onTap: () {
+                          showDialog<void>(
+                            context: context,
+                            builder: (_) => const SteppeLoreTreeDialog(),
+                          );
+                        },
+                        backgroundColor: const Color(0xFF083344),
+                        borderColor: const Color(0xFF06B6D4),
+                        shadowColor: theme.shadowColor,
+                        shadowOffset: 2.0,
+                        height: 36,
+                        width: 36,
+                        padding: EdgeInsets.zero,
+                        alignment: Alignment.center,
+                        child: const Center(
+                          child: Icon(
+                            Icons.auto_stories,
+                            size: 18,
+                            color: Color(0xFF67E8F9),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // İpek Yolu Elçi Siparişleri Butonu
+                      TactileNeoButton(
+                        onTap: () {
+                          showDialog<void>(
+                            context: context,
+                            builder: (_) => const TradeOrdersDialog(),
+                          );
+                        },
+                        backgroundColor: const Color(0xFF451A03),
+                        borderColor: const Color(0xFFF59E0B),
+                        shadowColor: theme.shadowColor,
+                        shadowOffset: 2.0,
+                        height: 36,
+                        width: 36,
+                        padding: EdgeInsets.zero,
+                        alignment: Alignment.center,
+                        child: const Center(
+                          child: Icon(
+                            Icons.local_shipping,
+                            size: 18,
+                            color: Color(0xFFFDE047),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Büyük Göç Sefer Diyarları Butonu
+                      TactileNeoButton(
+                        onTap: () {
+                          showDialog<void>(
+                            context: context,
+                            builder: (_) => const RealmSelectionDialog(),
+                          );
+                        },
+                        backgroundColor: const Color(0xFF1E1B4B),
+                        borderColor: const Color(0xFF818CF8),
+                        shadowColor: theme.shadowColor,
+                        shadowOffset: 2.0,
+                        height: 36,
+                        width: 36,
+                        padding: EdgeInsets.zero,
+                        alignment: Alignment.center,
+                        child: const Center(
+                          child: Icon(
+                            Icons.map,
+                            size: 18,
+                            color: Color(0xFFA5B4FC),
                           ),
                         ),
                       ),

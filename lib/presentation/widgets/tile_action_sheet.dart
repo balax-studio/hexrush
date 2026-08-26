@@ -1395,6 +1395,17 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         return GameLocalization.get('ancestral_totem_desc', lang: lang);
       case BuildingType.prismaticResonator:
         return GameLocalization.get('prismatic_resonator_desc', lang: lang);
+      // 5 Büyük Yeni Mekanik Binaları
+      case BuildingType.granaryVault:
+        return 'Lojistik ambar mahzeni. 3 hex yarıçapındaki binaların taşıma ve hasat hızını +%50 artırır.';
+      case BuildingType.kumisYurt:
+        return 'At sütü fermente eden kımız otağı. Değerli göçebe kımız içeceği üretir.';
+      case BuildingType.feltTentWorkshop:
+        return 'Yün işleyip dayanıklı keçe dokuyan atölye. Çadırhaneler ve ticaret için keçe üretir.';
+      case BuildingType.damascusForge:
+        return 'Kat kat dövme çelik ocağı. Efsanevi Şam Çeliği madeni üretir.';
+      case BuildingType.runicStele:
+        return 'Orhun Bitig dikilitaşı. Bozkır Töre Bilgelik Ağacı için Bilgelik (Lore) üretir.';
     }
   }
 
@@ -1507,6 +1518,17 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         return const GameVectorIcon(type: GameIconType.crown, size: 13, color: Color(0xFFFFD700));
       case BuildingType.prismaticResonator:
         return const GameVectorIcon(type: GameIconType.shrine, size: 13, color: Color(0xFFC084FC));
+      // 5 Büyük Yeni Mekanik Binaları
+      case BuildingType.granaryVault:
+        return const GameVectorIcon(type: GameIconType.stone, size: 13, color: Color(0xFFF59E0B));
+      case BuildingType.kumisYurt:
+        return const GameVectorIcon(type: GameIconType.food, size: 13, color: Color(0xFF10B981));
+      case BuildingType.feltTentWorkshop:
+        return const GameVectorIcon(type: GameIconType.plank, size: 13, color: Color(0xFFFB923C));
+      case BuildingType.damascusForge:
+        return const GameVectorIcon(type: GameIconType.iron, size: 13, color: Color(0xFFEF4444));
+      case BuildingType.runicStele:
+        return const GameVectorIcon(type: GameIconType.shrine, size: 13, color: Color(0xFF06B6D4));
     }
   }
 
@@ -1608,6 +1630,17 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         return GameLocalization.get('ancestral_totem_name', lang: lang);
       case BuildingType.prismaticResonator:
         return GameLocalization.get('prismatic_resonator_name', lang: lang);
+      // 5 Büyük Yeni Mekanik Binaları
+      case BuildingType.granaryVault:
+        return 'Kurgan Mahzeni';
+      case BuildingType.kumisYurt:
+        return 'Kımız Otağı';
+      case BuildingType.feltTentWorkshop:
+        return 'Keçe Çadırhanesi';
+      case BuildingType.damascusForge:
+        return 'Şam Çeliği Dökümhanesi';
+      case BuildingType.runicStele:
+        return 'Orhun Bitig Taşı';
     }
   }
 }

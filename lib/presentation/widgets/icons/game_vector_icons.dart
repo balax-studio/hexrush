@@ -26,6 +26,11 @@ enum GameIconType {
   volcano,
   wetland,
   shrine,
+  wisdom,
+  kumis,
+  felt,
+  damascusSteel,
+  granary,
 }
 
 class GameVectorIcon extends StatelessWidget {
@@ -132,6 +137,21 @@ class _GameIconPainter extends CustomPainter {
         break;
       case GameIconType.shrine:
         _drawShrine(canvas, s, h);
+        break;
+      case GameIconType.wisdom:
+        _drawWisdom(canvas, s, h);
+        break;
+      case GameIconType.kumis:
+        _drawKumis(canvas, s, h);
+        break;
+      case GameIconType.felt:
+        _drawFelt(canvas, s, h);
+        break;
+      case GameIconType.damascusSteel:
+        _drawDamascusSteel(canvas, s, h);
+        break;
+      case GameIconType.granary:
+        _drawGranary(canvas, s, h);
         break;
     }
   }
@@ -655,6 +675,134 @@ class _GameIconPainter extends CustomPainter {
     canvas.drawRect(Rect.fromLTWH(w * 0.15, h * 0.75, w * 0.7, h * 0.12), fill);
     canvas.drawRect(Rect.fromLTWH(w * 0.15, h * 0.75, w * 0.7, h * 0.12), stroke);
     canvas.drawPath(reed, stroke..strokeWidth = 1.5);
+  }
+
+  void _drawWisdom(Canvas canvas, double w, double h) {
+    final Paint fill = Paint()..color = customColor ?? const Color(0xFF06B6D4);
+    final Paint stroke = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+
+    // Rünik dikilitaş
+    final Path stele = Path()
+      ..moveTo(w * 0.35, h * 0.9)
+      ..lineTo(w * 0.35, h * 0.25)
+      ..lineTo(w * 0.5, h * 0.12)
+      ..lineTo(w * 0.65, h * 0.25)
+      ..lineTo(w * 0.65, h * 0.9)
+      ..close();
+
+    canvas.drawPath(stele, fill);
+    canvas.drawPath(stele, stroke);
+
+    final Paint glow = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 1.2
+      ..style = PaintingStyle.stroke;
+    canvas.drawLine(Offset(w * 0.45, h * 0.38), Offset(w * 0.55, h * 0.38), glow);
+    canvas.drawLine(Offset(w * 0.42, h * 0.55), Offset(w * 0.58, h * 0.55), glow);
+    canvas.drawLine(Offset(w * 0.45, h * 0.72), Offset(w * 0.55, h * 0.72), glow);
+  }
+
+  void _drawKumis(Canvas canvas, double w, double h) {
+    final Paint fill = Paint()..color = customColor ?? const Color(0xFF10B981);
+    final Paint stroke = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+
+    // Kımız güğümü / kadehi
+    final Path bowl = Path()
+      ..moveTo(w * 0.25, h * 0.35)
+      ..lineTo(w * 0.75, h * 0.35)
+      ..quadraticBezierTo(w * 0.75, h * 0.85, w * 0.5, h * 0.85)
+      ..quadraticBezierTo(w * 0.25, h * 0.85, w * 0.25, h * 0.35)
+      ..close();
+
+    canvas.drawPath(bowl, fill);
+    canvas.drawPath(bowl, stroke);
+
+    final Paint whiteFill = Paint()..color = Colors.white;
+    canvas.drawOval(Rect.fromLTWH(w * 0.28, h * 0.3, w * 0.44, h * 0.12), whiteFill);
+  }
+
+  void _drawFelt(Canvas canvas, double w, double h) {
+    final Paint fill = Paint()..color = customColor ?? const Color(0xFFF59E0B);
+    final Paint stroke = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+
+    // Dokuma keçe rulosu / halısı
+    final Path rug = Path()
+      ..moveTo(w * 0.2, h * 0.25)
+      ..lineTo(w * 0.8, h * 0.25)
+      ..lineTo(w * 0.75, h * 0.8)
+      ..lineTo(w * 0.15, h * 0.8)
+      ..close();
+
+    canvas.drawPath(rug, fill);
+    canvas.drawPath(rug, stroke);
+
+    final Paint pattern = Paint()
+      ..color = const Color(0xFFDC2626)
+      ..strokeWidth = 1.2
+      ..style = PaintingStyle.stroke;
+    canvas.drawLine(Offset(w * 0.3, h * 0.4), Offset(w * 0.65, h * 0.4), pattern);
+    canvas.drawLine(Offset(w * 0.28, h * 0.6), Offset(w * 0.62, h * 0.6), pattern);
+  }
+
+  void _drawDamascusSteel(Canvas canvas, double w, double h) {
+    final Paint fill = Paint()..color = customColor ?? const Color(0xFF818CF8);
+    final Paint stroke = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+
+    // Dövülmüş çelik külçe
+    final Path ingot = Path()
+      ..moveTo(w * 0.2, h * 0.4)
+      ..lineTo(w * 0.45, h * 0.2)
+      ..lineTo(w * 0.8, h * 0.35)
+      ..lineTo(w * 0.55, h * 0.55)
+      ..close();
+
+    canvas.drawPath(ingot, fill);
+    canvas.drawPath(ingot, stroke);
+
+    final Path ingotFront = Path()
+      ..moveTo(w * 0.2, h * 0.4)
+      ..lineTo(w * 0.55, h * 0.55)
+      ..lineTo(w * 0.55, h * 0.8)
+      ..lineTo(w * 0.2, h * 0.65)
+      ..close();
+
+    final Paint darkFill = Paint()..color = const Color(0xFF4F46E5);
+    canvas.drawPath(ingotFront, darkFill);
+    canvas.drawPath(ingotFront, stroke);
+  }
+
+  void _drawGranary(Canvas canvas, double w, double h) {
+    final Paint fill = Paint()..color = customColor ?? const Color(0xFF475569);
+    final Paint stroke = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+
+    final Path roof = Path()
+      ..moveTo(w * 0.5, h * 0.15)
+      ..lineTo(w * 0.85, h * 0.45)
+      ..lineTo(w * 0.15, h * 0.45)
+      ..close();
+
+    final Paint roofFill = Paint()..color = const Color(0xFFB45309);
+    canvas.drawPath(roof, roofFill);
+    canvas.drawPath(roof, stroke);
+
+    final Rect base = Rect.fromLTWH(w * 0.22, h * 0.45, w * 0.56, h * 0.4);
+    canvas.drawRect(base, fill);
+    canvas.drawRect(base, stroke);
   }
 
   @override

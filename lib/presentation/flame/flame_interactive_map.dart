@@ -24,6 +24,9 @@ class _FlameInteractiveMapState extends ConsumerState<FlameInteractiveMap> {
       onTileSelected: (coord) {
         ref.read(gameStateProvider.notifier).selectTile(coord);
       },
+      onTileHarvest: (coord) {
+        return ref.read(gameStateProvider.notifier).collectFromTile(coord);
+      },
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {

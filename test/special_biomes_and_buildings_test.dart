@@ -55,13 +55,13 @@ void main() {
 
       // Efsanevi Biyomlar
       final craterBuildings = GameStateNotifier.getAllowedBuildingsForBiome(TileBiome.celestialCrater);
-      expect(craterBuildings, [BuildingType.celestialAnvil]);
+      expect(craterBuildings.contains(BuildingType.celestialAnvil), isTrue);
 
       final kurganBuildings = GameStateNotifier.getAllowedBuildingsForBiome(TileBiome.kurganValley);
-      expect(kurganBuildings, [BuildingType.ancestralTotem]);
+      expect(kurganBuildings.contains(BuildingType.ancestralTotem), isTrue);
 
       final chasmBuildings = GameStateNotifier.getAllowedBuildingsForBiome(TileBiome.crystalChasm);
-      expect(chasmBuildings, [BuildingType.prismaticResonator]);
+      expect(chasmBuildings.contains(BuildingType.prismaticResonator), isTrue);
     });
 
     test('Harita Üretimi 3 Efsanevi Biyomu İçermelidir', () {

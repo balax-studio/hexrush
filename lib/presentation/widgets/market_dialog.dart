@@ -9,6 +9,7 @@ import '../../domain/services/ad_reward_service.dart';
 import '../providers/game_state_notifier.dart';
 import 'icons/game_vector_icons.dart';
 import 'tactile_neo_button.dart';
+import 'trade_orders_dialog.dart';
 
 class MarketDialog extends ConsumerWidget {
   final IAdRewardService? adService;
@@ -190,6 +191,38 @@ class MarketDialog extends ConsumerWidget {
                   ),
                 );
               },
+            ),
+            const SizedBox(height: 8),
+            // İpek Yolu Elçi Siparişleri Açma Butonu
+            TactileNeoButton(
+              onTap: () {
+                showDialog<void>(
+                  context: context,
+                  builder: (_) => const TradeOrdersDialog(),
+                );
+              },
+              backgroundColor: const Color(0xFF451A03),
+              borderColor: const Color(0xFFF59E0B),
+              shadowOffset: 2.5,
+              height: 36,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              alignment: Alignment.center,
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.local_shipping, size: 16, color: Color(0xFFFDE047)),
+                  SizedBox(width: 8),
+                  Text(
+                    'İPEK YOLU ELÇİ SİPARİŞLERİ',
+                    style: TextStyle(
+                      color: Color(0xFFFDE047),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 10),
             const Divider(color: Colors.black, thickness: 1.5, height: 1.5),

@@ -202,14 +202,20 @@ class HexTileComponent extends PositionComponent {
       }
     }
 
-    // Dokunsal Pop / Yaylanma zıplaması
+    // Dokunsal Pop / Yaylanma zıplaması & İnşaat Düşme Fiziği (Drop & Settle Curve)
     double bounceOffset = 0.0;
     if (_bounceTimer > 0) {
       final double progress = 1.0 - (_bounceTimer / _bounceDuration);
       bounceOffset = math.sin(progress * math.pi) * 8.0;
     } else if (_buildBounceTimer > 0) {
       final double progress = 1.0 - (_buildBounceTimer / _buildBounceDuration);
-      bounceOffset = math.sin(progress * math.pi) * 12.0;
+      if (progress < 0.6) {
+        final double dropP = progress / 0.6;
+        bounceOffset = -18.0 * (1.0 - dropP) * (1.0 - dropP);
+      } else {
+        final double settleP = (progress - 0.6) / 0.4;
+        bounceOffset = math.sin(settleP * math.pi) * 8.0 * (1.0 - settleP);
+      }
     }
 
     final double elevation = getBiomeElevation(tileModel.biome, isFog: tileModel.isFog) + bounceOffset;
@@ -429,6 +435,8 @@ class HexTileComponent extends PositionComponent {
     } else if (tileModel.hasBuilding) {
       final b = tileModel.building!;
       final int bVar = b.variant != 0 ? b.variant : ((tileModel.coord.q * 17 + tileModel.coord.r * 31).abs() % 3);
+      final bool isWinter = _currentSeason == 'WINTER' || isZud;
+      final int bLvl = b.level;
 
       switch (b.type) {
         case BuildingType.castle:
@@ -464,22 +472,22 @@ class HexTileComponent extends PositionComponent {
           VoxelIsometricRenderer.drawVoxelOrchard(canvas, center, animTime: tTime, variant: bVar);
           break;
         case BuildingType.quarry:
-          VoxelIsometricRenderer.drawVoxelQuarry(canvas, center, variant: bVar);
+          VoxelIsometricRenderer.drawVoxelQuarry(canvas, center, variant: bVar, level: bLvl, isWinter: isWinter);
           break;
         case BuildingType.resinCamp:
           VoxelIsometricRenderer.drawVoxelResinCamp(canvas, center, animTime: tTime, variant: bVar);
           break;
         case BuildingType.lumberjack:
-          VoxelIsometricRenderer.drawVoxelLumberjack(canvas, center, variant: bVar);
+          VoxelIsometricRenderer.drawVoxelLumberjack(canvas, center, variant: bVar, level: bLvl, isWinter: isWinter);
           break;
         case BuildingType.windmill:
-          VoxelIsometricRenderer.drawVoxelWindmill(canvas, center, tTime, isNight: isNight, variant: bVar);
+          VoxelIsometricRenderer.drawVoxelWindmill(canvas, center, tTime, isNight: isNight, variant: bVar, level: bLvl, isWinter: isWinter);
           break;
         case BuildingType.sawmill:
-          VoxelIsometricRenderer.drawVoxelSawmill(canvas, center, variant: bVar);
+          VoxelIsometricRenderer.drawVoxelSawmill(canvas, center, variant: bVar, level: bLvl, isWinter: isWinter);
           break;
         case BuildingType.bakery:
-          VoxelIsometricRenderer.drawVoxelBakery(canvas, center, tTime, isNight: isNight, variant: bVar);
+          VoxelIsometricRenderer.drawVoxelBakery(canvas, center, tTime, isNight: isNight, variant: bVar, level: bLvl, isWinter: isWinter);
           VoxelIsometricRenderer.drawVoxelSmokePlume(
             canvas,
             Offset(center.dx + 8 * VoxelIsometricRenderer.cosIso, center.dy - 28.0 - 4 * VoxelIsometricRenderer.sinIso),
@@ -499,16 +507,16 @@ class HexTileComponent extends PositionComponent {
           }
           break;
         case BuildingType.furniture:
-          VoxelIsometricRenderer.drawVoxelFurniture(canvas, center, variant: bVar);
+          VoxelIsometricRenderer.drawVoxelFurniture(canvas, center, variant: bVar, level: bLvl, isWinter: isWinter);
           break;
         case BuildingType.worker:
-          VoxelIsometricRenderer.drawVoxelLumberjack(canvas, center, variant: bVar);
+          VoxelIsometricRenderer.drawVoxelLumberjack(canvas, center, variant: bVar, level: bLvl, isWinter: isWinter);
           break;
         case BuildingType.watchtower:
           VoxelIsometricRenderer.drawVoxelWatchtower(canvas, center, isNight: isNight, animTime: tTime);
           break;
         case BuildingType.mine:
-          VoxelIsometricRenderer.drawVoxelMine(canvas, center, animTime: tTime, isNight: isNight, variant: bVar);
+          VoxelIsometricRenderer.drawVoxelMine(canvas, center, animTime: tTime, isNight: isNight, variant: bVar, level: bLvl, isWinter: isWinter);
           break;
         case BuildingType.bridge:
           VoxelIsometricRenderer.drawVoxelBridge(canvas, center);
@@ -592,6 +600,21 @@ class HexTileComponent extends PositionComponent {
           break;
         case BuildingType.prismaticResonator:
           VoxelIsometricRenderer.drawVoxelPrismaticResonator(canvas, center, animTime: tTime);
+          break;
+        case BuildingType.runicStele:
+          VoxelIsometricRenderer.drawVoxelRunicStele(canvas, center, animTime: tTime);
+          break;
+        case BuildingType.granaryVault:
+          VoxelIsometricRenderer.drawVoxelGranaryVault(canvas, center, animTime: tTime);
+          break;
+        case BuildingType.kumisYurt:
+          VoxelIsometricRenderer.drawVoxelKumisYurt(canvas, center, animTime: tTime);
+          break;
+        case BuildingType.feltTentWorkshop:
+          VoxelIsometricRenderer.drawVoxelFeltTentWorkshop(canvas, center, animTime: tTime);
+          break;
+        case BuildingType.damascusForge:
+          VoxelIsometricRenderer.drawVoxelDamascusForge(canvas, center, animTime: tTime);
           break;
       }
     } else {

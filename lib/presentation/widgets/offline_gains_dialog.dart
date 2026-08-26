@@ -152,21 +152,7 @@ class OfflineGainsDialog extends ConsumerWidget {
                     height: 38,
                     backgroundColor: const Color(0xFF1E293B),
                     onTap: () {
-                      notifier.state = notifier.state.copyWith(
-                        resources: notifier.state.resources.copyWith(
-                          food: notifier.state.resources.food + gains.food,
-                          wood: notifier.state.resources.wood + gains.wood,
-                          flour: notifier.state.resources.flour + gains.flour,
-                          plank: notifier.state.resources.plank + gains.plank,
-                          bread: notifier.state.resources.bread + gains.bread,
-                          furniture:
-                              notifier.state.resources.furniture + gains.furniture,
-                          stone: notifier.state.resources.stone + gains.stone,
-                          iron: notifier.state.resources.iron + gains.iron,
-                        ),
-                        activeToast: 'Bozkır kazancı ambara aktarıldı.',
-                      );
-                      notifier.saveGame();
+                      notifier.claimOfflineGains(gains, isBoosted: false);
                       Navigator.of(context).pop();
                     },
                     child: const Center(
@@ -193,29 +179,15 @@ class OfflineGainsDialog extends ConsumerWidget {
                         : const Color(0xFF475569),
                     isEnabled: canWatchAd,
                     onTap: () async {
-                      final boosted =
-                          EconomyCalculator.calculateOfflineAdBoostedGains(gains);
                       final success = await notifier.claimAdReward(
                         AdRewardType.offlineProgressBoost,
                         adService: adService,
                       );
                       if (success && context.mounted) {
-                        notifier.state = notifier.state.copyWith(
-                          resources: notifier.state.resources.copyWith(
-                            food: notifier.state.resources.food + boosted.food,
-                            wood: notifier.state.resources.wood + boosted.wood,
-                            flour: notifier.state.resources.flour + boosted.flour,
-                            plank: notifier.state.resources.plank + boosted.plank,
-                            bread: notifier.state.resources.bread + boosted.bread,
-                            furniture:
-                                notifier.state.resources.furniture + boosted.furniture,
-                            stone: notifier.state.resources.stone + boosted.stone,
-                            iron: notifier.state.resources.iron + boosted.iron,
-                          ),
-                          activeToast: 'Kervan bereketiyle 1.5x kazanç sağlandı!',
-                        );
-                        notifier.saveGame();
-                        Navigator.of(context).pop();
+                        await notifier.claimOfflineGains(gains, isBoosted: true);
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                        }
                       }
                     },
                     child: Center(

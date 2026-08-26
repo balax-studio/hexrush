@@ -1,3 +1,6 @@
+import 'trade_order_model.dart';
+import 'steppe_lore_tree_model.dart';
+
 class ResourcesModel {
   final double food;
   final double wood;
@@ -10,6 +13,10 @@ class ResourcesModel {
   final double iron;
   final double obsidian;
   final double mithril;
+  final double wisdom; // Orhun Bitig Taşı Bilgelik Puanı
+  final double kumis; // Kımız & Şifa İçeceği
+  final double felt; // Keçe & Zırh Malzemesi
+  final double damascusSteel; // Şam Çeliği
   final int crowns;
   final int tamgas;
 
@@ -25,6 +32,10 @@ class ResourcesModel {
     this.iron = 0.0,
     this.obsidian = 0.0,
     this.mithril = 0.0,
+    this.wisdom = 0.0,
+    this.kumis = 0.0,
+    this.felt = 0.0,
+    this.damascusSteel = 0.0,
     this.crowns = 0,
     this.tamgas = 0,
   });
@@ -41,6 +52,10 @@ class ResourcesModel {
     double? iron,
     double? obsidian,
     double? mithril,
+    double? wisdom,
+    double? kumis,
+    double? felt,
+    double? damascusSteel,
     int? crowns,
     int? tamgas,
   }) {
@@ -56,6 +71,10 @@ class ResourcesModel {
       iron: iron ?? this.iron,
       obsidian: obsidian ?? this.obsidian,
       mithril: mithril ?? this.mithril,
+      wisdom: wisdom ?? this.wisdom,
+      kumis: kumis ?? this.kumis,
+      felt: felt ?? this.felt,
+      damascusSteel: damascusSteel ?? this.damascusSteel,
       crowns: crowns ?? this.crowns,
       tamgas: tamgas ?? this.tamgas,
     );
@@ -73,6 +92,10 @@ class ResourcesModel {
         'iron': iron,
         'obsidian': obsidian,
         'mithril': mithril,
+        'wisdom': wisdom,
+        'kumis': kumis,
+        'felt': felt,
+        'damascus_steel': damascusSteel,
         'crowns': crowns,
         'tamgas': tamgas,
       };
@@ -90,6 +113,10 @@ class ResourcesModel {
       iron: (json['iron'] as num?)?.toDouble() ?? 0.0,
       obsidian: (json['obsidian'] as num?)?.toDouble() ?? 0.0,
       mithril: (json['mithril'] as num?)?.toDouble() ?? 0.0,
+      wisdom: (json['wisdom'] as num?)?.toDouble() ?? 0.0,
+      kumis: (json['kumis'] as num?)?.toDouble() ?? 0.0,
+      felt: (json['felt'] as num?)?.toDouble() ?? 0.0,
+      damascusSteel: (json['damascus_steel'] as num?)?.toDouble() ?? 0.0,
       crowns: json['crowns'] as int? ?? 0,
       tamgas: json['tamgas'] as int? ?? 0,
     );
@@ -173,6 +200,9 @@ class ProgressionModel {
   final List<MigrationRecordModel> migrationHistory;
   final Map<String, int> cumulativeBiomeCounts;
   final int totalSessions;
+  final String activeRealmId; // 'altay', 'idil', 'karakum'
+  final List<TradeOrderModel> activeTradeOrders;
+  final List<String> unlockedLoreIds;
 
   const ProgressionModel({
     this.castleLevel = 1,
@@ -186,6 +216,9 @@ class ProgressionModel {
     this.migrationHistory = const [],
     this.cumulativeBiomeCounts = const {},
     this.totalSessions = 1,
+    this.activeRealmId = 'altay',
+    this.activeTradeOrders = const [],
+    this.unlockedLoreIds = const [],
   });
 
   ProgressionModel copyWith({
@@ -200,6 +233,9 @@ class ProgressionModel {
     List<MigrationRecordModel>? migrationHistory,
     Map<String, int>? cumulativeBiomeCounts,
     int? totalSessions,
+    String? activeRealmId,
+    List<TradeOrderModel>? activeTradeOrders,
+    List<String>? unlockedLoreIds,
   }) {
     return ProgressionModel(
       castleLevel: castleLevel ?? this.castleLevel,
@@ -215,6 +251,9 @@ class ProgressionModel {
       cumulativeBiomeCounts:
           cumulativeBiomeCounts ?? this.cumulativeBiomeCounts,
       totalSessions: totalSessions ?? this.totalSessions,
+      activeRealmId: activeRealmId ?? this.activeRealmId,
+      activeTradeOrders: activeTradeOrders ?? this.activeTradeOrders,
+      unlockedLoreIds: unlockedLoreIds ?? this.unlockedLoreIds,
     );
   }
 
@@ -230,6 +269,9 @@ class ProgressionModel {
         'migration_history': migrationHistory.map((m) => m.toJson()).toList(),
         'cumulative_biome_counts': cumulativeBiomeCounts,
         'total_sessions': totalSessions,
+        'active_realm_id': activeRealmId,
+        'active_trade_orders': activeTradeOrders.map((o) => o.toJson()).toList(),
+        'unlocked_lore_ids': unlockedLoreIds,
       };
 
   factory ProgressionModel.fromJson(Map<String, dynamic> json) {
@@ -254,6 +296,22 @@ class ProgressionModel {
       });
     }
 
+    final rawOrders = json['active_trade_orders'] as List?;
+    final List<TradeOrderModel> orders = [];
+    if (rawOrders != null) {
+      for (final item in rawOrders) {
+        if (item is Map) {
+          try {
+            orders.add(TradeOrderModel.fromJson(
+                Map<String, dynamic>.from(item)));
+          } catch (_) {}
+        }
+      }
+    }
+
+    final rawLore = json['unlocked_lore_ids'] as List?;
+    final List<String> loreIds = rawLore?.map((e) => e.toString()).toList() ?? [];
+
     return ProgressionModel(
       castleLevel: json['castle_level'] as int? ?? 1,
       ownedCount: json['owned_count'] as int? ?? 1,
@@ -266,6 +324,9 @@ class ProgressionModel {
       migrationHistory: history,
       cumulativeBiomeCounts: biomeCounts,
       totalSessions: json['total_sessions'] as int? ?? 1,
+      activeRealmId: json['active_realm_id'] as String? ?? 'altay',
+      activeTradeOrders: orders,
+      unlockedLoreIds: loreIds,
     );
   }
 }

@@ -55,16 +55,20 @@ class FloatingResourceNumberComponent extends PositionComponent {
     }
 
     final double progress = (_elapsed / duration).clamp(0.0, 1.0);
-    // Yukarı doğru yavaşlayarak süzülme
-    final double easeY = (1.0 - math.pow(1.0 - progress, 2).toDouble()) * 32.0;
-    position = Vector2(_initialPos.x, _initialPos.y - easeY);
+    // Yukarı doğru parabolik süzülme ve hafif yatay salınım
+    final double easeY = (1.0 - math.pow(1.0 - progress, 2.2).toDouble()) * 38.0;
+    final double swayX = math.sin(progress * math.pi * 1.5) * 4.0;
+    position = Vector2(_initialPos.x + swayX, _initialPos.y - easeY);
   }
 
   static final Paint _shadowPaint = Paint()..style = PaintingStyle.fill;
   static final Paint _bgPaint = Paint()..style = PaintingStyle.fill;
   static final Paint _borderPaint = Paint()
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 1.5;
+    ..strokeWidth = 2.0;
+  static final Paint _innerBezelPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.0;
   static final Paint _layerAlphaPaint = Paint();
 
   @override
@@ -72,39 +76,46 @@ class FloatingResourceNumberComponent extends PositionComponent {
     final double progress = (_elapsed / duration).clamp(0.0, 1.0);
     final double alpha = (1.0 - progress).clamp(0.0, 1.0);
 
-    // Pop / Bounce Ölçeklendirmesi (0 -> 1.15 -> 1.0)
+    // Pop / Bounce Ölçeklendirmesi (0 -> 1.22 -> 1.0)
     double scale = 1.0;
-    if (progress < 0.25) {
-      scale = (progress / 0.25) * 1.15;
-    } else if (progress < 0.45) {
-      scale = 1.15 - ((progress - 0.25) / 0.2) * 0.15;
+    if (progress < 0.2) {
+      scale = (progress / 0.2) * 1.22;
+    } else if (progress < 0.4) {
+      scale = 1.22 - ((progress - 0.2) / 0.2) * 0.22;
     }
 
     canvas.save();
     canvas.scale(scale);
 
-    // 1. Sert Siyah Gölge
-    _shadowPaint.color = Colors.black.withValues(alpha: alpha * 0.8);
+    // 1. Sert Siyah Ofset Gölge (Neo-Brutalist 2.5px)
+    _shadowPaint.color = Colors.black.withValues(alpha: alpha * 0.85);
     canvas.drawRect(
-      _baseRect.shift(const Offset(2.0, 2.0)),
+      _baseRect.shift(const Offset(2.5, 2.5)),
       _shadowPaint,
     );
 
-    // 2. Arka Plan Kartı
+    // 2. Arka Plan Kartı (Dış Kabuk)
     _bgPaint.color = bgColor.withValues(alpha: alpha);
     canvas.drawRect(
       _baseRect,
       _bgPaint,
     );
 
-    // 3. Siyah Çerçeve
+    // 3. İç Çerçeve / Double-Bezel Parlaması
+    _innerBezelPaint.color = Colors.white.withValues(alpha: alpha * 0.35);
+    canvas.drawRect(
+      _baseRect.deflate(1.2),
+      _innerBezelPaint,
+    );
+
+    // 4. Sert Siyah Dış Çerçeve
     _borderPaint.color = Colors.black.withValues(alpha: alpha);
     canvas.drawRect(
       _baseRect,
       _borderPaint,
     );
 
-    // 4. Önceden Hesaplanmış Metin Çizimi (Zero Allocation)
+    // 5. Önceden Hesaplanmış Metin Çizimi (Zero Allocation)
     if (alpha < 0.99) {
       _layerAlphaPaint.color = Color.fromRGBO(255, 255, 255, alpha);
       canvas.saveLayer(null, _layerAlphaPaint);
