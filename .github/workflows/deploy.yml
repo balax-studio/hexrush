@@ -42,7 +42,7 @@ jobs:
 
       - name: Build Web
         run: |
-          flutter build web --release --base-href /altigen.vs1/
+          flutter build web --release --base-href /hexrush/
           touch build/web/.nojekyll
 
       - name: Deploy to gh-pages branch
