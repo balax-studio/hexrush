@@ -548,9 +548,15 @@ class EconomyCalculator {
       return OfflineGainsResult(seconds: cappedSeconds.toInt());
     }
 
-    final bool hasWorkers = tiles.any((t) =>
-        t.building?.type == BuildingType.worker ||
-        t.building?.type == BuildingType.fishermanHut);
+    final workerCoords = tiles
+        .where((t) =>
+            t.isOwned &&
+            t.building != null &&
+            (t.building!.type == BuildingType.worker ||
+                t.building!.type == BuildingType.castle ||
+                t.building!.type == BuildingType.fishermanHut))
+        .map((t) => t.coord)
+        .toList();
 
     double gainedFood = 0.0;
     double gainedWood = 0.0;
@@ -565,6 +571,9 @@ class EconomyCalculator {
     for (final t in tiles) {
       final b = t.building;
       if (b == null) continue;
+
+      final bool hasWorkers =
+          workerCoords.any((wc) => t.coord.distanceTo(wc) <= 4);
 
       final double rate = (b.baseProductionRate * math.pow(1.5, b.level - 1)) *
           globalMultiplier;

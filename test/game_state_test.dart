@@ -121,23 +121,22 @@ void main() {
 
     test('watchtower construction reveals surrounding 2-radius fog', () {
       final notifier = GameStateNotifier();
-      // Level up castle to 2 to allow watchtower
+      const target = HexAxial(1, 0);
+      const checkCoord = HexAxial(3, 0);
+
+      // Level up castle to 2, ensure resources and predictable tile state
       notifier.state = notifier.state.copyWith(
         progression: notifier.state.progression.copyWith(castleLevel: 2),
-        resources: const ResourcesModel(food: 100.0, wood: 100.0),
-      );
-
-      const target = HexAxial(1, 0);
-
-      // Force tile biome to meadow for test predictability before conquer
-      notifier.state = notifier.state.copyWith(
+        resources: const ResourcesModel(food: 200.0, wood: 100.0),
         tiles: {
           ...notifier.state.tiles,
           target: notifier.state.tiles[target]!.copyWith(biome: TileBiome.meadow),
+          checkCoord: notifier.state.tiles[checkCoord]!.copyWith(state: TileState.fog),
         },
       );
 
-      notifier.conquerTile(target);
+      final conquered = notifier.conquerTile(target);
+      expect(conquered, isTrue);
 
       // Gözcü Kulesi için Şato Seviye 2 gereklidir
       notifier.state = notifier.state.copyWith(
@@ -148,7 +147,6 @@ void main() {
       expect(built, isTrue);
 
       // Verify that tiles in radius 2 around (1, 0) are discovered
-      const checkCoord = HexAxial(3, 0);
       expect(notifier.state.tiles[checkCoord]?.state, equals(TileState.discovered));
       notifier.dispose();
     });

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/tactile_audio_service.dart';
 import '../../core/hex/hex_coordinates.dart';
@@ -147,10 +148,10 @@ class GameStateNotifier extends StateNotifier<GameState> {
           // Merkez (0,0) - Şato yeri
           biome = TileBiome.meadow;
         } else if (dist == 1) {
-          // Radius 1: Ağırlıklı Çayır ve Orman (%80 Çayır, %20 Orman)
+          // Radius 1: Ağırlıklı Çayır ve Orman (%80 Çayır, %20 Orman - Yanardağ, Su, Dağ yok)
           biome = random.nextDouble() < 0.80 ? TileBiome.meadow : TileBiome.forest;
         } else if (dist == 2) {
-          // Radius 2: Çayır (%65), Orman (%25), Çöl (%10)
+          // Radius 2: Çayır (%65), Orman (%25), Çöl (%10 - Yanardağ, Su, Dağ yok)
           final roll = random.nextDouble();
           if (roll < 0.65) {
             biome = TileBiome.meadow;
@@ -372,6 +373,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
     });
   }
 
+  @visibleForTesting
+  void testTick() => _tick();
+
   void _tick() {
     _autoSaveTickCounter++;
     if (_autoSaveTickCounter >= 30) {
@@ -424,15 +428,22 @@ class GameStateNotifier extends StateNotifier<GameState> {
     final double newFrenzyTimer = math.max(0.0, state.frenzyTimer - 1.0);
     final int newFrenzyMultiplier = newFrenzyTimer > 0 ? state.frenzyMultiplier : 1;
 
-    // Toplam İşçi Taşıma Kapasitesi: Şatodan gelen 1.0 taban kapasite + İşçi Çadırları (Softlock Önleme)
-    double totalWorkerCapacity = 1.0;
+    // İşçi ve Şato Taşıma Kaynakları (4 Hex Menzil)
+    final List<HexAxial> workerSourceCoords = [];
+    final List<double> workerSourceCapacities = [];
+
     for (final t in state.tiles.values) {
-      if (t.isOwned && t.building != null) {
-        totalWorkerCapacity += t.building!.currentCarryingCapacity;
+      if (!t.isOwned || t.building == null) continue;
+      if (t.building!.type == BuildingType.castle) {
+        // Şatodan gelen 1.0 taban taşıma kapasitesi (4 hex menzil)
+        workerSourceCoords.add(t.coord);
+        workerSourceCapacities.add(1.0 * workerTransferMult);
+      } else if (t.building!.type == BuildingType.worker ||
+          t.building!.type == BuildingType.fishermanHut) {
+        workerSourceCoords.add(t.coord);
+        workerSourceCapacities.add(t.building!.currentCarryingCapacity * workerTransferMult);
       }
     }
-    // Yeteneklerden gelen hız bonusunu kapasiteye uygula
-    totalWorkerCapacity *= workerTransferMult;
 
     double addedFood = 0.0;
     double addedWood = 0.0;
@@ -596,9 +607,20 @@ class GameStateNotifier extends StateNotifier<GameState> {
         addedPlank -= consumePlank;
         currentPlank -= consumePlank;
 
-        // Taşıma Kapasitesi Kontrolü
-        final double carriedAmount = math.min(rate, totalWorkerCapacity);
-        totalWorkerCapacity -= carriedAmount;
+        // Taşıma Kapasitesi ve 4 Hex Menzil Kontrolü
+        double carriedAmount = 0.0;
+        double neededAmount = rate;
+
+        for (int i = 0; i < workerSourceCoords.length; i++) {
+          if (neededAmount <= 0.0) break;
+          if (tile.coord.distanceTo(workerSourceCoords[i]) <= 4 && workerSourceCapacities[i] > 0.0) {
+            final double take = math.min(neededAmount, workerSourceCapacities[i]);
+            workerSourceCapacities[i] -= take;
+            carriedAmount += take;
+            neededAmount -= take;
+          }
+        }
+
         final double storedAmount = rate - carriedAmount;
 
         // Taşınanları ekle

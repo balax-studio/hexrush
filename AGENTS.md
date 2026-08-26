@@ -87,4 +87,8 @@ Bu dosya, projede çalışan tüm yapay zeka ajanları ve geliştiriciler için 
     - Parçacıklar (çöl tozu, tundra ışıltısı, deniz balıkları) her karoda değil, 1/4 veya 1/5 sıklıkta seyrek dağıtılmalıdır.
     - Gökyüzü kuşları sabit 3'lü dizilim yerine döngüsel çoklu tür filoları (Kartal, Turna, Kırlangıç, Martı) halinde uçmalıdır.
 
-
+20. **Karpathy Davranışsal Kodlama ve Cerrahi Müdahale İlkeleri:**
+    - **Kodlamadan Önce Düşün (Think Before Coding):** Belirsizliklerde varsayım üretme, netleştirme iste. Alternatifleri ve trade-off'ları açıkça belirt.
+    - **Önce Basitlik ve Minimalizm (Simplicity First):** Talep edilmeyen hiçbir soyutlama, ekstra özellik veya spekülatif esneklik ekleme. Minimum ve en yalın kodla çöz.
+    - **Cerrahi Değişiklikler (Surgical Changes):** Yalnızca görevin doğrudan gerektirdiği satırlara dokun. Çevre kodlarda veya ilgisiz dosyalarda refactoring/temizlik yapma.
+    - **Hedef Odaklı Yürütme (Goal-Driven Execution):** Her adımı somut doğrulama kriterlerine bağla ve testlerle teyit etmeden görevi tamamlandı sayma.

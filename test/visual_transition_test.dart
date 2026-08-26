@@ -118,5 +118,45 @@ void main() {
 
       recorder.endRecording();
     });
+
+    test('HexTileComponent distinguishes owned vs unowned discovered tile state in rendering', () {
+      const coord = HexAxial(2, 1);
+      final unownedTile = const HexTileModel(
+        coord: coord,
+        biome: TileBiome.forest,
+        state: TileState.discovered,
+      );
+
+      final component = HexTileComponent(
+        coord: coord,
+        tileModel: unownedTile,
+        isSelected: false,
+        season: 'SUMMER',
+        isZud: false,
+      );
+
+      expect(component.tileModel.isOwned, isFalse);
+      expect(component.tileModel.isDiscovered, isTrue);
+
+      final PictureRecorder recorder = PictureRecorder();
+      final Canvas canvas = Canvas(recorder);
+
+      // Render unowned discovered hex (darkened / muted unclaimed territory)
+      component.render(canvas);
+
+      // Upgrade to owned
+      component.updateData(
+        newTileModel: unownedTile.copyWith(state: TileState.owned),
+        newIsSelected: false,
+        newSeason: 'SUMMER',
+        newIsZud: false,
+      );
+
+      expect(component.tileModel.isOwned, isTrue);
+      // Render owned hex (bright / fully saturated claimed territory)
+      component.render(canvas);
+
+      recorder.endRecording();
+    });
   });
 }

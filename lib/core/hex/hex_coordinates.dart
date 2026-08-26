@@ -39,6 +39,11 @@ class HexAxial {
     return results;
   }
 
+  /// İki eksenel koordinat arasındaki altıgen mesafesini (Hex Distance) hesaplar
+  int distanceTo(HexAxial other) {
+    return ((q - other.q).abs() + (q + r - other.q - other.r).abs() + (r - other.r).abs()) ~/ 2;
+  }
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||

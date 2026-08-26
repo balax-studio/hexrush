@@ -21,15 +21,17 @@ void main() {
         final dist = HexMath.hexDistance(center, coord);
 
         if (dist == 1) {
-          // Radius 1: NO Sea, Mountain, Wetland, Desert
+          // Radius 1: NO Sea, Mountain, Wetland, Desert, Volcano
           expect(tile.biome, isNot(TileBiome.sea));
           expect(tile.biome, isNot(TileBiome.mountain));
           expect(tile.biome, isNot(TileBiome.wetland));
           expect(tile.biome, isNot(TileBiome.desert));
+          expect(tile.biome, isNot(TileBiome.volcano));
         } else if (dist == 2) {
-          // Radius 2: NO Sea, Mountain
+          // Radius 2: NO Sea, Mountain, Volcano
           expect(tile.biome, isNot(TileBiome.sea));
           expect(tile.biome, isNot(TileBiome.mountain));
+          expect(tile.biome, isNot(TileBiome.volcano));
         } else if (dist == 3) {
           // Radius 3: NO Sea
           expect(tile.biome, isNot(TileBiome.sea));
