@@ -4,12 +4,16 @@ import '../../core/audio/tactile_audio_service.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/economy/economy_calculator.dart';
+import '../../domain/models/ad_reward_model.dart';
+import '../../domain/services/ad_reward_service.dart';
 import '../providers/game_state_notifier.dart';
 import 'icons/game_vector_icons.dart';
 import 'tactile_neo_button.dart';
 
 class MarketDialog extends ConsumerWidget {
-  const MarketDialog({super.key});
+  final IAdRewardService? adService;
+
+  const MarketDialog({super.key, this.adService});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -125,6 +129,67 @@ class MarketDialog extends ConsumerWidget {
                   ),
                 ],
               ),
+            ),
+            const SizedBox(height: 10),
+            // Gezgin Kervan Ödüllü İkram Bannerı
+            Builder(
+              builder: (context) {
+                final caravanWatches = gameState.adTracking.getWatchCount(AdRewardType.caravanBonus);
+                final maxCaravan = EconomyCalculator.getMaxDailyWatches(AdRewardType.caravanBonus);
+                final bool canCaravan = caravanWatches < maxCaravan;
+
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: NeoBrutalistTheme.sharpRadius,
+                    border: Border.all(color: const Color(0xFFD97706), width: 1.5),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'GEZGİN KERVAN İKRAMI',
+                              style: TextStyle(
+                                color: Color(0xFFF59E0B),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            Text(
+                              'Bozkır tüccarından karşılıksız acil hammadde desteği.',
+                              style: TextStyle(
+                                color: Colors.white.withAlpha(160),
+                                fontSize: 9,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      TactileNeoButton(
+                        height: 30,
+                        backgroundColor: canCaravan ? const Color(0xFFD97706) : const Color(0xFF475569),
+                        isEnabled: canCaravan,
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        onTap: () => notifier.claimAdReward(AdRewardType.caravanBonus, adService: adService),
+                        child: Text(
+                          canCaravan ? 'AL ($caravanWatches/$maxCaravan)' : 'DOLDU',
+                          style: TextStyle(
+                            color: canCaravan ? Colors.black : const Color(0xFF94A3B8),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 10),
             const Divider(color: Colors.black, thickness: 1.5, height: 1.5),

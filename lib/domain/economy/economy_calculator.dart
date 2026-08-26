@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import '../../core/hex/hex_coordinates.dart';
+import '../models/ad_reward_model.dart';
 import '../models/ancestral_kurgan_model.dart';
 import '../models/building_model.dart';
 import '../models/caravan_route_model.dart';
@@ -1250,4 +1251,70 @@ class EconomyCalculator {
     final int clamped = combo.clamp(0, 5);
     return 1.0 + (clamped * 0.4);
   }
+
+  /// 9. Etik Reklam Günlük İzleme Limitleri (AGENTS.md Madde 14 & 15 Uyumlu)
+  static int getMaxDailyWatches(AdRewardType type) {
+    switch (type) {
+      case AdRewardType.offlineProgressBoost:
+        return 3;
+      case AdRewardType.marketQuotaReset:
+        return 2;
+      case AdRewardType.caravanBonus:
+        return 3;
+      case AdRewardType.celestialBlessing:
+        return 2;
+      case AdRewardType.migrationLegacy:
+        return 1;
+    }
+  }
+
+  /// 10. Reklam Ödülü Azalan Verim Çarpanı (Soft Diminishing Returns)
+  static double getAdRewardDiminishingReturn(int dailyWatches) {
+    switch (dailyWatches) {
+      case 0:
+        return 1.0;
+      case 1:
+        return 0.8;
+      case 2:
+        return 0.6;
+      default:
+        return 0.4;
+    }
+  }
+
+  /// 11. Gezgin Kervan Dinamik Reklam Ödül Paketi
+  static Map<String, double> calculateCaravanAdBonus({
+    required int castleLevel,
+    required int crowns,
+    required int dailyWatches,
+  }) {
+    final double mult = getGlobalMultiplier(castleLevel: castleLevel, crowns: crowns);
+    final double dimReturn = getAdRewardDiminishingReturn(dailyWatches);
+    final double baseAmount = (20.0 + castleLevel * 10.0) * mult * dimReturn;
+
+    return {
+      'wood': (baseAmount * 1.2).clamp(20.0, 500.0),
+      'food': (baseAmount * 1.5).clamp(20.0, 600.0),
+      'stone': (baseAmount * 0.8).clamp(10.0, 300.0),
+      'iron': (baseAmount * 0.5).clamp(5.0, 150.0),
+    };
+  }
+
+  /// 12. Çevrimdışı 1.5x Katlanmış Kazanç Hesabı
+  static OfflineGainsResult calculateOfflineAdBoostedGains(OfflineGainsResult original) {
+    const double boost = 1.5;
+    return OfflineGainsResult(
+      seconds: original.seconds,
+      food: original.food * boost,
+      wood: original.wood * boost,
+      flour: original.flour * boost,
+      plank: original.plank * boost,
+      bread: original.bread * boost,
+      furniture: original.furniture * boost,
+      stone: original.stone * boost,
+      iron: original.iron * boost,
+      fish: original.fish * boost,
+    );
+  }
 }
+

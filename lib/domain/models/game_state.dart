@@ -1,4 +1,5 @@
 import '../../core/hex/hex_coordinates.dart';
+import 'ad_reward_model.dart';
 import 'ancestral_kurgan_model.dart';
 import 'caravan_route_model.dart';
 import 'celestial_omen_model.dart';
@@ -35,6 +36,7 @@ class GameState {
   final bool isMacroOverview;
   final bool isDioramaMode;
   final List<AncestralKurgan> discoveredKurgans;
+  final AdRewardTracking adTracking;
 
   const GameState({
     required this.tiles,
@@ -75,6 +77,7 @@ class GameState {
     this.isMacroOverview = false,
     this.isDioramaMode = false,
     this.discoveredKurgans = const [],
+    this.adTracking = const AdRewardTracking(),
   });
 
   QuestModel? get currentActiveQuest {
@@ -116,6 +119,7 @@ class GameState {
     bool? isMacroOverview,
     bool? isDioramaMode,
     List<AncestralKurgan>? discoveredKurgans,
+    AdRewardTracking? adTracking,
   }) {
     return GameState(
       tiles: tiles ?? this.tiles,
@@ -145,6 +149,8 @@ class GameState {
       isMacroOverview: isMacroOverview ?? this.isMacroOverview,
       isDioramaMode: isDioramaMode ?? this.isDioramaMode,
       discoveredKurgans: discoveredKurgans ?? this.discoveredKurgans,
+      adTracking: adTracking ?? this.adTracking,
     );
   }
 }
+

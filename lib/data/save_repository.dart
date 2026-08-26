@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../domain/models/ad_reward_model.dart';
 import '../domain/models/ancestral_kurgan_model.dart';
 import '../domain/models/caravan_route_model.dart';
 import '../domain/models/celestial_omen_model.dart';
@@ -25,6 +26,7 @@ class SaveDataBundle {
   final CelestialOmen? celestialOmen;
   final int yearIndex;
   final List<AncestralKurgan> discoveredKurgans;
+  final AdRewardTracking adTracking;
 
   const SaveDataBundle({
     required this.timestamp,
@@ -43,6 +45,7 @@ class SaveDataBundle {
     this.celestialOmen,
     this.yearIndex = 0,
     this.discoveredKurgans = const [],
+    this.adTracking = const AdRewardTracking(),
   });
 }
 
@@ -165,6 +168,10 @@ class SaveRepository {
           ? Map<String, dynamic>.from(data['stats'] as Map)
           : <String, dynamic>{};
 
+      final adTracking = data['ad_tracking'] is Map
+          ? AdRewardTracking.fromJson(Map<String, dynamic>.from(data['ad_tracking'] as Map))
+          : const AdRewardTracking();
+
       return SaveDataBundle(
         timestamp: timestamp,
         resources: resources,
@@ -182,6 +189,7 @@ class SaveRepository {
         celestialOmen: omen,
         yearIndex: yearIndex,
         discoveredKurgans: discoveredKurgans,
+        adTracking: adTracking,
       );
     } catch (e) {
       // JSON parse error fallback
@@ -206,6 +214,7 @@ class SaveRepository {
     CelestialOmen? celestialOmen,
     int yearIndex = 0,
     List<AncestralKurgan> discoveredKurgans = const [],
+    AdRewardTracking adTracking = const AdRewardTracking(),
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final slotsJson = <String, String?>{};
@@ -231,6 +240,7 @@ class SaveRepository {
       'celestial_omen': celestialOmen?.toJson(),
       'year_index': yearIndex,
       'discovered_kurgans': discoveredKurgans.map((k) => k.toJson()).toList(),
+      'ad_tracking': adTracking.toJson(),
     };
 
     return prefs.setString(_saveKey, jsonEncode(data));
@@ -242,3 +252,4 @@ class SaveRepository {
     return prefs.remove(_saveKey);
   }
 }
+

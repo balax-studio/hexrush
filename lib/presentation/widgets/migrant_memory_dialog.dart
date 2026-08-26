@@ -3,12 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/economy/economy_calculator.dart';
+import '../../domain/models/ad_reward_model.dart';
+import '../../domain/services/ad_reward_service.dart';
 import '../providers/game_state_notifier.dart';
 import 'icons/game_vector_icons.dart';
 import 'tactile_neo_button.dart';
 
 class MigrantMemoryDialog extends ConsumerWidget {
-  const MigrantMemoryDialog({super.key});
+  final IAdRewardService? adService;
+
+  const MigrantMemoryDialog({super.key, this.adService});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -210,7 +214,70 @@ class MigrantMemoryDialog extends ConsumerWidget {
                       },
                     ),
             ),
-            const SizedBox(height: 14),
+             const SizedBox(height: 14),
+
+            // Kutlu Miras Sandığı (+1 Kalıcı Tamga)
+            Builder(
+              builder: (context) {
+                final notifier = ref.read(gameStateProvider.notifier);
+                final legacyWatches = gameState.adTracking.getWatchCount(AdRewardType.migrationLegacy);
+                final maxLegacy = EconomyCalculator.getMaxDailyWatches(AdRewardType.migrationLegacy);
+                final bool canLegacy = legacyWatches < maxLegacy;
+
+                return Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: NeoBrutalistTheme.sharpRadius,
+                    border: Border.all(color: const Color(0xFFFFD700), width: 1.2),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'KUTLU MİRAS SANDIĞI',
+                              style: TextStyle(
+                                color: Color(0xFFFFD700),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            Text(
+                              'Ataların kutlu tamgalarını +1 artırarak yeni çağa daha güçlü başla.',
+                              style: TextStyle(
+                                color: Colors.white.withAlpha(160),
+                                fontSize: 9,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      TactileNeoButton(
+                        height: 32,
+                        backgroundColor: canLegacy ? const Color(0xFFFFD700) : const Color(0xFF475569),
+                        isEnabled: canLegacy,
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        onTap: () => notifier.claimAdReward(AdRewardType.migrationLegacy, adService: adService),
+                        child: Text(
+                          canLegacy ? '+1 TAMGA AL' : 'ALINDI',
+                          style: TextStyle(
+                            color: canLegacy ? Colors.black : const Color(0xFF94A3B8),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
 
             TactileNeoButton(
               onTap: () => Navigator.of(context).pop(),

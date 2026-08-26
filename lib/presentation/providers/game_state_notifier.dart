@@ -7,6 +7,8 @@ import '../../core/hex/hex_coordinates.dart';
 import '../../core/hex/hex_math.dart';
 import '../../data/save_repository.dart';
 import '../../domain/economy/economy_calculator.dart';
+import '../../domain/models/ad_reward_model.dart';
+import '../../domain/services/ad_reward_service.dart';
 import '../../domain/models/ancestral_kurgan_model.dart';
 import '../../domain/models/building_model.dart';
 import '../../domain/models/caravan_route_model.dart';
@@ -322,6 +324,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
           celestialOmen: save.celestialOmen ?? CelestialOmen.fromYearIndex(save.yearIndex),
           yearIndex: save.yearIndex,
           discoveredKurgans: save.discoveredKurgans,
+          adTracking: save.adTracking.checkDailyReset(),
         );
 
         _syncQuestProgress();
@@ -1691,8 +1694,96 @@ class GameStateNotifier extends StateNotifier<GameState> {
       celestialOmen: state.celestialOmen,
       yearIndex: state.yearIndex,
       discoveredKurgans: state.discoveredKurgans,
+      adTracking: state.adTracking,
     );
   }
+
+  /// Oyuncu inisiyatifinde çalışan etik ödüllü reklam talep mekanizması
+  Future<bool> claimAdReward(
+    AdRewardType type, {
+    IAdRewardService? adService,
+  }) async {
+    final service = adService ?? MockAdRewardService();
+    final currentTracking = state.adTracking.checkDailyReset();
+    final currentCount = currentTracking.getWatchCount(type);
+    final maxAllowed = EconomyCalculator.getMaxDailyWatches(type);
+
+    if (currentCount >= maxAllowed) {
+      state = state.copyWith(
+        activeToast: 'Günlük azami bereket sınırına ulaşıldı.',
+      );
+      return false;
+    }
+
+    final success = await service.showRewardedAd(type);
+    if (!success) {
+      state = state.copyWith(
+        activeToast: 'Kervan bağlantısı kurulamadı, daha sonra tekrar deneyin.',
+      );
+      return false;
+    }
+
+    // Reklam sayacını güncelle
+    final updatedTracking = currentTracking.recordWatch(type);
+
+    switch (type) {
+      case AdRewardType.offlineProgressBoost:
+        state = state.copyWith(
+          adTracking: updatedTracking,
+          activeToast: 'Kervan Bereketi: Çevrimdışı kazanç 1.5x katlandı!',
+        );
+        break;
+
+      case AdRewardType.marketQuotaReset:
+        state = state.copyWith(
+          adTracking: updatedTracking,
+          activeToast: 'Pazar Takas Kotası Sıfırlandı!',
+        );
+        break;
+
+      case AdRewardType.caravanBonus:
+        final bonus = EconomyCalculator.calculateCaravanAdBonus(
+          castleLevel: state.progression.castleLevel,
+          crowns: state.resources.crowns,
+          dailyWatches: currentCount,
+        );
+        state = state.copyWith(
+          resources: state.resources.copyWith(
+            wood: state.resources.wood + (bonus['wood'] ?? 0),
+            food: state.resources.food + (bonus['food'] ?? 0),
+            stone: state.resources.stone + (bonus['stone'] ?? 0),
+            iron: state.resources.iron + (bonus['iron'] ?? 0),
+          ),
+          adTracking: updatedTracking,
+          activeToast:
+              'Gezgin Kervan İkramı: +${bonus['wood']?.toInt()} Odun, +${bonus['food']?.toInt()} Gıda, +${bonus['stone']?.toInt()} Taş',
+        );
+        break;
+
+      case AdRewardType.celestialBlessing:
+        state = state.copyWith(
+          shrineMultiplier: state.shrineMultiplier * 1.25,
+          adTracking: updatedTracking,
+          activeToast: 'Gök Tengri Bereketi: 10 dakika boyunca +%25 Kut Bereketi!',
+        );
+        break;
+
+      case AdRewardType.migrationLegacy:
+        state = state.copyWith(
+          resources: state.resources.copyWith(
+            tamgas: state.resources.tamgas + 1,
+          ),
+          adTracking: updatedTracking,
+          activeToast: 'Kutlu Miras: +1 Kalıcı Atalar Tamgası Kazanıldı!',
+        );
+        break;
+    }
+
+    TactileAudioService.instance.play(TactileSoundType.reward);
+    await saveGame();
+    return true;
+  }
+
 
   List<DoctrineCardModel> getActiveDoctrines() {
     final List<DoctrineCardModel> active = [];

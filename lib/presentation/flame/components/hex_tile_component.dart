@@ -83,16 +83,16 @@ class HexTileComponent extends PositionComponent {
     ..style = PaintingStyle.fill;
   static final Paint _badgeShadowPaint = Paint()..color = Colors.black;
   static final Paint _unownedTopScrimPaint = Paint()
-    ..color = const Color(0x44020617)
+    ..color = const Color(0x18020617)
     ..style = PaintingStyle.fill;
   static final Paint _unownedBorderPaint = Paint()
-    ..color = const Color(0x55000000)
+    ..color = const Color(0x3A000000)
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 1.2;
+    ..strokeWidth = 1.0;
   static final Paint _ownedTerritoryBorderPaint = Paint()
-    ..color = const Color(0x33D97706)
+    ..color = const Color(0x55D97706)
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 1.5;
+    ..strokeWidth = 1.6;
 
   static final Path _fogPath = Path();
   static final Path _wallPath = Path();
@@ -788,40 +788,21 @@ class HexTileComponent extends PositionComponent {
         w: 3.0 * scale,
         d: 3.0 * scale,
         h: 5.0 * scale,
-        topColor: const Color(0xFFA3E635),
-        leftColor: const Color(0xFF84CC16),
-        rightColor: const Color(0xFF65A30D),
+        topColor: const Color(0xFF84CC16),
+        leftColor: const Color(0xFF65A30D),
+        rightColor: const Color(0xFF4D7C0F),
       );
     }
 
     switch (variant) {
       case 0:
-        // Çoklu kır çiçekleri, çimenler ve dinlenen koyun
-        if (isSpring) {
-          VoxelIsometricRenderer.drawVoxelSpringPoppies(canvas, Offset(center.dx - 6, center.dy + 2), scale: 0.9);
-        } else {
-          VoxelIsometricRenderer.drawVoxelFlowers(
-            canvas,
-            Offset(center.dx - 8, center.dy + 4),
-            flowerColor: const Color(0xFFFBBF24),
-            scale: 0.85,
-          );
-        }
-        VoxelIsometricRenderer.drawVoxelFlowers(
-          canvas,
-          Offset(center.dx + 10, center.dy - 6),
-          flowerColor: const Color(0xFFF43F5E),
-          scale: 0.75,
-        );
-        VoxelIsometricRenderer.drawVoxelFlowers(
-          canvas,
-          Offset(center.dx - 10, center.dy - 5),
-          flowerColor: const Color(0xFF38BDF8),
-          scale: 0.7,
-        );
+        // Saf Bozkır & Dinlenen Tek Koyun (0 Çiçek)
         drawGrass(Offset(center.dx + 6, center.dy + 6), scale: 0.9);
+        drawGrass(Offset(center.dx - 8, center.dy + 4), scale: 0.8);
         drawGrass(Offset(center.dx - 4, center.dy + 8), scale: 0.75);
-        drawGrass(Offset(center.dx + 2, center.dy - 8), scale: 0.8);
+        drawGrass(Offset(center.dx + 2, center.dy - 8), scale: 0.85);
+        drawGrass(Offset(center.dx - 10, center.dy - 5), scale: 0.7);
+        VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx + 8, center.dy - 4), scale: 0.75);
 
         if (seed % 2 == 0) {
           VoxelIsometricRenderer.drawVoxelSheep(
@@ -835,7 +816,7 @@ class HexTileComponent extends PositionComponent {
         break;
 
       case 1:
-        // Anne Koyun & Küçük Kuzu Sürüsü, çiçekler ve çimen öbekleri
+        // Nadir Çiçek Vadisi & Koyun Sürüsü (2 Çiçek - Baharda Gelincikli) [Nadir Çiçek 1/8]
         VoxelIsometricRenderer.drawVoxelSheep(
           canvas,
           Offset(center.dx + 6, center.dy - 3),
@@ -856,19 +837,23 @@ class HexTileComponent extends PositionComponent {
           flowerColor: const Color(0xFF38BDF8),
           scale: 0.8,
         );
-        VoxelIsometricRenderer.drawVoxelFlowers(
-          canvas,
-          Offset(center.dx - 6, center.dy - 8),
-          flowerColor: const Color(0xFFFBBF24),
-          scale: 0.75,
-        );
+        if (isSpring) {
+          VoxelIsometricRenderer.drawVoxelSpringPoppies(canvas, Offset(center.dx - 6, center.dy - 8), scale: 0.85);
+        } else {
+          VoxelIsometricRenderer.drawVoxelFlowers(
+            canvas,
+            Offset(center.dx - 6, center.dy - 8),
+            flowerColor: const Color(0xFFFBBF24),
+            scale: 0.75,
+          );
+        }
         drawGrass(Offset(center.dx - 2, center.dy + 8), scale: 0.85);
         drawGrass(Offset(center.dx + 8, center.dy - 9), scale: 0.9);
         drawGrass(Offset(center.dx - 12, center.dy - 2), scale: 0.75);
         break;
 
       case 2:
-        // 3. Asil Bozkır Yılkı Atı (Otlama, Dikilme, Sırt Kuşu & Dokunma İrkintisi)
+        // Asil Bozkır Yılkı Atı & Çakıllar (0 Çiçek)
         VoxelIsometricRenderer.drawVoxelHorse(
           canvas,
           Offset(center.dx, center.dy),
@@ -878,12 +863,7 @@ class HexTileComponent extends PositionComponent {
           flipX: flip,
           startleProgress: tapProgress,
         );
-        VoxelIsometricRenderer.drawVoxelFlowers(
-          canvas,
-          Offset(center.dx - 6, center.dy + 6),
-          flowerColor: const Color(0xFFA855F7),
-          scale: 0.75,
-        );
+        VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx - 8, center.dy + 6), scale: 0.8);
         drawGrass(Offset(center.dx + 10, center.dy - 2), scale: 1.0);
         drawGrass(Offset(center.dx + 8, center.dy + 6), scale: 0.8);
         drawGrass(Offset(center.dx - 2, center.dy + 2), scale: 0.9);
@@ -901,30 +881,92 @@ class HexTileComponent extends PositionComponent {
         break;
 
       case 3:
-      default:
-        // Zengin çiçek tarlası ve çimen örtüsü
-        VoxelIsometricRenderer.drawVoxelFlowers(
-          canvas,
-          Offset(center.dx - 6, center.dy - 4),
-          flowerColor: const Color(0xFFF43F5E),
-          scale: 0.85,
-        );
-        VoxelIsometricRenderer.drawVoxelFlowers(
-          canvas,
-          Offset(center.dx + 8, center.dy + 4),
-          flowerColor: const Color(0xFFA855F7),
-          scale: 0.85,
-        );
-        VoxelIsometricRenderer.drawVoxelFlowers(
-          canvas,
-          Offset(center.dx - 8, center.dy + 6),
-          flowerColor: const Color(0xFF38BDF8),
-          scale: 0.75,
-        );
+        // Rüzgarlı Geniş Otlak Örtüsü & Çakıllar (0 Çiçek)
+        drawGrass(Offset(center.dx, center.dy), scale: 1.0);
+        drawGrass(Offset(center.dx - 10, center.dy - 3), scale: 0.85);
+        drawGrass(Offset(center.dx + 11, center.dy - 4), scale: 0.8);
+        drawGrass(Offset(center.dx - 5, center.dy + 7), scale: 0.9);
+        drawGrass(Offset(center.dx + 7, center.dy + 6), scale: 0.75);
+        VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx - 7, center.dy - 5), scale: 0.85);
+        VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx + 6, center.dy - 7), scale: 0.7);
+        break;
+
+      case 4:
+        // Vadi Kıyısı Tekil Kır Çiçeği & Çimen Vadisi (1 Çiçek) [Nadir Çiçek 2/8]
+        if (isSpring) {
+          VoxelIsometricRenderer.drawVoxelSpringPoppies(canvas, Offset(center.dx - 6, center.dy - 4), scale: 0.85);
+        } else {
+          VoxelIsometricRenderer.drawVoxelFlowers(
+            canvas,
+            Offset(center.dx - 6, center.dy - 4),
+            flowerColor: seed % 2 == 0 ? const Color(0xFFA855F7) : const Color(0xFF38BDF8),
+            scale: 0.8,
+          );
+        }
         drawGrass(Offset(center.dx, center.dy), scale: 0.95);
         drawGrass(Offset(center.dx - 12, center.dy - 2), scale: 0.85);
         drawGrass(Offset(center.dx + 12, center.dy - 2), scale: 0.75);
         drawGrass(Offset(center.dx + 2, center.dy + 8), scale: 0.8);
+        VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx + 8, center.dy + 4), scale: 0.75);
+        break;
+
+      case 5:
+        // Otlayan Yılkı Atı veya Koyun & Çiçeksiz Bozkır (0 Çiçek)
+        if (seed % 2 == 0) {
+          VoxelIsometricRenderer.drawVoxelHorse(
+            canvas,
+            Offset(center.dx + 2, center.dy - 2),
+            animTime: tTime,
+            seed: seed * 7 + 1,
+            scale: 0.9,
+            flipX: !flip,
+            startleProgress: tapProgress,
+          );
+        } else {
+          VoxelIsometricRenderer.drawVoxelSheep(
+            canvas,
+            Offset(center.dx - 3, center.dy + 2),
+            animTime: tTime,
+            seed: seed * 5 + 3,
+            scale: 0.9,
+          );
+        }
+        drawGrass(Offset(center.dx - 8, center.dy - 6), scale: 0.85);
+        drawGrass(Offset(center.dx + 10, center.dy + 5), scale: 0.9);
+        drawGrass(Offset(center.dx - 6, center.dy + 8), scale: 0.75);
+        VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx + 6, center.dy - 7), scale: 0.75);
+        break;
+
+      case 6:
+        // Saf Bozkır Çimi & Dinlenen Kuzu (0 Çiçek)
+        drawGrass(Offset(center.dx - 7, center.dy + 4), scale: 0.95);
+        drawGrass(Offset(center.dx + 8, center.dy + 5), scale: 0.8);
+        drawGrass(Offset(center.dx - 5, center.dy - 6), scale: 0.75);
+        drawGrass(Offset(center.dx + 1, center.dy + 8), scale: 0.85);
+        drawGrass(Offset(center.dx + 4, center.dy - 5), scale: 0.8);
+        VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx - 8, center.dy - 4), scale: 0.8);
+
+        if (seed % 3 == 1) {
+          VoxelIsometricRenderer.drawVoxelSheep(
+            canvas,
+            Offset(center.dx - 1, center.dy - 1),
+            animTime: tTime,
+            seed: seed * 9 + 4,
+            scale: 0.8,
+          );
+        }
+        break;
+
+      case 7:
+      default:
+        // Bozkır Taş Höyüğü & Yabani Otlar (0 Çiçek)
+        VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx - 7, center.dy + 3), scale: 0.85);
+        VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx + 9, center.dy - 4), scale: 0.8);
+        VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx - 4, center.dy + 8), scale: 0.75);
+        drawGrass(Offset(center.dx + 2, center.dy + 7), scale: 0.9);
+        drawGrass(Offset(center.dx - 8, center.dy - 6), scale: 0.8);
+        drawGrass(Offset(center.dx + 6, center.dy + 2), scale: 0.75);
+        drawGrass(Offset(center.dx - 2, center.dy - 2), scale: 0.85);
         break;
     }
 
@@ -1214,9 +1256,9 @@ class HexTileComponent extends PositionComponent {
 
     Color topColor = Color.lerp(fromColor, toColor, blend) ?? toColor;
 
-    // Sahipsiz / Keşfedilmiş Arazi: Renkleri silikleştir ve koyulaştır (Kapalı/Açık vurgusu)
+    // Sahipsiz / Keşfedilmiş Arazi: Hafif atmosferik sis tonlaması
     if (!tileModel.isOwned) {
-      topColor = Color.lerp(topColor, const Color(0xFF1E293B), 0.38)!;
+      topColor = Color.lerp(topColor, const Color(0xFF0F172A), 0.14)!;
     }
 
     return topColor;
@@ -1233,33 +1275,33 @@ class HexTileComponent extends PositionComponent {
         if (isWinter) {
           baseColor = const Color(0xFFE2E8F0);
         } else if (isAutumn) {
-          baseColor = const Color(0xFFFBBF24);
+          baseColor = const Color(0xFFD97706);
         } else if (isSummer) {
-          baseColor = const Color(0xFF4ADE80);
-        } else {
-          baseColor = const Color(0xFF86EFAC);
-        }
-        break;
-
-      case TileBiome.forest:
-        if (isWinter) {
-          baseColor = const Color(0xFFCBD5E1);
-        } else if (isAutumn) {
-          baseColor = const Color(0xFFEA580C);
-        } else if (isSummer) {
-          baseColor = const Color(0xFF16A34A);
+          baseColor = const Color(0xFF84CC16);
         } else {
           baseColor = const Color(0xFF22C55E);
         }
         break;
 
+      case TileBiome.forest:
+        if (isWinter) {
+          baseColor = const Color(0xFF94A3B8);
+        } else if (isAutumn) {
+          baseColor = const Color(0xFFEA580C);
+        } else if (isSummer) {
+          baseColor = const Color(0xFF15803D);
+        } else {
+          baseColor = const Color(0xFF16A34A);
+        }
+        break;
+
       case TileBiome.mountain:
         if (isWinter) {
-          baseColor = const Color(0xFFF8FAFC);
+          baseColor = const Color(0xFFF1F5F9);
         } else if (isAutumn) {
           baseColor = const Color(0xFF78350F);
         } else {
-          baseColor = const Color(0xFF94A3B8);
+          baseColor = const Color(0xFF64748B);
         }
         break;
 
@@ -1267,9 +1309,9 @@ class HexTileComponent extends PositionComponent {
         if (isWinter) {
           baseColor = const Color(0xFFBAE6FD);
         } else if (isAutumn) {
-          baseColor = const Color(0xFF0284C7);
+          baseColor = const Color(0xFF0369A1);
         } else {
-          baseColor = const Color(0xFF38BDF8);
+          baseColor = const Color(0xFF0284C7);
         }
         break;
 
@@ -1281,7 +1323,7 @@ class HexTileComponent extends PositionComponent {
         } else if (isSummer) {
           baseColor = const Color(0xFFF59E0B);
         } else {
-          baseColor = const Color(0xFFFDE047);
+          baseColor = const Color(0xFFFBBF24);
         }
         break;
 
@@ -1301,11 +1343,11 @@ class HexTileComponent extends PositionComponent {
 
       case TileBiome.wetland:
         if (isWinter) {
-          baseColor = const Color(0xFF94A3B8);
+          baseColor = const Color(0xFF64748B);
         } else if (isAutumn) {
-          baseColor = const Color(0xFFA3E635);
+          baseColor = const Color(0xFF84CC16);
         } else {
-          baseColor = const Color(0xFF34D399);
+          baseColor = const Color(0xFF0D9488);
         }
         break;
 
@@ -1390,11 +1432,16 @@ class HexTileComponent extends PositionComponent {
     final bool isWinter = targetSeason == 'WINTER' || targetZud;
     switch (biome) {
       case TileBiome.meadow:
+        if (isWinter) {
+          return (const Color(0xFFCBD5E1), const Color(0xFF94A3B8), const Color(0xFF475569));
+        }
+        return (const Color(0xFF4D7C0F), const Color(0xFF3F6212), const Color(0xFF5C3A21));
+
       case TileBiome.forest:
         if (isWinter) {
           return (const Color(0xFFCBD5E1), const Color(0xFF94A3B8), const Color(0xFF475569));
         }
-        return (const Color(0xFF65A30D), const Color(0xFF4D7C0F), const Color(0xFF5C3A21));
+        return (const Color(0xFF166534), const Color(0xFF14532D), const Color(0xFF451A03));
 
       case TileBiome.mountain:
         if (isWinter) {
