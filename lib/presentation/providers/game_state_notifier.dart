@@ -114,8 +114,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
         id: 'q_shrine_1',
         titleTr: 'Kadim Rünlerin Gücü',
         titleEn: 'Ancient Rune Power',
-        descriptionTr: 'Bozkırda 1 adet Kadim Sunak keşfet ve fethet.',
-        descriptionEn: 'Discover and conquer 1 Ancient Shrine.',
+        descriptionTr: 'Bozkırda 1 adet Kutlu Tapınak keşfet ve fethet.',
+        descriptionEn: 'Discover and conquer 1 Sacred Shrine.',
         type: QuestType.discoverShrine,
         targetAmount: 1,
         rewardType: QuestRewardType.crowns,
@@ -245,42 +245,64 @@ class GameStateNotifier extends StateNotifier<GameState> {
       building: const BuildingModel(type: BuildingType.castle, level: 1),
     );
 
-    // 2. TAPINAK YERLEŞİMİ
-    // Merkeze uzaklık < 5 olan 1 tane rastgele tapınak
-    final potentialCloseShrines = map.keys.where((c) {
-      final d = HexMath.hexDistance(const HexAxial(0, 0), c);
-      return d > 2 && d < 5 && map[c]!.biome != TileBiome.sea && map[c]!.biome != TileBiome.mountain;
+    // 2. KUTLU TAPINAK YERLEŞİMİ (Tam 11 Adet, Asgari 7 Hex Mesafe)
+    final List<HexAxial> placedShrineCoords = [];
+    final List<HexAxial> landCandidates = map.keys.where((c) {
+      if (c.q == 0 && c.r == 0) return false;
+      final t = map[c]!;
+      if (t.biome == TileBiome.sea || t.biome == TileBiome.mountain) return false;
+      if (t.biome == TileBiome.celestialCrater ||
+          t.biome == TileBiome.kurganValley ||
+          t.biome == TileBiome.crystalChasm) {
+        return false;
+      }
+      return true;
     }).toList();
-    if (potentialCloseShrines.isNotEmpty) {
-      final shrineCoord = potentialCloseShrines[random.nextInt(potentialCloseShrines.length)];
-      map[shrineCoord] = map[shrineCoord]!.copyWith(
-        building: const BuildingModel(type: BuildingType.shrine, level: 1),
-      );
-    }
 
-    // Uzak Tapınaklar (Biyom Sınırlarına)
-    // Deniz veya Dağ kenarındaki kara parçalarına stratejik tapınaklar serpiştiriyoruz
-    final farCoords = map.keys.where((c) => HexMath.hexDistance(const HexAxial(0, 0), c) > 10).toList();
-    int farShrineCount = 0;
-    for (final c in farCoords) {
-      if (farShrineCount >= 4) break;
-      final tile = map[c]!;
-      if (tile.biome == TileBiome.meadow || tile.biome == TileBiome.forest) {
-        // Komşularında Deniz veya Dağ var mı? (Sınır takibi)
-        bool isBoundary = false;
-        for (final n in c.neighbors) {
-          if (map.containsKey(n) && (map[n]!.biome == TileBiome.sea || map[n]!.biome == TileBiome.mountain)) {
-            isBoundary = true;
+    const int targetShrineCount = 11;
+    const int minDistance = 7;
+
+    for (int attempt = 0; attempt < 20 && placedShrineCoords.length < targetShrineCount; attempt++) {
+      placedShrineCoords.clear();
+      landCandidates.shuffle(random);
+
+      for (final candidate in landCandidates) {
+        if (placedShrineCoords.length >= targetShrineCount) break;
+
+        bool isValid = true;
+        for (final existing in placedShrineCoords) {
+          if (HexMath.hexDistance(candidate, existing) < minDistance) {
+            isValid = false;
             break;
           }
         }
-        if (isBoundary && random.nextDouble() < 0.05) {
-          map[c] = map[c]!.copyWith(
-            building: const BuildingModel(type: BuildingType.shrine, level: 1),
-          );
-          farShrineCount++;
+
+        if (isValid) {
+          placedShrineCoords.add(candidate);
         }
       }
+    }
+
+    // 11 Kutlu Tapınak tür dağılımı: 4 Gıda, 4 Odun, 3 Hız
+    final List<ShrineType> shrineTypes = [
+      ShrineType.foodBoost,
+      ShrineType.foodBoost,
+      ShrineType.foodBoost,
+      ShrineType.foodBoost,
+      ShrineType.woodBoost,
+      ShrineType.woodBoost,
+      ShrineType.woodBoost,
+      ShrineType.woodBoost,
+      ShrineType.speedBoost,
+      ShrineType.speedBoost,
+      ShrineType.speedBoost,
+    ];
+    shrineTypes.shuffle(random);
+
+    for (int i = 0; i < placedShrineCoords.length; i++) {
+      final c = placedShrineCoords[i];
+      final sType = i < shrineTypes.length ? shrineTypes[i] : ShrineType.foodBoost;
+      map[c] = map[c]!.copyWith(shrine: sType);
     }
 
     return GameState(
@@ -516,8 +538,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
           b.type == BuildingType.worker ||
           b.type == BuildingType.watchtower ||
           b.type == BuildingType.bridge ||
-          b.type == BuildingType.fishermanHut ||
-          b.type == BuildingType.shrine) {
+          b.type == BuildingType.fishermanHut) {
         continue;
       }
 
@@ -951,37 +972,26 @@ class GameStateNotifier extends StateNotifier<GameState> {
       if (updatedTiles.containsKey(targetCoord)) {
         final t = updatedTiles[targetCoord]!;
         if (t.isFog) {
-          // Yeni keşfedilen karolarda sunak şansı
-          final bool willHaveShrine = math.Random().nextDouble() < 0.10;
-          final sType = willHaveShrine
-              ? ShrineType.values[1 + math.Random().nextInt(ShrineType.values.length - 1)]
-              : ShrineType.none;
           updatedTiles[targetCoord] = t.copyWith(
             state: TileState.discovered,
-            shrine: sType,
           );
         }
       } else {
         final randomBiome = TileBiome
             .values[math.Random().nextInt(TileBiome.values.length)];
-        // Yeni üretilen karolarda sunak şansı
-        final bool willHaveShrine = math.Random().nextDouble() < 0.10;
-        final sType = willHaveShrine
-            ? ShrineType.values[1 + math.Random().nextInt(ShrineType.values.length - 1)]
-            : ShrineType.none;
         updatedTiles[targetCoord] = HexTileModel(
           coord: targetCoord,
           biome: randomBiome,
           state: TileState.discovered,
-          shrine: sType,
+          shrine: ShrineType.none,
         );
       }
     }
 
     double newShrineMult = state.shrineMultiplier;
     if (tile.hasShrine) {
-      newShrineMult += 0.5; // Her sunak +%50 toplamsal bonus
-      showToast('Kadim Sunak Fethedildi (Üretim Bonusu: +%50).');
+      newShrineMult += tile.shrine.boostMultiplier;
+      showToast('Kutlu Tapınak Fethedildi: ${tile.shrine.formattedBonusTr}.');
     }
 
     int mCount = state.progression.purchasedMeadowCount;
@@ -2178,6 +2188,16 @@ class GameStateNotifier extends StateNotifier<GameState> {
     final int shrines = state.tiles.values.where((t) => t.isOwned && t.hasShrine).length;
     final int newTamgas = (ownedHexes + (shrines * 5)) ~/ 2;
 
+    // Reset Taç (Crowns) Hesaplama: Hexler + Envanterdeki Hammaddeler + Binalar/Sunaklar
+    final crownsBreakdown = EconomyCalculator.calculateResetCrownsBreakdown(
+      tiles: state.tiles.values,
+      resources: state.resources,
+      castleLevel: state.progression.castleLevel,
+    );
+    final int newCrowns = crownsBreakdown.totalCrowns;
+    final int currentCrowns = state.resources.crowns;
+    final int totalCrowns = currentCrowns + newCrowns;
+
     final int currentTamgas = state.resources.tamgas;
     final int totalTamgas = currentTamgas + newTamgas;
     final int nextMigrations = state.progression.totalMigrations + 1;
@@ -2197,11 +2217,14 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
     state = _createInitialState();
 
-    // Yeni oyuna Tamga ve Global Multiplier ile başla
+    // Yeni oyuna kazanılan Taç, Tamga ve Global Multiplier ile başla
     final double tamgaMult = EconomyCalculator.getTamgaMultiplier(totalTamgas);
 
     state = state.copyWith(
-      resources: state.resources.copyWith(tamgas: totalTamgas),
+      resources: state.resources.copyWith(
+        crowns: totalCrowns,
+        tamgas: totalTamgas,
+      ),
       progression: state.progression.copyWith(
         totalMigrations: nextMigrations,
         migrationHistory: updatedHistory,
@@ -2209,7 +2232,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
         totalSessions: preservedSessions,
       ),
       discoveredKurgans: accumulatedKurgans,
-      activeToast: 'Büyük Göç Tamamlandı. +$newTamgas Tamga & Geçmiş Göç Kalıntıları Miras Kaldı!',
+      activeToast: 'Büyük Göç Tamamlandı. +$newCrowns Taç & +$newTamgas Tamga Miras Kaldı!',
     );
 
     saveGame();

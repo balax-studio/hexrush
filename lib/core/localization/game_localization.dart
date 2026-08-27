@@ -110,14 +110,12 @@ class GameLocalization {
       'scribe_workshop_name': 'Yazıt Atölyesi',
       'scribe_workshop_desc': 'Kamışlardan antik parşömen ve kalas üretir.',
       // Efsanevi Binalar
-      'shrine_name': 'Kadim Sunak',
-      'shrine_desc': 'Kut ve bereket yayan kutsal atalar sunağı.',
       'celestial_anvil_name': 'Gök Demircisi',
       'celestial_anvil_desc': 'Göktaşından nadir Gök Demiri ve çelik döver.',
       'ancestral_totem_name': 'Kurgan Koruyucusu',
       'ancestral_totem_desc': 'Tüm geçmiş göçlerin kümülatif bereketiyle üretimi katlar.',
       'prismatic_resonator_name': 'Rezonans Kulesi',
-      'prismatic_resonator_desc': 'Tüm kadim sunakların gücünü ikiye katlar.',
+      'prismatic_resonator_desc': 'Tüm kutlu tapınakların gücünü ikiye katlar.',
       // Yeni Mekanik Binaları
       'granary_vault_name': 'Kurgan Mahzeni',
       'granary_vault_desc': '3 hex menzildeki binaların taşıma ve hasat hızını +%50 artırır.',
@@ -260,14 +258,12 @@ class GameLocalization {
       'scribe_workshop_name': 'Reed Scribe Workshop',
       'scribe_workshop_desc': 'Crafts ancient scrolls and planks.',
       // Legendary
-      'shrine_name': 'Ancient Shrine',
-      'shrine_desc': 'Sacred ancestral altar channeling steppe blessing and renown.',
       'celestial_anvil_name': 'Celestial Anvil',
       'celestial_anvil_desc': 'Forges rare Meteoric Steel from fallen meteorites.',
       'ancestral_totem_name': 'Ancestral Totem',
       'ancestral_totem_desc': 'Channels cumulative migration heritage.',
       'prismatic_resonator_name': 'Prismatic Resonator',
-      'prismatic_resonator_desc': 'Doubles the power of all ancient shrines.',
+      'prismatic_resonator_desc': 'Doubles the power of all sacred shrines.',
       // New Mechanic Buildings
       'granary_vault_name': 'Kurgan Vault',
       'granary_vault_desc': 'Logistics storehouse boosting collection speed of nearby buildings within 3 hexes by +50%.',
@@ -410,14 +406,12 @@ class GameLocalization {
       'scribe_workshop_name': 'Taller de Escribas',
       'scribe_workshop_desc': 'Elabora pergaminos antiguos y tablones.',
       // Legendary
-      'shrine_name': 'Santuario Ancestral',
-      'shrine_desc': 'Altar sagrado que canaliza la bendición de los ancestros.',
       'celestial_anvil_name': 'Yunque Celestial',
       'celestial_anvil_desc': 'Forja Acero Meteórico a partir de meteoritos.',
       'ancestral_totem_name': 'Tótem Ancestral',
       'ancestral_totem_desc': 'Canaliza el poder de todas las migraciones.',
       'prismatic_resonator_name': 'Resonador Prismático',
-      'prismatic_resonator_desc': 'Duplica el poder de todos los santuarios.',
+      'prismatic_resonator_desc': 'Duplica el poder de todos los santuarios sagrados.',
       // New Mechanic Buildings
       'granary_vault_name': 'Bóveda de Kurgan',
       'granary_vault_desc': 'Almacén logístico que aumenta la velocidad de recolección en 3 hexágonos un +50%.',
@@ -560,14 +554,12 @@ class GameLocalization {
       'scribe_workshop_name': 'Schreibwerkstatt',
       'scribe_workshop_desc': 'Schöpft alte Schriftrollen und Bretter.',
       // Legendary
-      'shrine_name': 'Ahnenschrein',
-      'shrine_desc': 'Heiliger Ahnenaltar zur Kanalisierung von Segen und Ruhm.',
       'celestial_anvil_name': 'Himmelsamboss',
       'celestial_anvil_desc': 'Schmiedet Meteoreisen aus Meteoriten.',
       'ancestral_totem_name': 'Ahnentotem',
       'ancestral_totem_desc': 'Kanalisiert das Erbe aller Wanderungen.',
       'prismatic_resonator_name': 'Kristallresonator',
-      'prismatic_resonator_desc': 'Verdoppelt die Kraft aller Schreine.',
+      'prismatic_resonator_desc': 'Verdoppelt die Kraft aller heiligen Schreine.',
       // New Mechanic Buildings
       'granary_vault_name': 'Kurgan-Gewölbe',
       'granary_vault_desc': 'Logistiklager, das das Sammeltempo im Umkreis von 3 Hexfeldern um +50% steigert.',

@@ -527,15 +527,6 @@ class HexTileComponent extends PositionComponent {
         case BuildingType.fishermanHut:
           VoxelIsometricRenderer.drawVoxelFishermanHut(canvas, center, animTime: tTime, isNight: isNight);
           break;
-        case BuildingType.shrine:
-          VoxelIsometricRenderer.drawVoxelAncientShrine(
-            canvas,
-            center,
-            shrineType: tileModel.shrine,
-            animTime: tTime,
-            isNight: isNight,
-          );
-          break;
 
         // Özel Binalar
         case BuildingType.oasisCistern:
@@ -1217,7 +1208,7 @@ class HexTileComponent extends PositionComponent {
     if (!tileModel.hasBuilding) return;
     final b = tileModel.building!;
 
-    if (b.type != BuildingType.shrine && b.type != BuildingType.bridge) {
+    if (b.type != BuildingType.bridge) {
       _drawBadge(
         canvas,
         center.dx,

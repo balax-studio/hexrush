@@ -30,6 +30,52 @@ enum ShrineType {
   speedBoost,
 }
 
+extension ShrineTypeExtension on ShrineType {
+  String get titleTr {
+    switch (this) {
+      case ShrineType.foodBoost:
+        return 'Gıda Bereketi';
+      case ShrineType.woodBoost:
+        return 'Odun Bereketi';
+      case ShrineType.speedBoost:
+        return 'Lojistik Hızı';
+      case ShrineType.none:
+        return '';
+    }
+  }
+
+  String get titleEn {
+    switch (this) {
+      case ShrineType.foodBoost:
+        return 'Food Abundance';
+      case ShrineType.woodBoost:
+        return 'Wood Abundance';
+      case ShrineType.speedBoost:
+        return 'Logistics Speed';
+      case ShrineType.none:
+        return '';
+    }
+  }
+
+  double get boostPercentage {
+    switch (this) {
+      case ShrineType.foodBoost:
+        return 30.0;
+      case ShrineType.woodBoost:
+        return 25.0;
+      case ShrineType.speedBoost:
+        return 20.0;
+      case ShrineType.none:
+        return 0.0;
+    }
+  }
+
+  double get boostMultiplier => boostPercentage / 100.0;
+
+  String get formattedBonusTr => '+%${boostPercentage.toInt()} $titleTr';
+  String get formattedBonusEn => '+${boostPercentage.toInt()}% $titleEn';
+}
+
 class HexTileModel {
   final HexAxial coord;
   final TileBiome biome;

@@ -19,7 +19,6 @@ enum BuildingType {
   bridge,
   fisherman,
   fishermanHut,
-  shrine,
   // Özel Çöl Binaları
   oasisCistern,
   caravanserai,
@@ -56,7 +55,6 @@ extension BuildingTypeExtension on BuildingType {
       case BuildingType.quarry:
       case BuildingType.lumberjack:
       case BuildingType.worker:
-      case BuildingType.shrine:
       case BuildingType.granaryVault:
         return 1;
 
@@ -170,8 +168,6 @@ class BuildingModel {
         return 30.0;
       case BuildingType.fishermanHut:
         return 45.0;
-      case BuildingType.shrine:
-        return 0.0;
 
       // Özel Binalar
       case BuildingType.oasisCistern:
@@ -221,8 +217,28 @@ class BuildingModel {
 
   double get costGrowthFactor => 1.15;
 
-  /// Seviye yükseltme maliyeti
-  double get upgradeCost => baseCost * math.pow(costGrowthFactor, level - 1);
+  /// Kilometre taşı seviyeleri (2x üretim artışı, 10x maliyet artışı)
+  static const List<int> milestoneLevels = [10, 25, 50, 100, 200];
+
+  /// Verilen seviyenin ulaştığı kilometre taşı kademesi (0..5)
+  static int getMilestoneTier(int lvl) {
+    if (lvl >= 200) return 5;
+    if (lvl >= 100) return 4;
+    if (lvl >= 50) return 3;
+    if (lvl >= 25) return 2;
+    if (lvl >= 10) return 1;
+    return 0;
+  }
+
+  /// Bir sonraki seviyenin kilometre taşı olup olmadığı
+  bool get isNextLevelMilestone => milestoneLevels.contains(level + 1);
+
+  /// Seviye yükseltme maliyeti (Hedef seviye kilometre taşlarına ulaştıkça her kademede 10x maliyet artışı)
+  double get upgradeCost {
+    final int targetMilestoneTier = getMilestoneTier(level + 1);
+    final double milestoneCostMultiplier = math.pow(10.0, targetMilestoneTier).toDouble();
+    return baseCost * math.pow(costGrowthFactor, level - 1) * milestoneCostMultiplier;
+  }
 
   /// Temel üretim hızı (birim/saniye)
   double get baseProductionRate {
@@ -316,38 +332,22 @@ class BuildingModel {
 
   /// Seviyeye göre anlık üretim hızı
   double get currentProductionRate {
-    int k = 0;
-    if (level >= 200) {
-      k = 5;
-    } else if (level >= 100) {
-      k = 4;
-    } else if (level >= 50) {
-      k = 3;
-    } else if (level >= 25) {
-      k = 2;
-    } else if (level >= 10) {
-      k = 1;
-    }
-
+    final int k = getMilestoneTier(level);
     final double milestoneBoost = math.pow(2.0, k).toDouble();
     return baseProductionRate * level * milestoneBoost;
   }
 
+  /// Bir sonraki seviyedeki baz üretim hızı (çarpanlar hariç)
+  double get nextLevelProductionRate {
+    final int nextLvl = level + 1;
+    final int k = getMilestoneTier(nextLvl);
+    final double milestoneBoost = math.pow(2.0, k).toDouble();
+    return baseProductionRate * nextLvl * milestoneBoost;
+  }
+
   /// Seviyeye göre anlık taşıma kapasitesi
   double get currentCarryingCapacity {
-    int k = 0;
-    if (level >= 200) {
-      k = 5;
-    } else if (level >= 100) {
-      k = 4;
-    } else if (level >= 50) {
-      k = 3;
-    } else if (level >= 25) {
-      k = 2;
-    } else if (level >= 10) {
-      k = 1;
-    }
-
+    final int k = getMilestoneTier(level);
     final double milestoneBoost = math.pow(2.0, k).toDouble();
     return baseCarryingCapacity * level * milestoneBoost;
   }

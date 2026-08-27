@@ -123,7 +123,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                                   : (tile.hasBuilding
                                       ? '${_getBuildingName(tile.building!.type, lang).toUpperCase()} (LV.${tile.building!.level})'
                                       : (tile.hasShrine
-                                          ? 'KUTLU TAPINAK'
+                                          ? 'KUTLU TAPINAK (${tile.shrine.titleTr.toUpperCase()})'
                                           : _getBiomeTitle(tile.biome, lang))),
                               style: NeoBrutalistTheme.fontHeaderMonolith,
                               overflow: TextOverflow.ellipsis,
@@ -205,6 +205,90 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                   ],
                 ),
                 const SizedBox(height: 10),
+
+                // Kutlu Tapınak Özellik ve Yüzde Bilgi Rozeti
+                if (tile.hasShrine) ...[
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F172A),
+                      border: Border.all(
+                        color: tile.shrine == ShrineType.foodBoost
+                            ? const Color(0xFF10B981)
+                            : (tile.shrine == ShrineType.woodBoost
+                                ? const Color(0xFFF59E0B)
+                                : const Color(0xFF38BDF8)),
+                        width: 1.8,
+                      ),
+                      borderRadius: NeoBrutalistTheme.sharpRadius,
+                      boxShadow: theme.hardShadowSmall,
+                    ),
+                    child: Row(
+                      children: [
+                        GameVectorIcon(
+                          type: tile.shrine == ShrineType.foodBoost
+                              ? GameIconType.food
+                              : (tile.shrine == ShrineType.woodBoost
+                                  ? GameIconType.wood
+                                  : GameIconType.frenzy),
+                          size: 18,
+                          color: tile.shrine == ShrineType.foodBoost
+                              ? const Color(0xFF34D399)
+                              : (tile.shrine == ShrineType.woodBoost
+                                  ? const Color(0xFFFBBF24)
+                                  : const Color(0xFF38BDF8)),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'KUTLU TAPINAK: ${tile.shrine.titleTr.toUpperCase()}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 11,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${tile.shrine.formattedBonusTr} (Büyük Göçte +5 Taç)',
+                                style: TextStyle(
+                                  color: tile.shrine == ShrineType.foodBoost
+                                      ? const Color(0xFF34D399)
+                                      : (tile.shrine == ShrineType.woodBoost
+                                          ? const Color(0xFFFBBF24)
+                                          : const Color(0xFF38BDF8)),
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E293B),
+                            borderRadius: NeoBrutalistTheme.sharpRadius,
+                            border: Border.all(color: theme.slateBorder, width: 1.0),
+                          ),
+                          child: Text(
+                            '+%${tile.shrine.boostPercentage.toInt()}',
+                            style: const TextStyle(
+                              color: Color(0xFFFFD700),
+                              fontWeight: FontWeight.w900,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
 
                 // Ata Kurganı Keşif Rozeti
                 if (tile.ancestralKurgan != null && !tile.ancestralKurgan!.isDiscovered) ...[
@@ -980,6 +1064,34 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
             ],
           ),
         ],
+        if (b.isNextLevelMilestone) ...[
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+            decoration: BoxDecoration(
+              color: const Color(0xFFD97706).withValues(alpha: 0.18),
+              borderRadius: NeoBrutalistTheme.sharpRadius,
+              border: Border.all(color: const Color(0xFFF59E0B), width: 1.5),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.stars, color: Color(0xFFF59E0B), size: 14),
+                const SizedBox(width: 6),
+                Text(
+                  '2X ${isLogisticsBuilding ? 'KAPASİTE' : 'GELİR'} KİLOMETRE TAŞI (SEVİYE ${b.level + 1})',
+                  style: const TextStyle(
+                    color: Color(0xFFF59E0B),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 10),
         Row(
           children: [
@@ -1013,22 +1125,26 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
               child: TactileNeoButton(
                 onTap: canUpgrade ? () => notifier.upgradeBuilding(tile.coord) : null,
                 isEnabled: canUpgrade,
-                backgroundColor: theme.primaryGold,
+                backgroundColor: b.isNextLevelMilestone ? const Color(0xFFF59E0B) : theme.primaryGold,
                 borderColor: theme.border,
                 shadowColor: theme.shadowColor,
                 shadowOffset: 2.5,
                 height: 38,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 6),
                 alignment: Alignment.center,
                 soundType: TactileSoundType.upgrade,
                 child: Center(
                   child: Text(
-                    '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} (${NumberFormatter.format(cost)})',
+                    b.isNextLevelMilestone
+                        ? '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} (${NumberFormatter.format(cost)}) • 2X GELİR'
+                        : '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} (${NumberFormatter.format(cost)})',
                     style: const TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.w900,
-                      fontSize: 11,
+                      fontSize: 10.5,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
@@ -1592,8 +1708,6 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         return GameLocalization.get('fisherman_desc', lang: lang);
       case BuildingType.fishermanHut:
         return GameLocalization.get('fisherman_hut_desc', lang: lang);
-      case BuildingType.shrine:
-        return GameLocalization.get('shrine_desc', lang: lang);
       // Çöl
       case BuildingType.oasisCistern:
         return GameLocalization.get('oasis_cistern_desc', lang: lang);
@@ -1715,8 +1829,6 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         return const GameVectorIcon(type: GameIconType.food, size: 13);
       case BuildingType.fishermanHut:
         return const GameVectorIcon(type: GameIconType.land, size: 13);
-      case BuildingType.shrine:
-        return const GameVectorIcon(type: GameIconType.shrine, size: 13);
       // Çöl
       case BuildingType.oasisCistern:
         return const GameVectorIcon(type: GameIconType.food, size: 13, color: Color(0xFF38BDF8));
@@ -1827,8 +1939,6 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         return GameLocalization.get('fisherman_name', lang: lang);
       case BuildingType.fishermanHut:
         return GameLocalization.get('fisherman_hut_name', lang: lang);
-      case BuildingType.shrine:
-        return GameLocalization.get('shrine_name', lang: lang);
       // Çöl
       case BuildingType.oasisCistern:
         return GameLocalization.get('oasis_cistern_name', lang: lang);

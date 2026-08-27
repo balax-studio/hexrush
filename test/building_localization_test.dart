@@ -84,8 +84,6 @@ String _getExpectedNameKey(BuildingType type) {
       return 'fisherman_name';
     case BuildingType.fishermanHut:
       return 'fisherman_hut_name';
-    case BuildingType.shrine:
-      return 'shrine_name';
     case BuildingType.oasisCistern:
       return 'oasis_cistern_name';
     case BuildingType.caravanserai:
@@ -163,8 +161,6 @@ String _getExpectedDescKey(BuildingType type) {
       return 'fisherman_desc';
     case BuildingType.fishermanHut:
       return 'fisherman_hut_desc';
-    case BuildingType.shrine:
-      return 'shrine_desc';
     case BuildingType.oasisCistern:
       return 'oasis_cistern_desc';
     case BuildingType.caravanserai:

@@ -9,6 +9,8 @@ import '../../domain/economy/economy_calculator.dart';
 import '../../domain/models/game_state_model.dart';
 import '../providers/game_state_notifier.dart';
 import 'celestial_omen_hud.dart';
+import 'crown_breakdown_dialog.dart';
+import 'great_migration_dialog.dart';
 import 'icons/game_vector_icons.dart';
 import 'season_calendar_widget.dart';
 import 'tactile_neo_button.dart';
@@ -577,16 +579,14 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   color: const Color(0xFFFFD700),
                   isInt: true,
                   theme: theme,
-                  onTap: () => _showResourceExplanation(
-                    context,
-                    title: 'ŞAN (HÜKÜMDAR İTİBARI)',
-                    iconType: GameIconType.crown,
-                    iconColor: const Color(0xFFFFD700),
-                    currentStock: '${NumberFormatter.format(resources.crowns)} Şan',
-                    description: 'Görevleri tamamlayarak ve fetihler yaparak kazanılan itibar puanı.',
-                    strategicHint: 'Töre Meclisinde yeni doktrin kartlarını kabul etmek ve yetenek yükseltmek için kullanılır.',
-                    theme: theme,
-                  ),
+                  onTap: () {
+                    TactileAudioService.instance.play(TactileSoundType.tap);
+                    HapticFeedback.lightImpact();
+                    showDialog<void>(
+                      context: context,
+                      builder: (ctx) => const CrownBreakdownDialog(),
+                    );
+                  },
                 ),
                 const SizedBox(width: 6),
                 _buildLandChip(
@@ -659,6 +659,23 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                         ),
                       ),
                   ],
+                ),
+                const SizedBox(width: 5),
+
+                // Büyük Göç Butonu
+                _buildIconButton(
+                  icon: const Icon(Icons.flight_takeoff, size: 15, color: Color(0xFFFFD700)),
+                  onPressed: () {
+                    TactileAudioService.instance.play(TactileSoundType.tap);
+                    HapticFeedback.lightImpact();
+                    showDialog<void>(
+                      context: context,
+                      builder: (ctx) => const GreatMigrationDialog(),
+                    );
+                  },
+                  tooltip: 'Büyük Göç & Çağ Atlayışı (Sıfırlama)',
+                  backgroundColor: const Color(0xFF78350F),
+                  borderColor: const Color(0xFFD97706),
                 ),
                 const SizedBox(width: 5),
 

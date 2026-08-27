@@ -159,6 +159,20 @@ class OfflineGainsResult {
       damascusSteel > 0;
 }
 
+class ResetCrownsBreakdown {
+  final int hexCrowns;
+  final int resourceCrowns;
+  final int buildingAndShrineCrowns;
+  final int totalCrowns;
+
+  const ResetCrownsBreakdown({
+    required this.hexCrowns,
+    required this.resourceCrowns,
+    required this.buildingAndShrineCrowns,
+    required this.totalCrowns,
+  });
+}
+
 /// Krallık Ekonomisi, Töre Ağacı & Yetenek Hesaplayıcı (Pure Dart Engine)
 class EconomyCalculator {
   static double getGlobalMultiplier({
@@ -169,7 +183,6 @@ class EconomyCalculator {
     Map<String, dynamic> titles = const {},
   }) {
     final double castleMult = 1.0 + (castleLevel - 1) * 0.01;
-    final double prestigeBonus = crowns * 0.05;
 
     // Yetenek Ağacı Çarpanları
     final double talentBoost = (talents['boostAll'] as num? ?? 0) * 0.05;
@@ -194,8 +207,77 @@ class EconomyCalculator {
     }
 
     final double prestigeMult =
-        1.0 + prestigeBonus + talentBoost + toreBoost + titleBoost;
+        1.0 + talentBoost + toreBoost + titleBoost;
     return castleMult * prestigeMult;
+  }
+
+  /// Büyük Göç (Sıfırlama) anında kazanılacak Taç miktarını ve detaylı dökümünü hesaplar (Dengeli Pacing Modeli)
+  static ResetCrownsBreakdown calculateResetCrownsBreakdown({
+    required Iterable<HexTileModel> tiles,
+    required ResourcesModel resources,
+    required int castleLevel,
+  }) {
+    int ownedHexCount = 0;
+    int shrineCount = 0;
+    int buildingLevelsTotal = 0;
+
+    for (final tile in tiles) {
+      if (tile.isOwned) {
+        ownedHexCount++;
+        if (tile.hasShrine) {
+          shrineCount++;
+        }
+        if (tile.hasBuilding && tile.building!.type != BuildingType.castle) {
+          buildingLevelsTotal += tile.building!.level;
+        }
+      }
+    }
+
+    // 1. Sahip olunan hex karolarından Taç (Her 5 karo = 1 Taç)
+    final int hexCrowns = ownedHexCount ~/ 5;
+
+    // 2. Ambar envanterindeki refah stoğundan Taç (Kademeli Refah Modeli)
+    final double totalResourceStock = resources.food +
+        resources.wood +
+        resources.stone +
+        resources.iron +
+        resources.fish +
+        resources.flour +
+        resources.plank +
+        resources.bread +
+        resources.furniture +
+        (resources.kumis * 2.0) +
+        (resources.felt * 2.0) +
+        (resources.damascusSteel * 3.0) +
+        resources.wisdom;
+
+    int resourceCrowns = 0;
+    if (totalResourceStock >= 500000) {
+      resourceCrowns = 4;
+    } else if (totalResourceStock >= 100000) {
+      resourceCrowns = 3;
+    } else if (totalResourceStock >= 20000) {
+      resourceCrowns = 2;
+    } else if (totalResourceStock >= 5000) {
+      resourceCrowns = 1;
+    }
+
+    // 3. Binalar, Şato ve Kadim Sunaklardan Taç
+    // - Keşfedilen her Kadim Sunak: 1 Taç
+    // - Kağan Otağı seviyesi: Her 2 seviyede 1 Taç (Sv.3 = 1, Sv.5 = 2 vb.)
+    // - İnşa edilen her 15 bina kademesi: 1 Taç
+    final int buildingAndShrineCrowns = shrineCount +
+        (castleLevel ~/ 2) +
+        (buildingLevelsTotal ~/ 15);
+
+    final int totalCrowns = hexCrowns + resourceCrowns + buildingAndShrineCrowns;
+
+    return ResetCrownsBreakdown(
+      hexCrowns: hexCrowns,
+      resourceCrowns: resourceCrowns,
+      buildingAndShrineCrowns: buildingAndShrineCrowns,
+      totalCrowns: totalCrowns,
+    );
   }
 
   static double getWorkerTransferMultiplier({
@@ -242,7 +324,6 @@ class EconomyCalculator {
           b.type == BuildingType.watchtower ||
           b.type == BuildingType.bridge ||
           b.type == BuildingType.fishermanHut ||
-          b.type == BuildingType.shrine ||
           b.type == BuildingType.granaryVault) {
         continue;
       }
@@ -324,7 +405,6 @@ class EconomyCalculator {
           b.type == BuildingType.watchtower ||
           b.type == BuildingType.bridge ||
           b.type == BuildingType.fishermanHut ||
-          b.type == BuildingType.shrine ||
           b.type == BuildingType.granaryVault) {
         continue;
       }
@@ -811,18 +891,7 @@ class EconomyCalculator {
     double seasonalBoostMultiplier = 1.0,
   }) {
     // Eşik Çarpanı (k)
-    int k = 0;
-    if (level >= 200) {
-      k = 5;
-    } else if (level >= 100) {
-      k = 4;
-    } else if (level >= 50) {
-      k = 3;
-    } else if (level >= 25) {
-      k = 2;
-    } else if (level >= 10) {
-      k = 1;
-    }
+    final int k = BuildingModel.getMilestoneTier(level);
 
     // P_net = (P_base * Level * 2^k) * (1 + sum S_boost) * modifiers
     final double milestoneBoost = math.pow(2.0, k).toDouble();
@@ -1079,6 +1148,10 @@ class EconomyCalculator {
     double gainedStone = 0.0;
     double gainedIron = 0.0;
     double gainedFish = 0.0;
+    double gainedWisdom = 0.0;
+    double gainedKumis = 0.0;
+    double gainedFelt = 0.0;
+    double gainedDamascusSteel = 0.0;
 
     for (final t in tiles) {
       final b = t.building;
@@ -1087,8 +1160,12 @@ class EconomyCalculator {
       final bool hasWorkers =
           workerCoords.any((wc) => t.coord.distanceTo(wc) <= 4);
 
-      final double rate = (b.baseProductionRate * math.pow(1.5, b.level - 1)) *
-          globalMultiplier;
+      final double rate = calculateBuildingProduction(
+        type: b.type,
+        level: b.level,
+        baseRate: b.baseProductionRate,
+        globalMultiplier: globalMultiplier,
+      );
       final double maxCap = rate * 30.0;
 
       switch (b.type) {
@@ -1178,16 +1255,28 @@ class EconomyCalculator {
           gainedIron += hasWorkers
               ? rate * cappedSeconds
               : math.min(maxCap, rate * cappedSeconds);
+          break;
         case BuildingType.kumisYurt:
-          gainedFood += hasWorkers
+          gainedKumis += hasWorkers
               ? rate * cappedSeconds
               : math.min(maxCap, rate * cappedSeconds);
           break;
         case BuildingType.feltTentWorkshop:
+          gainedFelt += hasWorkers
+              ? rate * cappedSeconds
+              : math.min(maxCap, rate * cappedSeconds);
+          break;
         case BuildingType.damascusForge:
+          gainedDamascusSteel += hasWorkers
+              ? rate * cappedSeconds
+              : math.min(maxCap, rate * cappedSeconds);
+          break;
         case BuildingType.runicStele:
+          gainedWisdom += hasWorkers
+              ? rate * cappedSeconds
+              : math.min(maxCap, rate * cappedSeconds);
+          break;
         case BuildingType.granaryVault:
-        case BuildingType.shrine:
         case BuildingType.castle:
         case BuildingType.worker:
         case BuildingType.watchtower:
@@ -1213,6 +1302,10 @@ class EconomyCalculator {
       stone: gainedStone,
       iron: gainedIron,
       fish: gainedFish,
+      wisdom: gainedWisdom,
+      kumis: gainedKumis,
+      felt: gainedFelt,
+      damascusSteel: gainedDamascusSteel,
     );
   }
 
@@ -1271,11 +1364,15 @@ class EconomyCalculator {
         buildingType: b.type,
       );
 
-      final double rate = (b.baseProductionRate * math.pow(1.5, b.level - 1)) *
-          totalMult *
-          seasonalBoost *
-          biomeSynergy *
-          masteryMult;
+      final double rate = calculateBuildingProduction(
+        type: b.type,
+        level: b.level,
+        baseRate: b.baseProductionRate,
+        globalMultiplier: totalMult,
+        synergyMultiplier: biomeSynergy,
+        biomeMasteryMultiplier: masteryMult,
+        seasonalBoostMultiplier: seasonalBoost,
+      );
 
       switch (b.type) {
         case BuildingType.corn:
@@ -1344,7 +1441,6 @@ class EconomyCalculator {
           netWisdom += rate;
           break;
         case BuildingType.granaryVault:
-        case BuildingType.shrine:
         case BuildingType.castle:
         case BuildingType.worker:
         case BuildingType.watchtower:

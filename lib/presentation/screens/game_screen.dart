@@ -18,6 +18,7 @@ import '../widgets/tore_dialog.dart';
 import '../widgets/steppe_lore_tree_dialog.dart';
 import '../widgets/trade_orders_dialog.dart';
 import '../widgets/realm_selection_dialog.dart';
+import '../widgets/debug_menu_dialog.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
@@ -294,6 +295,31 @@ class _GameScreenState extends ConsumerState<GameScreen>
                             Icons.camera_alt,
                             size: 18,
                             color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Geliştirici Denetim Konsolu (Debug Menü) Butonu
+                      TactileNeoButton(
+                        onTap: () {
+                          showDialog<void>(
+                            context: context,
+                            builder: (_) => const DebugMenuDialog(),
+                          );
+                        },
+                        backgroundColor: const Color(0xFF581C87),
+                        borderColor: const Color(0xFFA855F7),
+                        shadowColor: theme.shadowColor,
+                        shadowOffset: 2.0,
+                        height: 36,
+                        width: 36,
+                        padding: EdgeInsets.zero,
+                        alignment: Alignment.center,
+                        child: const Center(
+                          child: Icon(
+                            Icons.terminal,
+                            size: 18,
+                            color: Color(0xFFE9D5FF),
                           ),
                         ),
                       ),

@@ -6,15 +6,19 @@ import 'package:hex_rush/domain/models/hex_tile_model.dart';
 
 void main() {
   group('EconomyCalculator Tests', () {
-    test('getGlobalMultiplier calculates correctly with castle level and crowns', () {
+    test('getGlobalMultiplier calculates correctly with castle level and titles without passive crown multiplier', () {
       final mult1 = EconomyCalculator.getGlobalMultiplier(castleLevel: 1, crowns: 0);
       expect(mult1, equals(1.0));
 
       final mult2 = EconomyCalculator.getGlobalMultiplier(castleLevel: 2, crowns: 10);
       // Castle Lvl 2: 1.0 + (2-1)*0.01 = 1.01
-      // Crowns 10: 1.0 + 10*0.05 = 1.50
-      // Total: 1.01 * 1.50 = 1.515
-      expect(mult2, closeTo(1.515, 0.0001));
+      // Crowns pasif üretim çarpanı vermez (0 bonus)
+      // Total: 1.01 * 1.0 = 1.01
+      expect(mult2, closeTo(1.01, 0.0001));
+
+      // Khagan title boost
+      final multKhagan = EconomyCalculator.getGlobalMultiplier(castleLevel: 1, crowns: 5, titles: {'khagan': true});
+      expect(multKhagan, closeTo(1.15, 0.0001));
     });
 
     test('getCastleUpgradeCost requires wood after level 2', () {

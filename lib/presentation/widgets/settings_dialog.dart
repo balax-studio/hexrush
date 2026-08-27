@@ -4,6 +4,7 @@ import '../../core/audio/tactile_audio_service.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../providers/game_state_notifier.dart';
+import 'great_migration_dialog.dart';
 import 'icons/game_vector_icons.dart';
 import 'tactile_neo_button.dart';
 
@@ -242,69 +243,37 @@ class SettingsDialog extends ConsumerWidget {
 
             const SizedBox(height: 16),
 
-            // Sıfırlama Butonu
+            // Büyük Göç & Sıfırlama Butonu
             TactileNeoButton(
               onTap: () {
+                Navigator.of(context).pop();
                 showDialog<void>(
                   context: context,
-                  builder: (ctx) => AlertDialog(
-                    backgroundColor: NeoBrutalistTheme.surface,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: NeoBrutalistTheme.standardRadius,
-                      side: BorderSide(color: Colors.black, width: 2),
-                    ),
-                    title: const Text('OYUNU SIFIRLA?', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
-                    content: const Text(
-                      'Tüm krallık ilerlemeniz silinecektir. Devam etmek istiyor musunuz?',
-                      style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
-                    ),
-                    actions: [
-                      TactileNeoButton(
-                        onTap: () => Navigator.of(ctx).pop(),
-                        backgroundColor: const Color(0xFF334155),
-                        borderColor: Colors.black,
-                        shadowOffset: 2.0,
-                        height: 32,
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        alignment: Alignment.center,
-                        child: const Text('İPTAL', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w900)),
-                      ),
-                      const SizedBox(width: 8),
-                      TactileNeoButton(
-                        onTap: () {
-                          Navigator.of(ctx).pop();
-                          notifier.resetGame();
-                          Navigator.of(context).pop();
-                        },
-                        backgroundColor: const Color(0xFFEF4444),
-                        borderColor: Colors.black,
-                        shadowOffset: 2.0,
-                        height: 32,
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        alignment: Alignment.center,
-                        child: const Text('SIFIRLA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
-                      ),
-                    ],
-                  ),
+                  builder: (ctx) => const GreatMigrationDialog(),
                 );
               },
-              backgroundColor: const Color(0xFF991B1B),
-              borderColor: Colors.black,
+              backgroundColor: const Color(0xFF78350F),
+              borderColor: const Color(0xFFD97706),
               shadowColor: const Color(0xFF450A0A),
               shadowOffset: 2.5,
               height: 38,
               padding: EdgeInsets.zero,
               alignment: Alignment.center,
-              child: const Center(
-                child: Text(
-                  'OYUNU SIFIRLA & BAŞTAN BAŞLA',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.3,
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.flight_takeoff, color: Color(0xFFFFD700), size: 16),
+                  SizedBox(width: 6),
+                  Text(
+                    'BÜYÜK GÖÇ & SIFIRLAMA EKRANI',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.3,
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
 
