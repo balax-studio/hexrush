@@ -366,18 +366,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
         if (offline.hasGains && mounted) {
           state = state.copyWith(
-            resources: state.resources.copyWith(
-              food: state.resources.food + offline.food,
-              wood: state.resources.wood + offline.wood,
-              flour: state.resources.flour + offline.flour,
-              plank: state.resources.plank + offline.plank,
-              bread: state.resources.bread + offline.bread,
-              furniture: state.resources.furniture + offline.furniture,
-              stone: state.resources.stone + offline.stone,
-              iron: state.resources.iron + offline.iron,
-            ),
-            activeToast:
-                'Çevrimdışı Gelir: +${offline.food.toStringAsFixed(1)} Gıda, +${offline.wood.toStringAsFixed(1)} Odun',
+            pendingOfflineGains: offline,
           );
         }
       }
@@ -1852,6 +1841,29 @@ class GameStateNotifier extends StateNotifier<GameState> {
     return true;
   }
 
+  void processResumeOfflineGains(int pauseTimestamp) {
+    final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final double elapsed = (now - pauseTimestamp).toDouble();
+    if (elapsed < 15.0) return;
+
+    final double globalMult = EconomyCalculator.getGlobalMultiplier(
+      castleLevel: state.progression.castleLevel,
+      crowns: state.resources.crowns,
+      toreTalents: state.toreTalents,
+      titles: state.titles,
+    );
+
+    final offline = EconomyCalculator.calculateOfflineGains(
+      tiles: state.tiles.values.toList(),
+      elapsedSeconds: elapsed,
+      globalMultiplier: globalMult,
+    );
+
+    if (offline.hasGains && mounted) {
+      state = state.copyWith(pendingOfflineGains: offline);
+    }
+  }
+
   Future<void> claimOfflineGains(OfflineGainsResult gains, {bool isBoosted = false}) async {
     final effectiveGains = isBoosted
         ? EconomyCalculator.calculateOfflineAdBoostedGains(gains)
@@ -1867,7 +1879,13 @@ class GameStateNotifier extends StateNotifier<GameState> {
         furniture: state.resources.furniture + effectiveGains.furniture,
         stone: state.resources.stone + effectiveGains.stone,
         iron: state.resources.iron + effectiveGains.iron,
+        fish: state.resources.fish + effectiveGains.fish,
+        wisdom: state.resources.wisdom + effectiveGains.wisdom,
+        kumis: state.resources.kumis + effectiveGains.kumis,
+        felt: state.resources.felt + effectiveGains.felt,
+        damascusSteel: state.resources.damascusSteel + effectiveGains.damascusSteel,
       ),
+      clearPendingOfflineGains: true,
       activeToast: isBoosted
           ? 'Kervan bereketiyle 1.5x çevrimdışı kazanç ambara aktarıldı!'
           : 'Çevrimdışı bozkır kazancı ambara aktarıldı.',

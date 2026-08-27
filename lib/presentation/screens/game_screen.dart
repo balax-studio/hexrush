@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
+import '../../domain/economy/economy_calculator.dart';
 import '../flame/flame_interactive_map.dart';
 import '../providers/game_state_notifier.dart';
 import '../widgets/diorama_lens_overlay.dart';
 import '../widgets/diorama_snapshot_dialog.dart';
 import '../widgets/market_dialog.dart';
+import '../widgets/offline_gains_dialog.dart';
 import '../widgets/quest_tracker_hud.dart';
 import '../widgets/settings_dialog.dart';
 import '../widgets/tactile_neo_button.dart';
@@ -17,11 +19,79 @@ import '../widgets/steppe_lore_tree_dialog.dart';
 import '../widgets/trade_orders_dialog.dart';
 import '../widgets/realm_selection_dialog.dart';
 
-class GameScreen extends ConsumerWidget {
+class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<GameScreen> createState() => _GameScreenState();
+}
+
+class _GameScreenState extends ConsumerState<GameScreen>
+    with WidgetsBindingObserver {
+  int? _pauseTimestamp;
+  bool _isOfflineDialogShowing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkPendingOfflineGains();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      _pauseTimestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      ref.read(gameStateProvider.notifier).saveGame();
+    } else if (state == AppLifecycleState.resumed) {
+      if (_pauseTimestamp != null) {
+        ref
+            .read(gameStateProvider.notifier)
+            .processResumeOfflineGains(_pauseTimestamp!);
+        _pauseTimestamp = null;
+      }
+    }
+  }
+
+  void _checkPendingOfflineGains() {
+    if (!mounted || _isOfflineDialogShowing) return;
+    final pending = ref.read(gameStateProvider).pendingOfflineGains;
+    if (pending != null && pending.hasGains) {
+      _showOfflineGainsDialog(pending);
+    }
+  }
+
+  Future<void> _showOfflineGainsDialog(OfflineGainsResult gains) async {
+    _isOfflineDialogShowing = true;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => OfflineGainsDialog(gains: gains),
+    );
+    _isOfflineDialogShowing = false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen<OfflineGainsResult?>(
+      gameStateProvider.select((s) => s.pendingOfflineGains),
+      (previous, next) {
+        if (next != null && next.hasGains && mounted && !_isOfflineDialogShowing) {
+          _showOfflineGainsDialog(next);
+        }
+      },
+    );
+
     final activePalette = ref.watch(gameStateProvider.select((s) => s.settings.activeThemePalette));
     final isDioramaMode = ref.watch(gameStateProvider.select((s) => s.isDioramaMode));
     final isMacroOverview = ref.watch(gameStateProvider.select((s) => s.isMacroOverview));

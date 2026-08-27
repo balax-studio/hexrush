@@ -1,4 +1,5 @@
 import '../../core/hex/hex_coordinates.dart';
+import '../economy/economy_calculator.dart';
 import 'ad_reward_model.dart';
 import 'ancestral_kurgan_model.dart';
 import 'caravan_route_model.dart';
@@ -37,6 +38,7 @@ class GameState {
   final bool isDioramaMode;
   final List<AncestralKurgan> discoveredKurgans;
   final AdRewardTracking adTracking;
+  final OfflineGainsResult? pendingOfflineGains;
 
   const GameState({
     required this.tiles,
@@ -78,6 +80,7 @@ class GameState {
     this.isDioramaMode = false,
     this.discoveredKurgans = const [],
     this.adTracking = const AdRewardTracking(),
+    this.pendingOfflineGains,
   });
 
   QuestModel? get currentActiveQuest {
@@ -120,6 +123,8 @@ class GameState {
     bool? isDioramaMode,
     List<AncestralKurgan>? discoveredKurgans,
     AdRewardTracking? adTracking,
+    OfflineGainsResult? pendingOfflineGains,
+    bool clearPendingOfflineGains = false,
   }) {
     return GameState(
       tiles: tiles ?? this.tiles,
@@ -150,6 +155,7 @@ class GameState {
       isDioramaMode: isDioramaMode ?? this.isDioramaMode,
       discoveredKurgans: discoveredKurgans ?? this.discoveredKurgans,
       adTracking: adTracking ?? this.adTracking,
+      pendingOfflineGains: clearPendingOfflineGains ? null : (pendingOfflineGains ?? this.pendingOfflineGains),
     );
   }
 }

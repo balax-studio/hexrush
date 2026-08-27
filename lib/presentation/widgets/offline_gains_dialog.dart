@@ -32,6 +32,9 @@ class OfflineGainsDialog extends ConsumerWidget {
 
     final hours = gains.seconds ~/ 3600;
     final minutes = (gains.seconds % 3600) ~/ 60;
+    final timeStr = hours > 0
+        ? '$hours saat $minutes dakika'
+        : (minutes > 0 ? '$minutes dakika' : '${gains.seconds} saniye');
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -48,11 +51,41 @@ class OfflineGainsDialog extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Üst Karşılama Rozeti
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF451A03),
+                borderRadius: NeoBrutalistTheme.standardRadius,
+                border: Border.all(color: const Color(0xFFF59E0B), width: 1.0),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const GameVectorIcon(
+                    type: GameIconType.crown,
+                    size: 14,
+                    color: Color(0xFFFDE047),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'HOŞ GELDİNİZ, BOZKIR KAĞANI',
+                    style: NeoBrutalistTheme.fontBadge.copyWith(
+                      color: const Color(0xFFFDE047),
+                      fontSize: 10,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+
             // Başlık
             Row(
               children: [
                 const GameVectorIcon(
-                  type: GameIconType.food,
+                  type: GameIconType.granary,
                   size: 20,
                   color: Color(0xFFD97706),
                 ),
@@ -70,7 +103,7 @@ class OfflineGainsDialog extends ConsumerWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Otağ ve toygunların yokluğunda ${hours > 0 ? '$hours saat ' : ''}$minutes dakika boyunca üretim yaptı.',
+              'Otağ ve toygunların yokluğunda $timeStr boyunca üretim yaptı.',
               style: NeoBrutalistTheme.fontLabel.copyWith(
                 color: const Color(0xFF94A3B8),
                 fontSize: 12,
@@ -137,6 +170,36 @@ class OfflineGainsDialog extends ConsumerWidget {
                       icon: GameIconType.furniture,
                       label: 'Eşya',
                       amount: gains.furniture,
+                    ),
+                  if (gains.fish > 0)
+                    _ResourcePill(
+                      icon: GameIconType.food,
+                      label: 'Balık',
+                      amount: gains.fish,
+                    ),
+                  if (gains.wisdom > 0)
+                    _ResourcePill(
+                      icon: GameIconType.wisdom,
+                      label: 'Bilgelik',
+                      amount: gains.wisdom,
+                    ),
+                  if (gains.kumis > 0)
+                    _ResourcePill(
+                      icon: GameIconType.kumis,
+                      label: 'Kımız',
+                      amount: gains.kumis,
+                    ),
+                  if (gains.felt > 0)
+                    _ResourcePill(
+                      icon: GameIconType.felt,
+                      label: 'Keçe',
+                      amount: gains.felt,
+                    ),
+                  if (gains.damascusSteel > 0)
+                    _ResourcePill(
+                      icon: GameIconType.damascusSteel,
+                      label: 'Şam Çeliği',
+                      amount: gains.damascusSteel,
                     ),
                 ],
               ),
