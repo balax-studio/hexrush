@@ -195,7 +195,7 @@ class DoctrineCardModel {
         slotType: DoctrineSlotType.wildcard,
         effectType: DoctrineEffectType.desertTradeBonus,
         effectValue: 0.35,
-        unlockCastleLevel: 3,
+        unlockCastleLevel: 12,
         costCrowns: 3,
       ),
       DoctrineCardModel(
@@ -207,7 +207,7 @@ class DoctrineCardModel {
         slotType: DoctrineSlotType.wildcard,
         effectType: DoctrineEffectType.tamgaAndShrineBonus,
         effectValue: 0.30,
-        unlockCastleLevel: 3,
+        unlockCastleLevel: 12,
         costCrowns: 3,
       ),
     ];

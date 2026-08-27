@@ -12,22 +12,22 @@ void main() {
       expect(BuildingType.oasisCistern.requiredCastleLevel, 2);
       expect(BuildingType.herbalistYurt.requiredCastleLevel, 2);
 
-      // Level 3 Binalar
-      expect(BuildingType.caravanserai.requiredCastleLevel, 3);
-      expect(BuildingType.reindeerSanctuary.requiredCastleLevel, 3);
-      expect(BuildingType.scribeWorkshop.requiredCastleLevel, 3);
+      // Level 12 Binalar (Eski Level 3)
+      expect(BuildingType.caravanserai.requiredCastleLevel, 12);
+      expect(BuildingType.reindeerSanctuary.requiredCastleLevel, 12);
+      expect(BuildingType.scribeWorkshop.requiredCastleLevel, 12);
 
-      // Level 4 Binalar
-      expect(BuildingType.astrolabe.requiredCastleLevel, 4);
-      expect(BuildingType.geothermalBath.requiredCastleLevel, 4);
-      expect(BuildingType.permafrostDig.requiredCastleLevel, 4);
-      expect(BuildingType.steamVent.requiredCastleLevel, 4);
+      // Level 22 Binalar (Eski Level 4)
+      expect(BuildingType.astrolabe.requiredCastleLevel, 22);
+      expect(BuildingType.geothermalBath.requiredCastleLevel, 22);
+      expect(BuildingType.permafrostDig.requiredCastleLevel, 22);
+      expect(BuildingType.steamVent.requiredCastleLevel, 22);
 
-      // Level 5 Efsanevi Binalar
-      expect(BuildingType.obsidianForge.requiredCastleLevel, 5);
-      expect(BuildingType.celestialAnvil.requiredCastleLevel, 5);
-      expect(BuildingType.ancestralTotem.requiredCastleLevel, 5);
-      expect(BuildingType.prismaticResonator.requiredCastleLevel, 5);
+      // Level 32 Efsanevi Binalar (Eski Level 5)
+      expect(BuildingType.obsidianForge.requiredCastleLevel, 32);
+      expect(BuildingType.celestialAnvil.requiredCastleLevel, 32);
+      expect(BuildingType.ancestralTotem.requiredCastleLevel, 32);
+      expect(BuildingType.prismaticResonator.requiredCastleLevel, 32);
     });
 
     test('Biyomlara Özgü İzin Verilen Binalar Doğru Eşleşmelidir', () {

@@ -11,10 +11,24 @@ void main() {
       expect(mult1, equals(1.0));
 
       final mult2 = EconomyCalculator.getGlobalMultiplier(castleLevel: 2, crowns: 10);
-      // Castle Lvl 2: 1.0 + (2-1)*0.25 = 1.25
+      // Castle Lvl 2: 1.0 + (2-1)*0.01 = 1.01
       // Crowns 10: 1.0 + 10*0.05 = 1.50
-      // Total: 1.25 * 1.50 = 1.875
-      expect(mult2, equals(1.875));
+      // Total: 1.01 * 1.50 = 1.515
+      expect(mult2, closeTo(1.515, 0.0001));
+    });
+
+    test('getCastleUpgradeCost requires wood after level 2', () {
+      final costLvl2 = EconomyCalculator.getCastleUpgradeCost(2);
+      expect(costLvl2['food'], equals(50.0));
+      expect(costLvl2['wood'], equals(0.0));
+
+      final costLvl3 = EconomyCalculator.getCastleUpgradeCost(3);
+      expect(costLvl3['food'], equals(75.0));
+      expect(costLvl3['wood'], equals(25.0));
+
+      final costLvl4 = EconomyCalculator.getCastleUpgradeCost(4);
+      expect(costLvl4['food'], closeTo(112.5, 0.01));
+      expect(costLvl4['wood'], closeTo(37.5, 0.01));
     });
 
     test('getSeasonProductionMultiplier returns expected multipliers', () {

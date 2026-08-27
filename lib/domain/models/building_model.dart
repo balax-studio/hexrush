@@ -82,20 +82,20 @@ extension BuildingTypeExtension on BuildingType {
       case BuildingType.reindeerSanctuary:
       case BuildingType.kumisYurt:
       case BuildingType.damascusForge:
-        return 3;
+        return 12;
 
       case BuildingType.fishermanHut:
       case BuildingType.geothermalBath:
       case BuildingType.permafrostDig:
       case BuildingType.steamVent:
       case BuildingType.astrolabe:
-        return 4;
+        return 22;
 
       case BuildingType.obsidianForge:
       case BuildingType.celestialAnvil:
       case BuildingType.ancestralTotem:
       case BuildingType.prismaticResonator:
-        return 5;
+        return 32;
     }
   }
 }

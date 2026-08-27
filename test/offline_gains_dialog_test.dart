@@ -40,8 +40,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('BOZKIR ÇEVRİMDIŞI KAZANCI'), findsOneWidget);
-      expect(find.textContaining('100.0'), findsWidgets);
-      expect(find.textContaining('50.0'), findsWidgets);
+      expect(find.textContaining('100'), findsWidgets);
+      expect(find.textContaining('50'), findsWidgets);
       expect(find.text('TOPLA'), findsOneWidget);
       expect(find.textContaining('1.5X TOPLA'), findsOneWidget);
     });

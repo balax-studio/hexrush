@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/tactile_audio_service.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
+import '../../core/utils/number_formatter.dart';
 import '../../domain/economy/economy_calculator.dart';
 import '../../domain/models/building_model.dart';
 import '../../domain/models/game_state.dart';
@@ -398,7 +399,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 const GameVectorIcon(type: GameIconType.food, size: 14),
                 const SizedBox(width: 4),
                 Text(
-                  '${cost.toInt()} ${GameLocalization.get('food', lang: lang)}',
+                  '${NumberFormatter.format(cost)} ${GameLocalization.get('food', lang: lang)}',
                   style: TextStyle(
                     color: canAfford ? theme.primaryGold : const Color(0xFFEF4444),
                     fontSize: 13,
@@ -415,7 +416,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                       border: Border.all(color: const Color(0xFFEF4444), width: 1),
                     ),
                     child: Text(
-                      'Eksik: -${deficit.toInt()}',
+                      'Eksik: -${NumberFormatter.format(deficit)}',
                       style: const TextStyle(
                         color: Color(0xFFFCA5A5),
                         fontSize: 9,
@@ -448,7 +449,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 const GameVectorIcon(type: GameIconType.land, size: 16, color: Colors.black),
                 const SizedBox(width: 8),
                 Text(
-                  GameLocalization.get('conquer', lang: lang).toUpperCase(),
+                  '${GameLocalization.get('conquer', lang: lang).toUpperCase()} (${NumberFormatter.format(cost)})',
                   style: const TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.w900,
@@ -479,8 +480,38 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          decoration: BoxDecoration(
+            color: theme.surfaceLight,
+            borderRadius: NeoBrutalistTheme.sharpRadius,
+            border: Border.all(color: theme.slateBorder, width: 1.5),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: GameVectorIcon(type: GameIconType.crown, size: 14, color: theme.primaryGold),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  GameLocalization.get('castle_desc', lang: lang),
+                  style: const TextStyle(
+                    color: Color(0xFFCBD5E1),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    height: 1.25,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         Text(
-          '${GameLocalization.get('global_bonus', lang: lang)}: +${((lvl - 1) * 25)}%',
+          '${GameLocalization.get('global_bonus', lang: lang)}: +${((lvl - 1) * 1)}%',
           style: const TextStyle(
               color: Color(0xFF10B981),
               fontSize: 13,
@@ -489,12 +520,14 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         const SizedBox(height: 4),
         Text(
           lvl == 1
-              ? 'Seviye 2\'de Hızar Otağı, Vaha Sarnıcı & Kule açılır!'
-              : (lvl == 2
-                  ? 'Seviye 3\'te Yel Değirmeni, Köz Fırını, Maden, Kervansaray & Köprü açılır!'
-                  : (lvl == 3
-                      ? 'Seviye 4\'te Marangoz Otağı, Gök Gözlemevi & Kağan Unvanı açılır!'
-                      : 'Azami Otağ Kudreti!')),
+              ? 'Seviye 2\'de Hızar Otağı, Vaha Sarnıcı, Rün Steli, Çöl & Orman Keşfi açılır!'
+              : (lvl < 12
+                  ? 'Seviye 12\'de Köz Fırını, Maden, Kervansaray, Kımız Otağı, Dağ & Sazlık açılır!'
+                  : (lvl < 22
+                      ? 'Seviye 22\'de Balıkçı Barınağı, Kaplıca, Usturlap, Deniz & Tundra açılır!'
+                      : (lvl < 32
+                          ? 'Seviye 32\'de Obsidyen Ocağı, Gök Örsü, Ata Totemi & Volkan açılır!'
+                          : 'Azami Otağ Kudreti!'))),
           style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 10),
@@ -519,7 +552,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                     GameVectorIcon(type: GameIconType.crown, size: 14, color: theme.primaryGold),
                     const SizedBox(width: 6),
                     Text(
-                      '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} (${nextFood.toInt()} GIDA${nextWood > 0 ? ' + ${nextWood.toInt()} ODUN' : ''})',
+                      '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} (${NumberFormatter.format(nextFood)} GIDA${nextWood > 0 ? ' + ${NumberFormatter.format(nextWood)} ODUN' : ''})',
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w900,
@@ -593,6 +626,18 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
       isZud: gameState.season.isZud,
     );
 
+    final workerTransferMult = EconomyCalculator.getWorkerTransferMultiplier(
+      toreTalents: gameState.toreTalents,
+    );
+    final isLogisticsBuilding = b.currentCarryingCapacity > 0 && b.baseProductionRate == 0.0;
+    final logisticsStats = isLogisticsBuilding
+        ? EconomyCalculator.calculateWorkerLogisticsStats(
+            workerTile: tile,
+            tiles: gameState.tiles,
+            workerTransferMult: workerTransferMult,
+          )
+        : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -607,11 +652,196 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                   fontWeight: FontWeight.w900),
             ),
             Text(
-              '+${b.currentProductionRate.toStringAsFixed(2)}${GameLocalization.get('per_sec', lang: lang)}',
+              isLogisticsBuilding
+                  ? '${NumberFormatter.format(logisticsStats!.totalCapacity, decimals: 2)}${GameLocalization.get('per_sec', lang: lang)} ${GameLocalization.get('capacity', lang: lang).toUpperCase()}'
+                  : '+${NumberFormatter.format(b.currentProductionRate, decimals: 2)}${GameLocalization.get('per_sec', lang: lang)}',
               style: const TextStyle(color: Color(0xFF10B981), fontSize: 12, fontWeight: FontWeight.w900),
             ),
           ],
         ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          decoration: BoxDecoration(
+            color: theme.surfaceLight,
+            borderRadius: NeoBrutalistTheme.sharpRadius,
+            border: Border.all(color: theme.slateBorder, width: 1.5),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: _getBuildingVectorIcon(b.type, true),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _getBuildingDescription(b.type, lang),
+                  style: const TextStyle(
+                    color: Color(0xFFCBD5E1),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    height: 1.25,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (isLogisticsBuilding && logisticsStats != null) ...[
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: theme.surfaceLight,
+              borderRadius: NeoBrutalistTheme.sharpRadius,
+              border: Border.all(
+                color: logisticsStats.isOverloaded
+                    ? const Color(0xFFEF4444)
+                    : (logisticsStats.utilizationRatio >= 0.75
+                        ? theme.primaryGold
+                        : theme.slateBorder),
+                width: 1.5,
+              ),
+              boxShadow: theme.hardShadowSmall,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const GameVectorIcon(
+                          type: GameIconType.land,
+                          size: 12,
+                          color: Color(0xFF38BDF8),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          GameLocalization.get('logistics_load', lang: lang).toUpperCase(),
+                          style: const TextStyle(
+                            color: Color(0xFF38BDF8),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                      decoration: BoxDecoration(
+                        color: logisticsStats.isOverloaded
+                            ? const Color(0xFF7F1D1D)
+                            : (logisticsStats.utilizationRatio >= 0.75
+                                ? const Color(0xFF78350F)
+                                : const Color(0xFF064E3B)),
+                        borderRadius: BorderRadius.circular(2),
+                        border: Border.all(
+                          color: logisticsStats.isOverloaded
+                              ? const Color(0xFFEF4444)
+                              : (logisticsStats.utilizationRatio >= 0.75
+                                  ? const Color(0xFFF59E0B)
+                                  : const Color(0xFF10B981)),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        '%${(logisticsStats.utilizationRatio * 100).toInt()} ${GameLocalization.get('logistics_utilized', lang: lang).toUpperCase()}',
+                        style: TextStyle(
+                          color: logisticsStats.isOverloaded
+                              ? const Color(0xFFFCA5A5)
+                              : (logisticsStats.utilizationRatio >= 0.75
+                                  ? const Color(0xFFFDE68A)
+                                  : const Color(0xFF6EE7B7)),
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${GameLocalization.get('capacity', lang: lang).toUpperCase()}: ${NumberFormatter.format(logisticsStats.totalCapacity, decimals: 2)}${GameLocalization.get('per_sec', lang: lang)}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      '${GameLocalization.get('logistics_utilized', lang: lang).toUpperCase()}: ${NumberFormatter.format(logisticsStats.utilizedCapacity, decimals: 2)}${GameLocalization.get('per_sec', lang: lang)}',
+                      style: TextStyle(
+                        color: logisticsStats.isOverloaded
+                            ? const Color(0xFFEF4444)
+                            : const Color(0xFF34D399),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  height: 6,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0F172A),
+                    borderRadius: BorderRadius.circular(2),
+                    border: Border.all(color: theme.slateBorder, width: 1),
+                  ),
+                  child: FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: logisticsStats.utilizationRatio,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: logisticsStats.isOverloaded
+                            ? const Color(0xFFEF4444)
+                            : (logisticsStats.utilizationRatio >= 0.75
+                                ? const Color(0xFFF59E0B)
+                                : const Color(0xFF10B981)),
+                        borderRadius: BorderRadius.circular(1),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      GameLocalization.get(
+                        'in_coverage_buildings',
+                        lang: lang,
+                        args: [logisticsStats.coveredBuildingsCount.toString()],
+                      ),
+                      style: const TextStyle(
+                        color: Color(0xFF94A3B8),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      '${GameLocalization.get('logistics_idle', lang: lang).toUpperCase()}: ${NumberFormatter.format(logisticsStats.idleCapacity, decimals: 2)}${GameLocalization.get('per_sec', lang: lang)}',
+                      style: const TextStyle(
+                        color: Color(0xFF94A3B8),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
         if (activeSynergies.isNotEmpty) ...[
           const SizedBox(height: 6),
           Container(
@@ -741,7 +971,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
               const Text('BİRİKMİŞ STOK:',
                   style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w800)),
               Text(
-                '+${b.accumulatedResource.toStringAsFixed(1)}',
+                '+${NumberFormatter.format(b.accumulatedResource, decimals: 1)}',
                 style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
@@ -793,7 +1023,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 soundType: TactileSoundType.upgrade,
                 child: Center(
                   child: Text(
-                    '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} (${cost.toInt()})',
+                    '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} (${NumberFormatter.format(cost)})',
                     style: const TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.w900,
@@ -817,7 +1047,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 alignment: Alignment.center,
                 soundType: TactileSoundType.tap,
                 child: Text(
-                  'ISIT (${warmWoodCost.toInt()} ODUN)',
+                  'ISIT (${NumberFormatter.format(warmWoodCost)} ODUN)',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 10,
@@ -878,7 +1108,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
               ),
               const SizedBox(height: 10),
               Text(
-                'Bu yapıyı kaldırarak toprağı boşaltmak istiyor musunuz? İade: +${refund.toInt()} Gıda.',
+                'Bu yapıyı kaldırarak toprağı boşaltmak istiyor musunuz? İade: +${NumberFormatter.format(refund)} Gıda.',
                 style: const TextStyle(color: Colors.white70, fontSize: 11),
                 textAlign: TextAlign.center,
               ),
@@ -1245,7 +1475,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                     borderRadius: BorderRadius.circular(2),
                   ),
                   child: Text(
-                    isUnlocked ? '${dummy.baseCost.toInt()} Erzak' : 'LV.$requiredLvl',
+                    isUnlocked ? '${NumberFormatter.format(dummy.baseCost)} Erzak' : 'LV.$requiredLvl',
                     style: TextStyle(
                       color: !isUnlocked
                           ? const Color(0xFF94A3B8)
@@ -1363,7 +1593,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
       case BuildingType.fishermanHut:
         return GameLocalization.get('fisherman_hut_desc', lang: lang);
       case BuildingType.shrine:
-        return 'Kadim güçler barındıran gizemli yapı.';
+        return GameLocalization.get('shrine_desc', lang: lang);
       // Çöl
       case BuildingType.oasisCistern:
         return GameLocalization.get('oasis_cistern_desc', lang: lang);
@@ -1397,15 +1627,15 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         return GameLocalization.get('prismatic_resonator_desc', lang: lang);
       // 5 Büyük Yeni Mekanik Binaları
       case BuildingType.granaryVault:
-        return 'Lojistik ambar mahzeni. 3 hex yarıçapındaki binaların taşıma ve hasat hızını +%50 artırır.';
+        return GameLocalization.get('granary_vault_desc', lang: lang);
       case BuildingType.kumisYurt:
-        return 'At sütü fermente eden kımız otağı. Değerli göçebe kımız içeceği üretir.';
+        return GameLocalization.get('kumis_yurt_desc', lang: lang);
       case BuildingType.feltTentWorkshop:
-        return 'Yün işleyip dayanıklı keçe dokuyan atölye. Çadırhaneler ve ticaret için keçe üretir.';
+        return GameLocalization.get('felt_tent_workshop_desc', lang: lang);
       case BuildingType.damascusForge:
-        return 'Kat kat dövme çelik ocağı. Efsanevi Şam Çeliği madeni üretir.';
+        return GameLocalization.get('damascus_forge_desc', lang: lang);
       case BuildingType.runicStele:
-        return 'Orhun Bitig dikilitaşı. Bozkır Töre Bilgelik Ağacı için Bilgelik (Lore) üretir.';
+        return GameLocalization.get('runic_stele_desc', lang: lang);
     }
   }
 
@@ -1598,7 +1828,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
       case BuildingType.fishermanHut:
         return GameLocalization.get('fisherman_hut_name', lang: lang);
       case BuildingType.shrine:
-        return 'Kadim Sunak';
+        return GameLocalization.get('shrine_name', lang: lang);
       // Çöl
       case BuildingType.oasisCistern:
         return GameLocalization.get('oasis_cistern_name', lang: lang);
@@ -1632,15 +1862,15 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         return GameLocalization.get('prismatic_resonator_name', lang: lang);
       // 5 Büyük Yeni Mekanik Binaları
       case BuildingType.granaryVault:
-        return 'Kurgan Mahzeni';
+        return GameLocalization.get('granary_vault_name', lang: lang);
       case BuildingType.kumisYurt:
-        return 'Kımız Otağı';
+        return GameLocalization.get('kumis_yurt_name', lang: lang);
       case BuildingType.feltTentWorkshop:
-        return 'Keçe Çadırhanesi';
+        return GameLocalization.get('felt_tent_workshop_name', lang: lang);
       case BuildingType.damascusForge:
-        return 'Şam Çeliği Dökümhanesi';
+        return GameLocalization.get('damascus_forge_name', lang: lang);
       case BuildingType.runicStele:
-        return 'Orhun Bitig Taşı';
+        return GameLocalization.get('runic_stele_name', lang: lang);
     }
   }
 }

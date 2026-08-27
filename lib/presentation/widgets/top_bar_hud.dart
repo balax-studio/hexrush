@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/tactile_audio_service.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
+import '../../core/utils/number_formatter.dart';
 import '../../domain/economy/economy_calculator.dart';
 import '../../domain/models/game_state_model.dart';
 import '../providers/game_state_notifier.dart';
@@ -42,9 +43,35 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
     String? currentStock,
     String? netRate,
     String? strategicHint,
+    String? resourceKey,
   }) {
     TactileAudioService.instance.play(TactileSoundType.tap);
     HapticFeedback.lightImpact();
+
+    final gameState = ref.read(gameStateProvider);
+    final String lang = gameState.settings.language;
+
+    ResourceBreakdownStats? breakdown;
+    if (resourceKey != null) {
+      final activeDocIds = gameState.activeDoctrineSlots.values.whereType<String>().toSet();
+      final activeDoctrines = gameState.doctrines.where((d) => activeDocIds.contains(d.id)).toList();
+
+      breakdown = EconomyCalculator.calculateResourceBreakdown(
+        resourceKey: resourceKey,
+        tiles: gameState.tiles,
+        castleLevel: gameState.progression.castleLevel,
+        crowns: gameState.resources.crowns,
+        toreTalents: gameState.toreTalents,
+        titles: gameState.titles,
+        season: gameState.season.current,
+        isZud: gameState.season.isZud,
+        activeDoctrines: activeDoctrines,
+        caravanRoutes: gameState.caravanRoutes,
+        celestialOmen: gameState.celestialOmen,
+        discoveredKurgans: gameState.discoveredKurgans,
+        shrineMultiplier: gameState.shrineMultiplier,
+      );
+    }
 
     showDialog<void>(
       context: context,
@@ -57,172 +84,372 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
             side: BorderSide(color: theme.border, width: 2.5),
           ),
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 380),
+            constraints: const BoxConstraints(maxWidth: 400),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: theme.surface,
               borderRadius: NeoBrutalistTheme.sharpRadius,
               boxShadow: theme.hardShadow(offset: 4.0),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Başlık Çubuğu
-                Row(
-                  children: [
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Başlık Çubuğu
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: theme.surfaceLight,
+                          borderRadius: NeoBrutalistTheme.sharpRadius,
+                          border: Border.all(color: theme.border, width: 2.0),
+                        ),
+                        child: GameVectorIcon(type: iconType, size: 22, color: iconColor),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                            if (currentStock != null)
+                              Text(
+                                '${GameLocalization.get('capacity', lang: lang)}: $currentStock',
+                                style: TextStyle(
+                                  color: iconColor,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      TactileNeoButton(
+                        onTap: () => Navigator.of(ctx).pop(),
+                        backgroundColor: theme.slateBorder,
+                        borderColor: theme.border,
+                        shadowOffset: 2.0,
+                        padding: const EdgeInsets.all(5),
+                        child: const Icon(Icons.close, color: Colors.white, size: 16),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Divider(color: theme.border, thickness: 1.5, height: 1.5),
+                  const SizedBox(height: 10),
+
+                  // Net Üretim Bilgisi (Varsa)
+                  if (netRate != null) ...[
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
                         color: theme.surfaceLight,
                         borderRadius: NeoBrutalistTheme.sharpRadius,
-                        border: Border.all(color: theme.border, width: 2.0),
+                        border: Border.all(color: theme.slateBorder, width: 1.5),
                       ),
-                      child: GameVectorIcon(type: iconType, size: 22, color: iconColor),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
                         children: [
+                          const Icon(Icons.speed, color: Color(0xFF38BDF8), size: 14),
+                          const SizedBox(width: 6),
                           Text(
-                            title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
+                            '${GameLocalization.get('net_total_label', lang: lang)}:',
+                            style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700),
+                          ),
+                          const Spacer(),
+                          Text(
+                            netRate,
+                            style: TextStyle(
+                              color: netRate.startsWith('-') ? const Color(0xFFEF4444) : const Color(0xFF10B981),
+                              fontSize: 12,
                               fontWeight: FontWeight.w900,
-                              letterSpacing: 0.3,
                             ),
                           ),
-                          if (currentStock != null)
-                            Text(
-                              'Mevcut Stok: $currentStock',
-                              style: TextStyle(
-                                color: iconColor,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
                         ],
                       ),
                     ),
-                    TactileNeoButton(
-                      onTap: () => Navigator.of(ctx).pop(),
-                      backgroundColor: theme.slateBorder,
-                      borderColor: theme.border,
-                      shadowOffset: 2.0,
-                      padding: const EdgeInsets.all(5),
-                      child: const Icon(Icons.close, color: Colors.white, size: 16),
-                    ),
+                    const SizedBox(height: 8),
                   ],
-                ),
-                const SizedBox(height: 10),
-                Divider(color: theme.border, thickness: 1.5, height: 1.5),
-                const SizedBox(height: 10),
 
-                // Net Üretim Bilgisi (Varsa)
-                if (netRate != null) ...[
+                  // Açıklama Metni
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: theme.surfaceLight,
                       borderRadius: NeoBrutalistTheme.sharpRadius,
                       border: Border.all(color: theme.slateBorder, width: 1.5),
                     ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.speed, color: Color(0xFF38BDF8), size: 14),
-                        const SizedBox(width: 6),
-                        const Text(
-                          'Net Üretim Hızı:',
-                          style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700),
-                        ),
-                        const Spacer(),
-                        Text(
-                          netRate,
-                          style: TextStyle(
-                            color: netRate.startsWith('-') ? const Color(0xFFEF4444) : const Color(0xFF10B981),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w900,
+                    child: Text(
+                      description,
+                      style: const TextStyle(
+                        color: Color(0xFFCBD5E1),
+                        fontSize: 11.5,
+                        height: 1.4,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+
+                  // Üretim & Tüketim Döküm Kartı (Bina Bazında Dağılım)
+                  if (breakdown != null) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: theme.surfaceLight,
+                        borderRadius: NeoBrutalistTheme.sharpRadius,
+                        border: Border.all(color: theme.slateBorder, width: 1.5),
+                        boxShadow: theme.hardShadowSmall,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.account_tree_outlined, color: Color(0xFF38BDF8), size: 13),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    GameLocalization.get('resource_breakdown_title', lang: lang).toUpperCase(),
+                                    style: const TextStyle(
+                                      color: Color(0xFF38BDF8),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                decoration: BoxDecoration(
+                                  color: breakdown.netRate >= 0 ? const Color(0xFF064E3B) : const Color(0xFF450A0A),
+                                  borderRadius: BorderRadius.circular(2),
+                                  border: Border.all(
+                                    color: breakdown.netRate >= 0 ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  '${breakdown.netRate >= 0 ? '+' : ''}${breakdown.netRate.toStringAsFixed(2)}${GameLocalization.get('per_sec', lang: lang)}',
+                                  style: TextStyle(
+                                    color: breakdown.netRate >= 0 ? const Color(0xFF6EE7B7) : const Color(0xFFFCA5A5),
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 6),
+                          if (breakdown.producers.isEmpty && breakdown.consumers.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              child: Text(
+                                GameLocalization.get('no_active_buildings', lang: lang),
+                                style: const TextStyle(
+                                  color: Color(0xFF94A3B8),
+                                  fontSize: 10,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            )
+                          else
+                            Container(
+                              constraints: const BoxConstraints(maxHeight: 140),
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    if (breakdown.producers.isNotEmpty) ...[
+                                      Padding(
+                                        padding: const EdgeInsets.only(bottom: 3),
+                                        child: Text(
+                                          GameLocalization.get('producers_label', lang: lang),
+                                          style: const TextStyle(
+                                            color: Color(0xFF34D399),
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: 0.3,
+                                          ),
+                                        ),
+                                      ),
+                                      for (final prod in breakdown.producers)
+                                        _buildBreakdownRow(prod, lang, theme, true),
+                                    ],
+                                    if (breakdown.consumers.isNotEmpty) ...[
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 4, bottom: 3),
+                                        child: Text(
+                                          GameLocalization.get('consumers_label', lang: lang),
+                                          style: const TextStyle(
+                                            color: Color(0xFFF87171),
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: 0.3,
+                                          ),
+                                        ),
+                                      ),
+                                      for (final cons in breakdown.consumers)
+                                        _buildBreakdownRow(cons, lang, theme, false),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 6),
+                          Divider(color: theme.slateBorder, height: 1, thickness: 1),
+                          const SizedBox(height: 4),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '${GameLocalization.get('total_production', lang: lang)}: +${breakdown.totalProduction.toStringAsFixed(2)}/sn',
+                                style: const TextStyle(
+                                  color: Color(0xFF34D399),
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              Text(
+                                '${GameLocalization.get('total_consumption', lang: lang)}: -${breakdown.totalConsumption.toStringAsFixed(2)}/sn',
+                                style: const TextStyle(
+                                  color: Color(0xFFF87171),
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                ],
+                  ],
 
-                // Açıklama Metni
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: theme.surfaceLight,
-                    borderRadius: NeoBrutalistTheme.sharpRadius,
-                    border: Border.all(color: theme.slateBorder, width: 1.5),
-                  ),
-                  child: Text(
-                    description,
-                    style: const TextStyle(
-                      color: Color(0xFFCBD5E1),
-                      fontSize: 11.5,
-                      height: 1.4,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-
-                // Stratejik İpucu (Varsa)
-                if (strategicHint != null) ...[
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withValues(alpha: 0.12),
-                      borderRadius: NeoBrutalistTheme.sharpRadius,
-                      border: Border.all(color: const Color(0xFF10B981), width: 1.5),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(Icons.lightbulb_outline, color: Color(0xFF10B981), size: 15),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            strategicHint,
-                            style: const TextStyle(
-                              color: Color(0xFF6EE7B7),
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
+                  // Stratejik İpucu (Varsa)
+                  if (strategicHint != null) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                        borderRadius: NeoBrutalistTheme.sharpRadius,
+                        border: Border.all(color: const Color(0xFF10B981), width: 1.5),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.lightbulb_outline, color: Color(0xFF10B981), size: 15),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              strategicHint,
+                              style: const TextStyle(
+                                color: Color(0xFF6EE7B7),
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 12),
+                  TactileNeoButton(
+                    onTap: () => Navigator.of(ctx).pop(),
+                    backgroundColor: theme.primaryGold,
+                    borderColor: theme.border,
+                    shadowOffset: 2.0,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: const Text(
+                      'ANLADIM',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                 ],
-
-                const SizedBox(height: 12),
-                TactileNeoButton(
-                  onTap: () => Navigator.of(ctx).pop(),
-                  backgroundColor: theme.primaryGold,
-                  borderColor: theme.border,
-                  shadowOffset: 2.0,
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: const Text(
-                    'ANLADIM',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildBreakdownRow(
+    ResourceContributor item,
+    String lang,
+    NeoBrutalistThemeData theme,
+    bool isProducer,
+  ) {
+    final String buildingName = item.customLabel ??
+        '${GameLocalization.get('${item.buildingType.name}_name', lang: lang)} (Sv.${item.level})';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3.5),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(2),
+        border: Border.all(
+          color: isProducer ? const Color(0xFF065F46) : const Color(0xFF7F1D1D),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isProducer ? Icons.arrow_upward : Icons.arrow_downward,
+            size: 11,
+            color: isProducer ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              buildingName,
+              style: const TextStyle(
+                color: Color(0xFFE2E8F0),
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+            decoration: BoxDecoration(
+              color: isProducer ? const Color(0xFF064E3B) : const Color(0xFF450A0A),
+              borderRadius: BorderRadius.circular(2),
+            ),
+            child: Text(
+              '${isProducer ? '+' : '-'}${item.rate.toStringAsFixed(2)}${GameLocalization.get('per_sec', lang: lang)}',
+              style: TextStyle(
+                color: isProducer ? const Color(0xFF6EE7B7) : const Color(0xFFFCA5A5),
+                fontSize: 9.5,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -290,11 +517,12 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   theme: theme,
                   onTap: () => _showResourceExplanation(
                     context,
+                    resourceKey: 'food',
                     title: 'GIDA (İAŞE)',
                     iconType: GameIconType.food,
                     iconColor: const Color(0xFFFBBF24),
-                    currentStock: resources.food.toStringAsFixed(1),
-                    netRate: '${netRates.food >= 0 ? '+' : ''}${netRates.food.toStringAsFixed(1)}/saniye',
+                    currentStock: NumberFormatter.format(resources.food),
+                    netRate: NumberFormatter.formatRate(netRates.food, decimals: 1, unitSuffix: '/saniye'),
                     description: 'Kağanlığın temel besin kaynağı. Yeni altıgen toprakları fethetmek ve oba halkını doyurmak için harcanır.',
                     strategicHint: 'Tarlalar, Bozkır Göçer İaşesi doktrini ve Kağan Otağı\'ndan toplanır.',
                     theme: theme,
@@ -309,11 +537,12 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   theme: theme,
                   onTap: () => _showResourceExplanation(
                     context,
+                    resourceKey: 'wood',
                     title: 'ODUN',
                     iconType: GameIconType.wood,
                     iconColor: const Color(0xFFD97706),
-                    currentStock: resources.wood.toStringAsFixed(1),
-                    netRate: '${netRates.wood >= 0 ? '+' : ''}${netRates.wood.toStringAsFixed(1)}/saniye',
+                    currentStock: NumberFormatter.format(resources.wood),
+                    netRate: NumberFormatter.formatRate(netRates.wood, decimals: 1, unitSuffix: '/saniye'),
                     description: 'İnşaat, atölye üretimi ve kış aylarında donan karoları ısıtmanın ana yakıtı.',
                     strategicHint: 'Oduncu kulübelerinden toplanır. Kalas ve mobilya üretimi için harcanır.',
                     theme: theme,
@@ -329,11 +558,12 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
+                      resourceKey: 'stone',
                       title: 'TAŞ',
                       iconType: GameIconType.stone,
                       iconColor: const Color(0xFF94A3B8),
-                      currentStock: resources.stone.toStringAsFixed(1),
-                      netRate: '${netRates.stone >= 0 ? '+' : ''}${netRates.stone.toStringAsFixed(1)}/saniye',
+                      currentStock: NumberFormatter.format(resources.stone),
+                      netRate: NumberFormatter.formatRate(netRates.stone, decimals: 1, unitSuffix: '/saniye'),
                       description: 'Gelişmiş binalar, taş fırınlar ve anıtsal harikalar inşa etmek için gereklidir.',
                       strategicHint: 'Dağ maden ocaklarından çıkarılır ve pazardan takas edilir.',
                       theme: theme,
@@ -352,7 +582,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     title: 'ŞAN (HÜKÜMDAR İTİBARI)',
                     iconType: GameIconType.crown,
                     iconColor: const Color(0xFFFFD700),
-                    currentStock: '${resources.crowns} Şan',
+                    currentStock: '${NumberFormatter.format(resources.crowns)} Şan',
                     description: 'Görevleri tamamlayarak ve fetihler yaparak kazanılan itibar puanı.',
                     strategicHint: 'Töre Meclisinde yeni doktrin kartlarını kabul etmek ve yetenek yükseltmek için kullanılır.',
                     theme: theme,
@@ -516,11 +746,12 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
+                      resourceKey: 'flour',
                       title: 'UN (İŞLENMİŞ GIDA)',
                       iconType: GameIconType.flour,
                       iconColor: const Color(0xFFFEF08A),
-                      currentStock: resources.flour.toStringAsFixed(1),
-                      netRate: '${netRates.flour >= 0 ? '+' : ''}${netRates.flour.toStringAsFixed(1)}/saniye',
+                      currentStock: NumberFormatter.format(resources.flour),
+                      netRate: NumberFormatter.formatRate(netRates.flour, decimals: 1, unitSuffix: '/saniye'),
                       description: 'Değirmende mısırdan öğütülen hammadde. Taş fırında ekmek pişirmek ve pazarda takas için kullanılır.',
                       theme: theme,
                     ),
@@ -534,11 +765,12 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
+                      resourceKey: 'plank',
                       title: 'KERESTE (KALAS)',
                       iconType: GameIconType.plank,
                       iconColor: const Color(0xFFD97706),
-                      currentStock: resources.plank.toStringAsFixed(1),
-                      netRate: '${netRates.plank >= 0 ? '+' : ''}${netRates.plank.toStringAsFixed(1)}/saniye',
+                      currentStock: NumberFormatter.format(resources.plank),
+                      netRate: NumberFormatter.formatRate(netRates.plank, decimals: 1, unitSuffix: '/saniye'),
                       description: 'Kereste fabrikasında kütüklerden biçilen tahtalar. Mobilya ve gelişmiş yapılar için elzemdir.',
                       theme: theme,
                     ),
@@ -552,11 +784,12 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
+                      resourceKey: 'bread',
                       title: 'EKMEK (İŞLENMİŞ BESİN)',
                       iconType: GameIconType.bread,
                       iconColor: const Color(0xFFF59E0B),
-                      currentStock: resources.bread.toStringAsFixed(1),
-                      netRate: '${netRates.bread >= 0 ? '+' : ''}${netRates.bread.toStringAsFixed(1)}/saniye',
+                      currentStock: NumberFormatter.format(resources.bread),
+                      netRate: NumberFormatter.formatRate(netRates.bread, decimals: 1, unitSuffix: '/saniye'),
                       description: 'Taş köz fırınında un ve gıda harcanarak pişirilen yüksek besleyici gıda. Otağ geliştirmeleri için gereklidir.',
                       theme: theme,
                     ),
@@ -570,11 +803,12 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
+                      resourceKey: 'furniture',
                       title: 'AHŞAP İŞLEME (TİCARET MALI)',
                       iconType: GameIconType.furniture,
                       iconColor: const Color(0xFFB45309),
-                      currentStock: resources.furniture.toStringAsFixed(1),
-                      netRate: '${netRates.furniture >= 0 ? '+' : ''}${netRates.furniture.toStringAsFixed(1)}/saniye',
+                      currentStock: NumberFormatter.format(resources.furniture),
+                      netRate: NumberFormatter.formatRate(netRates.furniture, decimals: 1, unitSuffix: '/saniye'),
                       description: 'Marangoz otağında keresteden üretilir. Yüksek pazar takas değerine sahiptir.',
                       theme: theme,
                     ),
@@ -588,11 +822,12 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
+                      resourceKey: 'iron',
                       title: 'DEMİR CEVHERİ',
                       iconType: GameIconType.iron,
                       iconColor: const Color(0xFFCBD5E1),
-                      currentStock: resources.iron.toStringAsFixed(1),
-                      netRate: '${netRates.iron >= 0 ? '+' : ''}${netRates.iron.toStringAsFixed(1)}/saniye',
+                      currentStock: NumberFormatter.format(resources.iron),
+                      netRate: NumberFormatter.formatRate(netRates.iron, decimals: 1, unitSuffix: '/saniye'),
                       description: 'Madenlerden çıkarılan dayanıklı metal. Ağır donanım, kuleler ve anıtlar için kullanılır.',
                       theme: theme,
                     ),
@@ -606,11 +841,12 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
+                      resourceKey: 'wisdom',
                       title: 'BİTİG (ORHUN BİLGELİĞİ)',
                       iconType: GameIconType.wisdom,
                       iconColor: const Color(0xFF06B6D4),
-                      currentStock: resources.wisdom.toStringAsFixed(1),
-                      netRate: '${netRates.wisdom >= 0 ? '+' : ''}${netRates.wisdom.toStringAsFixed(1)}/saniye',
+                      currentStock: NumberFormatter.format(resources.wisdom),
+                      netRate: NumberFormatter.formatRate(netRates.wisdom, decimals: 1, unitSuffix: '/saniye'),
                       description: 'Orhun Bitig dikilitaşlarından ve kadim yazıtlardan süzülen töre bilgeliği. Bozkır Bilgelik Ağacı yeteneklerini açar.',
                       theme: theme,
                     ),
@@ -624,11 +860,12 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
+                      resourceKey: 'kumis',
                       title: 'KIMIZ (BOZKIR İKSİRİ)',
                       iconType: GameIconType.kumis,
                       iconColor: const Color(0xFF10B981),
-                      currentStock: resources.kumis.toStringAsFixed(1),
-                      netRate: '${netRates.kumis >= 0 ? '+' : ''}${netRates.kumis.toStringAsFixed(1)}/saniye',
+                      currentStock: NumberFormatter.format(resources.kumis),
+                      netRate: NumberFormatter.formatRate(netRates.kumis, decimals: 1, unitSuffix: '/saniye'),
                       description: 'Kımız Otağında fermente edilen at sütü içeceği. İpek yolu elçi siparişlerinde ve fetihlerde güç sağlar.',
                       theme: theme,
                     ),
@@ -642,11 +879,12 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
+                      resourceKey: 'felt',
                       title: 'KEÇE (GÖÇEBE DOKUMASI)',
                       iconType: GameIconType.felt,
                       iconColor: const Color(0xFFF59E0B),
-                      currentStock: resources.felt.toStringAsFixed(1),
-                      netRate: '${netRates.felt >= 0 ? '+' : ''}${netRates.felt.toStringAsFixed(1)}/saniye',
+                      currentStock: NumberFormatter.format(resources.felt),
+                      netRate: NumberFormatter.formatRate(netRates.felt, decimals: 1, unitSuffix: '/saniye'),
                       description: 'Keçe Çadırhanesinde yünden sıkıştırılan yalıtım örtüsü. Kış aylarında çadırları korur ve ticarette aranır.',
                       theme: theme,
                     ),
@@ -660,11 +898,12 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
+                      resourceKey: 'damascusSteel',
                       title: 'ŞAM ÇELİĞİ (EFSANEVİ METAL)',
                       iconType: GameIconType.damascusSteel,
                       iconColor: const Color(0xFF818CF8),
-                      currentStock: resources.damascusSteel.toStringAsFixed(1),
-                      netRate: '${netRates.damascusSteel >= 0 ? '+' : ''}${netRates.damascusSteel.toStringAsFixed(1)}/saniye',
+                      currentStock: NumberFormatter.format(resources.damascusSteel),
+                      netRate: NumberFormatter.formatRate(netRates.damascusSteel, decimals: 1, unitSuffix: '/saniye'),
                       description: 'Dökümhanede kat kat dövülmüş su verilmiş kadim çelik. Ağır ordu donanımları ve elçi hediyeleri için kullanılır.',
                       theme: theme,
                     ),
@@ -1061,7 +1300,9 @@ class _ResourcePulseChipState extends State<ResourcePulseChip> with SingleTicker
                 GameVectorIcon(type: widget.type, size: 14),
                 const SizedBox(width: 5),
                 Text(
-                  widget.isInt ? widget.value.toInt().toString() : widget.value.toStringAsFixed(1),
+                  widget.isInt
+                      ? NumberFormatter.format(widget.value.toInt())
+                      : NumberFormatter.format(widget.value, decimals: 1),
                   style: TextStyle(
                     color: widget.color,
                     fontSize: 12,
@@ -1072,7 +1313,7 @@ class _ResourcePulseChipState extends State<ResourcePulseChip> with SingleTicker
                 if (hasRate) ...[
                   const SizedBox(width: 4),
                   Text(
-                    '${isPositive ? '+' : ''}${widget.rate!.toStringAsFixed(1)}/s',
+                    NumberFormatter.formatRate(widget.rate!, decimals: 1, unitSuffix: '/s'),
                     style: TextStyle(
                       color: isPositive ? const Color(0xFF10B981) : const Color(0xFFEF4444),
                       fontSize: 9,

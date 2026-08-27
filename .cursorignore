@@ -1,0 +1,16 @@
+# Yapay Zeka (AI) Bağlam ve Token Tasarrufu Filtresi
+.dart_tool/
+build/
+coverage/
+ios/Pods/
+ios/.symlinks/
+android/.gradle/
+android/app/build/
+.gradle/
+*.log
+*.jsonl
+*.tmp
+*.bak
+assets/audio/
+assets/images/
+.git/

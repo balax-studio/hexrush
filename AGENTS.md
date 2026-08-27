@@ -121,4 +121,7 @@ Bu dosya, projede çalışan tüm yapay zeka ajanları ve geliştiriciler için 
     - **Hacimsel Atmosfer & Bulut Gölgeleri:** Bulutlar harita üzerinde geniş koordinat aralığında (-950px..+950px) süzülmeli ve zemin üzerine çift katmanlı yumuşak eliptik gölgeler düşürmelidir.
     - **Sıfır Çöp Toplama (Zero-GC) Değişmezi:** Tüm yeni parçacık ve gölge çizimleri `static final Paint` / `static final Path` havuzlarından beslenmeli, render döngüsünde asla dinamik nesne oluşturulmamalıdır (`.agents/rules/gorsel_ve_taktil_mukemmellik_standartlari.md`).
 
-
+25. **Token Tasarrufu, Kompakt Testler ve Cerrahi Bağlam Yönetimi (Ultra Token Efficiency Protocol):**
+    - **Kompakt Test Raporlaması:** Testler asla ham ve yüzlerce satırlık log basacak şekilde çalıştırılamaz. Daima öncelikle hedeflenen test dosyası (`flutter test test/ilgili_test.dart`) veya genel doğrulamada kompakt mod (`flutter test --reporter compact`) kullanılmalıdır.
+    - **Cerrahi Satır Dilimleri:** 500 satırdan büyük dosyalarda (`tile_action_sheet.dart`, `economy_calculator.dart` vb.) körü körüne yüzlerce satır okunamaz. `grep_search` ile satır numarası saptandıktan sonra en fazla 30-50 satırlık hassas aralık (`StartLine`/`EndLine`) görüntülenmelidir.
+    - **Yapay Zeka Yoksayma Dosyaları:** `.geminiignore` ve `.cursorignore` kuralları korunmalı; ses, görsel, build ve coverage klasörleri LLM bağlamına kesinlikle yüklenmemelidir.

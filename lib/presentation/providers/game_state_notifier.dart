@@ -725,7 +725,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
             break;
           case BuildingType.mine:
             addedStone += carriedAmount;
-            if (state.progression.castleLevel >= 3) {
+            if (state.progression.castleLevel >= 12) {
               final bool hasIronBoost = activeDoctrines.any((d) => d.effectType == DoctrineEffectType.mineIronBoost);
               final double ironRatio = hasIronBoost ? 0.45 : 0.30;
               addedIron += carriedAmount * ironRatio;
@@ -916,26 +916,26 @@ class GameStateNotifier extends StateNotifier<GameState> {
           'Arazi Kilitli: Çöl ve Orman keşfi için Kağan Otağı Seviye 2 gereklidir.');
       return false;
     }
-    // Dağ ve Sazlık kilit kontrolü: Kağan Otağı Seviye >= 3
-    if ((tile.biome == TileBiome.mountain || tile.biome == TileBiome.wetland) && state.progression.castleLevel < 3) {
+    // Dağ ve Sazlık kilit kontrolü: Kağan Otağı Seviye >= 12
+    if ((tile.biome == TileBiome.mountain || tile.biome == TileBiome.wetland) && state.progression.castleLevel < 12) {
       showToast(
-          'Arazi Kilitli: Dağ ve Sazlık keşfi için Kağan Otağı Seviye 3 gereklidir.');
+          'Arazi Kilitli: Dağ ve Sazlık keşfi için Kağan Otağı Seviye 12 gereklidir.');
       return false;
     }
-    // Deniz ve Tundra kilit kontrolü: Kağan Otağı Seviye >= 4
-    if ((tile.biome == TileBiome.sea || tile.biome == TileBiome.tundra) && state.progression.castleLevel < 4) {
+    // Deniz ve Tundra kilit kontrolü: Kağan Otağı Seviye >= 22
+    if ((tile.biome == TileBiome.sea || tile.biome == TileBiome.tundra) && state.progression.castleLevel < 22) {
       showToast(
-          'Arazi Kilitli: Deniz ve Tundra keşfi için Kağan Otağı Seviye 4 gereklidir.');
+          'Arazi Kilitli: Deniz ve Tundra keşfi için Kağan Otağı Seviye 22 gereklidir.');
       return false;
     }
-    // Volkan ve Efsanevi Biyomlar kilit kontrolü: Kağan Otağı Seviye >= 5
+    // Volkan ve Efsanevi Biyomlar kilit kontrolü: Kağan Otağı Seviye >= 32
     if ((tile.biome == TileBiome.volcano ||
             tile.biome == TileBiome.celestialCrater ||
             tile.biome == TileBiome.kurganValley ||
             tile.biome == TileBiome.crystalChasm) &&
-        state.progression.castleLevel < 5) {
+        state.progression.castleLevel < 32) {
       showToast(
-          'Efsanevi Arazi Kilitli: Bu kadim bölgeyi fethetmek için Kağan Otağı Seviye 5 gereklidir.');
+          'Efsanevi Arazi Kilitli: Bu kadim bölgeyi fethetmek için Kağan Otağı Seviye 32 gereklidir.');
       return false;
     }
 

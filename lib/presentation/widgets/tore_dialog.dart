@@ -227,8 +227,8 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                 slots[DoctrineSlotType.wildcard],
                 doctrines,
                 notifier,
-                castleLvl >= 3,
-                lockMsg: 'Otağ Lv.3 Gerekli',
+                castleLvl >= 12,
+                lockMsg: 'Otağ Lv.12 Gerekli',
               ),
             ],
           ),
@@ -345,7 +345,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                       onTap: () {
                         // Uygun yuvaya veya jokere tak
                         if (doc.slotType == DoctrineSlotType.wildcard || slots[doc.slotType] != null) {
-                          if (castleLvl >= 3 && slots[DoctrineSlotType.wildcard] == null) {
+                          if (castleLvl >= 12 && slots[DoctrineSlotType.wildcard] == null) {
                             notifier.equipDoctrine(DoctrineSlotType.wildcard, doc.id);
                             return;
                           }

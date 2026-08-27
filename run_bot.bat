@@ -35,11 +35,12 @@ if exist "C:\flutter\bin" (
 )
 
 
-python -c "import win32gui, psutil" >nul 2>&1
+python -c "import win32gui, psutil, uiautomation, PIL" >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo [*] Gerekli paketler yukleniyor: pywin32, psutil...
+    echo [*] Gerekli paketler yukleniyor: pywin32, psutil, uiautomation, pillow...
     python -m pip install -r "%~dp0scripts\requirements_bot.txt"
 )
+
 
 echo [*] Bot baslatildi. Durdurmak icin CTRL+C basin.
 python "%~dp0scripts\auto_accept_bot.py" %*

@@ -1,0 +1,37 @@
+# Yapay Zeka (AI) Bağlam ve Token Tasarrufu Filtresi
+# Bu dosyalar AI arama, okuma ve indeksleme işlemlerinde taranmaz ve token israfı engellenir.
+
+# Derleme ve Otomatik Üretilen Dosyalar
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+coverage/
+
+# Mobil Bağımlılık ve Geçici Klasörler
+ios/Pods/
+ios/.symlinks/
+android/.gradle/
+android/app/build/
+.gradle/
+
+# Loglar ve Geçici Veriler
+*.log
+*.jsonl
+*.tmp
+*.bak
+*.lock
+
+# Medya, Ses ve Büyük İkili Varlıklar (Metin bağlamında okunamaz)
+assets/audio/**/*.mp3
+assets/audio/**/*.wav
+assets/audio/**/*.ogg
+assets/images/**/*.png
+assets/images/**/*.jpg
+assets/images/**/*.jpeg
+assets/images/**/*.webp
+
+# Git ve IDE Geçici Dosyaları
+.git/
+.idea/
+.vscode/

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
+import '../../core/utils/number_formatter.dart';
 import '../../domain/economy/economy_calculator.dart';
 import '../../domain/models/ad_reward_model.dart';
 import '../../domain/services/ad_reward_service.dart';
@@ -232,7 +233,7 @@ class _ResourcePill extends StatelessWidget {
         GameVectorIcon(type: icon, size: 14, color: const Color(0xFFF59E0B)),
         const SizedBox(width: 4),
         Text(
-          '+${amount.toStringAsFixed(1)} $label',
+          '+${NumberFormatter.format(amount, decimals: 1)} $label',
           style: const TextStyle(
             color: Color(0xFFF1F5F9),
             fontSize: 11,
