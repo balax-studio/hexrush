@@ -12,6 +12,7 @@ import 'icons/game_vector_icons.dart';
 import 'season_calendar_widget.dart';
 import 'tactile_neo_button.dart';
 import 'transhumance_banner_widget.dart';
+import 'tactile_dialog_route.dart';
 
 class TopBarHUD extends ConsumerStatefulWidget {
   final VoidCallback onOpenMarket;
@@ -46,9 +47,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
     TactileAudioService.instance.play(TactileSoundType.tap);
     HapticFeedback.lightImpact();
 
-    showDialog<void>(
+    showNeoTactileDialog<void>(
       context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.65),
       builder: (ctx) {
         return Dialog(
           backgroundColor: theme.surface,
@@ -687,7 +687,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     lang,
                     theme,
                     onTap: () {
-                      showDialog<void>(
+                      showNeoTactileDialog<void>(
                         context: context,
                         builder: (ctx) => Dialog(
                           backgroundColor: Colors.transparent,

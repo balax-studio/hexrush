@@ -27,7 +27,7 @@ class HexMapGame extends FlameGame {
   final Map<HexAxial, WorkerAgentComponent> _workerComponents = {};
   final Map<String, CaravanConvoyComponent> _caravanComponents = {};
   final List<FloatingVoxelCloudComponent> _cloudComponents = [];
-  late final SnowParticleEmitter _snowEmitter;
+  late final SeasonWeatherParticleEmitter _weatherEmitter;
   late final FlyingVoxelBirdComponent _flyingBirds;
   late final SteppeMessengerComponent _steppeMessenger;
 
@@ -96,8 +96,8 @@ class HexMapGame extends FlameGame {
     _steppeMessenger = SteppeMessengerComponent();
     gameWorld.add(_steppeMessenger);
 
-    _snowEmitter = SnowParticleEmitter();
-    gameWorld.add(_snowEmitter);
+    _weatherEmitter = SeasonWeatherParticleEmitter();
+    gameWorld.add(_weatherEmitter);
 
     if (_lastState != null) {
       _buildWorldFromState(_lastState!);
@@ -427,6 +427,17 @@ class HexMapGame extends FlameGame {
         continue;
       }
 
+      // Aynı biyomdaki açık komşuların göreli konum vektörleri (Hayvan Göç ve Gezinme Yolu)
+      final List<Offset> compatibleNeighbors = [];
+      final currentPixel = HexMath.hexToPixel(coord, hexSize: HexTileComponent.hexRadius);
+      for (final nCoord in coord.neighbors) {
+        final nTile = state.tiles[nCoord];
+        if (nTile != null && !nTile.isFog && nTile.biome == tile.biome) {
+          final nPixel = HexMath.hexToPixel(nCoord, hexSize: HexTileComponent.hexRadius);
+          compatibleNeighbors.add(nPixel - currentPixel);
+        }
+      }
+
       if (_tileComponents.containsKey(coord)) {
         _tileComponents[coord]!.updateData(
           newTileModel: tile,
@@ -435,6 +446,7 @@ class HexMapGame extends FlameGame {
           newIsZud: state.season.isZud,
           newIsNight: _isNight,
           newThemePalette: state.settings.activeThemePalette,
+          newCompatibleNeighborOffsets: compatibleNeighbors,
         );
       } else {
         final comp = HexTileComponent(
@@ -445,6 +457,7 @@ class HexMapGame extends FlameGame {
           isZud: state.season.isZud,
           isNight: _isNight,
           themePalette: state.settings.activeThemePalette,
+          compatibleNeighborOffsets: compatibleNeighbors,
         );
         final pixelPos = HexMath.hexToPixel(coord, hexSize: HexTileComponent.hexRadius);
         comp.priority = (pixelPos.dy + 1000).toInt();
@@ -508,8 +521,6 @@ class HexMapGame extends FlameGame {
   }
 
   void _updateWeather(GameState state) {
-    final bool isWinter = state.season.current == 'WINTER';
-    _snowEmitter.isActive = isWinter;
-    _snowEmitter.isZud = state.season.isZud;
+    _weatherEmitter.setSeason(state.season.current, newIsZud: state.season.isZud);
   }
 }

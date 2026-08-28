@@ -7,6 +7,7 @@ import '../../domain/models/celestial_omen_model.dart';
 import '../../domain/services/ad_reward_service.dart';
 import '../providers/game_state_notifier.dart';
 import 'tactile_neo_button.dart';
+import 'tactile_dialog_route.dart';
 
 class CelestialOmenHud extends ConsumerWidget {
   final IAdRewardService? adService;
@@ -51,7 +52,7 @@ class CelestialOmenHud extends ConsumerWidget {
       preferBelow: true,
       child: GestureDetector(
         onTap: () {
-          showDialog(
+          showNeoTactileDialog(
             context: context,
             builder: (ctx) => _ShamanBlessingDialog(adService: adService),
           );

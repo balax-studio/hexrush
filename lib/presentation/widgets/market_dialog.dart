@@ -10,6 +10,7 @@ import '../providers/game_state_notifier.dart';
 import 'icons/game_vector_icons.dart';
 import 'tactile_neo_button.dart';
 import 'trade_orders_dialog.dart';
+import 'tactile_dialog_route.dart';
 
 class MarketDialog extends ConsumerWidget {
   final IAdRewardService? adService;
@@ -196,7 +197,7 @@ class MarketDialog extends ConsumerWidget {
             // İpek Yolu Elçi Siparişleri Açma Butonu
             TactileNeoButton(
               onTap: () {
-                showDialog<void>(
+                showNeoTactileDialog<void>(
                   context: context,
                   builder: (_) => const TradeOrdersDialog(),
                 );

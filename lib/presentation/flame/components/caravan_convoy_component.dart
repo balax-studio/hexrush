@@ -26,6 +26,11 @@ class CaravanConvoyComponent extends PositionComponent {
     _progress = (_progress + (dt / 12.0)) % 1.0;
   }
 
+  static final Paint _linePaint = Paint()
+    ..color = const Color(0xFFD97706).withValues(alpha: 0.35)
+    ..strokeWidth = 2.0
+    ..style = PaintingStyle.stroke;
+
   @override
   void render(Canvas canvas) {
     final startCenter = HexMath.hexToPixel(route.startCoord, hexSize: hexRadius, yScale: HexMath.defaultYScale);
@@ -37,11 +42,7 @@ class CaravanConvoyComponent extends PositionComponent {
     final bool flipX = endCenter.dx < startCenter.dx;
 
     // 1. Yol İzi / İpek Yolu Toz Hattı
-    final Paint linePaint = Paint()
-      ..color = const Color(0xFFD97706).withValues(alpha: 0.35)
-      ..strokeWidth = 2.0
-      ..style = PaintingStyle.stroke;
-    canvas.drawLine(startCenter, endCenter, linePaint);
+    canvas.drawLine(startCenter, endCenter, _linePaint);
 
     // 2. Voksel Deve Çizimi
     VoxelIsometricRenderer.drawVoxelCaravanCamel(

@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/tactile_audio_service.dart';
+import '../../core/hex/hex_coordinates.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/economy/economy_calculator.dart';
 import '../../domain/models/building_model.dart';
 import '../../domain/models/game_state.dart';
+import '../../domain/models/game_state_model.dart';
 import '../../domain/models/hex_tile_model.dart';
 import '../../domain/services/symbiosis_engine.dart';
 import '../providers/game_state_notifier.dart';
 import 'caravan_link_sheet.dart';
 import 'icons/game_vector_icons.dart';
 import 'tactile_neo_button.dart';
+import 'tactile_dialog_route.dart';
 
 class TileActionSheet extends ConsumerStatefulWidget {
   const TileActionSheet({super.key});
@@ -24,6 +27,8 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
     with SingleTickerProviderStateMixin {
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
+  HexAxial? _cachedCoord;
+  HexTileModel? _cachedTile;
   bool _showLockedBuildings = false;
 
   @override
@@ -31,14 +36,16 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
     super.initState();
     _slideController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 260),
+      duration: const Duration(milliseconds: 280),
+      reverseDuration: const Duration(milliseconds: 220),
     );
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 1.2),
+      begin: const Offset(0, 1.25),
       end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _slideController,
-      curve: NeoBrutalistTheme.springSlideCurve,
+      curve: Curves.easeOutBack,
+      reverseCurve: Curves.easeInCubic,
     ));
   }
 
@@ -51,33 +58,47 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
   @override
   Widget build(BuildContext context) {
     final selectedCoord = ref.watch(gameStateProvider.select((s) => s.selectedCoord));
+    final gameState = ref.watch(gameStateProvider);
 
-    if (selectedCoord == null) {
-      if (_slideController.isCompleted) {
+    if (selectedCoord != null) {
+      final t = gameState.tiles[selectedCoord];
+      if (t != null && !t.isFog) {
+        _cachedCoord = selectedCoord;
+        _cachedTile = t;
+        if (!_slideController.isCompleted && !_slideController.isAnimating) {
+          _slideController.forward();
+        } else if (_slideController.status == AnimationStatus.reverse) {
+          _slideController.forward();
+        }
+      }
+    } else {
+      if (_slideController.value > 0.0 && !_slideController.isAnimating) {
         _slideController.reverse();
       }
-      return const SizedBox.shrink();
     }
 
-    final gameState = ref.watch(gameStateProvider);
-    final tile = gameState.tiles[selectedCoord];
-    if (tile == null || tile.isFog) {
-      return const SizedBox.shrink();
-    }
+    return AnimatedBuilder(
+      animation: _slideController,
+      builder: (context, child) {
+        if (_slideController.isDismissed && selectedCoord == null) {
+          return const SizedBox.shrink();
+        }
 
-    if (!_slideController.isAnimating && _slideController.value == 0.0) {
-      _slideController.forward();
-    }
+        final activeCoord = selectedCoord ?? _cachedCoord;
+        final tile = (selectedCoord != null ? gameState.tiles[selectedCoord] : null) ?? _cachedTile;
 
-    final lang = gameState.settings.language;
-    final theme = NeoBrutalistTheme.getTheme(gameState.settings.activeThemePalette);
+        if (activeCoord == null || tile == null || tile.isFog) {
+          return const SizedBox.shrink();
+        }
 
-    final maxHeight = MediaQuery.of(context).size.height * 0.70;
+        final lang = gameState.settings.language;
+        final theme = NeoBrutalistTheme.getTheme(gameState.settings.activeThemePalette);
+        final maxHeight = MediaQuery.of(context).size.height * 0.70;
 
-    return RepaintBoundary(
-      child: SlideTransition(
-        position: _slideAnimation,
-      child: Align(
+        return RepaintBoundary(
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: Align(
         alignment: Alignment.bottomCenter,
         child: Container(
           constraints: BoxConstraints(maxHeight: maxHeight, maxWidth: 540),
@@ -307,7 +328,9 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         ),
       ),
     ),
-    );
+  );
+},
+);
   }
 
   Widget _buildCaravanAndSoilRow(
@@ -852,9 +875,8 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
       HexTileModel tile, BuildingModel b, NeoBrutalistThemeData theme) {
     final lang = ref.read(gameStateProvider).settings.language;
     final double refund = (b.baseCost * 0.5).roundToDouble();
-    showDialog<void>(
+    showNeoTactileDialog<void>(
       context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.65),
       builder: (ctx) => Dialog(
         backgroundColor: theme.surface,
         shape: RoundedRectangleBorder(

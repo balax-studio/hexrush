@@ -594,6 +594,10 @@ class EconomyCalculator {
     double gainedStone = 0.0;
     double gainedIron = 0.0;
     double gainedFish = 0.0;
+    double gainedWisdom = 0.0;
+    double gainedKumis = 0.0;
+    double gainedFelt = 0.0;
+    double gainedDamascusSteel = 0.0;
 
     for (final t in tiles) {
       final b = t.building;
@@ -651,14 +655,15 @@ class EconomyCalculator {
               ? rate * cappedSeconds
               : math.min(maxCap, rate * cappedSeconds);
           gainedIron += hasWorkers
-              ? (rate * 0.5) * cappedSeconds
-              : math.min(maxCap * 0.5, (rate * 0.5) * cappedSeconds);
+              ? (rate * 0.3) * cappedSeconds
+              : math.min(maxCap * 0.3, (rate * 0.3) * cappedSeconds);
           break;
         case BuildingType.fisherman:
           gainedFish += hasWorkers
               ? rate * cappedSeconds
               : math.min(maxCap, rate * cappedSeconds);
           break;
+        case BuildingType.oasisCistern:
         case BuildingType.reindeerSanctuary:
         case BuildingType.herbalistYurt:
           gainedFood += hasWorkers
@@ -669,12 +674,16 @@ class EconomyCalculator {
           gainedBread += hasWorkers
               ? rate * cappedSeconds
               : math.min(maxCap, rate * cappedSeconds);
+          gainedFood += hasWorkers
+              ? (rate * 0.5) * cappedSeconds
+              : math.min(maxCap * 0.5, (rate * 0.5) * cappedSeconds);
           break;
         case BuildingType.scribeWorkshop:
           gainedPlank += hasWorkers
               ? rate * cappedSeconds
               : math.min(maxCap, rate * cappedSeconds);
           break;
+        case BuildingType.geothermalBath:
         case BuildingType.steamVent:
           gainedStone += hasWorkers
               ? rate * cappedSeconds
@@ -690,17 +699,46 @@ class EconomyCalculator {
               : math.min(maxCap * 0.5, (rate * 0.5) * cappedSeconds);
           break;
         case BuildingType.celestialAnvil:
+          gainedStone += hasWorkers
+              ? (rate * 0.5) * cappedSeconds
+              : math.min(maxCap * 0.5, (rate * 0.5) * cappedSeconds);
           gainedIron += hasWorkers
-              ? rate * cappedSeconds
-              : math.min(maxCap, rate * cappedSeconds);
-        case BuildingType.kumisYurt:
+              ? (rate * 0.5) * cappedSeconds
+              : math.min(maxCap * 0.5, (rate * 0.5) * cappedSeconds);
+          break;
+        case BuildingType.astrolabe:
+        case BuildingType.ancestralTotem:
+        case BuildingType.prismaticResonator:
           gainedFood += hasWorkers
+              ? (rate * 0.4) * cappedSeconds
+              : math.min(maxCap * 0.4, (rate * 0.4) * cappedSeconds);
+          gainedWood += hasWorkers
+              ? (rate * 0.4) * cappedSeconds
+              : math.min(maxCap * 0.4, (rate * 0.4) * cappedSeconds);
+          gainedStone += hasWorkers
+              ? (rate * 0.4) * cappedSeconds
+              : math.min(maxCap * 0.4, (rate * 0.4) * cappedSeconds);
+          break;
+        case BuildingType.kumisYurt:
+          gainedKumis += hasWorkers
               ? rate * cappedSeconds
               : math.min(maxCap, rate * cappedSeconds);
           break;
         case BuildingType.feltTentWorkshop:
+          gainedFelt += hasWorkers
+              ? rate * cappedSeconds
+              : math.min(maxCap, rate * cappedSeconds);
+          break;
         case BuildingType.damascusForge:
+          gainedDamascusSteel += hasWorkers
+              ? rate * cappedSeconds
+              : math.min(maxCap, rate * cappedSeconds);
+          break;
         case BuildingType.runicStele:
+          gainedWisdom += hasWorkers
+              ? rate * cappedSeconds
+              : math.min(maxCap, rate * cappedSeconds);
+          break;
         case BuildingType.granaryVault:
         case BuildingType.shrine:
         case BuildingType.castle:
@@ -708,11 +746,6 @@ class EconomyCalculator {
         case BuildingType.watchtower:
         case BuildingType.bridge:
         case BuildingType.fishermanHut:
-        case BuildingType.oasisCistern:
-        case BuildingType.astrolabe:
-        case BuildingType.geothermalBath:
-        case BuildingType.ancestralTotem:
-        case BuildingType.prismaticResonator:
           break;
       }
     }
@@ -728,6 +761,10 @@ class EconomyCalculator {
       stone: gainedStone,
       iron: gainedIron,
       fish: gainedFish,
+      wisdom: gainedWisdom,
+      kumis: gainedKumis,
+      felt: gainedFelt,
+      damascusSteel: gainedDamascusSteel,
     );
   }
 
@@ -825,16 +862,19 @@ class EconomyCalculator {
         case BuildingType.fisherman:
           netFish += rate;
           break;
+        case BuildingType.oasisCistern:
         case BuildingType.reindeerSanctuary:
         case BuildingType.herbalistYurt:
           netFood += rate;
           break;
         case BuildingType.caravanserai:
           netBread += rate;
+          netFood += rate * 0.5;
           break;
         case BuildingType.scribeWorkshop:
           netPlank += rate;
           break;
+        case BuildingType.geothermalBath:
         case BuildingType.steamVent:
           netStone += rate;
           break;
@@ -844,7 +884,15 @@ class EconomyCalculator {
           netIron += rate * 0.5;
           break;
         case BuildingType.celestialAnvil:
-          netIron += rate;
+          netStone += rate * 0.5;
+          netIron += rate * 0.5;
+          break;
+        case BuildingType.astrolabe:
+        case BuildingType.ancestralTotem:
+        case BuildingType.prismaticResonator:
+          netFood += rate * 0.4;
+          netWood += rate * 0.4;
+          netStone += rate * 0.4;
           break;
         case BuildingType.kumisYurt:
           netKumis += rate;
@@ -865,11 +913,6 @@ class EconomyCalculator {
         case BuildingType.watchtower:
         case BuildingType.bridge:
         case BuildingType.fishermanHut:
-        case BuildingType.oasisCistern:
-        case BuildingType.astrolabe:
-        case BuildingType.geothermalBath:
-        case BuildingType.ancestralTotem:
-        case BuildingType.prismaticResonator:
           break;
       }
     }

@@ -375,6 +375,11 @@ class GameStateNotifier extends StateNotifier<GameState> {
               furniture: state.resources.furniture + offline.furniture,
               stone: state.resources.stone + offline.stone,
               iron: state.resources.iron + offline.iron,
+              fish: state.resources.fish + offline.fish,
+              wisdom: state.resources.wisdom + offline.wisdom,
+              kumis: state.resources.kumis + offline.kumis,
+              felt: state.resources.felt + offline.felt,
+              damascusSteel: state.resources.damascusSteel + offline.damascusSteel,
             ),
             activeToast:
                 'Çevrimdışı Gelir: +${offline.food.toStringAsFixed(1)} Gıda, +${offline.wood.toStringAsFixed(1)} Odun',
@@ -1071,13 +1076,16 @@ class GameStateNotifier extends StateNotifier<GameState> {
           BuildingType.sawmill,
           BuildingType.furniture,
           BuildingType.worker,
+          BuildingType.watchtower,
           BuildingType.granaryVault,
         ];
       case TileBiome.mountain:
         return const [
           BuildingType.mine,
           BuildingType.quarry,
+          BuildingType.worker,
           BuildingType.watchtower,
+          BuildingType.granaryVault,
           BuildingType.damascusForge,
           BuildingType.runicStele,
         ];
@@ -1089,6 +1097,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
         ];
       case TileBiome.desert:
         return const [
+          BuildingType.quarry,
+          BuildingType.watchtower,
           BuildingType.oasisCistern,
           BuildingType.caravanserai,
           BuildingType.astrolabe,
@@ -1101,32 +1111,43 @@ class GameStateNotifier extends StateNotifier<GameState> {
           BuildingType.geothermalBath,
           BuildingType.permafrostDig,
           BuildingType.feltTentWorkshop,
+          BuildingType.watchtower,
+          BuildingType.granaryVault,
+          BuildingType.runicStele,
         ];
       case TileBiome.volcano:
         return const [
+          BuildingType.quarry,
           BuildingType.steamVent,
           BuildingType.obsidianForge,
           BuildingType.damascusForge,
+          BuildingType.granaryVault,
         ];
       case TileBiome.wetland:
         return const [
+          BuildingType.pasture,
+          BuildingType.fisherman,
           BuildingType.herbalistYurt,
           BuildingType.scribeWorkshop,
+          BuildingType.granaryVault,
         ];
       case TileBiome.celestialCrater:
         return const [
           BuildingType.celestialAnvil,
+          BuildingType.granaryVault,
           BuildingType.runicStele,
         ];
       case TileBiome.kurganValley:
         return const [
           BuildingType.ancestralTotem,
           BuildingType.kumisYurt,
+          BuildingType.granaryVault,
           BuildingType.runicStele,
         ];
       case TileBiome.crystalChasm:
         return const [
           BuildingType.prismaticResonator,
+          BuildingType.granaryVault,
           BuildingType.runicStele,
         ];
     }
