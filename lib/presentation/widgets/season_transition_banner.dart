@@ -7,6 +7,7 @@ import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/models/game_state_model.dart';
 import '../providers/game_state_notifier.dart';
 import 'icons/game_vector_icons.dart';
+import 'tactile_neo_button.dart';
 
 /// SwiftUI-tarzı Yaylanma Fiziğine (Curves.easeOutBack) Sahip Taktil Mevsim Geçiş Bildirim Başlığı
 class SeasonTransitionBanner extends ConsumerStatefulWidget {
@@ -21,6 +22,7 @@ class _SeasonTransitionBannerState extends ConsumerState<SeasonTransitionBanner>
   late AnimationController _animController;
   late Animation<double> _scaleAnimation;
   late Animation<Offset> _slideAnimation;
+  late Animation<double> _fadeAnimation;
 
   SeasonModel? _lastSeason;
   Timer? _dismissTimer;
@@ -28,22 +30,33 @@ class _SeasonTransitionBannerState extends ConsumerState<SeasonTransitionBanner>
   String _activeBonus = '';
   Color _activeColor = const Color(0xFFFFC700);
   GameIconType _activeIcon = GameIconType.spring;
+  bool _isVisible = false;
 
   @override
   void initState() {
     super.initState();
     _animController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 320),
+      duration: const Duration(milliseconds: 360),
       reverseDuration: const Duration(milliseconds: 240),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.88, end: 1.0).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeOutBack),
+    _fadeAnimation = CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeOut,
+      reverseCurve: Curves.easeIn,
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animController,
+        curve: Curves.easeOutBack,
+        reverseCurve: Curves.easeInCubic,
+      ),
     );
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, -1.2),
+      begin: const Offset(0, -1.8),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
@@ -52,6 +65,17 @@ class _SeasonTransitionBannerState extends ConsumerState<SeasonTransitionBanner>
         reverseCurve: Curves.easeInCubic,
       ),
     );
+
+    _animController.addStatusListener((status) {
+      if (status == AnimationStatus.dismissed) {
+        if (mounted && _isVisible) {
+          setState(() {
+            _isVisible = false;
+            _activeTitle = '';
+          });
+        }
+      }
+    });
   }
 
   @override
@@ -59,6 +83,15 @@ class _SeasonTransitionBannerState extends ConsumerState<SeasonTransitionBanner>
     _dismissTimer?.cancel();
     _animController.dispose();
     super.dispose();
+  }
+
+  void _dismissBanner() {
+    _dismissTimer?.cancel();
+    _dismissTimer = null;
+    HapticFeedback.lightImpact();
+    if (_animController.isAnimating || _animController.value > 0) {
+      _animController.reverse();
+    }
   }
 
   void _updateActiveSeasonInfo(SeasonModel season, String lang) {
@@ -98,8 +131,6 @@ class _SeasonTransitionBannerState extends ConsumerState<SeasonTransitionBanner>
   Widget build(BuildContext context) {
     final season = ref.watch(gameStateProvider.select((s) => s.season));
     final lang = ref.watch(gameStateProvider.select((s) => s.settings.language));
-    final activePalette = ref.watch(gameStateProvider.select((s) => s.settings.activeThemePalette));
-    final theme = NeoBrutalistTheme.getTheme(activePalette);
 
     if (_lastSeason == null) {
       _lastSeason = season;
@@ -108,13 +139,14 @@ class _SeasonTransitionBannerState extends ConsumerState<SeasonTransitionBanner>
         _lastSeason!.isZud != season.isZud) {
       _lastSeason = season;
       _updateActiveSeasonInfo(season, lang);
+      _isVisible = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           HapticFeedback.mediumImpact();
           _animController.forward(from: 0.0);
           _dismissTimer?.cancel();
-          _dismissTimer = Timer(const Duration(milliseconds: 3800), () {
-            if (mounted) {
+          _dismissTimer = Timer(const Duration(milliseconds: 4200), () {
+            if (mounted && _isVisible) {
               _animController.reverse();
             }
           });
@@ -122,7 +154,7 @@ class _SeasonTransitionBannerState extends ConsumerState<SeasonTransitionBanner>
       });
     }
 
-    if (_activeTitle.isEmpty) {
+    if (!_isVisible && _activeTitle.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -130,81 +162,95 @@ class _SeasonTransitionBannerState extends ConsumerState<SeasonTransitionBanner>
       top: MediaQuery.of(context).padding.top + 52,
       left: 16,
       right: 16,
-      child: SlideTransition(
-        position: _slideAnimation,
-        child: ScaleTransition(
-          scale: _scaleAnimation,
-          child: Center(
-            child: GestureDetector(
-              onTap: () {
-                _animController.reverse();
-              },
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 420),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
-                  borderRadius: NeoBrutalistTheme.standardRadius,
-                  border: Border.all(color: _activeColor, width: 2.0),
-                  boxShadow: NeoBrutalistTheme.hardShadow(offset: 4.0),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Sol Taktil Sezon Rozeti
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: _activeColor.withValues(alpha: 0.18),
-                        borderRadius: NeoBrutalistTheme.sharpRadius,
-                        border: Border.all(color: _activeColor, width: 1.5),
-                      ),
-                      child: Center(
-                        child: GameVectorIcon(
-                          type: _activeIcon,
-                          size: 18,
-                          color: _activeColor,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: SlideTransition(
+          position: _slideAnimation,
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: Center(
+              child: GestureDetector(
+                onTap: _dismissBanner,
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0F172A),
+                    borderRadius: NeoBrutalistTheme.standardRadius,
+                    border: Border.all(color: _activeColor, width: 2.0),
+                    boxShadow: NeoBrutalistTheme.hardShadow(offset: 4.0),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Sol Taktil Sezon Rozeti
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: _activeColor.withValues(alpha: 0.18),
+                          borderRadius: NeoBrutalistTheme.sharpRadius,
+                          border: Border.all(color: _activeColor, width: 1.5),
+                        ),
+                        child: Center(
+                          child: GameVectorIcon(
+                            type: _activeIcon,
+                            size: 18,
+                            color: _activeColor,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    // Başlık ve Bonus Metinleri
-                    Flexible(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _activeTitle,
-                            style: TextStyle(
-                              color: _activeColor,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 12.5,
-                              letterSpacing: 0.4,
+                      const SizedBox(width: 12),
+                      // Başlık ve Bonus Metinleri
+                      Flexible(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _activeTitle,
+                              style: TextStyle(
+                                color: _activeColor,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 12.5,
+                                letterSpacing: 0.4,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _activeBonus,
-                            style: const TextStyle(
-                              color: Color(0xFFCBD5E1),
-                              fontWeight: FontWeight.w700,
-                              fontSize: 11,
-                              letterSpacing: 0.2,
+                            const SizedBox(height: 2),
+                            Text(
+                              _activeBonus,
+                              style: const TextStyle(
+                                color: Color(0xFFCBD5E1),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 11,
+                                letterSpacing: 0.2,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    // Kapatma İkonu
-                    Icon(
-                      Icons.close,
-                      size: 16,
-                      color: theme.slateBorder,
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      // Taktil Neo Kapatma Butonu (26x26px)
+                      TactileNeoButton(
+                        onTap: _dismissBanner,
+                        height: 26,
+                        width: 26,
+                        padding: EdgeInsets.zero,
+                        backgroundColor: const Color(0xFF1E293B),
+                        borderColor: _activeColor.withValues(alpha: 0.6),
+                        shadowColor: const Color(0xFF020617),
+                        shadowOffset: 1.5,
+                        alignment: Alignment.center,
+                        child: const Center(
+                          child: Icon(
+                            Icons.close,
+                            size: 14,
+                            color: Color(0xFFE2E8F0),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

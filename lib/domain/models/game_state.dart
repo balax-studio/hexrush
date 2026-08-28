@@ -4,6 +4,7 @@ import 'ad_reward_model.dart';
 import 'ancestral_kurgan_model.dart';
 import 'caravan_route_model.dart';
 import 'celestial_omen_model.dart';
+import 'combat_model.dart';
 import 'doctrine_model.dart';
 import 'game_state_model.dart';
 import 'hex_tile_model.dart';
@@ -39,6 +40,7 @@ class GameState {
   final List<AncestralKurgan> discoveredKurgans;
   final AdRewardTracking adTracking;
   final OfflineGainsResult? pendingOfflineGains;
+  final CombatState combatState;
 
   const GameState({
     required this.tiles,
@@ -81,6 +83,7 @@ class GameState {
     this.discoveredKurgans = const [],
     this.adTracking = const AdRewardTracking(),
     this.pendingOfflineGains,
+    this.combatState = const CombatState(),
   });
 
   QuestModel? get currentActiveQuest {
@@ -125,6 +128,7 @@ class GameState {
     AdRewardTracking? adTracking,
     OfflineGainsResult? pendingOfflineGains,
     bool clearPendingOfflineGains = false,
+    CombatState? combatState,
   }) {
     return GameState(
       tiles: tiles ?? this.tiles,
@@ -156,7 +160,9 @@ class GameState {
       discoveredKurgans: discoveredKurgans ?? this.discoveredKurgans,
       adTracking: adTracking ?? this.adTracking,
       pendingOfflineGains: clearPendingOfflineGains ? null : (pendingOfflineGains ?? this.pendingOfflineGains),
+      combatState: combatState ?? this.combatState,
     );
   }
 }
+
 

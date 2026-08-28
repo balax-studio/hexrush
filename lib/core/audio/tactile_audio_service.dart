@@ -9,6 +9,8 @@ enum TactileSoundType {
   upgrade,
   market,
   error,
+  horn,
+  warning,
 }
 
 /// HexRush Taktil Ses ve Haptik Motoru
@@ -43,9 +45,11 @@ class TactileAudioService {
             break;
           case TactileSoundType.reward:
           case TactileSoundType.upgrade:
+          case TactileSoundType.horn:
             await HapticFeedback.heavyImpact();
             break;
           case TactileSoundType.error:
+          case TactileSoundType.warning:
             await HapticFeedback.vibrate();
             break;
         }
@@ -66,6 +70,8 @@ class TactileAudioService {
           case TactileSoundType.upgrade:
           case TactileSoundType.market:
           case TactileSoundType.error:
+          case TactileSoundType.horn:
+          case TactileSoundType.warning:
             await SystemSound.play(SystemSoundType.click);
             break;
         }

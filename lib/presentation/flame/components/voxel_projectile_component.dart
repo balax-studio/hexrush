@@ -1,0 +1,111 @@
+import 'dart:math' as math;
+import 'package:flame/components.dart';
+import 'package:flutter/material.dart';
+import '../../../core/hex/hex_coordinates.dart';
+import '../../../core/hex/hex_math.dart';
+import '../../../domain/models/combat_model.dart';
+import '../components/hex_tile_component.dart';
+import '../renderers/voxel_isometric_renderer.dart';
+
+/// Kulelerden fırlatılan 3D Voksel Ok ve Mermi Parçacıkları (Zero-GC)
+class VoxelProjectileComponent extends PositionComponent {
+  final CombatProjectileInstance projectile;
+  final Vector2 targetPixelPos;
+  final double Function(HexAxial)? getElevation;
+
+  double _progress = 0.0;
+  final double _speed = 3.5; // Saniyede tam mesafe katetme katsayısı
+  late final Vector2 _startPixelPos;
+
+  VoxelProjectileComponent({
+    required this.projectile,
+    required this.targetPixelPos,
+    this.getElevation,
+  }) : super(
+          size: Vector2(16, 16),
+          anchor: Anchor.center,
+          priority: 2800,
+        ) {
+    final startPixel = HexMath.hexToPixel(projectile.sourceTowerCoord, hexSize: HexTileComponent.hexRadius);
+    final double elev = getElevation?.call(projectile.sourceTowerCoord) ?? 0.0;
+    _startPixelPos = Vector2(startPixel.dx, startPixel.dy - elev - 25.0); // Kule tepesinden başla
+    position = _startPixelPos;
+  }
+
+  bool get isFinished => _progress >= 1.0;
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    _progress += dt * _speed;
+
+    if (_progress < 1.0) {
+      final double t = _progress;
+      final Vector2 linear = _startPixelPos + (targetPixelPos - _startPixelPos) * t;
+      // Parabolik yay (Arc)
+      final double arcHeight = math.sin(t * math.pi) * 35.0;
+      position = Vector2(linear.x, linear.y - arcHeight);
+    } else {
+      removeFromParent();
+    }
+  }
+
+  static void _drawCube(
+    Canvas canvas,
+    double x,
+    double y,
+    double w,
+    double d,
+    double h,
+    Color baseColor,
+  ) {
+    final top = baseColor;
+    final left = Color.fromARGB(
+      baseColor.alpha,
+      (baseColor.red * 0.72).round(),
+      (baseColor.green * 0.72).round(),
+      (baseColor.blue * 0.72).round(),
+    );
+    final right = Color.fromARGB(
+      baseColor.alpha,
+      (baseColor.red * 0.86).round(),
+      (baseColor.green * 0.86).round(),
+      (baseColor.blue * 0.86).round(),
+    );
+
+    VoxelIsometricRenderer.drawIsoCube(
+      canvas,
+      Offset(x, y),
+      w: w,
+      d: d,
+      h: h,
+      topColor: top,
+      leftColor: left,
+      rightColor: right,
+    );
+  }
+
+  @override
+  void render(Canvas canvas) {
+    super.render(canvas);
+
+    final double cx = size.x / 2;
+    final double cy = size.y / 2;
+
+    canvas.save();
+    canvas.translate(cx, cy);
+
+    if (projectile.isAoE) {
+      // Alevli Mancınık Güllesi
+      _drawCube(canvas, 0, 0, 6, 6, 6, const Color(0xFFF97316));
+      _drawCube(canvas, 0, 0, 4, 4, 4, const Color(0xFFFEF08A));
+    } else {
+      // Voksel Bozkır Oku
+      _drawCube(canvas, 0, 0, 8, 2, 2, const Color(0xFFD97706));
+      _drawCube(canvas, 3, 0, 3, 3, 3, const Color(0xFFE2E8F0));
+      _drawCube(canvas, -3, 0, 2, 2, 2, const Color(0xFF78350F));
+    }
+
+    canvas.restore();
+  }
+}

@@ -46,54 +46,81 @@ enum BuildingType {
 }
 
 extension BuildingTypeExtension on BuildingType {
-  /// Binanın açılması için gereken asgari Şato Seviyesi
+  /// Binanın açılması için gereken asgari Şato / Kağan Otağı Seviyesi
+  /// 1 -> 2 -> 5 -> 10 -> 15 -> 20 -> 25 -> 30 -> 35 -> 40 -> 45 -> 50 kademeli prestij ve ilerleme hiyerarşisi
   int get requiredCastleLevel {
     switch (this) {
+      // Seviye 1: Temel Hayatta Kalma
       case BuildingType.castle:
       case BuildingType.corn:
-      case BuildingType.barley:
       case BuildingType.quarry:
       case BuildingType.lumberjack:
       case BuildingType.worker:
-      case BuildingType.granaryVault:
         return 1;
 
+      // Seviye 2: Gıda ve Depo Genişletme
+      case BuildingType.barley:
+      case BuildingType.granaryVault:
       case BuildingType.pasture:
-      case BuildingType.orchard:
-      case BuildingType.resinCamp:
-      case BuildingType.windmill:
-      case BuildingType.sawmill:
-      case BuildingType.watchtower:
-      case BuildingType.oasisCistern:
-      case BuildingType.herbalistYurt:
-      case BuildingType.runicStele:
-      case BuildingType.feltTentWorkshop:
         return 2;
 
-      case BuildingType.bakery:
-      case BuildingType.furniture:
-      case BuildingType.mine:
-      case BuildingType.bridge:
-      case BuildingType.fisherman:
-      case BuildingType.caravanserai:
-      case BuildingType.scribeWorkshop:
-      case BuildingType.reindeerSanctuary:
-      case BuildingType.kumisYurt:
-      case BuildingType.damascusForge:
-        return 12;
+      // Seviye 5: İlk Zanaat, Bilgelik ve Savunma Kulesi
+      case BuildingType.windmill:
+      case BuildingType.sawmill:
+      case BuildingType.runicStele:
+      case BuildingType.watchtower:
+        return 5;
 
+      // Seviye 10: Keşif ve Şifa
+      case BuildingType.orchard:
+      case BuildingType.resinCamp:
+      case BuildingType.herbalistYurt:
+        return 10;
+
+      // Seviye 15: Ağır Maden ve İleri Besin
+      case BuildingType.mine:
+      case BuildingType.bakery:
+      case BuildingType.fisherman:
+        return 15;
+
+      // Seviye 20: Ticaret, Zırh ve Lojistik
+      case BuildingType.furniture:
+      case BuildingType.bridge:
+      case BuildingType.feltTentWorkshop:
+        return 20;
+
+      // Seviye 25: Çöl ve Tundra Keşfi
+      case BuildingType.oasisCistern:
+      case BuildingType.caravanserai:
+      case BuildingType.reindeerSanctuary:
+        return 25;
+
+      // Seviye 30: Kutsal İksir ve Yazıtlar
+      case BuildingType.kumisYurt:
+      case BuildingType.scribeWorkshop:
+        return 30;
+
+      // Seviye 35: Zorlu İklim ve Derin Deniz
       case BuildingType.fishermanHut:
       case BuildingType.geothermalBath:
       case BuildingType.permafrostDig:
-      case BuildingType.steamVent:
-      case BuildingType.astrolabe:
-        return 22;
+        return 35;
 
+      // Seviye 40: Termal Enerji ve Şam Çeliği
+      case BuildingType.steamVent:
       case BuildingType.obsidianForge:
+      case BuildingType.damascusForge:
+        return 40;
+
+      // Seviye 45: Gökbilim ve Yıldızlar
+      case BuildingType.astrolabe:
+        return 45;
+
+      // Seviye 50: Göksel İmparatorluk ve Kozmik Zirve
       case BuildingType.celestialAnvil:
       case BuildingType.ancestralTotem:
       case BuildingType.prismaticResonator:
-        return 32;
+        return 50;
     }
   }
 }
@@ -220,6 +247,9 @@ class BuildingModel {
   /// Kilometre taşı seviyeleri (2x üretim artışı, 10x maliyet artışı)
   static const List<int> milestoneLevels = [10, 25, 50, 100, 200];
 
+  /// Şato (Kağan Otağı) görsel evrim kilometre taşları: 5, 15, 30, 50
+  static const List<int> castleVisualMilestoneLevels = [5, 15, 30, 50];
+
   /// Verilen seviyenin ulaştığı kilometre taşı kademesi (0..5)
   static int getMilestoneTier(int lvl) {
     if (lvl >= 200) return 5;
@@ -228,6 +258,20 @@ class BuildingModel {
     if (lvl >= 25) return 2;
     if (lvl >= 10) return 1;
     return 0;
+  }
+
+  /// Yapının görsel evrim kademesi (Visual Tier)
+  /// Şato özelinde: Seviye 5, 15, 30, 50 basamaklarında görünüm değişir.
+  /// Normal binalarda: Her 2X sıçramadan sonra (Seviye 10, 25, 50, 100, 200) görünüm değişir.
+  int get visualTier {
+    if (type == BuildingType.castle) {
+      if (level >= 50) return 4;
+      if (level >= 30) return 3;
+      if (level >= 15) return 2;
+      if (level >= 5) return 1;
+      return 0;
+    }
+    return getMilestoneTier(level);
   }
 
   /// Bir sonraki seviyenin kilometre taşı olup olmadığı

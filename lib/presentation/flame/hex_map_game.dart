@@ -16,6 +16,9 @@ import 'components/caravan_convoy_component.dart';
 import 'components/harvest_sparkle_emitter.dart';
 import 'components/tile_conquer_poof_emitter.dart';
 import 'components/worker_agent_component.dart';
+import 'components/worker_flow_arrow_component.dart';
+import 'components/voxel_enemy_component.dart';
+import 'components/voxel_projectile_component.dart';
 
 class HexMapGame extends FlameGame {
   final void Function(HexAxial) onTileSelected;
@@ -26,10 +29,13 @@ class HexMapGame extends FlameGame {
   final Map<HexAxial, HexTileComponent> _tileComponents = {};
   final Map<HexAxial, WorkerAgentComponent> _workerComponents = {};
   final Map<String, CaravanConvoyComponent> _caravanComponents = {};
+  final Map<String, VoxelEnemyComponent> _enemyComponents = {};
+  final Set<String> _spawnedProjectileIds = {};
   final List<FloatingVoxelCloudComponent> _cloudComponents = [];
   late final SeasonWeatherParticleEmitter _weatherEmitter;
   late final FlyingVoxelBirdComponent _flyingBirds;
   late final SteppeMessengerComponent _steppeMessenger;
+  late final WorkerFlowArrowComponent _workerFlowArrows;
 
   GameState? _lastState;
   double _currentZoom = 1.0;
@@ -47,6 +53,9 @@ class HexMapGame extends FlameGame {
   double get currentZoom => _currentZoom;
   Vector2 get cameraPosition => gameCamera.viewfinder.position;
   bool get isNight => _isNight;
+
+  /// Koordinata ait HexTileComponent referansını döner
+  HexTileComponent? getTileComponent(HexAxial coord) => _tileComponents[coord];
 
   /// Keşfedilmiş açık (sis olmayan) karo koordinatlarını döner
   List<HexAxial> getDiscoveredTileCoords() {
@@ -98,6 +107,9 @@ class HexMapGame extends FlameGame {
 
     _weatherEmitter = SeasonWeatherParticleEmitter();
     gameWorld.add(_weatherEmitter);
+
+    _workerFlowArrows = WorkerFlowArrowComponent();
+    gameWorld.add(_workerFlowArrows);
 
     if (_lastState != null) {
       _buildWorldFromState(_lastState!);
@@ -349,6 +361,11 @@ class HexMapGame extends FlameGame {
     final bool caravanChanged = prev == null || prev.caravanRoutes.length != state.caravanRoutes.length;
     final bool macroChanged = prev?.isMacroOverview != state.isMacroOverview;
 
+    final bool combatChanged = prev == null ||
+        prev.combatState.isActiveWave != state.combatState.isActiveWave ||
+        prev.combatState.activeEnemies.length != state.combatState.activeEnemies.length ||
+        prev.combatState.activeProjectiles.length != state.combatState.activeProjectiles.length;
+
     if (tilesRefChanged || selectionChanged || seasonChanged || themeChanged) {
       _updateTiles(state, prev: prev);
     }
@@ -357,6 +374,9 @@ class HexMapGame extends FlameGame {
     }
     if (caravanChanged) {
       _updateCaravans(state);
+    }
+    if (combatChanged) {
+      _updateCombat(state);
     }
     if (seasonChanged) {
       _updateWeather(state);
@@ -383,10 +403,80 @@ class HexMapGame extends FlameGame {
     }
     _caravanComponents.clear();
 
+    for (final e in _enemyComponents.values) {
+      e.removeFromParent();
+    }
+    _enemyComponents.clear();
+    _spawnedProjectileIds.clear();
+
     _updateTiles(state);
     _updateWorkers(state);
     _updateCaravans(state);
+    _updateCombat(state);
     _updateWeather(state);
+  }
+
+  void _updateCombat(GameState state) {
+    final combat = state.combatState;
+
+    if (!combat.isActiveWave) {
+      for (final enemy in _enemyComponents.values) {
+        enemy.removeFromParent();
+      }
+      _enemyComponents.clear();
+      _spawnedProjectileIds.clear();
+      return;
+    }
+
+    // 1. Düşmanları Güncelle & Sil
+    final Set<String> activeIds = combat.activeEnemies.map((e) => e.id).toSet();
+    _enemyComponents.removeWhere((id, comp) {
+      if (!activeIds.contains(id)) {
+        comp.removeFromParent();
+        return true;
+      }
+      return false;
+    });
+
+    for (final enemy in combat.activeEnemies) {
+      if (_enemyComponents.containsKey(enemy.id)) {
+        _enemyComponents[enemy.id]!.updateEnemyData(enemy);
+      } else {
+        final comp = VoxelEnemyComponent(
+          enemy: enemy,
+          getElevation: (c) {
+            final t = state.tiles[c];
+            if (t == null) return 0.0;
+            return HexTileComponent.getBiomeElevation(t.biome, isFog: t.isFog);
+          },
+        );
+        _enemyComponents[enemy.id] = comp;
+        gameWorld.add(comp);
+      }
+    }
+
+    // 2. Kule Mermilerini / Oklarını Fırlat
+    for (final proj in combat.activeProjectiles) {
+      if (!_spawnedProjectileIds.contains(proj.id)) {
+        _spawnedProjectileIds.add(proj.id);
+        final targetEnemy = _enemyComponents[proj.targetEnemyId];
+        final targetPixel = HexMath.hexToPixel(const HexAxial(0, 0), hexSize: HexTileComponent.hexRadius);
+        final Vector2 targetPos = targetEnemy != null
+            ? targetEnemy.position.clone()
+            : Vector2(targetPixel.dx, targetPixel.dy);
+
+        final pComp = VoxelProjectileComponent(
+          projectile: proj,
+          targetPixelPos: targetPos,
+          getElevation: (c) {
+            final t = state.tiles[c];
+            if (t == null) return 0.0;
+            return HexTileComponent.getBiomeElevation(t.biome, isFog: t.isFog);
+          },
+        );
+        gameWorld.add(pComp);
+      }
+    }
   }
 
   void _updateCaravans(GameState state) {
@@ -409,11 +499,68 @@ class HexMapGame extends FlameGame {
     }
   }
 
+  static bool _isProducerBuilding(BuildingType type) {
+    switch (type) {
+      case BuildingType.castle:
+      case BuildingType.worker:
+      case BuildingType.watchtower:
+      case BuildingType.bridge:
+      case BuildingType.fishermanHut:
+      case BuildingType.granaryVault:
+        return false;
+      default:
+        return true;
+    }
+  }
+
   void _updateTiles(GameState state, {GameState? prev}) {
     final bool globalChange = prev == null ||
         prev.season.current != state.season.current ||
         prev.season.isZud != state.season.isZud ||
         prev.settings.activeThemePalette != state.settings.activeThemePalette;
+
+    // İşçi Kulübesi seçildiğinde 4-hex menzili ve malzeme tedarik eden üretim binalarının tespiti
+    final selectedTile = state.selectedCoord != null ? state.tiles[state.selectedCoord!] : null;
+    final bool isWorkerSelected = selectedTile != null &&
+        selectedTile.isOwned &&
+        selectedTile.hasBuilding &&
+        selectedTile.building!.type == BuildingType.worker;
+
+    final Set<HexAxial> workerRangeCoords = {};
+    final List<MapEntry<HexAxial, BuildingType>> workerContributors = [];
+
+    if (isWorkerSelected) {
+      final selectedCoord = state.selectedCoord!;
+      for (final entry in state.tiles.entries) {
+        final coord = entry.key;
+        final tile = entry.value;
+        if (!tile.isOwned || tile.isFog) continue;
+
+        if (coord.distanceTo(selectedCoord) <= 4) {
+          workerRangeCoords.add(coord);
+
+          if (coord != selectedCoord && tile.hasBuilding) {
+            final b = tile.building!;
+            if (_isProducerBuilding(b.type)) {
+              workerContributors.add(MapEntry(coord, b.type));
+            }
+          }
+        }
+      }
+    }
+
+    // İnce yeşil lojistik akış oklarını güncelle
+    _workerFlowArrows.updateFlows(
+      workerCoord: isWorkerSelected ? state.selectedCoord : null,
+      contributors: workerContributors,
+      getTileElevation: (c) {
+        final t = state.tiles[c];
+        if (t == null) return 0.0;
+        return HexTileComponent.getBiomeElevation(t.biome, isFog: t.isFog);
+      },
+    );
+
+    final Set<HexAxial> contributorCoords = workerContributors.map((e) => e.key).toSet();
 
     for (final entry in state.tiles.entries) {
       final coord = entry.key;
@@ -421,10 +568,18 @@ class HexMapGame extends FlameGame {
       final bool isSel = state.selectedCoord == coord;
       final bool wasSel = prev?.selectedCoord == coord;
       final prevTile = prev?.tiles[coord];
+      final bool inRange = workerRangeCoords.contains(coord);
+      final bool isContributor = contributorCoords.contains(coord);
 
-      // Değişmeyen ve seçimi değişmeyen karoları atla (Saniyelik tam harita tarama yükünü sıfırlar)
-      if (!globalChange && prevTile == tile && isSel == wasSel && _tileComponents.containsKey(coord)) {
-        continue;
+      // Değişmeyen, seçimi ve menzil durumu değişmeyen karoları atla (Saniyelik tam harita tarama yükünü sıfırlar)
+      if (!globalChange &&
+          prevTile == tile &&
+          isSel == wasSel &&
+          _tileComponents.containsKey(coord)) {
+        final comp = _tileComponents[coord]!;
+        if (comp.isInWorkerRange == inRange && comp.isHarvestHighlight == isContributor) {
+          continue;
+        }
       }
 
       // Aynı biyomdaki açık komşuların göreli konum vektörleri (Hayvan Göç ve Gezinme Yolu)
@@ -442,6 +597,8 @@ class HexMapGame extends FlameGame {
         _tileComponents[coord]!.updateData(
           newTileModel: tile,
           newIsSelected: isSel,
+          newIsInWorkerRange: inRange,
+          newIsHarvestHighlight: isContributor,
           newSeason: state.season.current,
           newIsZud: state.season.isZud,
           newIsNight: _isNight,
@@ -453,6 +610,8 @@ class HexMapGame extends FlameGame {
           coord: coord,
           tileModel: tile,
           isSelected: isSel,
+          isInWorkerRange: inRange,
+          isHarvestHighlight: isContributor,
           season: state.season.current,
           isZud: state.season.isZud,
           isNight: _isNight,

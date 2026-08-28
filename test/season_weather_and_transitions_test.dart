@@ -98,7 +98,7 @@ void main() {
   });
 
   group('SeasonTransitionBanner Widget Tests', () {
-    testWidgets('SeasonTransitionBanner reacts to season changes with spring banner', (tester) async {
+    testWidgets('SeasonTransitionBanner reacts to season changes with summer banner and dismisses with close button', (tester) async {
       final notifier = GameStateNotifier();
 
       await tester.pumpWidget(
@@ -120,18 +120,27 @@ void main() {
 
       await tester.pump();
 
-      // Trigger season change
+      // Trigger season change to summer
       notifier.state = notifier.state.copyWith(
         season: const SeasonModel(current: 'SUMMER', isZud: false, year: 2),
       );
 
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump(const Duration(milliseconds: 500));
 
       expect(find.byType(SeasonTransitionBanner), findsOneWidget);
       expect(find.textContaining('YAZ'), findsOneWidget);
 
-      await tester.pump(const Duration(seconds: 5));
+      // Close button exists and can be tapped
+      final closeButtonFinder = find.byIcon(Icons.close);
+      expect(closeButtonFinder, findsOneWidget);
+
+      await tester.tap(closeButtonFinder, warnIfMissed: false);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // After dismiss animation, banner is completely hidden
+      expect(find.textContaining('YAZ'), findsNothing);
     });
   });
 

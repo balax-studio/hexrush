@@ -2,6 +2,7 @@ import '../../core/hex/hex_coordinates.dart';
 import '../services/symbiosis_engine.dart';
 import 'ancestral_kurgan_model.dart';
 import 'building_model.dart';
+import 'combat_model.dart';
 
 enum TileBiome {
   meadow,
@@ -89,6 +90,8 @@ class HexTileModel {
   final double restTimeAccumulated; // Seconds spent resting, used for respiration burst
   final SymbiosisType symbiosis; // Cascading ecological hybrid state
   final AncestralKurgan? ancestralKurgan; // Ancient relic tomb from previous migration
+  final bool isDamaged; // Düşman akınında tahrip edilmiş karo
+  final CombatWallModel? wall; // Karodaki sur yapısı
 
   const HexTileModel({
     required this.coord,
@@ -103,6 +106,8 @@ class HexTileModel {
     this.restTimeAccumulated = 0.0,
     this.symbiosis = SymbiosisType.none,
     this.ancestralKurgan,
+    this.isDamaged = false,
+    this.wall,
   });
 
   bool get hasBuilding => building != null;
@@ -112,6 +117,8 @@ class HexTileModel {
   bool get hasShrine => shrine != ShrineType.none;
   bool get hasKurgan => ancestralKurgan != null;
   bool get isSymbiotic => symbiosis != SymbiosisType.none;
+  bool get hasActiveWall => wall != null && !wall!.isBreached;
+  bool get needsRepair => isDamaged || (wall != null && wall!.needsRepair);
 
   HexTileModel copyWith({
     HexAxial? coord,
@@ -128,6 +135,9 @@ class HexTileModel {
     SymbiosisType? symbiosis,
     AncestralKurgan? ancestralKurgan,
     bool? clearKurgan,
+    bool? isDamaged,
+    CombatWallModel? wall,
+    bool? clearWall,
   }) {
     return HexTileModel(
       coord: coord ?? this.coord,
@@ -142,6 +152,8 @@ class HexTileModel {
       restTimeAccumulated: restTimeAccumulated ?? this.restTimeAccumulated,
       symbiosis: symbiosis ?? this.symbiosis,
       ancestralKurgan: clearKurgan == true ? null : (ancestralKurgan ?? this.ancestralKurgan),
+      isDamaged: isDamaged ?? this.isDamaged,
+      wall: clearWall == true ? null : (wall ?? this.wall),
     );
   }
 
@@ -160,6 +172,8 @@ class HexTileModel {
       'rest_time_accumulated': restTimeAccumulated,
       'symbiosis': symbiosis.index,
       'ancestral_kurgan': ancestralKurgan?.toJson(),
+      'is_damaged': isDamaged,
+      'wall': wall?.toJson(),
     };
   }
 
@@ -187,6 +201,11 @@ class HexTileModel {
       kurgan = AncestralKurgan.fromJson(json['ancestral_kurgan'] as Map<String, dynamic>);
     }
 
+    CombatWallModel? wall;
+    if (json.containsKey('wall') && json['wall'] != null) {
+      wall = CombatWallModel.fromJson(json['wall'] as Map<String, dynamic>);
+    }
+
     return HexTileModel(
       coord: HexAxial(q, r),
       biome: TileBiome.values[biomeIdx.clamp(0, TileBiome.values.length - 1)],
@@ -200,6 +219,9 @@ class HexTileModel {
       restTimeAccumulated: (json['rest_time_accumulated'] as num?)?.toDouble() ?? 0.0,
       symbiosis: SymbiosisType.values[symbiosisIdx.clamp(0, SymbiosisType.values.length - 1)],
       ancestralKurgan: kurgan,
+      isDamaged: json['is_damaged'] as bool? ?? false,
+      wall: wall,
     );
   }
 }
+

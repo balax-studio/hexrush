@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../domain/models/building_model.dart';
+import '../../../domain/models/combat_model.dart';
 import '../../../domain/models/hex_tile_model.dart';
 import '../../../domain/services/symbiosis_engine.dart';
 
@@ -2226,23 +2227,23 @@ class VoxelIsometricRenderer {
     int level = 1,
     bool isWinter = false,
   }) {
-    // Taş Ocağı Basamağı 1
-    final Color baseTop = level >= 8
+    // Taş Ocağı Basamağı 1 (Her 2X sıçramadan sonra: Seviye 10 ve 25)
+    final Color baseTop = level >= 25
         ? const Color(0xFF334155)
-        : (level >= 4 ? const Color(0xFF475569) : const Color(0xFF64748B));
-    final Color baseLeft = level >= 8
+        : (level >= 10 ? const Color(0xFF475569) : const Color(0xFF64748B));
+    final Color baseLeft = level >= 25
         ? const Color(0xFF1E293B)
-        : (level >= 4 ? const Color(0xFF334155) : const Color(0xFF475569));
-    final Color baseRight = level >= 8
+        : (level >= 10 ? const Color(0xFF334155) : const Color(0xFF475569));
+    final Color baseRight = level >= 25
         ? const Color(0xFF0F172A)
-        : (level >= 4 ? const Color(0xFF1E293B) : const Color(0xFF334155));
+        : (level >= 10 ? const Color(0xFF1E293B) : const Color(0xFF334155));
 
     drawIsoCube(
       canvas,
       baseCenter,
-      w: level >= 8 ? 44.0 : 40.0,
-      d: level >= 8 ? 44.0 : 40.0,
-      h: level >= 8 ? 8.0 : 6.0,
+      w: level >= 25 ? 44.0 : 40.0,
+      d: level >= 25 ? 44.0 : 40.0,
+      h: level >= 25 ? 8.0 : 6.0,
       topColor: baseTop,
       leftColor: baseLeft,
       rightColor: baseRight,
@@ -2252,7 +2253,7 @@ class VoxelIsometricRenderer {
     if (isWinter) {
       drawIsoCube(
         canvas,
-        Offset(baseCenter.dx, baseCenter.dy - (level >= 8 ? 8.0 : 6.0)),
+        Offset(baseCenter.dx, baseCenter.dy - (level >= 25 ? 8.0 : 6.0)),
         w: 38.0,
         d: 38.0,
         h: 2.0,
@@ -2598,50 +2599,446 @@ class VoxelIsometricRenderer {
     }
   }
 
-  /// 3D Voxel Şato / Kağan Otağı (Seviye Katmanları & Gece Işıkları)
-  static void drawVoxelCastle(Canvas canvas, Offset baseCenter, int level, {bool isNight = false}) {
-    final int safeLevel = math.max(1, level);
-    final double extraH = math.min(10.0, (safeLevel - 1) * 1.2);
-    final double mainHeight = 18.0 + extraH;
-    final double towerHeight = 24.0 + extraH * 1.3;
+  /// 3D Voxel Hex Çevre Suru / Savunma Duvarı (Akıllı Kesişim ve Sınır Koruması)
+  /// Altıgenin 6 kenarına duvar çeker; iki surlu hex komşu olduğunda aralarındaki kesişim kenarına duvar koymaz!
+  static void drawVoxelPerimeterWall(
+    Canvas canvas,
+    List<Offset> corners, {
+    required WallTier tier,
+    required List<bool> activeEdges,
+    bool isNight = false,
+    double animTime = 0.0,
+  }) {
+    if (corners.length < 6) return;
 
-    // Ana Saray / Taş Monolit
+    for (int i = 0; i < 6; i++) {
+      if (i >= activeEdges.length || !activeEdges[i]) continue;
+
+      final Offset cA = corners[i];
+      final Offset cB = corners[(i + 1) % 6];
+
+      // Kenar boyunca 3 voksel duvar bloğu yerleştir
+      for (int step = 0; step < 3; step++) {
+        final double t = (step + 0.5) / 3.0;
+        final Offset blockPos = Offset(
+          cA.dx + (cB.dx - cA.dx) * t,
+          cA.dy + (cB.dy - cA.dy) * t,
+        );
+
+        switch (tier) {
+          case WallTier.woodenPalisade:
+            _drawVoxelPalisadeSegment(canvas, blockPos, isNight: isNight);
+            break;
+          case WallTier.stoneRampart:
+            _drawVoxelStoneWallSegment(canvas, blockPos, isNight: isNight, isCrenel: step == 1);
+            break;
+          case WallTier.ironFortification:
+            _drawVoxelIronWallSegment(canvas, blockPos, isNight: isNight, animTime: animTime, isSpike: step != 1);
+            break;
+        }
+      }
+    }
+
+    // Aktif kenarların köşe burçları / kulecikleri
+    for (int i = 0; i < 6; i++) {
+      final int prevEdge = (i + 5) % 6;
+      final bool hasCorner = (i < activeEdges.length && activeEdges[i]) ||
+          (prevEdge < activeEdges.length && activeEdges[prevEdge]);
+      if (hasCorner) {
+        final Offset cornerPos = corners[i];
+        switch (tier) {
+          case WallTier.woodenPalisade:
+            _drawVoxelPalisadeBastion(canvas, cornerPos, isNight: isNight);
+            break;
+          case WallTier.stoneRampart:
+            _drawVoxelStoneBastion(canvas, cornerPos, isNight: isNight);
+            break;
+          case WallTier.ironFortification:
+            _drawVoxelIronBastion(canvas, cornerPos, isNight: isNight, animTime: animTime);
+            break;
+        }
+      }
+    }
+  }
+
+  // --- SEVİYE 1: AHŞAP ÇİT / PALİSADE ---
+  static void _drawVoxelPalisadeSegment(Canvas canvas, Offset pos, {bool isNight = false}) {
+    drawIsoCube(
+      canvas,
+      pos,
+      w: 8.0,
+      d: 8.0,
+      h: 9.0,
+      topColor: const Color(0xFFB45309),
+      leftColor: const Color(0xFF92400E),
+      rightColor: const Color(0xFF78350F),
+    );
+    drawIsoCube(
+      canvas,
+      Offset(pos.dx, pos.dy - 9.0),
+      w: 4.0,
+      d: 4.0,
+      h: 3.5,
+      topColor: const Color(0xFFD97706),
+      leftColor: const Color(0xFFB45309),
+      rightColor: const Color(0xFF92400E),
+    );
+  }
+
+  static void _drawVoxelPalisadeBastion(Canvas canvas, Offset pos, {bool isNight = false}) {
+    drawIsoCube(
+      canvas,
+      pos,
+      w: 10.0,
+      d: 10.0,
+      h: 12.0,
+      topColor: const Color(0xFFD97706),
+      leftColor: const Color(0xFFB45309),
+      rightColor: const Color(0xFF78350F),
+      drawShadow: true,
+    );
+  }
+
+  // --- SEVİYE 2: TAŞ SUR / STONE RAMPART ---
+  static void _drawVoxelStoneWallSegment(Canvas canvas, Offset pos, {bool isNight = false, bool isCrenel = false}) {
+    final double h = isCrenel ? 14.0 : 11.0;
+    drawIsoCube(
+      canvas,
+      pos,
+      w: 10.0,
+      d: 10.0,
+      h: h,
+      topColor: const Color(0xFF94A3B8),
+      leftColor: const Color(0xFF64748B),
+      rightColor: const Color(0xFF475569),
+    );
+    drawIsoCube(
+      canvas,
+      Offset(pos.dx, pos.dy - 5.0),
+      w: 11.0,
+      d: 11.0,
+      h: 1.5,
+      topColor: const Color(0xFFCBD5E1),
+      leftColor: const Color(0xFF94A3B8),
+      rightColor: const Color(0xFF64748B),
+    );
+  }
+
+  static void _drawVoxelStoneBastion(Canvas canvas, Offset pos, {bool isNight = false}) {
+    drawIsoCube(
+      canvas,
+      pos,
+      w: 13.0,
+      d: 13.0,
+      h: 16.0,
+      topColor: const Color(0xFFCBD5E1),
+      leftColor: const Color(0xFF94A3B8),
+      rightColor: const Color(0xFF64748B),
+      drawShadow: true,
+    );
+    drawIsoCube(
+      canvas,
+      Offset(pos.dx, pos.dy - 16.0),
+      w: 8.0,
+      d: 8.0,
+      h: 3.5,
+      topColor: const Color(0xFFE2E8F0),
+      leftColor: const Color(0xFFCBD5E1),
+      rightColor: const Color(0xFF94A3B8),
+    );
+  }
+
+  // --- SEVİYE 3: DEMİR TAHKİMAT / IRON FORTIFICATION ---
+  static void _drawVoxelIronWallSegment(
+    Canvas canvas,
+    Offset pos, {
+    bool isNight = false,
+    double animTime = 0.0,
+    bool isSpike = false,
+  }) {
+    drawIsoCube(
+      canvas,
+      pos,
+      w: 11.0,
+      d: 11.0,
+      h: 14.0,
+      topColor: const Color(0xFF334155),
+      leftColor: const Color(0xFF1E293B),
+      rightColor: const Color(0xFF0F172A),
+    );
+    drawIsoCube(
+      canvas,
+      Offset(pos.dx, pos.dy - 6.0),
+      w: 12.0,
+      d: 12.0,
+      h: 2.0,
+      topColor: const Color(0xFF64748B),
+      leftColor: const Color(0xFF475569),
+      rightColor: const Color(0xFF334155),
+    );
+    if (isSpike) {
+      drawIsoCube(
+        canvas,
+        Offset(pos.dx, pos.dy - 14.0),
+        w: 3.0,
+        d: 3.0,
+        h: 5.0,
+        topColor: const Color(0xFFDC2626),
+        leftColor: const Color(0xFF991B1B),
+        rightColor: const Color(0xFF7F1D1D),
+      );
+    }
+  }
+
+  static void _drawVoxelIronBastion(Canvas canvas, Offset pos, {bool isNight = false, double animTime = 0.0}) {
+    drawIsoCube(
+      canvas,
+      pos,
+      w: 14.0,
+      d: 14.0,
+      h: 18.0,
+      topColor: const Color(0xFF475569),
+      leftColor: const Color(0xFF334155),
+      rightColor: const Color(0xFF1E293B),
+      drawShadow: true,
+    );
+    drawIsoCube(
+      canvas,
+      Offset(pos.dx, pos.dy - 18.0),
+      w: 10.0,
+      d: 10.0,
+      h: 4.0,
+      topColor: const Color(0xFFEF4444),
+      leftColor: const Color(0xFFDC2626),
+      rightColor: const Color(0xFFB91C1C),
+    );
+
+    if (isNight) {
+      final double flicker = 0.75 + 0.25 * math.sin(animTime * 10.0);
+      drawIsoCube(
+        canvas,
+        Offset(pos.dx, pos.dy - 23.0),
+        w: 4.0,
+        d: 4.0,
+        h: 4.0,
+        topColor: Color.fromRGBO(245, 158, 11, flicker),
+        leftColor: const Color(0xFFD97706),
+        rightColor: const Color(0xFFB45309),
+      );
+    }
+  }
+
+  /// 3D Voxel Bozkır Savunma ve Gözcü Kulesi (Archer Defense Watchtower)
+  /// R=3 menzilli, seviyeye göre taş/ahşap takviyeli, tepe okçu mazgallı ve gece meşaleli savunma yapısı.
+  static void drawVoxelWatchtower(
+    Canvas canvas,
+    Offset baseCenter, {
+    int level = 1,
+    bool isNight = false,
+    double animTime = 0.0,
+  }) {
+    final int safeLevel = math.max(1, level);
+    final bool isAdvanced = safeLevel >= 5; // Seviye 5+ taş tahkimatlı & alevli
+
+    // 1. Zemin Kaidesi (Ahşap & Taş Tahkimat)
     drawIsoCube(
       canvas,
       baseCenter,
-      w: 36.0,
-      d: 36.0,
-      h: mainHeight,
-      topColor: safeLevel >= 6 ? const Color(0xFFE2E8F0) : const Color(0xFFCBD5E1),
-      leftColor: safeLevel >= 6 ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8),
-      rightColor: safeLevel >= 6 ? const Color(0xFF64748B) : const Color(0xFF64748B),
+      w: 24.0,
+      d: 24.0,
+      h: isAdvanced ? 6.0 : 4.0,
+      topColor: isAdvanced ? const Color(0xFF64748B) : const Color(0xFF78350F),
+      leftColor: isAdvanced ? const Color(0xFF475569) : const Color(0xFF5A2508),
+      rightColor: isAdvanced ? const Color(0xFF334155) : const Color(0xFF451A03),
       drawShadow: true,
     );
 
-    // Ana Kapı & Portal (Seviye 3+ Altın Kemerli)
+    final double baseH = isAdvanced ? 6.0 : 4.0;
+    final Offset towerBase = Offset(baseCenter.dx, baseCenter.dy - baseH);
+
+    // 2. Kule Ana Gövdesi (Yüksek Taş/Ahşap Sütun Gövde)
+    const double mainH = 22.0;
+    drawIsoCube(
+      canvas,
+      towerBase,
+      w: 16.0,
+      d: 16.0,
+      h: mainH,
+      topColor: isAdvanced ? const Color(0xFF94A3B8) : const Color(0xFF92400E),
+      leftColor: isAdvanced ? const Color(0xFF64748B) : const Color(0xFF78350F),
+      rightColor: isAdvanced ? const Color(0xFF475569) : const Color(0xFF5A2508),
+    );
+
+    // Çapraz ahşap payandalar
+    for (double dx in [-7.0, 7.0]) {
+      drawIsoCube(
+        canvas,
+        Offset(towerBase.dx + dx * cosIso, towerBase.dy + 4.0),
+        w: 2.5,
+        d: 2.5,
+        h: mainH * 0.75,
+        topColor: const Color(0xFFB45309),
+        leftColor: const Color(0xFF92400E),
+        rightColor: const Color(0xFF78350F),
+      );
+    }
+
+    // 3. Üst Okçu Platformu (Balkon & Siperlik Mazgalları)
+    final Offset platformTop = Offset(towerBase.dx, towerBase.dy - mainH);
+    drawIsoCube(
+      canvas,
+      platformTop,
+      w: 22.0,
+      d: 22.0,
+      h: 3.5,
+      topColor: const Color(0xFFD97706),
+      leftColor: const Color(0xFFB45309),
+      rightColor: const Color(0xFF92400E),
+    );
+
+    // Mazgal siperlikleri (4 Köşe Koruması)
+    final Offset platformRoof = Offset(platformTop.dx, platformTop.dy - 3.5);
+    for (double dx in [-8.0, 8.0]) {
+      for (double dy in [-8.0, 8.0]) {
+        drawIsoCube(
+          canvas,
+          Offset(platformRoof.dx + dx * cosIso, platformRoof.dy + dy * sinIso),
+          w: 3.5,
+          d: 3.5,
+          h: 4.5,
+          topColor: isAdvanced ? const Color(0xFFE2E8F0) : const Color(0xFFB45309),
+          leftColor: isAdvanced ? const Color(0xFFCBD5E1) : const Color(0xFF92400E),
+          rightColor: isAdvanced ? const Color(0xFF94A3B8) : const Color(0xFF78350F),
+        );
+      }
+    }
+
+    // 4. Kule Çatısı (Konik / Piramidal Ahşap Çatı)
+    final Offset roofBase = Offset(platformRoof.dx, platformRoof.dy - 6.0);
+    drawIsoCube(
+      canvas,
+      roofBase,
+      w: 20.0,
+      d: 20.0,
+      h: 3.0,
+      topColor: isAdvanced ? const Color(0xFFDC2626) : const Color(0xFFB45309),
+      leftColor: isAdvanced ? const Color(0xFFB91C1C) : const Color(0xFF92400E),
+      rightColor: isAdvanced ? const Color(0xFF991B1B) : const Color(0xFF78350F),
+    );
+    drawIsoCube(
+      canvas,
+      Offset(roofBase.dx, roofBase.dy - 3.0),
+      w: 12.0,
+      d: 12.0,
+      h: 4.0,
+      topColor: isAdvanced ? const Color(0xFFEF4444) : const Color(0xFFD97706),
+      leftColor: isAdvanced ? const Color(0xFFDC2626) : const Color(0xFFB45309),
+      rightColor: isAdvanced ? const Color(0xFFB91C1C) : const Color(0xFF92400E),
+    );
+
+    // Tepe Tuğu / Sancağı
+    drawIsoCube(
+      canvas,
+      Offset(roofBase.dx, roofBase.dy - 7.0),
+      w: 2.0,
+      d: 2.0,
+      h: 7.0,
+      topColor: const Color(0xFFFDE047),
+      leftColor: const Color(0xFFF59E0B),
+      rightColor: const Color(0xFFD97706),
+    );
+
+    // 5. Gece Nöbet Meşalesi (Night Torchlight)
+    if (isNight) {
+      final double flicker = 0.8 + 0.2 * math.sin(animTime * 8.0);
+      drawIsoCube(
+        canvas,
+        Offset(platformRoof.dx + 7.0 * cosIso, platformRoof.dy - 5.0),
+        w: 3.0,
+        d: 3.0,
+        h: 3.0,
+        topColor: Color.fromRGBO(251, 191, 36, flicker),
+        leftColor: const Color(0xFFF59E0B),
+        rightColor: const Color(0xFFD97706),
+      );
+    }
+  }
+
+  /// 3D Voxel Şato / Kağan Otağı (Görsel Evrim Kademeleri: 5, 15, 30, 50 & Gece Işıkları)
+  static void drawVoxelCastle(Canvas canvas, Offset baseCenter, int level, {bool isNight = false}) {
+    final int safeLevel = math.max(1, level);
+    // Görsel Kademe: 0 (1-4), 1 (5-14), 2 (15-29), 3 (30-49), 4 (50+)
+    final int tier = safeLevel >= 50 ? 4 : (safeLevel >= 30 ? 3 : (safeLevel >= 15 ? 2 : (safeLevel >= 5 ? 1 : 0)));
+
+    final double extraH = tier * 3.5;
+    final double mainHeight = 18.0 + extraH;
+    final double towerHeight = 24.0 + extraH * 1.25;
+
+    // 1. Ana Saray / Taş Monolit Kaide
+    final Color wallTop = tier >= 3
+        ? const Color(0xFFF1F5F9)
+        : (tier >= 2 ? const Color(0xFFE2E8F0) : (tier >= 1 ? const Color(0xFFCBD5E1) : const Color(0xFF94A3B8)));
+    final Color wallLeft = tier >= 3
+        ? const Color(0xFFCBD5E1)
+        : (tier >= 2 ? const Color(0xFF94A3B8) : (tier >= 1 ? const Color(0xFF64748B) : const Color(0xFF475569)));
+    final Color wallRight = tier >= 3
+        ? const Color(0xFF94A3B8)
+        : (tier >= 2 ? const Color(0xFF64748B) : (tier >= 1 ? const Color(0xFF475569) : const Color(0xFF334155)));
+
+    drawIsoCube(
+      canvas,
+      baseCenter,
+      w: 36.0 + (tier >= 3 ? 4.0 : 0.0),
+      d: 36.0 + (tier >= 3 ? 4.0 : 0.0),
+      h: mainHeight,
+      topColor: wallTop,
+      leftColor: wallLeft,
+      rightColor: wallRight,
+      drawShadow: true,
+    );
+
+    // 2. Ana Kapı & Portal (Seviye 5+ Altın Kemerli, Seviye 30+ Çift Katlı Anıtsal Taç Kapı)
+    final bool hasGoldPortal = tier >= 1;
     drawIsoCube(
       canvas,
       Offset(baseCenter.dx, baseCenter.dy + 8),
-      w: 10.0,
+      w: 10.0 + (tier >= 3 ? 2.0 : 0.0),
       d: 4.0,
-      h: 10.0 + math.min(4.0, (safeLevel - 1) * 0.5),
-      topColor: safeLevel >= 3 ? const Color(0xFFF59E0B) : const Color(0xFF1E293B),
-      leftColor: safeLevel >= 3 ? const Color(0xFFD97706) : const Color(0xFF0F172A),
-      rightColor: safeLevel >= 3 ? const Color(0xFFB45309) : const Color(0xFF020617),
+      h: 10.0 + tier * 2.0,
+      topColor: hasGoldPortal ? const Color(0xFFF59E0B) : const Color(0xFF1E293B),
+      leftColor: hasGoldPortal ? const Color(0xFFD97706) : const Color(0xFF0F172A),
+      rightColor: hasGoldPortal ? const Color(0xFFB45309) : const Color(0xFF020617),
     );
 
-    // Kule Çatı Renkleri (Seviye 1-2 Kırmızı, 3-5 Altın Keçe, 6+ Gök Mavisi & Altın)
-    final Color roofTop = safeLevel >= 6
-        ? const Color(0xFF60A5FA)
-        : (safeLevel >= 3 ? const Color(0xFFFDE047) : const Color(0xFFEF4444));
-    final Color roofLeft = safeLevel >= 6
-        ? const Color(0xFF3B82F6)
-        : (safeLevel >= 3 ? const Color(0xFFF59E0B) : const Color(0xFFDC2626));
-    final Color roofRight = safeLevel >= 6
-        ? const Color(0xFF1D4ED8)
-        : (safeLevel >= 3 ? const Color(0xFFD97706) : const Color(0xFF991B1B));
+    // 3. Kule Çatı Renkleri:
+    // Tier 0 (1-4): Kızıl Bozkır Keçesi
+    // Tier 1 (5-14): Altın Sarısı Tuğlu Çatı
+    // Tier 2 (15-29): Gök Mavisi & Altın Saray Kuleleri
+    // Tier 3 (30-49): Arduvaz Monolit & Altın Kubbe
+    // Tier 4 (50+): Göksel Kozmik Zümrüt & Saf Altın
+    final Color roofTop = tier >= 4
+        ? const Color(0xFFFDE047)
+        : (tier >= 3
+            ? const Color(0xFF38BDF8)
+            : (tier >= 2
+                ? const Color(0xFF60A5FA)
+                : (tier >= 1 ? const Color(0xFFFBBF24) : const Color(0xFFEF4444))));
+    final Color roofLeft = tier >= 4
+        ? const Color(0xFFF59E0B)
+        : (tier >= 3
+            ? const Color(0xFF0284C7)
+            : (tier >= 2
+                ? const Color(0xFF3B82F6)
+                : (tier >= 1 ? const Color(0xFFF59E0B) : const Color(0xFFDC2626))));
+    final Color roofRight = tier >= 4
+        ? const Color(0xFFD97706)
+        : (tier >= 3
+            ? const Color(0xFF0369A1)
+            : (tier >= 2
+                ? const Color(0xFF1D4ED8)
+                : (tier >= 1 ? const Color(0xFFD97706) : const Color(0xFF991B1B))));
 
-    // Kuleler
+    // 4. Kuleler (Yan Kuleler)
     for (final xSign in [-1.0, 1.0]) {
       final double tx = baseCenter.dx + xSign * 16.0 * cosIso;
       final double ty = baseCenter.dy - mainHeight + xSign * 16.0 * sinIso;
@@ -2653,9 +3050,9 @@ class VoxelIsometricRenderer {
         w: 12.0,
         d: 12.0,
         h: towerHeight,
-        topColor: const Color(0xFFE2E8F0),
-        leftColor: const Color(0xFF94A3B8),
-        rightColor: const Color(0xFF475569),
+        topColor: wallTop,
+        leftColor: wallLeft,
+        rightColor: wallRight,
       );
 
       // Gece Kule Penceresi Işığı
@@ -2678,20 +3075,20 @@ class VoxelIsometricRenderer {
         Offset(tx, ty - (towerHeight - 12.0)),
         w: 14.0,
         d: 14.0,
-        h: 8.0,
+        h: 8.0 + (tier >= 2 ? 3.0 : 0.0),
         topColor: roofTop,
         leftColor: roofLeft,
         rightColor: roofRight,
       );
 
-      // Seviye 5+ Kule Üstü Kağanlık Bayrakları / Tuğlar
-      if (safeLevel >= 5) {
+      // Seviye 5+ Kule Üstü Kağanlık Tuğları / Sancakları
+      if (tier >= 1) {
         drawIsoCube(
           canvas,
           Offset(tx, ty - (towerHeight - 4.0)),
           w: 2.0,
           d: 2.0,
-          h: 10.0,
+          h: 10.0 + (tier >= 3 ? 4.0 : 0.0),
           topColor: const Color(0xFFFEF08A),
           leftColor: const Color(0xFFEAB308),
           rightColor: const Color(0xFFCA8A04),
@@ -2699,54 +3096,54 @@ class VoxelIsometricRenderer {
         drawIsoCube(
           canvas,
           Offset(tx + 3 * cosIso, ty - (towerHeight + 2.0)),
-          w: 5.0,
+          w: 5.0 + (tier >= 3 ? 2.0 : 0.0),
           d: 1.5,
-          h: 4.0,
-          topColor: const Color(0xFFEF4444),
-          leftColor: const Color(0xFFDC2626),
-          rightColor: const Color(0xFFB91C1C),
+          h: 4.0 + (tier >= 3 ? 1.5 : 0.0),
+          topColor: tier >= 3 ? const Color(0xFF38BDF8) : const Color(0xFFEF4444),
+          leftColor: tier >= 3 ? const Color(0xFF0284C7) : const Color(0xFFDC2626),
+          rightColor: tier >= 3 ? const Color(0xFF0369A1) : const Color(0xFFB91C1C),
         );
       }
     }
 
-    // Merkez Kağan Otağı / Baş Kule
+    // 5. Merkez Kağan Otağı / Baş Kule
     final Offset keepTop = Offset(baseCenter.dx, baseCenter.dy - mainHeight);
 
-    if (safeLevel >= 3) {
-      // Seviye 3+ Merkez İmparatorluk Kubbesi
+    if (tier >= 2) {
+      // Seviye 15+ Merkez İmparatorluk Kubbesi
       drawIsoCube(
         canvas,
         keepTop,
-        w: 16.0,
-        d: 16.0,
-        h: 8.0 + (safeLevel >= 7 ? 4.0 : 0.0),
+        w: 16.0 + (tier >= 4 ? 4.0 : 0.0),
+        d: 16.0 + (tier >= 4 ? 4.0 : 0.0),
+        h: 8.0 + (tier >= 3 ? 5.0 : 0.0),
         topColor: const Color(0xFFFEF08A),
         leftColor: const Color(0xFFEAB308),
         rightColor: const Color(0xFFCA8A04),
       );
     }
 
-    // Merkez Altın Tamga Sancağı / Zirve Direği
-    final double spireBaseY = safeLevel >= 3 ? keepTop.dy - 8.0 : keepTop.dy;
+    // 6. Merkez Altın Tamga Sancağı / Zirve Direği
+    final double spireBaseY = tier >= 2 ? keepTop.dy - 8.0 : keepTop.dy;
     drawIsoCube(
       canvas,
       Offset(keepTop.dx, spireBaseY),
-      w: safeLevel >= 6 ? 4.0 : 3.0,
-      d: safeLevel >= 6 ? 4.0 : 3.0,
-      h: 14.0 + math.min(10.0, (safeLevel - 1) * 1.0),
+      w: tier >= 3 ? 4.0 : 3.0,
+      d: tier >= 3 ? 4.0 : 3.0,
+      h: 14.0 + tier * 3.0,
       topColor: const Color(0xFFFDE047),
       leftColor: const Color(0xFFEAB308),
       rightColor: const Color(0xFFCA8A04),
     );
 
-    // Seviye 8+ Göksel Hilal/Tamga Zirve Tacı
-    if (safeLevel >= 8) {
+    // 7. Seviye 30+ ve Seviye 50+ Göksel Kağanlık Zirve Tacı
+    if (tier >= 3) {
       drawIsoCube(
         canvas,
-        Offset(keepTop.dx, spireBaseY - 14.0),
-        w: 8.0,
-        d: 8.0,
-        h: 4.0,
+        Offset(keepTop.dx, spireBaseY - 14.0 - tier * 2.0),
+        w: tier >= 4 ? 12.0 : 8.0,
+        d: tier >= 4 ? 12.0 : 8.0,
+        h: tier >= 4 ? 6.0 : 4.0,
         topColor: const Color(0xFFFACC15),
         leftColor: const Color(0xFFEAB308),
         rightColor: const Color(0xFFB45309),
@@ -2766,18 +3163,18 @@ class VoxelIsometricRenderer {
   }) {
     final int v = variant % 3;
 
-    // Seviye Kademeleri: Lv 1-3 (Ahşap), Lv 4-7 (Taş Arduvaz), Lv 8+ (İmparatorluk Altın Monolit)
+    // Seviye Kademeleri: Lv 1-9 (Ahşap), Lv 10-24 (Taş Arduvaz), Lv 25+ (İmparatorluk Altın Monolit)
     final Color towerTop;
     final Color towerLeft;
     final Color towerRight;
     final double towerH;
 
-    if (level >= 8) {
+    if (level >= 25) {
       towerTop = const Color(0xFF334155);
       towerLeft = const Color(0xFF1E293B);
       towerRight = const Color(0xFF0F172A);
       towerH = 32.0;
-    } else if (level >= 4) {
+    } else if (level >= 10) {
       towerTop = v == 1 ? const Color(0xFF94A3B8) : const Color(0xFFCBD5E1);
       towerLeft = v == 1 ? const Color(0xFF64748B) : const Color(0xFF94A3B8);
       towerRight = v == 1 ? const Color(0xFF475569) : const Color(0xFF64748B);
@@ -2792,8 +3189,8 @@ class VoxelIsometricRenderer {
     drawIsoCube(
       canvas,
       baseCenter,
-      w: level >= 8 ? 28.0 : 24.0,
-      d: level >= 8 ? 28.0 : 24.0,
+      w: level >= 25 ? 28.0 : 24.0,
+      d: level >= 25 ? 28.0 : 24.0,
       h: towerH,
       topColor: towerTop,
       leftColor: towerLeft,
@@ -2801,8 +3198,8 @@ class VoxelIsometricRenderer {
       drawShadow: true,
     );
 
-    // Lv 8+ İmparatorluk Altın Kaide Süslemesi
-    if (level >= 8) {
+    // Lv 25+ İmparatorluk Altın Kaide Süslemesi
+    if (level >= 25) {
       drawIsoCube(
         canvas,
         Offset(baseCenter.dx, baseCenter.dy - towerH + 2),
@@ -2815,7 +3212,7 @@ class VoxelIsometricRenderer {
       );
     }
 
-    if (level >= 4 || v == 1) {
+    if (level >= 10 || v == 1) {
       // Önünde un çuvalları
       final Offset sackPos = Offset(baseCenter.dx + 12 * cosIso, baseCenter.dy + 8 * sinIso);
       drawIsoCube(
@@ -3293,8 +3690,8 @@ class VoxelIsometricRenderer {
   }) {
     final int v = variant % 3;
 
-    if (level >= 8) {
-      // Seviye 8+: Baş Ormancı Konağı (Çift Çatılı & Vinçli İleri Yapı)
+    if (level >= 10) {
+      // Seviye 10+ (1. Sıçrama): Baş Ormancı Konağı (Çift Çatılı & Vinçli İleri Yapı)
       drawIsoCube(
         canvas,
         baseCenter,
@@ -4002,7 +4399,7 @@ class VoxelIsometricRenderer {
     bool isNight = false,
   }) {
     final int safeLevel = math.max(1, level);
-    final double scale = safeLevel >= 6 ? 1.15 : (safeLevel >= 3 ? 1.05 : 1.0);
+    final double scale = safeLevel >= 25 ? 1.15 : (safeLevel >= 10 ? 1.05 : 1.0);
 
     // Taş / Ahşap Zemin Kaidesi
     drawIsoCube(
@@ -4010,10 +4407,10 @@ class VoxelIsometricRenderer {
       baseCenter,
       w: 22.0 * scale,
       d: 20.0 * scale,
-      h: safeLevel >= 3 ? 4.0 : 2.5,
-      topColor: safeLevel >= 6 ? const Color(0xFF64748B) : const Color(0xFF78350F),
-      leftColor: safeLevel >= 6 ? const Color(0xFF475569) : const Color(0xFF5A2408),
-      rightColor: safeLevel >= 6 ? const Color(0xFF334155) : const Color(0xFF451A03),
+      h: safeLevel >= 10 ? 4.0 : 2.5,
+      topColor: safeLevel >= 25 ? const Color(0xFF64748B) : const Color(0xFF78350F),
+      leftColor: safeLevel >= 25 ? const Color(0xFF475569) : const Color(0xFF5A2408),
+      rightColor: safeLevel >= 25 ? const Color(0xFF334155) : const Color(0xFF451A03),
       drawShadow: true,
     );
 
@@ -4024,14 +4421,14 @@ class VoxelIsometricRenderer {
       yurtPos,
       w: 14.0 * scale,
       d: 14.0 * scale,
-      h: (8.0 + (safeLevel >= 3 ? 2.0 : 0.0)) * scale,
+      h: (8.0 + (safeLevel >= 10 ? 2.0 : 0.0)) * scale,
       topColor: const Color(0xFFF8FAFC),
       leftColor: const Color(0xFFE2E8F0),
       rightColor: const Color(0xFFCBD5E1),
     );
 
     // Otağ Göçebe Kırmızı Kuşağı
-    _sharedFillPaint.color = safeLevel >= 6 ? const Color(0xFFF59E0B) : const Color(0xFFDC2626);
+    _sharedFillPaint.color = safeLevel >= 25 ? const Color(0xFFF59E0B) : const Color(0xFFDC2626);
     canvas.drawRect(
       Rect.fromCenter(center: Offset(yurtPos.dx, yurtPos.dy - 3 * scale), width: 10.0 * scale, height: 1.6),
       _sharedFillPaint,
@@ -4062,13 +4459,13 @@ class VoxelIsometricRenderer {
       w: 5.0 * scale,
       d: 5.0 * scale,
       h: 4.0 * scale,
-      topColor: safeLevel >= 3 ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
-      leftColor: safeLevel >= 3 ? const Color(0xFFF59E0B) : const Color(0xFFB45309),
-      rightColor: safeLevel >= 3 ? const Color(0xFFD97706) : const Color(0xFF92400E),
+      topColor: safeLevel >= 10 ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
+      leftColor: safeLevel >= 10 ? const Color(0xFFF59E0B) : const Color(0xFFB45309),
+      rightColor: safeLevel >= 10 ? const Color(0xFFD97706) : const Color(0xFF92400E),
     );
 
-    // Seviye 3+ Çift Yük Sandığı & Kazma/Kürek Standı
-    if (safeLevel >= 3) {
+    // Seviye 10+ (1. Sıçrama) Çift Yük Sandığı & Kazma/Kürek Standı
+    if (safeLevel >= 10) {
       drawIsoCube(
         canvas,
         Offset(baseCenter.dx - 7 * scale, baseCenter.dy + 5 * scale),
@@ -4081,8 +4478,8 @@ class VoxelIsometricRenderer {
       );
     }
 
-    // Seviye 6+ Kağanlık Lojistik Tuğu / Bayrağı
-    if (safeLevel >= 6) {
+    // Seviye 25+ (2. Sıçrama) Kağanlık Lojistik Tuğu / Bayrağı
+    if (safeLevel >= 25) {
       drawIsoCube(
         canvas,
         Offset(yurtPos.dx, yurtPos.dy - 12 * scale),
@@ -4110,110 +4507,6 @@ class VoxelIsometricRenderer {
       final double flicker = 0.7 + 0.3 * math.sin(animTime * 5.0);
       _sharedFillPaint.color = const Color(0xFFF59E0B).withValues(alpha: 0.6 * flicker);
       canvas.drawCircle(Offset(baseCenter.dx + 2 * scale, baseCenter.dy + 8 * scale), 4.0 * flicker, _sharedFillPaint);
-    }
-  }
-
-  /// 3D Voxel Kule (Seviye Kademeli & Gece Dönen Fener Işığı - Lighthouse Sweep)
-  static void drawVoxelWatchtower(
-    Canvas canvas,
-    Offset baseCenter, {
-    int level = 1,
-    bool isNight = false,
-    double animTime = 0.0,
-  }) {
-    final int safeLevel = math.max(1, level);
-    final double towerH = safeLevel >= 6 ? 38.0 : (safeLevel >= 3 ? 34.0 : 28.0);
-    final double baseW = safeLevel >= 6 ? 16.0 : (safeLevel >= 3 ? 15.0 : 14.0);
-
-    // Kule Gövdesi (Lv 1-2 Ahşap, Lv 3-5 Taş-Demir, Lv 6+ Arduvaz Monolit)
-    final Color bodyTop = safeLevel >= 6
-        ? const Color(0xFF334155)
-        : (safeLevel >= 3 ? const Color(0xFF64748B) : const Color(0xFFB45309));
-    final Color bodyLeft = safeLevel >= 6
-        ? const Color(0xFF1E293B)
-        : (safeLevel >= 3 ? const Color(0xFF475569) : const Color(0xFF92400E));
-    final Color bodyRight = safeLevel >= 6
-        ? const Color(0xFF0F172A)
-        : (safeLevel >= 3 ? const Color(0xFF334155) : const Color(0xFF78350F));
-
-    drawIsoCube(
-      canvas,
-      baseCenter,
-      w: baseW,
-      d: baseW,
-      h: towerH,
-      topColor: bodyTop,
-      leftColor: bodyLeft,
-      rightColor: bodyRight,
-      drawShadow: true,
-    );
-
-    // Kule Üstü Balkon Platformu
-    final double balconyW = baseW + 4.0;
-    drawIsoCube(
-      canvas,
-      Offset(baseCenter.dx, baseCenter.dy - towerH),
-      w: balconyW,
-      d: balconyW,
-      h: 8.0,
-      topColor: isNight ? const Color(0xFFFDE047) : (safeLevel >= 6 ? const Color(0xFFFBBF24) : const Color(0xFFFEF08A)),
-      leftColor: isNight ? const Color(0xFFEAB308) : (safeLevel >= 6 ? const Color(0xFFF59E0B) : const Color(0xFFFDE047)),
-      rightColor: isNight ? const Color(0xFFCA8A04) : (safeLevel >= 6 ? const Color(0xFFD97706) : const Color(0xFFCA8A04)),
-    );
-
-    // Seviye 3+ Korkuluk & Taş Burçlar
-    if (safeLevel >= 3) {
-      drawIsoCube(
-        canvas,
-        Offset(baseCenter.dx, baseCenter.dy - towerH - 6.0),
-        w: 6.0,
-        d: 6.0,
-        h: 4.0,
-        topColor: const Color(0xFF94A3B8),
-        leftColor: const Color(0xFF64748B),
-        rightColor: const Color(0xFF475569),
-      );
-    }
-
-    // Seviye 6+ Altın Gözcü Kartalı Spire / Tuğu
-    if (safeLevel >= 6) {
-      drawIsoCube(
-        canvas,
-        Offset(baseCenter.dx, baseCenter.dy - towerH - 10.0),
-        w: 3.0,
-        d: 3.0,
-        h: 10.0,
-        topColor: const Color(0xFFFDE047),
-        leftColor: const Color(0xFFEAB308),
-        rightColor: const Color(0xFFCA8A04),
-      );
-    }
-
-    // Gece 360 Derece Dönen Fener Huzmesi (Lighthouse Sweep)
-    if (isNight) {
-      final double angle = animTime * 2.2;
-      final Offset beaconOrigin = Offset(baseCenter.dx, baseCenter.dy - (towerH + 4.0));
-      final double rayDist = safeLevel >= 6 ? 70.0 : 55.0;
-      final Offset sweepTarget = Offset(
-        beaconOrigin.dx + math.cos(angle) * rayDist,
-        beaconOrigin.dy + math.sin(angle) * (rayDist * 0.5),
-      );
-      _sharedFillPaint
-        ..color = (safeLevel >= 6 ? const Color(0xFF67E8F9) : const Color(0xFFFEF08A)).withValues(alpha: 0.35)
-        ..style = PaintingStyle.fill;
-
-      _sharedPath
-        ..reset()
-        ..moveTo(beaconOrigin.dx, beaconOrigin.dy)
-        ..lineTo(sweepTarget.dx - 14 * math.sin(angle), sweepTarget.dy + 14 * math.cos(angle))
-        ..lineTo(sweepTarget.dx + 14 * math.sin(angle), sweepTarget.dy - 14 * math.cos(angle))
-        ..close();
-      canvas.drawPath(_sharedPath, _sharedFillPaint);
-
-      _sharedFillPaint
-        ..color = (safeLevel >= 6 ? const Color(0xFF38BDF8) : const Color(0xFFFBBF24)).withValues(alpha: 0.7)
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(beaconOrigin, 6.0, _sharedFillPaint);
     }
   }
 

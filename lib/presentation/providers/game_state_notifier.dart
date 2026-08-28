@@ -6,6 +6,7 @@ import '../../core/audio/tactile_audio_service.dart';
 import '../../core/hex/hex_coordinates.dart';
 import '../../core/hex/hex_math.dart';
 import '../../data/save_repository.dart';
+import '../../domain/economy/combat_calculator.dart';
 import '../../domain/economy/economy_calculator.dart';
 import '../../domain/models/ad_reward_model.dart';
 import '../../domain/services/ad_reward_service.dart';
@@ -13,6 +14,7 @@ import '../../domain/models/ancestral_kurgan_model.dart';
 import '../../domain/models/building_model.dart';
 import '../../domain/models/caravan_route_model.dart';
 import '../../domain/models/celestial_omen_model.dart';
+import '../../domain/models/combat_model.dart';
 import '../../domain/models/doctrine_model.dart';
 import '../../domain/models/game_state.dart';
 import '../../domain/models/game_state_model.dart';
@@ -121,6 +123,88 @@ class GameStateNotifier extends StateNotifier<GameState> {
         rewardType: QuestRewardType.crowns,
         rewardAmount: 3,
       ),
+      QuestModel(
+        id: 'q_mine_1',
+        titleTr: 'Dağın Damarları',
+        titleEn: 'Mountain Veins',
+        descriptionTr: 'Dağ veya taşlık arazide 1 adet Maden ocağı kur.',
+        descriptionEn: 'Build 1 Mine on a mountain or rocky tile.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.mine,
+        targetAmount: 1,
+        rewardType: QuestRewardType.stone,
+        rewardAmount: 100,
+      ),
+      QuestModel(
+        id: 'q_worker_1',
+        titleTr: 'Bozkır Atlıları & Lojistik',
+        titleEn: 'Steppe Riders & Logistics',
+        descriptionTr: 'Otomatik hasat için 1 adet İşçi Çadırı inşa et.',
+        descriptionEn: 'Build 1 Worker Camp to enable auto-harvesting.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.worker,
+        targetAmount: 1,
+        rewardType: QuestRewardType.food,
+        rewardAmount: 120,
+      ),
+      QuestModel(
+        id: 'q_runic_1',
+        titleTr: 'Orhun Bitig Yazıtları',
+        titleEn: 'Orkhon Inscriptions',
+        descriptionTr: 'Bilgelik üretmek için 1 adet Rünik Yazıt Taşı dik.',
+        descriptionEn: 'Erect 1 Runic Stele to generate Wisdom lore.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.runicStele,
+        targetAmount: 1,
+        rewardType: QuestRewardType.crowns,
+        rewardAmount: 5,
+      ),
+      QuestModel(
+        id: 'q_caravan_1',
+        titleTr: 'İpek Yolu Bağlantısı',
+        titleEn: 'Silk Road Connection',
+        descriptionTr: 'İki fethedilmiş karo arasında 1 İpek Yolu Kervan Hattı kur.',
+        descriptionEn: 'Establish 1 Caravan Route between two owned tiles.',
+        type: QuestType.establishCaravan,
+        targetAmount: 1,
+        rewardType: QuestRewardType.crowns,
+        rewardAmount: 6,
+      ),
+      QuestModel(
+        id: 'q_lore_1',
+        titleTr: 'Ulu Töre Kanunu',
+        titleEn: 'Sacred Steppe Lore',
+        descriptionTr: 'Bitig Bilgeliği ile Mecliste en az 2 Töre Kanunu kabul et.',
+        descriptionEn: 'Unlock at least 2 Steppe Lore doctrines.',
+        type: QuestType.unlockLore,
+        targetAmount: 2,
+        rewardType: QuestRewardType.crowns,
+        rewardAmount: 8,
+      ),
+      QuestModel(
+        id: 'q_kumis_1',
+        titleTr: 'Bozkır İksiri Kımız',
+        titleEn: 'Steppe Elixir Kumis',
+        descriptionTr: 'Kutsal içecek için 1 adet Kımız Çadırı inşa et.',
+        descriptionEn: 'Build 1 Kumis Yurt to craft sacred elixir.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.kumisYurt,
+        targetAmount: 1,
+        rewardType: QuestRewardType.crowns,
+        rewardAmount: 10,
+      ),
+      QuestModel(
+        id: 'q_damascus_1',
+        titleTr: 'Efsanevi Şam Çeliği',
+        titleEn: 'Legendary Damascus Steel',
+        descriptionTr: 'Bozkır silahları için 1 Şam Çeliği Dökümhanesi kur.',
+        descriptionEn: 'Build 1 Damascus Forge to smelt legendary steel.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.damascusForge,
+        targetAmount: 1,
+        rewardType: QuestRewardType.tamgas,
+        rewardAmount: 2,
+      ),
     ];
   }
 
@@ -156,8 +240,17 @@ class GameStateNotifier extends StateNotifier<GameState> {
           // Merkez (0,0) - Şato yeri
           biome = TileBiome.meadow;
         } else if (dist == 1) {
-          // Radius 1: Ağırlıklı Çayır ve Orman (%80 Çayır, %20 Orman - Yanardağ, Su, Dağ yok)
-          biome = random.nextDouble() < 0.80 ? TileBiome.meadow : TileBiome.forest;
+          // Radius 1 Garantili Biyom Çekirdeği (Zero Soft-Lock):
+          // İlk 6 komşudan (1,0) Orman, (-1,1) Dağ, (0,1) Çayır garantilidir.
+          if (coord.q == 1 && coord.r == 0) {
+            biome = TileBiome.forest;
+          } else if (coord.q == -1 && coord.r == 1) {
+            biome = TileBiome.mountain;
+          } else if (coord.q == 0 && coord.r == 1) {
+            biome = TileBiome.meadow;
+          } else {
+            biome = random.nextDouble() < 0.70 ? TileBiome.meadow : TileBiome.forest;
+          }
         } else if (dist == 2) {
           // Radius 2: Çayır (%65), Orman (%25), Çöl (%10 - Yanardağ, Su, Dağ yok)
           final roll = random.nextDouble();
@@ -245,10 +338,14 @@ class GameStateNotifier extends StateNotifier<GameState> {
       building: const BuildingModel(type: BuildingType.castle, level: 1),
     );
 
-    // 2. KUTLU TAPINAK YERLEŞİMİ (Tam 11 Adet, Asgari 7 Hex Mesafe)
+    // 2. KUTLU TAPINAK YERLEŞİMİ (Tam 11 Adet, Başlangıç Görünür Alanında 1 Garantili Tapınak)
+    // İlk tapınak: Başlangıçta görünür (dist=1) ve hemen fethedilebilir (0, 1) Çayır karosuna yerleştirilir.
+    const initialGuaranteedShrineCoord = HexAxial(0, 1);
     final List<HexAxial> placedShrineCoords = [];
+
     final List<HexAxial> landCandidates = map.keys.where((c) {
       if (c.q == 0 && c.r == 0) return false;
+      if (c == initialGuaranteedShrineCoord) return false;
       final t = map[c]!;
       if (t.biome == TileBiome.sea || t.biome == TileBiome.mountain) return false;
       if (t.biome == TileBiome.celestialCrater ||
@@ -260,10 +357,12 @@ class GameStateNotifier extends StateNotifier<GameState> {
     }).toList();
 
     const int targetShrineCount = 11;
-    const int minDistance = 7;
+    const int minDistance = 6;
 
-    for (int attempt = 0; attempt < 20 && placedShrineCoords.length < targetShrineCount; attempt++) {
+    for (int attempt = 0; attempt < 25 && placedShrineCoords.length < targetShrineCount; attempt++) {
       placedShrineCoords.clear();
+      // Garantili başlangıç tapınağını ekle
+      placedShrineCoords.add(initialGuaranteedShrineCoord);
       landCandidates.shuffle(random);
 
       for (final candidate in landCandidates) {
@@ -284,8 +383,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
     }
 
     // 11 Kutlu Tapınak tür dağılımı: 4 Gıda, 4 Odun, 3 Hız
-    final List<ShrineType> shrineTypes = [
-      ShrineType.foodBoost,
+    // İlk tapınağın türü oyuncunun erken safhada gelişimini doğrudan hızlandıracak Gıda Bereketi (+%30) olarak atanır.
+    final List<ShrineType> otherShrineTypes = [
       ShrineType.foodBoost,
       ShrineType.foodBoost,
       ShrineType.foodBoost,
@@ -297,7 +396,11 @@ class GameStateNotifier extends StateNotifier<GameState> {
       ShrineType.speedBoost,
       ShrineType.speedBoost,
     ];
-    shrineTypes.shuffle(random);
+    otherShrineTypes.shuffle(random);
+    final List<ShrineType> shrineTypes = [
+      ShrineType.foodBoost, // İlk garantili tapınak için Gıda Bereketi
+      ...otherShrineTypes,
+    ];
 
     for (int i = 0; i < placedShrineCoords.length; i++) {
       final c = placedShrineCoords[i];
@@ -366,6 +469,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
           yearIndex: save.yearIndex,
           discoveredKurgans: save.discoveredKurgans,
           adTracking: save.adTracking.checkDailyReset(),
+          combatState: save.combatState ?? state.combatState,
         );
 
         _syncQuestProgress();
@@ -430,6 +534,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
           crowns: state.resources.crowns,
           toreTalents: state.toreTalents,
           titles: state.titles,
+          kutMultiplier: state.progression.kutMultiplier,
         ) *
         state.frenzyMultiplier;
 
@@ -488,7 +593,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
         workerSourceCoords.add(t.coord);
         workerSourceCapacities.add(1.0 * workerTransferMult);
       } else if (t.building!.type == BuildingType.worker ||
-          t.building!.type == BuildingType.fishermanHut) {
+          t.building!.type == BuildingType.fishermanHut ||
+          t.building!.type == BuildingType.granaryVault) {
         workerSourceCoords.add(t.coord);
         workerSourceCapacities.add(t.building!.currentCarryingCapacity * workerTransferMult);
       }
@@ -617,11 +723,12 @@ class GameStateNotifier extends StateNotifier<GameState> {
             )
           : 1.0;
 
+      final double damagePenalty = tile.isDamaged ? 0.5 : 1.0;
       final double rate = EconomyCalculator.calculateBuildingProduction(
         type: b.type,
         level: b.level,
         baseRate: b.baseProductionRate,
-        globalMultiplier: globalMult * docMult * caravanMult * symbiosisMult * ancestralMult * omenMult,
+        globalMultiplier: globalMult * docMult * caravanMult * symbiosisMult * ancestralMult * omenMult * damagePenalty,
         seasonMultiplier: seasonMult * soilMult,
         synergyMultiplier: totalSynergy,
         workerMultiplier: 1.0, // Kapasite sistemi geldiği için oran sabitlendi
@@ -687,8 +794,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
         currentPlank -= consumePlank;
 
         // Taşıma Kapasitesi ve 4 Hex Menzil Kontrolü
+        // İşçi hem yeni üretimi (rate) hem de binada önceden birikmiş olan ürünü (accumulatedResource) taşır
         double carriedAmount = 0.0;
-        double neededAmount = rate;
+        double neededAmount = rate + b.accumulatedResource;
 
         for (int i = 0; i < workerSourceCoords.length; i++) {
           if (neededAmount <= 0.0) break;
@@ -699,8 +807,6 @@ class GameStateNotifier extends StateNotifier<GameState> {
             neededAmount -= take;
           }
         }
-
-        final double storedAmount = rate - carriedAmount;
 
         // Taşınanları ekle
         switch (b.type) {
@@ -791,8 +897,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
             break;
         }
 
-        // Taşınamayanları binada biriktir
-        final double newAccum = math.min(b.maxCapacity, b.accumulatedResource + storedAmount);
+        // Yeni birikim: Taşınamayan miktar varsa birikir, kapasite fazlası varsa birikmiş stoktan düşer
+        final double newAccum = math.max(0.0, math.min(b.maxCapacity, (b.accumulatedResource + rate) - carriedAmount));
         updatedTiles[entry.key] = tile.copyWith(
           building: b.copyWith(accumulatedResource: newAccum),
           isWarmed: isWarmed,
@@ -801,8 +907,114 @@ class GameStateNotifier extends StateNotifier<GameState> {
           restTimeAccumulated: newRestTime,
         );
       } else {
-        // Üretim yapılamadı (kaynak yok), sadece ısıtma timerı ve toprak durumu güncellensin
+        // Üretim yapılamadı (kaynak yok veya kış), ancak önceden birikmiş ürün varsa işçi taşımaya devam etsin
+        double carriedAmount = 0.0;
+        if (b.accumulatedResource > 0.0) {
+          double neededAmount = b.accumulatedResource;
+          for (int i = 0; i < workerSourceCoords.length; i++) {
+            if (neededAmount <= 0.0) break;
+            if (tile.coord.distanceTo(workerSourceCoords[i]) <= 4 && workerSourceCapacities[i] > 0.0) {
+              final double take = math.min(neededAmount, workerSourceCapacities[i]);
+              workerSourceCapacities[i] -= take;
+              carriedAmount += take;
+              neededAmount -= take;
+            }
+          }
+
+          if (carriedAmount > 0.0) {
+            switch (b.type) {
+              case BuildingType.corn:
+              case BuildingType.barley:
+              case BuildingType.pasture:
+              case BuildingType.orchard:
+                addedFood += carriedAmount;
+                currentFood += carriedAmount;
+                break;
+              case BuildingType.lumberjack:
+              case BuildingType.resinCamp:
+                addedWood += carriedAmount;
+                currentWood += carriedAmount;
+                break;
+              case BuildingType.quarry:
+                addedStone += carriedAmount;
+                break;
+              case BuildingType.windmill:
+                addedFlour += carriedAmount;
+                currentFlour += carriedAmount;
+                break;
+              case BuildingType.sawmill:
+                addedPlank += carriedAmount;
+                currentPlank += carriedAmount;
+                break;
+              case BuildingType.bakery:
+                addedBread += carriedAmount;
+                break;
+              case BuildingType.furniture:
+                addedFurniture += carriedAmount;
+                break;
+              case BuildingType.mine:
+                addedStone += carriedAmount;
+                if (state.progression.castleLevel >= 12) {
+                  final bool hasIronBoost = activeDoctrines.any((d) => d.effectType == DoctrineEffectType.mineIronBoost);
+                  final double ironRatio = hasIronBoost ? 0.45 : 0.30;
+                  addedIron += carriedAmount * ironRatio;
+                }
+                break;
+              case BuildingType.fisherman:
+                addedFish += carriedAmount;
+                break;
+              case BuildingType.oasisCistern:
+              case BuildingType.reindeerSanctuary:
+              case BuildingType.herbalistYurt:
+                addedFood += carriedAmount;
+                currentFood += carriedAmount;
+                break;
+              case BuildingType.caravanserai:
+                addedBread += carriedAmount;
+                addedFood += carriedAmount * 0.5;
+                break;
+              case BuildingType.scribeWorkshop:
+                addedPlank += carriedAmount;
+                break;
+              case BuildingType.geothermalBath:
+              case BuildingType.steamVent:
+                addedStone += carriedAmount;
+                break;
+              case BuildingType.permafrostDig:
+              case BuildingType.obsidianForge:
+              case BuildingType.celestialAnvil:
+                addedStone += carriedAmount;
+                addedIron += carriedAmount * 0.5;
+                break;
+              case BuildingType.ancestralTotem:
+              case BuildingType.prismaticResonator:
+              case BuildingType.astrolabe:
+                final double mBonus = 1.0 + state.progression.totalMigrations * 0.1;
+                addedFood += carriedAmount * 0.4 * mBonus;
+                addedWood += carriedAmount * 0.4 * mBonus;
+                addedStone += carriedAmount * 0.4 * mBonus;
+                break;
+              case BuildingType.runicStele:
+                addedWisdom += carriedAmount;
+                break;
+              case BuildingType.kumisYurt:
+                addedKumis += carriedAmount;
+                break;
+              case BuildingType.feltTentWorkshop:
+                addedFelt += carriedAmount;
+                break;
+              case BuildingType.damascusForge:
+                addedDamascusSteel += carriedAmount;
+                break;
+              default:
+                break;
+            }
+          }
+        }
+
+        final double newAccum = math.max(0.0, b.accumulatedResource - carriedAmount);
         updatedTiles[entry.key] = tile.copyWith(
+          building: b.copyWith(accumulatedResource: newAccum),
           isWarmed: isWarmed,
           warmTimer: warmTimer,
           soilHealth: newSoil,
@@ -840,9 +1052,17 @@ class GameStateNotifier extends StateNotifier<GameState> {
       yearIndex: newYearIndex,
       celestialOmen: newOmen,
     );
+
+    if (state.combatState.isActiveWave) {
+      _processCombatTick(1.0, updatedTiles);
+    }
   }
 
-  void selectTile(HexAxial coord) {
+  void selectTile(HexAxial? coord) {
+    if (coord == null) {
+      clearSelection();
+      return;
+    }
     final tile = state.tiles[coord];
     if (tile == null) return;
 
@@ -1631,6 +1851,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
     final int ownedCount = state.progression.ownedCount;
     final int castleLevel = state.progression.castleLevel;
     final int shrineCount = state.tiles.values.where((t) => t.isOwned && t.hasShrine).length;
+    final int caravanCount = state.caravanRoutes.length;
+    final int loreCount = state.progression.unlockedLoreIds.length;
+    final int zudCount = (state.stats['zudCount'] as num?)?.toInt() ?? 0;
 
     final updatedQuests = state.quests.map((q) {
       if (q.isClaimed) return q;
@@ -1645,6 +1868,15 @@ class GameStateNotifier extends StateNotifier<GameState> {
           break;
         case QuestType.discoverShrine:
           current = shrineCount;
+          break;
+        case QuestType.establishCaravan:
+          current = caravanCount;
+          break;
+        case QuestType.unlockLore:
+          current = loreCount;
+          break;
+        case QuestType.surviveZud:
+          current = zudCount;
           break;
         case QuestType.buildStructure:
           if (q.targetBuilding != null) {
@@ -1696,6 +1928,10 @@ class GameStateNotifier extends StateNotifier<GameState> {
       case QuestRewardType.crowns:
         newRes = newRes.copyWith(crowns: newRes.crowns + quest.rewardAmount);
         rewardName = 'Taç';
+        break;
+      case QuestRewardType.tamgas:
+        newRes = newRes.copyWith(tamgas: newRes.tamgas + quest.rewardAmount);
+        rewardName = 'Atalar Tamgası';
         break;
     }
 
@@ -1778,6 +2014,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       yearIndex: state.yearIndex,
       discoveredKurgans: state.discoveredKurgans,
       adTracking: state.adTracking,
+      combatState: state.combatState,
     );
   }
 
@@ -2233,11 +2470,47 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
     state = _createInitialState();
 
-    // Yeni oyuna kazanılan Taç, Tamga ve Global Multiplier ile başla
-    final double tamgaMult = EconomyCalculator.getTamgaMultiplier(totalTamgas);
+    // Yeni oyuna kazanılan Taç, Tamga ve Kut Çarpanı ile başla
+    final double calculatedKut = EconomyCalculator.calculateKutMultiplier(
+      tamgas: totalTamgas,
+      totalMigrations: nextMigrations,
+      victoryMilestones: state.progression.victoryMilestones,
+      activeOaths: state.progression.activeOaths,
+    );
+
+    // Diyara Özel Güvenli Başlangıç Ambarı (Safe Floor & Zero Soft-Lock)
+    final String realm = state.progression.activeRealmId;
+    double startFood = 50.0;
+    double startWood = 30.0;
+    double startStone = 0.0;
+    double startIron = 0.0;
+    double startFish = 0.0;
+    double startPlank = 0.0;
+
+    if (realm == 'altay') {
+      startFood = 50.0;
+      startWood = 50.0;
+      startStone = 50.0;
+      startIron = 30.0;
+    } else if (realm == 'idil') {
+      startFood = 80.0;
+      startWood = 40.0;
+      startFish = 30.0;
+    } else if (realm == 'karakum') {
+      startFood = 50.0;
+      startWood = 30.0;
+      startPlank = 80.0;
+      startStone = 30.0;
+    }
 
     state = state.copyWith(
       resources: state.resources.copyWith(
+        food: startFood,
+        wood: startWood,
+        stone: startStone,
+        iron: startIron,
+        fish: startFish,
+        plank: startPlank,
         crowns: totalCrowns,
         tamgas: totalTamgas,
       ),
@@ -2246,9 +2519,11 @@ class GameStateNotifier extends StateNotifier<GameState> {
         migrationHistory: updatedHistory,
         cumulativeBiomeCounts: preservedBiomes,
         totalSessions: preservedSessions,
+        activeRealmId: realm,
+        kutMultiplier: calculatedKut,
       ),
       discoveredKurgans: accumulatedKurgans,
-      activeToast: 'Büyük Göç Tamamlandı. +$newCrowns Taç & +$newTamgas Tamga Miras Kaldı!',
+      activeToast: 'Büyük Göç Tamamlandı. +$newCrowns Taç & +$newTamgas Tamga (Kut: ${calculatedKut.toStringAsFixed(2)}x) Miras Kaldı!',
     );
 
     saveGame();
@@ -2362,5 +2637,574 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
     TactileAudioService.instance.play(TactileSoundType.stoneClick);
     saveGame();
+  }
+
+  /// 4. Kültürel Zafer: Bengü Taşların Dikilmesi
+  bool claimCulturalVictory() {
+    if (state.progression.victoryMilestones['culturalBenguTas'] == true) {
+      showToast('Orhun Bengü Taşları zaten tarihe kazındı.');
+      return false;
+    }
+
+    final isEligible = EconomyCalculator.checkCulturalVictoryProgress(
+      resources: state.resources,
+      unlockedLoreIds: state.progression.unlockedLoreIds,
+    );
+
+    if (!isEligible) {
+      showToast('Bengü Taş dikmek için 500 Bilgelik, 100 Şam Çeliği ve 3 Töre Kanunu gerekir.');
+      return false;
+    }
+
+    final updatedVictories = Map<String, bool>.from(state.progression.victoryMilestones);
+    updatedVictories['culturalBenguTas'] = true;
+
+    final newKut = EconomyCalculator.calculateKutMultiplier(
+      tamgas: state.resources.tamgas,
+      totalMigrations: state.progression.totalMigrations,
+      victoryMilestones: updatedVictories,
+      activeOaths: state.progression.activeOaths,
+    );
+
+    state = state.copyWith(
+      resources: state.resources.copyWith(
+        wisdom: state.resources.wisdom - 500.0,
+        damascusSteel: state.resources.damascusSteel - 100.0,
+        tamgas: state.resources.tamgas + 10,
+        crowns: state.resources.crowns + 15,
+      ),
+      progression: state.progression.copyWith(
+        victoryMilestones: updatedVictories,
+        kutMultiplier: newKut,
+      ),
+      activeToast: 'EBEDİ ZAFER: Orhun Bengü Taşları Dikildi! (+10 Tamga, +15 Taç, +%25 Kalıcı Kut)',
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.reward);
+    saveGame();
+    return true;
+  }
+
+  /// 5. Lojistik Zafer: Ulu İpek Yolu Ağı
+  bool claimSilkRoadVictory() {
+    if (state.progression.victoryMilestones['silkRoadNetwork'] == true) {
+      showToast('Ulu İpek Yolu ağı zaten kuruldu.');
+      return false;
+    }
+
+    final isEligible = EconomyCalculator.checkSilkRoadVictoryProgress(
+      routes: state.caravanRoutes,
+      resources: state.resources,
+    );
+
+    if (!isEligible) {
+      showToast('İpek Yolu Zaferi için en az 3 Kervan Hattı, 100 Kımız ve 100 Keçe gerekir.');
+      return false;
+    }
+
+    final updatedVictories = Map<String, bool>.from(state.progression.victoryMilestones);
+    updatedVictories['silkRoadNetwork'] = true;
+
+    final newKut = EconomyCalculator.calculateKutMultiplier(
+      tamgas: state.resources.tamgas,
+      totalMigrations: state.progression.totalMigrations,
+      victoryMilestones: updatedVictories,
+      activeOaths: state.progression.activeOaths,
+    );
+
+    state = state.copyWith(
+      resources: state.resources.copyWith(
+        kumis: state.resources.kumis - 100.0,
+        felt: state.resources.felt - 100.0,
+        tamgas: state.resources.tamgas + 10,
+        crowns: state.resources.crowns + 15,
+      ),
+      progression: state.progression.copyWith(
+        victoryMilestones: updatedVictories,
+        kutMultiplier: newKut,
+      ),
+      activeToast: 'CİHAN ZAFERİ: Ulu İpek Yolu Birleştirildi! (+10 Tamga, +15 Taç, +%25 Kalıcı Kut)',
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.reward);
+    saveGame();
+    return true;
+  }
+
+  /// 6. Coğrafi Zafer: 4 Diyar Birleşimi
+  bool claimRealmConquestVictory() {
+    if (state.progression.victoryMilestones['realmConquest'] == true) {
+      showToast('Bozkır Diyarları zaten tek bayrak altında birleşti.');
+      return false;
+    }
+
+    final isEligible = EconomyCalculator.checkRealmConquestProgress(
+      cumulativeBiomeCounts: state.progression.cumulativeBiomeCounts,
+      ownedCount: state.progression.ownedCount,
+    );
+
+    if (!isEligible) {
+      showToast('Diyar Zaferi için en az 20 Karo ve Çayır, Orman, Dağ biyomlarından dörder karo gerekir.');
+      return false;
+    }
+
+    final updatedVictories = Map<String, bool>.from(state.progression.victoryMilestones);
+    updatedVictories['realmConquest'] = true;
+
+    final newKut = EconomyCalculator.calculateKutMultiplier(
+      tamgas: state.resources.tamgas,
+      totalMigrations: state.progression.totalMigrations,
+      victoryMilestones: updatedVictories,
+      activeOaths: state.progression.activeOaths,
+    );
+
+    state = state.copyWith(
+      resources: state.resources.copyWith(
+        tamgas: state.resources.tamgas + 15,
+        crowns: state.resources.crowns + 20,
+      ),
+      progression: state.progression.copyWith(
+        victoryMilestones: updatedVictories,
+        kutMultiplier: newKut,
+      ),
+      activeToast: 'HAKİMİYET ZAFERİ: Bozkır Diyarları Birleşti! (+15 Tamga, +20 Taç, +%25 Kalıcı Kut)',
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.reward);
+    saveGame();
+    return true;
+  }
+
+  /// 7. Kutsal And (Meydan Okuma) Aç/Kapat
+  void toggleOath(String oathId) {
+    final currentOaths = List<String>.from(state.progression.activeOaths);
+    if (currentOaths.contains(oathId)) {
+      currentOaths.remove(oathId);
+      showToast('Kutsal And kaldırıldı.');
+    } else {
+      currentOaths.add(oathId);
+      showToast('Kutsal And kabul edildi (+%15 Gelişim Çarpanı)!');
+    }
+
+    final newKut = EconomyCalculator.calculateKutMultiplier(
+      tamgas: state.resources.tamgas,
+      totalMigrations: state.progression.totalMigrations,
+      victoryMilestones: state.progression.victoryMilestones,
+      activeOaths: currentOaths,
+    );
+
+    state = state.copyWith(
+      progression: state.progression.copyWith(
+        activeOaths: currentOaths,
+        kutMultiplier: newKut,
+      ),
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.tap);
+    saveGame();
+  }
+
+  void _processCombatTick(double dt, Map<HexAxial, HexTileModel> updatedTiles) {
+    if (!state.combatState.isActiveWave) return;
+
+    final combat = state.combatState;
+    double castleHp = combat.castleCurrentHp;
+    final List<CombatEnemyInstance> updatedEnemies = [];
+    final List<CombatProjectileInstance> updatedProjectiles = [];
+    final Map<HexAxial, double> updatedTowerCooldowns = Map.from(combat.towerCooldowns);
+
+    updatedTowerCooldowns.updateAll((key, val) => math.max(0.0, val - dt));
+
+    for (final enemy in combat.activeEnemies) {
+      if (enemy.isDead) continue;
+
+      if (enemy.currentCoord == const HexAxial(0, 0)) {
+        castleHp = math.max(0.0, castleHp - (enemy.damagePerSecond * dt));
+        updatedEnemies.add(enemy.copyWith(isAttackingCastle: true));
+        continue;
+      }
+
+      final int nextIndex = enemy.pathIndex + 1;
+      final HexAxial nextCoord = (nextIndex < enemy.path.length) ? enemy.path[nextIndex] : const HexAxial(0, 0);
+
+      final currentTile = updatedTiles[enemy.currentCoord];
+      if (currentTile != null && currentTile.hasActiveWall) {
+        final wall = currentTile.wall!;
+        final double newWallHp = math.max(0.0, wall.currentHp - (enemy.damagePerSecond * dt));
+        final double newEnemyHp = math.max(0.0, enemy.currentHp - (wall.tier.passiveThornDps * dt));
+        final bool breached = newWallHp <= 0.0;
+        updatedTiles[enemy.currentCoord] = currentTile.copyWith(
+          wall: wall.copyWith(currentHp: newWallHp, isBreached: breached),
+        );
+
+        if (newEnemyHp > 0.0) {
+          updatedEnemies.add(enemy.copyWith(
+            currentHp: newEnemyHp,
+            isAttackingWall: !breached,
+          ));
+        }
+        continue;
+      }
+
+      final HexAxial newCoord = nextCoord;
+      final int newIdx = nextIndex;
+
+      if (updatedTiles.containsKey(newCoord)) {
+        updatedTiles[newCoord] = updatedTiles[newCoord]!.copyWith(isDamaged: true);
+      }
+
+      updatedEnemies.add(enemy.copyWith(
+        currentCoord: newCoord,
+        pathIndex: newIdx,
+        isAttackingWall: false,
+        isAttackingCastle: newCoord == const HexAxial(0, 0),
+      ));
+    }
+
+    final towerTiles = updatedTiles.values.where(
+      (t) => t.isOwned && t.building?.type == BuildingType.watchtower,
+    );
+
+    for (final towerTile in towerTiles) {
+      final int towerLevel = towerTile.building!.level;
+      final stats = CombatCalculator.calculateTowerStats(towerLevel);
+      final double cd = updatedTowerCooldowns[towerTile.coord] ?? 0.0;
+
+      if (cd <= 0.0 && updatedEnemies.isNotEmpty) {
+        CombatEnemyInstance? targetEnemy;
+        int closestDistance = 999;
+
+        for (final e in updatedEnemies) {
+          if (e.isDead) continue;
+          final int dist = HexMath.hexDistance(towerTile.coord, e.currentCoord);
+          if (dist <= stats.range && dist < closestDistance) {
+            closestDistance = dist;
+            targetEnemy = e;
+          }
+        }
+
+        if (targetEnemy != null) {
+          final int enemyIdx = updatedEnemies.indexWhere((e) => e.id == targetEnemy!.id);
+          if (enemyIdx != -1) {
+            final e = updatedEnemies[enemyIdx];
+            final double newHp = math.max(0.0, e.currentHp - stats.damage);
+            updatedEnemies[enemyIdx] = e.copyWith(currentHp: newHp);
+
+            updatedProjectiles.add(
+              CombatProjectileInstance(
+                id: 'proj_${DateTime.now().microsecondsSinceEpoch}',
+                sourceTowerCoord: towerTile.coord,
+                targetEnemyId: e.id,
+                damage: stats.damage,
+                isAoE: stats.isAoE,
+              ),
+            );
+
+            updatedTowerCooldowns[towerTile.coord] = stats.cooldownSeconds;
+          }
+        }
+      }
+    }
+
+    final aliveEnemies = updatedEnemies.where((e) => !e.isDead).toList();
+
+    if (aliveEnemies.isEmpty && combat.activeEnemies.isNotEmpty) {
+      final int completedTier = combat.currentWaveTier;
+      final reward = CombatCalculator.calculateWaveVictoryReward(completedTier);
+
+      final newResources = state.resources.copyWith(
+        crowns: state.resources.crowns + reward.crowns,
+        tamgas: state.resources.tamgas + reward.tamgas,
+        wood: state.resources.wood + (reward.resources['wood'] ?? 0.0),
+        stone: state.resources.stone + (reward.resources['stone'] ?? 0.0),
+        food: state.resources.food + (reward.resources['food'] ?? 0.0),
+        iron: state.resources.iron + (reward.resources['iron'] ?? 0.0),
+        felt: state.resources.felt + (reward.resources['felt'] ?? 0.0),
+        kumis: state.resources.kumis + (reward.resources['kumis'] ?? 0.0),
+        damascusSteel: state.resources.damascusSteel + (reward.resources['damascusSteel'] ?? 0.0),
+        obsidian: state.resources.obsidian + (reward.resources['obsidian'] ?? 0.0),
+      );
+
+      state = state.copyWith(
+        resources: newResources,
+        combatState: combat.copyWith(
+          isActiveWave: false,
+          currentWaveTier: completedTier + 1,
+          maxCompletedWaveTier: math.max(combat.maxCompletedWaveTier, completedTier),
+          activeEnemies: [],
+          activeProjectiles: [],
+          towerCooldowns: updatedTowerCooldowns,
+        ),
+        activeToast: 'BÜYÜK ZAFER: Seviye $completedTier Akını Püskürtüldü! (+${reward.crowns} Taç, +${reward.tamgas} Tamga)',
+      );
+
+      TactileAudioService.instance.play(TactileSoundType.reward);
+      saveGame();
+      return;
+    } else if (castleHp <= 0.0) {
+      state = state.copyWith(
+        combatState: combat.copyWith(
+          isActiveWave: false,
+          castleCurrentHp: 0.0,
+          activeEnemies: [],
+          activeProjectiles: [],
+          towerCooldowns: updatedTowerCooldowns,
+        ),
+        activeToast: 'ŞATO DÜŞTÜ: Akın Savunması Başarısız Oldu! Şatoyu onarıp tekrar deneyin.',
+      );
+
+      TactileAudioService.instance.play(TactileSoundType.warning);
+      saveGame();
+      return;
+    }
+
+    state = state.copyWith(
+      combatState: combat.copyWith(
+        castleCurrentHp: castleHp,
+        activeEnemies: aliveEnemies,
+        activeProjectiles: updatedProjectiles,
+        towerCooldowns: updatedTowerCooldowns,
+        waveElapsedTime: combat.waveElapsedTime + dt,
+      ),
+    );
+  }
+
+  bool soundSteppeHorn() {
+    if (state.combatState.isActiveWave) {
+      showToast('Akın savaşı zaten devam ediyor!');
+      return false;
+    }
+
+    if (state.combatState.isCastleDestroyed) {
+      showToast('Şato yıkık durumda! Önce Şatoyu onarın.');
+      return false;
+    }
+
+    final List<HexAxial> boundaryCoords = state.tiles.values
+        .where((t) => t.isOwned && t.coord != const HexAxial(0, 0))
+        .map((t) => t.coord)
+        .toList();
+
+    if (boundaryCoords.isEmpty) {
+      boundaryCoords.add(const HexAxial(1, 0));
+    }
+
+    final double maxCastleHp = CombatCalculator.calculateCastleMaxHp(state.progression.castleLevel);
+    final waveEnemies = CombatCalculator.generateWave(
+      waveTier: state.combatState.currentWaveTier,
+      boundaryCoords: boundaryCoords,
+      castleCoord: const HexAxial(0, 0),
+      tiles: state.tiles,
+    );
+
+    state = state.copyWith(
+      combatState: state.combatState.copyWith(
+        isActiveWave: true,
+        castleMaxHp: maxCastleHp,
+        castleCurrentHp: state.combatState.castleCurrentHp > 0.0 ? state.combatState.castleCurrentHp : maxCastleHp,
+        activeEnemies: waveEnemies,
+        activeProjectiles: [],
+        waveElapsedTime: 0.0,
+      ),
+      activeToast: 'BOZKIR BORUSU ÇALINDI: Seviye ${state.combatState.currentWaveTier} Akını Başladı!',
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.horn);
+    saveGame();
+    return true;
+  }
+
+  bool repairHexTile(HexAxial coord) {
+    final tile = state.tiles[coord];
+    if (tile == null || !tile.isDamaged) {
+      showToast('Bu karoda onarım gerektiren hasar yok.');
+      return false;
+    }
+
+    final cost = CombatCalculator.calculateTileRepairCost(tile);
+    final currentRes = state.resources;
+
+    for (final entry in cost.entries) {
+      final double available = switch (entry.key) {
+        'food' => currentRes.food,
+        'wood' => currentRes.wood,
+        'stone' => currentRes.stone,
+        'iron' => currentRes.iron,
+        'plank' => currentRes.plank,
+        'bread' => currentRes.bread,
+        'felt' => currentRes.felt,
+        'kumis' => currentRes.kumis,
+        'damascusSteel' => currentRes.damascusSteel,
+        'obsidian' => currentRes.obsidian,
+        _ => 0.0,
+      };
+
+      if (available < entry.value) {
+        showToast('Yetersiz Kaynak: ${entry.key.toUpperCase()} eksik (${available.toInt()}/${entry.value.toInt()}).');
+        return false;
+      }
+    }
+
+    final updatedRes = currentRes.copyWith(
+      food: currentRes.food - (cost['food'] ?? 0.0),
+      wood: currentRes.wood - (cost['wood'] ?? 0.0),
+      stone: currentRes.stone - (cost['stone'] ?? 0.0),
+      iron: currentRes.iron - (cost['iron'] ?? 0.0),
+      plank: currentRes.plank - (cost['plank'] ?? 0.0),
+      bread: currentRes.bread - (cost['bread'] ?? 0.0),
+      felt: currentRes.felt - (cost['felt'] ?? 0.0),
+      kumis: currentRes.kumis - (cost['kumis'] ?? 0.0),
+      damascusSteel: currentRes.damascusSteel - (cost['damascusSteel'] ?? 0.0),
+      obsidian: currentRes.obsidian - (cost['obsidian'] ?? 0.0),
+    );
+
+    final updatedTiles = Map<HexAxial, HexTileModel>.from(state.tiles);
+    updatedTiles[coord] = tile.copyWith(isDamaged: false);
+
+    state = state.copyWith(
+      tiles: updatedTiles,
+      resources: updatedRes,
+      activeToast: 'Karo başarıyla onarıldı (%100 Üretime döndü).',
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.build);
+    saveGame();
+    return true;
+  }
+
+  bool buildOrUpgradeWall(HexAxial coord, WallTier tier) {
+    final tile = state.tiles[coord];
+    if (tile == null || !tile.isOwned) {
+      showToast('Yalnızca fethedilmiş karolara sur kurulabilir.');
+      return false;
+    }
+
+    final cost = CombatCalculator.calculateWallCost(tier);
+    final currentRes = state.resources;
+
+    for (final entry in cost.entries) {
+      final double available = switch (entry.key) {
+        'wood' => currentRes.wood,
+        'stone' => currentRes.stone,
+        'iron' => currentRes.iron,
+        'plank' => currentRes.plank,
+        _ => 0.0,
+      };
+
+      if (available < entry.value) {
+        showToast('Yetersiz Kaynak: ${entry.key.toUpperCase()} eksik.');
+        return false;
+      }
+    }
+
+    final updatedRes = currentRes.copyWith(
+      wood: currentRes.wood - (cost['wood'] ?? 0.0),
+      stone: currentRes.stone - (cost['stone'] ?? 0.0),
+      iron: currentRes.iron - (cost['iron'] ?? 0.0),
+      plank: currentRes.plank - (cost['plank'] ?? 0.0),
+    );
+
+    final updatedTiles = Map<HexAxial, HexTileModel>.from(state.tiles);
+    updatedTiles[coord] = tile.copyWith(
+      wall: CombatWallModel(
+        tier: tier,
+        currentHp: tier.maxHp,
+        isBreached: false,
+      ),
+    );
+
+    state = state.copyWith(
+      tiles: updatedTiles,
+      resources: updatedRes,
+      activeToast: '${tier.titleTr} inşa edildi (HP: ${tier.maxHp.toInt()}).',
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.build);
+    saveGame();
+    return true;
+  }
+
+  bool repairWall(HexAxial coord) {
+    final tile = state.tiles[coord];
+    if (tile == null || tile.wall == null || !tile.wall!.needsRepair) {
+      showToast('Sur onarım gerektirmiyor.');
+      return false;
+    }
+
+    final wall = tile.wall!;
+    final cost = CombatCalculator.calculateWallRepairCost(wall);
+    final currentRes = state.resources;
+
+    for (final entry in cost.entries) {
+      final double available = switch (entry.key) {
+        'wood' => currentRes.wood,
+        'stone' => currentRes.stone,
+        'iron' => currentRes.iron,
+        'plank' => currentRes.plank,
+        _ => 0.0,
+      };
+
+      if (available < entry.value) {
+        showToast('Yetersiz Kaynak: ${entry.key.toUpperCase()} eksik.');
+        return false;
+      }
+    }
+
+    final updatedRes = currentRes.copyWith(
+      wood: currentRes.wood - (cost['wood'] ?? 0.0),
+      stone: currentRes.stone - (cost['stone'] ?? 0.0),
+      iron: currentRes.iron - (cost['iron'] ?? 0.0),
+      plank: currentRes.plank - (cost['plank'] ?? 0.0),
+    );
+
+    final updatedTiles = Map<HexAxial, HexTileModel>.from(state.tiles);
+    updatedTiles[coord] = tile.copyWith(
+      wall: wall.copyWith(currentHp: wall.maxHp, isBreached: false),
+    );
+
+    state = state.copyWith(
+      tiles: updatedTiles,
+      resources: updatedRes,
+      activeToast: 'Sur onarıldı (HP: ${wall.maxHp.toInt()}).',
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.build);
+    saveGame();
+    return true;
+  }
+
+  bool repairCastle() {
+    final combat = state.combatState;
+    if (combat.castleCurrentHp >= combat.castleMaxHp) {
+      showToast('Kağan Otağı tam cana sahip.');
+      return false;
+    }
+
+    final cost = CombatCalculator.calculateCastleRepairCost(
+      castleLevel: state.progression.castleLevel,
+      castleCurrentHp: combat.castleCurrentHp,
+      castleMaxHp: combat.castleMaxHp,
+    );
+
+    final currentRes = state.resources;
+    if (currentRes.wood < (cost['wood'] ?? 0.0) || currentRes.stone < (cost['stone'] ?? 0.0)) {
+      showToast('Şato onarımı için yetersiz kaynak.');
+      return false;
+    }
+
+    state = state.copyWith(
+      resources: currentRes.copyWith(
+        wood: currentRes.wood - (cost['wood'] ?? 0.0),
+        stone: currentRes.stone - (cost['stone'] ?? 0.0),
+      ),
+      combatState: combat.copyWith(
+        castleCurrentHp: combat.castleMaxHp,
+      ),
+      activeToast: 'Kağan Otağı başarıyla onarıldı (HP: ${combat.castleMaxHp.toInt()}).',
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.build);
+    saveGame();
+    return true;
   }
 }

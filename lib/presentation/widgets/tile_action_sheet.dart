@@ -5,8 +5,10 @@ import '../../core/hex/hex_coordinates.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../core/utils/number_formatter.dart';
+import '../../domain/economy/combat_calculator.dart';
 import '../../domain/economy/economy_calculator.dart';
 import '../../domain/models/building_model.dart';
+import '../../domain/models/combat_model.dart';
 import '../../domain/models/game_state.dart';
 import '../../domain/models/game_state_model.dart';
 import '../../domain/models/hex_tile_model.dart';
@@ -31,6 +33,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
   HexAxial? _cachedCoord;
   HexTileModel? _cachedTile;
   bool _showLockedBuildings = false;
+  bool _isSynergyExpanded = false;
 
   @override
   void initState() {
@@ -100,18 +103,21 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
           child: SlideTransition(
             position: _slideAnimation,
             child: Align(
-        alignment: Alignment.bottomCenter,
-        child: Container(
-          constraints: BoxConstraints(maxHeight: maxHeight, maxWidth: 540),
-          margin: const EdgeInsets.all(12),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: theme.surface,
-            borderRadius: NeoBrutalistTheme.standardRadius,
-            border: Border.all(color: theme.border, width: 2.5),
-            boxShadow: theme.hardShadow(offset: 4.0),
-          ),
-          child: SingleChildScrollView(
+              alignment: Alignment.bottomCenter,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {}, // İçerik tıklandığında dışarı tıklama kapanmasını engelle
+                child: Container(
+                  constraints: BoxConstraints(maxHeight: maxHeight, maxWidth: 540),
+                  margin: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: theme.surface,
+                    borderRadius: NeoBrutalistTheme.standardRadius,
+                    border: Border.all(color: theme.border, width: 2.5),
+                    boxShadow: theme.hardShadow(offset: 4.0),
+                  ),
+                  child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -393,19 +399,28 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 ]
                 // Durum 2: Kağan Otağı Seçili (Geliştirme & Prestij)
                 else if (tile.building?.type == BuildingType.castle) ...[
+                  if (tile.isDamaged)
+                    _buildDamageAndRepairBanner(context, ref, tile, gameState, theme),
                   _buildCastleSection(context, ref, tile, gameState, lang, theme),
+                  _buildWallManagementRow(context, ref, tile, gameState, theme),
                 ]
                 // Durum 3: Üretim/İşleme Binası Seçili (Detay & Seviye Atlama)
                 else if (tile.hasBuilding) ...[
+                  if (tile.isDamaged)
+                    _buildDamageAndRepairBanner(context, ref, tile, gameState, theme),
                   _buildBuildingDetailSection(context, ref, tile, gameState, lang, theme),
                   const SizedBox(height: 10),
                   _buildCaravanAndSoilRow(context, ref, tile, gameState, theme),
+                  _buildWallManagementRow(context, ref, tile, gameState, theme),
                 ]
                 // Durum 4: Sahipli ve Boş (İnşaat Seçenekleri)
                 else ...[
+                  if (tile.isDamaged)
+                    _buildDamageAndRepairBanner(context, ref, tile, gameState, theme),
                   _buildBuildOptionsSection(context, ref, tile, gameState, lang, theme),
                   const SizedBox(height: 10),
                   _buildCaravanAndSoilRow(context, ref, tile, gameState, theme),
+                  _buildWallManagementRow(context, ref, tile, gameState, theme),
                 ],
               ],
             ),
@@ -413,9 +428,10 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         ),
       ),
     ),
-  );
-},
+  ),
 );
+      },
+    );
   }
 
   Widget _buildCaravanAndSoilRow(
@@ -480,6 +496,305 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDamageAndRepairBanner(
+      BuildContext context, WidgetRef ref, HexTileModel tile, GameState gameState, NeoBrutalistThemeData theme) {
+    final cost = CombatCalculator.calculateTileRepairCost(tile);
+    final currentRes = gameState.resources;
+
+    bool canAfford = true;
+    for (final entry in cost.entries) {
+      final double available = switch (entry.key) {
+        'food' => currentRes.food,
+        'wood' => currentRes.wood,
+        'stone' => currentRes.stone,
+        'iron' => currentRes.iron,
+        'plank' => currentRes.plank,
+        'bread' => currentRes.bread,
+        'felt' => currentRes.felt,
+        'kumis' => currentRes.kumis,
+        'damascusSteel' => currentRes.damascusSteel,
+        'obsidian' => currentRes.obsidian,
+        _ => 0.0,
+      };
+      if (available < entry.value) {
+        canAfford = false;
+        break;
+      }
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF450A0A),
+        borderRadius: NeoBrutalistTheme.sharpRadius,
+        border: Border.all(color: const Color(0xFFEF4444), width: 1.8),
+        boxShadow: const [
+          BoxShadow(color: Color(0xFF020617), offset: Offset(3, 3), blurRadius: 0),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 18),
+              SizedBox(width: 6),
+              Text(
+                'TAHRİP EDİLDİ (%50 ÜRETİM KAYBI)',
+                style: TextStyle(
+                  color: Color(0xFFFCA5A5),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Düşman akınında hasar aldı. Normal üretime dönmek için onarın:',
+            style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 10),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Wrap(
+                spacing: 8,
+                children: cost.entries.map((e) {
+                  return Text(
+                    '${e.key.toUpperCase()}: ${e.value.toInt()}',
+                    style: const TextStyle(color: Color(0xFFFDE047), fontSize: 10, fontWeight: FontWeight.bold),
+                  );
+                }).toList(),
+              ),
+              TactileNeoButton(
+                onTap: canAfford ? () => ref.read(gameStateProvider.notifier).repairHexTile(tile.coord) : null,
+                isEnabled: canAfford,
+                backgroundColor: canAfford ? const Color(0xFFDC2626) : theme.slateBorder,
+                borderColor: const Color(0xFF020617),
+                shadowOffset: 2.0,
+                height: 30,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                alignment: Alignment.center,
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.build, size: 12, color: Colors.white),
+                    SizedBox(width: 4),
+                    Text(
+                      'ONAR',
+                      style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWallManagementRow(
+      BuildContext context, WidgetRef ref, HexTileModel tile, GameState gameState, NeoBrutalistThemeData theme) {
+    final notifier = ref.read(gameStateProvider.notifier);
+    final wall = tile.wall;
+
+    if (wall != null) {
+      return Container(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: theme.surfaceLight,
+          border: Border.all(color: wall.isBreached ? const Color(0xFFEF4444) : theme.border, width: 1.5),
+          borderRadius: NeoBrutalistTheme.sharpRadius,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.shield,
+                  size: 16,
+                  color: wall.isBreached ? const Color(0xFFEF4444) : const Color(0xFF38BDF8),
+                ),
+                const SizedBox(width: 6),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      wall.tier.titleTr.toUpperCase(),
+                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900),
+                    ),
+                    Text(
+                      wall.isBreached
+                          ? 'YIKILDI (0 HP)'
+                          : 'HP: ${wall.currentHp.toInt()}/${wall.maxHp.toInt()}',
+                      style: TextStyle(
+                        color: wall.isBreached ? const Color(0xFFFCA5A5) : const Color(0xFF94A3B8),
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (wall.needsRepair) ...[
+                  TactileNeoButton(
+                    onTap: () => notifier.repairWall(tile.coord),
+                    backgroundColor: const Color(0xFFF59E0B),
+                    borderColor: theme.border,
+                    shadowOffset: 2.0,
+                    height: 28,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'ONAR',
+                      style: TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                if (wall.tier != WallTier.ironFortification)
+                  TactileNeoButton(
+                    onTap: () => _showWallBuildDialog(context, ref, tile, gameState, theme),
+                    backgroundColor: const Color(0xFF10B981),
+                    borderColor: theme.border,
+                    shadowOffset: 2.0,
+                    height: 28,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    alignment: Alignment.center,
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.arrow_upward, size: 11, color: Colors.black),
+                        SizedBox(width: 3),
+                        Text(
+                          'GELİŞTİR',
+                          style: TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.w900),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.shield_outlined, size: 14, color: Color(0xFF94A3B8)),
+              SizedBox(width: 6),
+              Text(
+                'Savunma Suru Yok',
+                style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          TactileNeoButton(
+            onTap: () => _showWallBuildDialog(context, ref, tile, gameState, theme),
+            backgroundColor: theme.slateBorder,
+            borderColor: theme.border,
+            shadowOffset: 2.0,
+            height: 28,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            alignment: Alignment.center,
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.add, size: 12, color: Colors.white),
+                SizedBox(width: 4),
+                Text(
+                  'SUR DİK',
+                  style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showWallBuildDialog(
+      BuildContext context, WidgetRef ref, HexTileModel tile, GameState gameState, NeoBrutalistThemeData theme) {
+    final notifier = ref.read(gameStateProvider.notifier);
+    final currentWall = tile.wall;
+    final availableTiers = currentWall == null
+        ? WallTier.values
+        : WallTier.values.where((t) => t.index > currentWall.tier.index).toList();
+
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF0F172A),
+        shape: const RoundedRectangleBorder(
+          side: BorderSide(color: Color(0xFF334155), width: 2),
+          borderRadius: BorderRadius.all(Radius.circular(3)),
+        ),
+        title: Text(
+          currentWall != null ? 'SURI YÜKSELT' : 'SAVUNMA SURU SEÇİN',
+          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: availableTiers.map((tier) {
+            final cost = CombatCalculator.calculateWallCost(tier);
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: TactileNeoButton(
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  notifier.buildOrUpgradeWall(tile.coord, tier);
+                },
+                backgroundColor: theme.surfaceLight,
+                borderColor: theme.border,
+                shadowOffset: 2.0,
+                padding: const EdgeInsets.all(8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          tier.titleTr,
+                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900),
+                        ),
+                        Text(
+                          'HP: ${tier.maxHp.toInt()} | Hendek: ${tier.passiveThornDps.toInt()}/s',
+                          style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      cost.entries.map((e) => '${e.value.toInt()} ${e.key}').join(', '),
+                      style: const TextStyle(color: Color(0xFFFDE047), fontSize: 9, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -618,24 +933,42 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
           ),
         ),
         Text(
-          '${GameLocalization.get('global_bonus', lang: lang)}: +${((lvl - 1) * 1)}%',
+          '${GameLocalization.get('global_bonus', lang: lang)}: +${EconomyCalculator.calculateCastleBonusPercentage(lvl).toInt()}% (Bu Kademede: +%${(lvl ~/ 10) + 1}/Sv)',
           style: const TextStyle(
               color: Color(0xFF10B981),
-              fontSize: 13,
+              fontSize: 12.5,
               fontWeight: FontWeight.w900),
         ),
-        const SizedBox(height: 4),
-        Text(
-          lvl == 1
-              ? 'Seviye 2\'de Hızar Otağı, Vaha Sarnıcı, Rün Steli, Çöl & Orman Keşfi açılır!'
-              : (lvl < 12
-                  ? 'Seviye 12\'de Köz Fırını, Maden, Kervansaray, Kımız Otağı, Dağ & Sazlık açılır!'
-                  : (lvl < 22
-                      ? 'Seviye 22\'de Balıkçı Barınağı, Kaplıca, Usturlap, Deniz & Tundra açılır!'
-                      : (lvl < 32
-                          ? 'Seviye 32\'de Obsidyen Ocağı, Gök Örsü, Ata Totemi & Volkan açılır!'
-                          : 'Azami Otağ Kudreti!'))),
-          style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700),
+        const SizedBox(height: 5),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E293B),
+            borderRadius: NeoBrutalistTheme.sharpRadius,
+            border: Border.all(color: const Color(0xFF334155), width: 1.2),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 2),
+                child: Icon(Icons.lock_clock, size: 13, color: Color(0xFFF59E0B)),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  _getNextCastleUnlockDescription(lvl),
+                  style: const TextStyle(
+                    color: Color(0xFFCBD5E1),
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    height: 1.25,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 10),
         Row(
@@ -726,24 +1059,115 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         .whereType<HexTileModel>()
         .toList();
 
-    final activeSynergies = EconomyCalculator.getActiveSynergyLabels(
+    double chainSynergy = 1.0;
+    for (final nCoord in tile.coord.neighbors) {
+      final nTile = gameState.tiles[nCoord];
+      if (nTile != null && nTile.isOwned && nTile.building != null) {
+        if (b.type == BuildingType.windmill && nTile.building!.type == BuildingType.corn) chainSynergy = 2.0;
+        if (b.type == BuildingType.sawmill && nTile.building!.type == BuildingType.lumberjack) chainSynergy = 2.0;
+        if (b.type == BuildingType.bakery && nTile.building!.type == BuildingType.windmill) chainSynergy = 2.0;
+        if (b.type == BuildingType.furniture && nTile.building!.type == BuildingType.sawmill) chainSynergy = 2.0;
+      }
+    }
+
+    final double biomeSynergy = EconomyCalculator.calculateAdjacencySynergy(
       targetTile: tile,
       neighborTiles: neighborTiles,
       season: gameState.season.current,
       isZud: gameState.season.isZud,
     );
 
+    final double frenzyMult = (gameState.frenzyTimer > 0 && gameState.frenzyMultiplier > 1)
+        ? gameState.frenzyMultiplier.toDouble()
+        : 1.0;
+    final double symbiosisMult = EconomyCalculator.calculateSymbiosisMultiplier(tile);
+    final double caravanMult = EconomyCalculator.calculateCaravanRouteMultiplier(tile.coord, gameState.caravanRoutes);
+
+    final double totalSynergyMultiplier = chainSynergy * biomeSynergy * frenzyMult * symbiosisMult * caravanMult;
+
+    final rawActiveSynergies = EconomyCalculator.getActiveSynergyLabels(
+      targetTile: tile,
+      neighborTiles: neighborTiles,
+      season: gameState.season.current,
+      isZud: gameState.season.isZud,
+    );
+
+    final List<String> allSynergyLabels = [];
+    if (frenzyMult > 1.0) {
+      allSynergyLabels.add('+${((frenzyMult - 1.0) * 100).toInt()}% 10x Sinerji Patlaması (${gameState.frenzyTimer.toInt()}s)');
+    }
+    if (chainSynergy > 1.0) {
+      final String partner = b.type == BuildingType.windmill
+          ? 'Buğday'
+          : (b.type == BuildingType.bakery
+              ? 'Değirmen'
+              : (b.type == BuildingType.sawmill ? 'Oduncu' : 'Hızar'));
+      allSynergyLabels.add('+100% Zincir Sinerjisi ($partner)');
+    }
+    allSynergyLabels.addAll(rawActiveSynergies);
+    if (symbiosisMult > 1.0) {
+      allSynergyLabels.add('+50% Ekolojik Simbiyoz (${SymbiosisEngine.getSymbiosisName(tile.symbiosis)})');
+    }
+    if (caravanMult > 1.0) {
+      allSynergyLabels.add('+25% İpek Yolu Kervan Hattı');
+    }
+
     final workerTransferMult = EconomyCalculator.getWorkerTransferMultiplier(
       toreTalents: gameState.toreTalents,
     );
     final isLogisticsBuilding = b.currentCarryingCapacity > 0 && b.baseProductionRate == 0.0;
+
+    final double globalMult = EconomyCalculator.getGlobalMultiplier(
+      castleLevel: gameState.progression.castleLevel,
+      crowns: gameState.resources.crowns,
+      toreTalents: gameState.toreTalents,
+      titles: gameState.titles,
+      kutMultiplier: gameState.progression.kutMultiplier,
+    );
+
     final logisticsStats = isLogisticsBuilding
         ? EconomyCalculator.calculateWorkerLogisticsStats(
             workerTile: tile,
             tiles: gameState.tiles,
             workerTransferMult: workerTransferMult,
+            globalMultiplier: globalMult,
+            season: gameState.season.current,
+            isZud: gameState.season.isZud,
+            shrineMultiplier: gameState.shrineMultiplier,
+            caravanRoutes: gameState.caravanRoutes,
+            activeDoctrines: notifier.getActiveDoctrines(),
+            discoveredKurgans: gameState.discoveredKurgans,
           )
         : null;
+
+    final double effectiveProductionRate = EconomyCalculator.calculateBuildingProduction(
+      type: b.type,
+      level: b.level,
+      baseRate: b.baseProductionRate,
+      globalMultiplier: globalMult *
+          EconomyCalculator.getDoctrineProductionMultiplier(
+            buildingType: b.type,
+            activeDoctrines: notifier.getActiveDoctrines(),
+          ) *
+          caravanMult *
+          symbiosisMult *
+          EconomyCalculator.calculateAncestralRelicMultiplier(gameState.discoveredKurgans) *
+          frenzyMult,
+      seasonMultiplier: EconomyCalculator.getSeasonProductionMultiplier(
+            season: gameState.season.current,
+            isZud: gameState.season.isZud,
+            isTileWarmed: tile.isWarmed,
+            titles: gameState.titles,
+          ) *
+          EconomyCalculator.calculateSoilHealthMultiplier(tile),
+      synergyMultiplier: chainSynergy * biomeSynergy,
+      workerMultiplier: 1.0,
+      shrineMultiplier: gameState.shrineMultiplier,
+      seasonalBoostMultiplier: EconomyCalculator.getSeasonalProductionBoost(
+        season: gameState.season.current,
+        buildingType: b.type,
+      ),
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -761,7 +1185,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
             Text(
               isLogisticsBuilding
                   ? '${NumberFormatter.format(logisticsStats!.totalCapacity, decimals: 2)}${GameLocalization.get('per_sec', lang: lang)} ${GameLocalization.get('capacity', lang: lang).toUpperCase()}'
-                  : '+${NumberFormatter.format(b.currentProductionRate, decimals: 2)}${GameLocalization.get('per_sec', lang: lang)}',
+                  : '+${NumberFormatter.format(effectiveProductionRate, decimals: 2)}${GameLocalization.get('per_sec', lang: lang)}',
               style: const TextStyle(color: Color(0xFF10B981), fontSize: 12, fontWeight: FontWeight.w900),
             ),
           ],
@@ -949,79 +1373,112 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
             ),
           ),
         ],
-        if (activeSynergies.isNotEmpty) ...[
+        if (allSynergyLabels.isNotEmpty || (totalSynergyMultiplier - 1.0).abs() > 0.01) ...[
           const SizedBox(height: 6),
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: theme.surfaceLight,
-              borderRadius: NeoBrutalistTheme.sharpRadius,
-              border: Border.all(
-                color: activeSynergies.any((s) => s.startsWith('+'))
-                    ? theme.accentColor
-                    : theme.slateBorder,
-                width: 1.5,
-              ),
-              boxShadow: activeSynergies.any((s) => s.startsWith('+'))
-                  ? theme.hardShadowSmall
-                  : null,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (activeSynergies.any((s) => s.startsWith('+')))
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        GameVectorIcon(
-                          type: GameIconType.crown,
-                          size: 10,
-                          color: theme.accentColor,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'SİNERJİ PARILTISI',
-                          style: TextStyle(
-                            color: theme.accentColor,
-                            fontSize: 9,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                Wrap(
-                  spacing: 4,
-                  runSpacing: 4,
-                  children: activeSynergies.map((label) {
-                    final isPositive = label.startsWith('+');
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: isPositive ? const Color(0xFF064E3B) : const Color(0xFF7F1D1D),
-                        border: Border.all(
-                          color: isPositive ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                          width: 1.5,
-                        ),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                      child: Text(
-                        label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: isPositive ? const Color(0xFF6EE7B7) : const Color(0xFFFCA5A5),
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    );
-                  }).toList(),
+          InkWell(
+            onTap: () {
+              TactileAudioService.instance.play(TactileSoundType.tap);
+              setState(() {
+                _isSynergyExpanded = !_isSynergyExpanded;
+              });
+            },
+            borderRadius: NeoBrutalistTheme.sharpRadius,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              decoration: BoxDecoration(
+                color: totalSynergyMultiplier >= 1.0 ? const Color(0xFF064E3B) : const Color(0xFF7F1D1D),
+                borderRadius: NeoBrutalistTheme.sharpRadius,
+                border: Border.all(
+                  color: totalSynergyMultiplier >= 1.0 ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                  width: 1.5,
                 ),
-              ],
+                boxShadow: theme.hardShadowSmall,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          GameVectorIcon(
+                            type: GameIconType.crown,
+                            size: 13,
+                            color: totalSynergyMultiplier >= 1.0 ? const Color(0xFF6EE7B7) : const Color(0xFFFCA5A5),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'SİNERJİ & PATLAMA ETKİSİ:',
+                            style: TextStyle(
+                              color: totalSynergyMultiplier >= 1.0 ? const Color(0xFF6EE7B7) : const Color(0xFFFCA5A5),
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: totalSynergyMultiplier >= 1.0 ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                            child: Text(
+                              '${totalSynergyMultiplier >= 1.0 ? '+' : ''}${((totalSynergyMultiplier - 1.0) * 100).toInt()}% (${totalSynergyMultiplier.toStringAsFixed(1)}x)',
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            _isSynergyExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                            size: 16,
+                            color: totalSynergyMultiplier >= 1.0 ? const Color(0xFF6EE7B7) : const Color(0xFFFCA5A5),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  if (_isSynergyExpanded && allSynergyLabels.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Divider(color: totalSynergyMultiplier >= 1.0 ? const Color(0xFF047857) : const Color(0xFF991B1B), height: 1),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 4,
+                      runSpacing: 4,
+                      children: allSynergyLabels.map((label) {
+                        final isPositive = label.startsWith('+');
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0F172A),
+                            border: Border.all(
+                              color: isPositive ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                              width: 1,
+                            ),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              color: isPositive ? const Color(0xFF6EE7B7) : const Color(0xFFFCA5A5),
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
         ],
@@ -1114,6 +1571,48 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
               ],
             ),
           ),
+        ] else ...[
+          () {
+            int? nextMilestone;
+            for (final m in BuildingModel.milestoneLevels) {
+              if (b.level < m) {
+                nextMilestone = m;
+                break;
+              }
+            }
+            if (nextMilestone != null) {
+              final int remaining = nextMilestone - b.level;
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4.5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: NeoBrutalistTheme.sharpRadius,
+                    border: Border.all(color: const Color(0xFF334155), width: 1.2),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.trending_up, color: Color(0xFF38BDF8), size: 13),
+                      const SizedBox(width: 6),
+                      Text(
+                        'BİR SONRAKİ 2X SIÇRAMA: SEVİYE $nextMilestone ($remaining SEVİYE KALDI)',
+                        style: const TextStyle(
+                          color: Color(0xFF94A3B8),
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          }(),
         ],
         const SizedBox(height: 10),
         Row(
@@ -1597,7 +2096,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: isUnlocked ? Colors.white60 : Colors.white38,
+                      color: isUnlocked ? Colors.white70 : const Color(0xFF94A3B8),
                       fontSize: 8,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1605,22 +2104,35 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 ),
                 const SizedBox(width: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5),
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                   decoration: BoxDecoration(
                     color: !isUnlocked
-                        ? const Color(0xFF334155)
+                        ? const Color(0xFF78350F)
                         : (canAfford ? const Color(0xFF064E3B) : const Color(0xFF451A03)),
                     borderRadius: BorderRadius.circular(2),
-                  ),
-                  child: Text(
-                    isUnlocked ? '${NumberFormatter.format(dummy.baseCost)} Erzak' : 'LV.$requiredLvl',
-                    style: TextStyle(
-                      color: !isUnlocked
-                          ? const Color(0xFF94A3B8)
-                          : (canAfford ? const Color(0xFF34D399) : const Color(0xFFFBBF24)),
-                      fontSize: 8,
-                      fontWeight: FontWeight.w900,
+                    border: Border.all(
+                      color: !isUnlocked ? const Color(0xFFF59E0B) : Colors.transparent,
+                      width: 0.8,
                     ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (!isUnlocked) ...[
+                        const Icon(Icons.lock, size: 8, color: Color(0xFFFBBF24)),
+                        const SizedBox(width: 3),
+                      ],
+                      Text(
+                        isUnlocked ? '${NumberFormatter.format(dummy.baseCost)} Erzak' : 'OTAĞ SV.$requiredLvl',
+                        style: TextStyle(
+                          color: !isUnlocked
+                              ? const Color(0xFFFBBF24)
+                              : (canAfford ? const Color(0xFF34D399) : const Color(0xFFFBBF24)),
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -1772,6 +2284,34 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         return GameLocalization.get('damascus_forge_desc', lang: lang);
       case BuildingType.runicStele:
         return GameLocalization.get('runic_stele_desc', lang: lang);
+    }
+  }
+
+  String _getNextCastleUnlockDescription(int lvl) {
+    if (lvl < 2) {
+      return 'Seviye 2\'de Arpa Tarlası, Büyük Mahzen ve Otlak & Ağıl açılır!';
+    } else if (lvl < 5) {
+      return 'Seviye 5\'te Değirmen (Un), Marangoz (Kalas), Rünik Yazıt Taşı (Bilgelik) ve Savunma Kulesi (Okçu) açılır!';
+    } else if (lvl < 10) {
+      return 'Seviye 10\'da Meyve Bahçesi, Reçine Kampı ve Şifacı Otağı açılır!';
+    } else if (lvl < 15) {
+      return 'Seviye 15\'te Demir Madeni, Tandır Fırını (Ekmek) ve Balıkçı İskelesi açılır!';
+    } else if (lvl < 20) {
+      return 'Seviye 20\'de Mobilya Atölyesi, Taş Köprü ve Keçe Çadır Atölyesi açılır!';
+    } else if (lvl < 25) {
+      return 'Seviye 25\'te Vaha Sarnıcı, İpek Yolu Kervansarayı ve Ren Geyiği Sığınağı açılır!';
+    } else if (lvl < 30) {
+      return 'Seviye 30\'da Kutsal Kımız Otağı ve Katip Odası açılır!';
+    } else if (lvl < 35) {
+      return 'Seviye 35\'te Balıkçı Kulübesi, Jeotermal Kaplıca ve Permafrost Kazısı açılır!';
+    } else if (lvl < 40) {
+      return 'Seviye 40\'ta Volkanik Buhar Bacası, Obsidyen Ocağı ve Şam Çeliği Dökümhanesi açılır!';
+    } else if (lvl < 45) {
+      return 'Seviye 45\'te Göksel Astrolab (Üretim Çılgınlığı) açılır!';
+    } else if (lvl < 50) {
+      return 'Seviye 50\'de Göksel Örs, Ata Totemi ve Prizmatik Rezonatör açılır!';
+    } else {
+      return 'Azami Kağanlık Kudreti! Tüm Bozkır Teknolojileri Açıldı.';
     }
   }
 

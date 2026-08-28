@@ -66,6 +66,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
         crowns: gameState.resources.crowns,
         toreTalents: gameState.toreTalents,
         titles: gameState.titles,
+        kutMultiplier: gameState.progression.kutMultiplier,
         season: gameState.season.current,
         isZud: gameState.season.isZud,
         activeDoctrines: activeDoctrines,
@@ -465,12 +466,17 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
     final double globalMult = EconomyCalculator.getGlobalMultiplier(
       castleLevel: gameState.progression.castleLevel,
       crowns: gameState.resources.crowns,
+      toreTalents: gameState.toreTalents,
       titles: gameState.titles,
+      kutMultiplier: gameState.progression.kutMultiplier,
     );
 
-    final double seasonMult = gameState.season.isZud
-        ? 0.2
-        : (gameState.season.current == 'WINTER' ? 0.5 : 1.0);
+    final double seasonMult = EconomyCalculator.getSeasonProductionMultiplier(
+      season: gameState.season.current,
+      isZud: gameState.season.isZud,
+      isTileWarmed: false,
+      titles: gameState.titles,
+    );
 
     final netRates = EconomyCalculator.calculateNetRates(
       tiles: gameState.tiles.values,

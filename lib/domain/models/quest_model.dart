@@ -6,6 +6,9 @@ enum QuestType {
   conquerTiles,
   upgradeCastle,
   discoverShrine,
+  establishCaravan,
+  unlockLore,
+  surviveZud,
 }
 
 enum QuestRewardType {
@@ -13,6 +16,7 @@ enum QuestRewardType {
   wood,
   stone,
   crowns,
+  tamgas,
 }
 
 class QuestModel {

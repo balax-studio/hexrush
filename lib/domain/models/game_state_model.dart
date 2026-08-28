@@ -203,6 +203,9 @@ class ProgressionModel {
   final String activeRealmId; // 'altay', 'idil', 'karakum'
   final List<TradeOrderModel> activeTradeOrders;
   final List<String> unlockedLoreIds;
+  final Map<String, bool> victoryMilestones;
+  final List<String> activeOaths;
+  final double kutMultiplier;
 
   const ProgressionModel({
     this.castleLevel = 1,
@@ -219,6 +222,13 @@ class ProgressionModel {
     this.activeRealmId = 'altay',
     this.activeTradeOrders = const [],
     this.unlockedLoreIds = const [],
+    this.victoryMilestones = const {
+      'culturalBenguTas': false,
+      'silkRoadNetwork': false,
+      'realmConquest': false,
+    },
+    this.activeOaths = const [],
+    this.kutMultiplier = 1.0,
   });
 
   ProgressionModel copyWith({
@@ -236,6 +246,9 @@ class ProgressionModel {
     String? activeRealmId,
     List<TradeOrderModel>? activeTradeOrders,
     List<String>? unlockedLoreIds,
+    Map<String, bool>? victoryMilestones,
+    List<String>? activeOaths,
+    double? kutMultiplier,
   }) {
     return ProgressionModel(
       castleLevel: castleLevel ?? this.castleLevel,
@@ -254,6 +267,9 @@ class ProgressionModel {
       activeRealmId: activeRealmId ?? this.activeRealmId,
       activeTradeOrders: activeTradeOrders ?? this.activeTradeOrders,
       unlockedLoreIds: unlockedLoreIds ?? this.unlockedLoreIds,
+      victoryMilestones: victoryMilestones ?? this.victoryMilestones,
+      activeOaths: activeOaths ?? this.activeOaths,
+      kutMultiplier: kutMultiplier ?? this.kutMultiplier,
     );
   }
 
@@ -272,6 +288,9 @@ class ProgressionModel {
         'active_realm_id': activeRealmId,
         'active_trade_orders': activeTradeOrders.map((o) => o.toJson()).toList(),
         'unlocked_lore_ids': unlockedLoreIds,
+        'victory_milestones': victoryMilestones,
+        'active_oaths': activeOaths,
+        'kut_multiplier': kutMultiplier,
       };
 
   factory ProgressionModel.fromJson(Map<String, dynamic> json) {
@@ -312,6 +331,21 @@ class ProgressionModel {
     final rawLore = json['unlocked_lore_ids'] as List?;
     final List<String> loreIds = rawLore?.map((e) => e.toString()).toList() ?? [];
 
+    final rawVictories = json['victory_milestones'] as Map?;
+    final Map<String, bool> victories = {
+      'culturalBenguTas': false,
+      'silkRoadNetwork': false,
+      'realmConquest': false,
+    };
+    if (rawVictories != null) {
+      rawVictories.forEach((k, v) {
+        victories[k.toString()] = v == true;
+      });
+    }
+
+    final rawOaths = json['active_oaths'] as List?;
+    final List<String> oaths = rawOaths?.map((e) => e.toString()).toList() ?? [];
+
     return ProgressionModel(
       castleLevel: json['castle_level'] as int? ?? 1,
       ownedCount: json['owned_count'] as int? ?? 1,
@@ -327,6 +361,9 @@ class ProgressionModel {
       activeRealmId: json['active_realm_id'] as String? ?? 'altay',
       activeTradeOrders: orders,
       unlockedLoreIds: loreIds,
+      victoryMilestones: victories,
+      activeOaths: oaths,
+      kutMultiplier: (json['kut_multiplier'] as num?)?.toDouble() ?? 1.0,
     );
   }
 }

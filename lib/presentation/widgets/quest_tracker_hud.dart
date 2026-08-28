@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/tactile_audio_service.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
+import '../../domain/economy/economy_calculator.dart';
 import '../../domain/models/quest_model.dart';
 import '../providers/game_state_notifier.dart';
 import 'tactile_neo_button.dart';
@@ -302,6 +303,73 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                               ],
                             ),
                           ),
+                      ] else ...[
+                        // All normal quests finished -> Show Endgame Victory Goals
+                        Consumer(builder: (context, ref, _) {
+                          final p = ref.watch(gameStateProvider.select((s) => s.progression));
+                          final res = ref.watch(gameStateProvider.select((s) => s.resources));
+                          final routes = ref.watch(gameStateProvider.select((s) => s.caravanRoutes));
+
+                          final canBengu = !p.victoryMilestones['culturalBenguTas']! &&
+                              EconomyCalculator.checkCulturalVictoryProgress(
+                                resources: res,
+                                unlockedLoreIds: p.unlockedLoreIds,
+                              );
+                          final canSilk = !p.victoryMilestones['silkRoadNetwork']! &&
+                              EconomyCalculator.checkSilkRoadVictoryProgress(
+                                routes: routes,
+                                resources: res,
+                              );
+                          final canRealm = !p.victoryMilestones['realmConquest']! &&
+                              EconomyCalculator.checkRealmConquestProgress(
+                                cumulativeBiomeCounts: p.cumulativeBiomeCounts,
+                                ownedCount: p.ownedCount,
+                              );
+
+                          if (canBengu) {
+                            return TactileNeoButton(
+                              onTap: () => notifier.claimCulturalVictory(),
+                              backgroundColor: const Color(0xFF10B981),
+                              borderColor: Colors.black,
+                              height: 32,
+                              alignment: Alignment.center,
+                              child: const Text('BENGÜ TAŞ DİK (+10 Tamga, +%25 Kut)', style: TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.w900)),
+                            );
+                          }
+                          if (canSilk) {
+                            return TactileNeoButton(
+                              onTap: () => notifier.claimSilkRoadVictory(),
+                              backgroundColor: const Color(0xFFF59E0B),
+                              borderColor: Colors.black,
+                              height: 32,
+                              alignment: Alignment.center,
+                              child: const Text('İPEK YOLUNU BAĞLA (+10 Tamga, +%25 Kut)', style: TextStyle(color: Colors.black, fontSize: 9.5, fontWeight: FontWeight.w900)),
+                            );
+                          }
+                          if (canRealm) {
+                            return TactileNeoButton(
+                              onTap: () => notifier.claimRealmConquestVictory(),
+                              backgroundColor: const Color(0xFF818CF8),
+                              borderColor: Colors.black,
+                              height: 32,
+                              alignment: Alignment.center,
+                              child: const Text('DİYARLARI BİRLEŞTİR (+15 Tamga, +%25 Kut)', style: TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.w900)),
+                            );
+                          }
+
+                          return Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0F172A),
+                              borderRadius: BorderRadius.circular(3),
+                              border: Border.all(color: const Color(0xFF334155)),
+                            ),
+                            child: const Text(
+                              'Hedef: 500 Bilgelik veya 4 Kervan Hattı ile Ebedi Zafer ilan et.',
+                              style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9, height: 1.3),
+                            ),
+                          );
+                        }),
                       ],
                     ],
                   ),

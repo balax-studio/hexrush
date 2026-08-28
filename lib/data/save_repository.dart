@@ -4,6 +4,7 @@ import '../domain/models/ad_reward_model.dart';
 import '../domain/models/ancestral_kurgan_model.dart';
 import '../domain/models/caravan_route_model.dart';
 import '../domain/models/celestial_omen_model.dart';
+import '../domain/models/combat_model.dart';
 import '../domain/models/doctrine_model.dart';
 import '../domain/models/game_state_model.dart';
 import '../domain/models/hex_tile_model.dart';
@@ -27,6 +28,7 @@ class SaveDataBundle {
   final int yearIndex;
   final List<AncestralKurgan> discoveredKurgans;
   final AdRewardTracking adTracking;
+  final CombatState? combatState;
 
   const SaveDataBundle({
     required this.timestamp,
@@ -46,6 +48,7 @@ class SaveDataBundle {
     this.yearIndex = 0,
     this.discoveredKurgans = const [],
     this.adTracking = const AdRewardTracking(),
+    this.combatState,
   });
 }
 
@@ -172,6 +175,13 @@ class SaveRepository {
           ? AdRewardTracking.fromJson(Map<String, dynamic>.from(data['ad_tracking'] as Map))
           : const AdRewardTracking();
 
+      CombatState? combatState;
+      if (data['combat_state'] is Map) {
+        try {
+          combatState = CombatState.fromJson(Map<String, dynamic>.from(data['combat_state'] as Map));
+        } catch (_) {}
+      }
+
       return SaveDataBundle(
         timestamp: timestamp,
         resources: resources,
@@ -190,6 +200,7 @@ class SaveRepository {
         yearIndex: yearIndex,
         discoveredKurgans: discoveredKurgans,
         adTracking: adTracking,
+        combatState: combatState,
       );
     } catch (e) {
       // JSON parse error fallback
@@ -215,6 +226,7 @@ class SaveRepository {
     int yearIndex = 0,
     List<AncestralKurgan> discoveredKurgans = const [],
     AdRewardTracking adTracking = const AdRewardTracking(),
+    CombatState? combatState,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final slotsJson = <String, String?>{};
@@ -223,7 +235,7 @@ class SaveRepository {
     });
 
     final data = {
-      'version': 4,
+      'version': 5,
       'timestamp': DateTime.now().millisecondsSinceEpoch ~/ 1000,
       'resources': resources.toJson(),
       'progression': progression.toJson(),
@@ -241,6 +253,7 @@ class SaveRepository {
       'year_index': yearIndex,
       'discovered_kurgans': discoveredKurgans.map((k) => k.toJson()).toList(),
       'ad_tracking': adTracking.toJson(),
+      'combat_state': combatState?.toJson(),
     };
 
     return prefs.setString(_saveKey, jsonEncode(data));
@@ -252,4 +265,5 @@ class SaveRepository {
     return prefs.remove(_saveKey);
   }
 }
+
 

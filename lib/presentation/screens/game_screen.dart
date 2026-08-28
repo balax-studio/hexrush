@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/audio/tactile_audio_service.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/economy/economy_calculator.dart';
 import '../flame/flame_interactive_map.dart';
@@ -21,7 +22,11 @@ import '../widgets/realm_selection_dialog.dart';
 import '../widgets/debug_menu_dialog.dart';
 import '../widgets/hexpedia_dialog.dart';
 import '../widgets/tactile_dialog_route.dart';
+import '../widgets/horn_of_steppe_dialog.dart';
+import '../widgets/hud/active_raid_combat_hud.dart';
+import '../widgets/night_raid_atmosphere_overlay.dart';
 import '../widgets/season_transition_banner.dart';
+import '../widgets/migration_waypoint_banner.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
@@ -96,6 +101,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
       },
     );
 
+    final selectedCoord = ref.watch(gameStateProvider.select((s) => s.selectedCoord));
     final activePalette = ref.watch(gameStateProvider.select((s) => s.settings.activeThemePalette));
     final isDioramaMode = ref.watch(gameStateProvider.select((s) => s.isDioramaMode));
     final isMacroOverview = ref.watch(gameStateProvider.select((s) => s.isMacroOverview));
@@ -121,14 +127,38 @@ class _GameScreenState extends ConsumerState<GameScreen>
               child: DioramaLensOverlay(),
             ),
 
+            // 2.5. Gece Akını Karartması & Savaş Atmosferi (Sadece Savaşta Aktif)
+            const Positioned.fill(
+              child: NightRaidAtmosphereOverlay(),
+            ),
+
             // DIORAMA MODU AKTİFSE HUD GİZLENİR
             if (!isDioramaMode) ...[
-              // 3. Görev Takipçisi (Sol Üst - HUD Altı)
+              // 3. Gece Akın Savaşı Canlı Üst Can Barı (Sadece Savaş Sırasında Görünür)
               const Positioned(
-                top: 88,
+                top: 52,
+                left: 12,
+                right: 12,
+                child: SafeArea(
+                  child: ActiveRaidCombatHUD(),
+                ),
+              ),
+
+              // 3.2. Görev Takipçisi (Sol Üst)
+              const Positioned(
+                top: 92,
                 left: 12,
                 child: SafeArea(
                   child: QuestTrackerHUD(),
+                ),
+              ),
+
+              // 3.5. İlk Sefer Kutlu Göç Waypoint Rehberlik Banner'ı
+              const Positioned(
+                top: 92,
+                right: 12,
+                child: SafeArea(
+                  child: MigrationWaypointBanner(),
                 ),
               ),
 
@@ -161,6 +191,17 @@ class _GameScreenState extends ConsumerState<GameScreen>
                   ),
                 ),
               ),
+
+              // 4.5. Seçili Karo Menüsü Dışına Dokunulduğunda Kapatma Bariyeri
+              if (selectedCoord != null)
+                Positioned.fill(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () {
+                      ref.read(gameStateProvider.notifier).clearSelection();
+                    },
+                  ),
+                ),
 
               // 5. Seçili Karo Aksiyon Menüsü (Alt Kısım)
               const Positioned(
@@ -247,6 +288,32 @@ class _GameScreenState extends ConsumerState<GameScreen>
                           child: Icon(
                             Icons.local_shipping,
                             size: 18,
+                            color: Color(0xFFFDE047),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Bozkır Akın Borusu & Meydan Okuma Butonu
+                      TactileNeoButton(
+                        onTap: () {
+                          showNeoTactileDialog<void>(
+                            context: context,
+                            builder: (_) => const HornOfSteppeDialog(),
+                          );
+                        },
+                        backgroundColor: const Color(0xFF78350F),
+                        borderColor: const Color(0xFFD97706),
+                        shadowColor: theme.shadowColor,
+                        shadowOffset: 2.0,
+                        height: 36,
+                        width: 36,
+                        padding: EdgeInsets.zero,
+                        alignment: Alignment.center,
+                        soundType: TactileSoundType.horn,
+                        child: const Center(
+                          child: Icon(
+                            Icons.campaign,
+                            size: 20,
                             color: Color(0xFFFDE047),
                           ),
                         ),

@@ -5,6 +5,7 @@ import '../../../core/hex/hex_coordinates.dart';
 import '../../../core/hex/hex_math.dart';
 import '../../../core/theme/neo_brutalist_theme.dart';
 import '../../../domain/models/building_model.dart';
+import '../../../domain/models/combat_model.dart';
 import '../../../domain/models/hex_tile_model.dart';
 import '../../../domain/services/symbiosis_engine.dart';
 import '../hex_map_game.dart';
@@ -38,17 +39,21 @@ class HexTileComponent extends PositionComponent {
 
   // Zero-GC Cached Paint Objects
   static final Paint _workerRangeBorderPaint = Paint()
-    ..color = const Color(0x6638BDF8) // Translucent sky blue
+    ..color = const Color(0x9910B981) // Translucent emerald green
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 1.5;
+    ..strokeWidth = 2.0;
+
+  static final Paint _workerRangeFillPaint = Paint()
+    ..color = const Color(0x1810B981) // Soft translucent emerald fill
+    ..style = PaintingStyle.fill;
 
   static final Paint _harvestTargetBorderPaint = Paint()
-    ..color = const Color(0xFF38BDF8) // Solid sky blue
+    ..color = const Color(0xFF10B981) // Solid emerald green
     ..style = PaintingStyle.stroke
     ..strokeWidth = 2.5;
 
   static final Paint _harvestTargetFillPaint = Paint()
-    ..color = const Color(0x2A38BDF8)
+    ..color = const Color(0x3310B981) // Medium emerald fill
     ..style = PaintingStyle.fill;
 
   final void Function(HexAxial coord)? onTileTapped;
@@ -542,8 +547,9 @@ class HexTileComponent extends PositionComponent {
       canvas.drawPath(_topPath, _warmPaint);
     }
 
-    // İşçi Kulübesi 4 Hex Menzili Aurası
+    // İşçi Kulübesi 4 Hex Menzili Aurası (Menzildeki Fethedilmiş Arazi Vurgusu)
     if (isInWorkerRange && !isSelected) {
+      canvas.drawPath(_topPath, _workerRangeFillPaint);
       canvas.drawPath(_topPath, _workerRangeBorderPaint);
     }
 
@@ -947,6 +953,44 @@ class HexTileComponent extends PositionComponent {
         rightColor: const Color(0xFFCA8A04).withValues(alpha: boostPulse * 0.5),
       );
     }
+
+    // 4. Savunma Suru (Akıllı Kesişim ve Sınır Koruması)
+    if (tileModel.hasActiveWall) {
+      final wallEdges = _calculateActiveWallEdges();
+      VoxelIsometricRenderer.drawVoxelPerimeterWall(
+        canvas,
+        corners,
+        tier: tileModel.wall!.tier,
+        activeEdges: wallEdges,
+        isNight: isNight,
+        animTime: tTime,
+      );
+    }
+  }
+
+  /// Komşu karolardaki sur durumuna göre açık/dış kenarları hesaplar
+  /// İki surlu karo birbirine komşu ise aralarındaki iç kenar duvarını kaldırır
+  List<bool> _calculateActiveWallEdges() {
+    final game = findGame();
+    if (game is! HexMapGame) return List.filled(6, true);
+
+    const edgeDirections = [
+      HexAxial(1, 0),
+      HexAxial(0, 1),
+      HexAxial(-1, 1),
+      HexAxial(-1, 0),
+      HexAxial(0, -1),
+      HexAxial(1, -1),
+    ];
+
+    final List<bool> activeEdges = [];
+    for (int i = 0; i < 6; i++) {
+      final neighborCoord = coord + edgeDirections[i];
+      final neighborComp = game.getTileComponent(neighborCoord);
+      final bool neighborHasWall = neighborComp?.tileModel.hasActiveWall ?? false;
+      activeEdges.add(!neighborHasWall);
+    }
+    return activeEdges;
   }
 
   void _renderLivingForest(Canvas canvas, Offset center, int seed, {double tapProgress = 0.0}) {

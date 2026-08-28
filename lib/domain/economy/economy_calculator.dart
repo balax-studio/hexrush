@@ -175,14 +175,33 @@ class ResetCrownsBreakdown {
 
 /// Krallık Ekonomisi, Töre Ağacı & Yetenek Hesaplayıcı (Pure Dart Engine)
 class EconomyCalculator {
+  /// Kağan Otağı (Şato) Seviyesine Göre Toplam Küresel Üretim Yüzdesi (Bonus %)
+  /// Seviye 1-9: Her seviye başına +%1
+  /// Seviye 10-19: Her seviye başına +%2
+  /// Seviye 20-29: Her seviye başına +%3
+  /// Seviye 30-39: Her seviye başına +%4
+  /// Seviye 40-49: Her seviye başına +%5
+  /// Seviye 50+: Her seviye başına +%6 (Her 10 seviyede bir seviye başına gelen verim artışı +%1 yükselir)
+  static double calculateCastleBonusPercentage(int castleLevel) {
+    if (castleLevel <= 1) return 0.0;
+    double totalPercent = 0.0;
+    for (int lvl = 2; lvl <= castleLevel; lvl++) {
+      final int stepRate = (lvl ~/ 10) + 1;
+      totalPercent += stepRate;
+    }
+    return totalPercent;
+  }
+
   static double getGlobalMultiplier({
     required int castleLevel,
     required int crowns,
     Map<String, dynamic> talents = const {},
     Map<String, dynamic> toreTalents = const {},
     Map<String, dynamic> titles = const {},
+    double kutMultiplier = 1.0,
   }) {
-    final double castleMult = 1.0 + (castleLevel - 1) * 0.01;
+    final double castleBonusPercent = calculateCastleBonusPercentage(castleLevel);
+    final double castleMult = 1.0 + (castleBonusPercent / 100.0);
 
     // Yetenek Ağacı Çarpanları
     final double talentBoost = (talents['boostAll'] as num? ?? 0) * 0.05;
@@ -208,7 +227,74 @@ class EconomyCalculator {
 
     final double prestigeMult =
         1.0 + talentBoost + toreBoost + titleBoost;
-    return castleMult * prestigeMult;
+    return castleMult * prestigeMult * math.max(1.0, kutMultiplier);
+  }
+
+  /// Kut Katsayısı (Prestij / Büyük Göç Gelişim Çarpanı)
+  /// Azalan verim modeliyle stabil, patlama yapmayan üstel güçlendirme sağlar.
+  static double calculateKutMultiplier({
+    required int tamgas,
+    required int totalMigrations,
+    Map<String, bool> victoryMilestones = const {},
+    List<String> activeOaths = const [],
+  }) {
+    if (tamgas <= 0 && totalMigrations <= 0 && victoryMilestones.isEmpty) {
+      return 1.0;
+    }
+
+    // 1. Tamga katkısı (Azalan verimle yumuşak katsayı)
+    double tamgaBonus = 0.0;
+    if (tamgas <= 50) {
+      tamgaBonus = tamgas * 0.04;
+    } else {
+      tamgaBonus = 2.0 + (math.log(tamgas - 49.0) / math.ln10) * 0.5;
+    }
+
+    // 2. Kümülatif Büyük Göç Tecrübesi (+%5 her göçte)
+    final double migrationBonus = totalMigrations * 0.05;
+
+    // 3. Zafer Kilometre Taşları (+%25 kalıcı Kut her büyük zafer için)
+    int victoryCount = 0;
+    for (final v in victoryMilestones.values) {
+      if (v) victoryCount++;
+    }
+    final double victoryBonus = victoryCount * 0.25;
+
+    // 4. Kutsal Andlar (Meydan okumalar - and başına ekstra +%15)
+    final double oathBonus = activeOaths.length * 0.15;
+
+    return math.max(1.0, 1.0 + tamgaBonus + migrationBonus + victoryBonus + oathBonus);
+  }
+
+  /// Kültürel Zafer Kontrolü: 4 Cepheye Bengü Taş Dikme (Orhun Anıtları)
+  static bool checkCulturalVictoryProgress({
+    required ResourcesModel resources,
+    required List<String> unlockedLoreIds,
+  }) {
+    return resources.wisdom >= 500.0 &&
+        resources.damascusSteel >= 100.0 &&
+        unlockedLoreIds.length >= 3;
+  }
+
+  /// Lojistik & Ticaret Zaferi: Ulu İpek Yolu Ağı
+  static bool checkSilkRoadVictoryProgress({
+    required List<CaravanRoute> routes,
+    required ResourcesModel resources,
+  }) {
+    return routes.length >= 3 &&
+        resources.kumis >= 100.0 &&
+        resources.felt >= 100.0;
+  }
+
+  /// Coğrafi Zafer: 4 Kadim Diyarın Ehlileştirilmesi
+  static bool checkRealmConquestProgress({
+    required Map<String, int> cumulativeBiomeCounts,
+    required int ownedCount,
+  }) {
+    final meadow = cumulativeBiomeCounts['meadow'] ?? 0;
+    final forest = cumulativeBiomeCounts['forest'] ?? 0;
+    final mountain = cumulativeBiomeCounts['mountain'] ?? 0;
+    return ownedCount >= 20 && (meadow >= 4 && forest >= 4 && mountain >= 4);
   }
 
   /// Büyük Göç (Sıfırlama) anında kazanılacak Taç miktarını ve detaylı dökümünü hesaplar (Dengeli Pacing Modeli)
@@ -297,6 +383,15 @@ class EconomyCalculator {
     required HexTileModel workerTile,
     required Map<HexAxial, HexTileModel> tiles,
     double workerTransferMult = 1.0,
+    double globalMultiplier = 1.0,
+    double seasonMultiplier = 1.0,
+    double shrineMultiplier = 1.0,
+    String season = 'SPRING',
+    bool isZud = false,
+    Map<String, int> cumulativeBiomeCounts = const {},
+    List<CaravanRoute> caravanRoutes = const [],
+    List<DoctrineCardModel> activeDoctrines = const [],
+    List<AncestralKurgan> discoveredKurgans = const [],
   }) {
     if (workerTile.building == null) {
       return const WorkerLogisticsStats(
@@ -329,7 +424,59 @@ class EconomyCalculator {
       }
 
       if (tile.coord.distanceTo(workerTile.coord) <= 4) {
-        totalDemand += b.currentProductionRate;
+        double chainSynergy = 1.0;
+        for (final nCoord in tile.coord.neighbors) {
+          final nTile = tiles[nCoord];
+          if (nTile != null && nTile.isOwned && nTile.building != null) {
+            if (b.type == BuildingType.windmill && nTile.building!.type == BuildingType.corn) chainSynergy = 2.0;
+            if (b.type == BuildingType.sawmill && nTile.building!.type == BuildingType.lumberjack) chainSynergy = 2.0;
+            if (b.type == BuildingType.bakery && nTile.building!.type == BuildingType.windmill) chainSynergy = 2.0;
+            if (b.type == BuildingType.furniture && nTile.building!.type == BuildingType.sawmill) chainSynergy = 2.0;
+          }
+        }
+
+        final neighborTiles = tile.coord.neighbors.map((nc) => tiles[nc]).whereType<HexTileModel>().toList();
+        final double biomeSynergy = calculateAdjacencySynergy(
+          targetTile: tile,
+          neighborTiles: neighborTiles,
+          season: season,
+          isZud: isZud,
+        );
+
+        final double seasonMult = getSeasonProductionMultiplier(
+          season: season,
+          isZud: isZud,
+          isTileWarmed: tile.isWarmed,
+        );
+
+        final double seasonalBoost = getSeasonalProductionBoost(
+          season: season,
+          buildingType: b.type,
+        );
+
+        final double docMult = getDoctrineProductionMultiplier(
+          buildingType: b.type,
+          activeDoctrines: activeDoctrines,
+        );
+
+        final double soilMult = calculateSoilHealthMultiplier(tile);
+        final double caravanMult = calculateCaravanRouteMultiplier(tile.coord, caravanRoutes);
+        final double symbiosisMult = calculateSymbiosisMultiplier(tile);
+        final double ancestralMult = calculateAncestralRelicMultiplier(discoveredKurgans);
+
+        final double realRate = calculateBuildingProduction(
+          type: b.type,
+          level: b.level,
+          baseRate: b.baseProductionRate,
+          globalMultiplier: globalMultiplier * docMult * caravanMult * symbiosisMult * ancestralMult,
+          seasonMultiplier: seasonMult * soilMult,
+          synergyMultiplier: chainSynergy * biomeSynergy,
+          workerMultiplier: 1.0,
+          shrineMultiplier: shrineMultiplier,
+          seasonalBoostMultiplier: seasonalBoost,
+        );
+
+        totalDemand += realRate;
         count++;
       }
     }
@@ -355,6 +502,7 @@ class EconomyCalculator {
     required int crowns,
     Map<String, dynamic> toreTalents = const {},
     Map<String, dynamic> titles = const {},
+    double kutMultiplier = 1.0,
     String season = 'SPRING',
     bool isZud = false,
     List<DoctrineCardModel> activeDoctrines = const [],
@@ -373,6 +521,7 @@ class EconomyCalculator {
       crowns: crowns,
       toreTalents: toreTalents,
       titles: titles,
+      kutMultiplier: kutMultiplier,
     );
 
     // Doktrin: Göçer İaşesi (Boş çayırlardan iaşe)
@@ -2016,26 +2165,29 @@ class EconomyCalculator {
   }
 
   /// 15. İleri Seviye Bozkır Zanaat Çıktı Oranları (Kımız, Keçe, Şam Çeliği)
+  /// Kutsal Ambar Rezervi (%15 / 15 birim koruması): Temel kaynakların tamamen tükenmesini önler.
   static Map<String, double> calculateAdvancedCraftingYield({
     required BuildingType buildingType,
     required ResourcesModel resources,
     double globalMultiplier = 1.0,
     List<String> unlockedLoreIds = const [],
+    double reserveFloor = 15.0,
   }) {
     switch (buildingType) {
       case BuildingType.kumisYurt:
-        // Gıda -> Kımız dönüşümü (1.0 gıda -> 0.25 kımız)
+        // Gıda -> Kımız dönüşümü (1.0 gıda -> 0.25 kımız), 15 Gıda taban rezervi korunur
         final double soilMultiplier = unlockedLoreIds.contains('lore_soil_2') ? 1.35 : 1.0;
-        final double maxCraft = (resources.food >= 1.0) ? 0.25 * globalMultiplier * soilMultiplier : 0.0;
+        final bool canCraft = resources.food > (reserveFloor + 1.0);
+        final double maxCraft = canCraft ? 0.25 * globalMultiplier * soilMultiplier : 0.0;
         return {
-          'consumed_food': maxCraft > 0 ? 1.0 : 0.0,
+          'consumed_food': canCraft ? 1.0 : 0.0,
           'gained_kumis': maxCraft,
         };
 
       case BuildingType.feltTentWorkshop:
-        // Odun + Gıda/Yün -> Keçe dönüşümü (0.5 odun + 0.5 gıda -> 0.22 keçe)
+        // Odun + Gıda -> Keçe dönüşümü, 15 Odun ve 15 Gıda taban rezervi korunur
         final double weatherMultiplier = unlockedLoreIds.contains('lore_weather_2') ? 1.40 : 1.0;
-        final bool canCraft = resources.wood >= 0.5 && resources.food >= 0.5;
+        final bool canCraft = resources.wood > (reserveFloor + 0.5) && resources.food > (reserveFloor + 0.5);
         final double maxCraft = canCraft ? 0.22 * globalMultiplier * weatherMultiplier : 0.0;
         return {
           'consumed_wood': canCraft ? 0.5 : 0.0,
@@ -2044,9 +2196,9 @@ class EconomyCalculator {
         };
 
       case BuildingType.damascusForge:
-        // Demir + Odun Kömürü -> Şam Çeliği dönüşümü (0.5 demir + 0.5 odun -> 0.18 şam çeliği)
+        // Demir + Odun -> Şam Çeliği dönüşümü, 15 Demir ve 15 Odun taban rezervi korunur
         final double metalMultiplier = unlockedLoreIds.contains('lore_metal_2') ? 1.50 : 1.0;
-        final bool canCraft = resources.iron >= 0.5 && resources.wood >= 0.5;
+        final bool canCraft = resources.iron > (reserveFloor + 0.5) && resources.wood > (reserveFloor + 0.5);
         final double maxCraft = canCraft ? 0.18 * globalMultiplier * metalMultiplier : 0.0;
         return {
           'consumed_iron': canCraft ? 0.5 : 0.0,
