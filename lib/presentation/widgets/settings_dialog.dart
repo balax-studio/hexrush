@@ -7,6 +7,7 @@ import '../providers/game_state_notifier.dart';
 import 'great_migration_dialog.dart';
 import 'icons/game_vector_icons.dart';
 import 'tactile_neo_button.dart';
+import 'tactile_dialog_route.dart';
 
 class SettingsDialog extends ConsumerWidget {
   const SettingsDialog({super.key});
@@ -247,7 +248,7 @@ class SettingsDialog extends ConsumerWidget {
             TactileNeoButton(
               onTap: () {
                 Navigator.of(context).pop();
-                showDialog<void>(
+                showNeoTactileDialog<void>(
                   context: context,
                   builder: (ctx) => const GreatMigrationDialog(),
                 );

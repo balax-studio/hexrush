@@ -10,6 +10,21 @@ import '../../../domain/services/symbiosis_engine.dart';
 import '../hex_map_game.dart';
 import '../renderers/voxel_isometric_renderer.dart';
 
+/// Biyom canlılarının dinamik hareket, yön ve animasyon verisi
+class FaunaRoamData {
+  final Offset offset;
+  final bool flipX;
+  final double walkAnim;
+  final bool isMoving;
+
+  const FaunaRoamData({
+    required this.offset,
+    required this.flipX,
+    required this.walkAnim,
+    required this.isMoving,
+  });
+}
+
 class HexTileComponent extends PositionComponent {
   final HexAxial coord;
   HexTileModel tileModel;
@@ -98,6 +113,8 @@ class HexTileComponent extends PositionComponent {
   static final Path _wallPath = Path();
   static final Path _topPath = Path();
 
+  List<Offset> compatibleNeighborOffsets;
+
   HexTileComponent({
     required this.coord,
     required this.tileModel,
@@ -108,6 +125,7 @@ class HexTileComponent extends PositionComponent {
     required this.isZud,
     this.isNight = false,
     this.themePalette = 'basalt',
+    this.compatibleNeighborOffsets = const [],
     this.onTileTapped,
   })  : _previousSeason = season,
         _currentSeason = season,
@@ -133,12 +151,16 @@ class HexTileComponent extends PositionComponent {
     required bool newIsZud,
     bool? newIsNight,
     String? newThemePalette,
+    List<Offset>? newCompatibleNeighborOffsets,
   }) {
     if (!isSelected && newIsSelected) {
       triggerTapBounce();
     }
     if (newThemePalette != null) {
       themePalette = newThemePalette;
+    }
+    if (newCompatibleNeighborOffsets != null) {
+      compatibleNeighborOffsets = newCompatibleNeighborOffsets;
     }
 
     final bool buildingAdded = !tileModel.hasBuilding && newTileModel.hasBuilding;
@@ -154,8 +176,8 @@ class HexTileComponent extends PositionComponent {
       _revealTimer = _revealDuration;
     }
 
-    // Mevsim Değişimi Geçişi Tespiti
-    if (newSeason != _currentSeason) {
+    // Mevsim Değişimi Geçişi Tespiti (Sezon veya Zud Afeti Geçişi)
+    if (newSeason != _currentSeason || newIsZud != isZud) {
       _previousSeason = _currentSeason;
       _currentSeason = newSeason;
       _seasonTransitionTimer = _seasonTransitionDuration;
@@ -168,6 +190,125 @@ class HexTileComponent extends PositionComponent {
     season = newSeason;
     isZud = newIsZud;
     if (newIsNight != null) isNight = newIsNight;
+  }
+
+  /// Canlı Biyom Hayvanlarının Dinamik Gezinme ve Göç Hesabı (Fauna Wandering & Migration Engine)
+  FaunaRoamData getFaunaRoamData(int faunaSeed, {double speedMultiplier = 1.0}) {
+    final double timeOffset = ((faunaSeed * 5.41).abs() % 40.0);
+    final double t = (tileAnimTime * speedMultiplier) + timeOffset;
+
+    if (compatibleNeighborOffsets.isNotEmpty) {
+      final int n = compatibleNeighborOffsets.length;
+      final int cycleIndex = (t / 22.0).floor();
+      final int targetIndex = (faunaSeed + cycleIndex) % n;
+      final Offset targetOffset = compatibleNeighborOffsets[targetIndex];
+      final double cycle = t % 22.0;
+
+      if (cycle < 5.0) {
+        // 1. Ana Karoda Otlama / Yavaş Adımlama (0s - 5s)
+        final double phaseT = cycle;
+        final double ox = math.cos(phaseT * 0.7) * 7.0;
+        final double oy = math.sin(phaseT * 0.5) * 4.0;
+        final double vx = -math.sin(phaseT * 0.7) * 7.0;
+        return FaunaRoamData(
+          offset: Offset(ox, oy),
+          flipX: vx < -0.2 ? true : (vx > 0.2 ? false : faunaSeed % 2 == 0),
+          walkAnim: phaseT < 3.0 ? t * 4.0 : 0.0,
+          isMoving: phaseT < 3.0,
+        );
+      } else if (cycle < 9.5) {
+        // 2. Komşu Biyoma Doğru Göç / Yürüme (5s - 9.5s)
+        final double progress = (cycle - 5.0) / 4.5;
+        final double s = progress * progress * (3.0 - 2.0 * progress);
+        final Offset startPt = Offset(math.cos(5.0 * 0.7) * 7.0, math.sin(5.0 * 0.5) * 4.0);
+        final Offset endPt = targetOffset * 0.68;
+        final Offset currentPos = Offset.lerp(startPt, endPt, s)!;
+        final Offset dir = endPt - startPt;
+        return FaunaRoamData(
+          offset: currentPos,
+          flipX: dir.dx < 0,
+          walkAnim: t * 6.0,
+          isMoving: true,
+        );
+      } else if (cycle < 15.5) {
+        // 3. Komşu Biyomda Otlama ve Keşif (9.5s - 15.5s)
+        final double phaseT = cycle - 9.5;
+        final Offset neighborBase = targetOffset * 0.68;
+        final double ox = math.sin(phaseT * 0.6) * 6.0;
+        final double oy = math.cos(phaseT * 0.4) * 3.5;
+        final double vx = math.cos(phaseT * 0.6) * 6.0;
+        return FaunaRoamData(
+          offset: Offset(neighborBase.dx + ox, neighborBase.dy + oy),
+          flipX: vx < -0.2 ? true : (vx > 0.2 ? false : faunaSeed % 2 == 1),
+          walkAnim: phaseT < 3.5 ? t * 3.5 : 0.0,
+          isMoving: phaseT < 3.5,
+        );
+      } else if (cycle < 20.0) {
+        // 4. Ana Karoya Geri Dönüş (15.5s - 20s)
+        final double progress = (cycle - 15.5) / 4.5;
+        final double s = progress * progress * (3.0 - 2.0 * progress);
+        final Offset startPt = targetOffset * 0.68;
+        const Offset endPt = Offset.zero;
+        final Offset currentPos = Offset.lerp(startPt, endPt, s)!;
+        final Offset dir = endPt - startPt;
+        return FaunaRoamData(
+          offset: currentPos,
+          flipX: dir.dx < 0,
+          walkAnim: t * 6.0,
+          isMoving: true,
+        );
+      } else {
+        // 5. Dinlenme / Çevreye Bakma (20s - 22s)
+        return FaunaRoamData(
+          offset: Offset.zero,
+          flipX: faunaSeed % 2 == 0,
+          walkAnim: 0.0,
+          isMoving: false,
+        );
+      }
+    } else {
+      // Benzer komşu biyom yoksa kendi karosunun içinde devriye döner (16s loop)
+      final double cycle = t % 16.0;
+      if (cycle < 4.5) {
+        final double progress = cycle / 4.5;
+        final double s = progress * progress * (3.0 - 2.0 * progress);
+        const Offset pA = Offset(-9.0, 4.0);
+        const Offset pB = Offset(9.0, -3.0);
+        return FaunaRoamData(
+          offset: Offset.lerp(pA, pB, s)!,
+          flipX: false,
+          walkAnim: t * 5.0,
+          isMoving: true,
+        );
+      } else if (cycle < 8.0) {
+        final double sub = cycle - 4.5;
+        return FaunaRoamData(
+          offset: Offset(9.0 + math.sin(sub * 1.5) * 1.5, -3.0 + math.cos(sub * 1.2) * 1.0),
+          flipX: false,
+          walkAnim: 0.0,
+          isMoving: false,
+        );
+      } else if (cycle < 12.5) {
+        final double progress = (cycle - 8.0) / 4.5;
+        final double s = progress * progress * (3.0 - 2.0 * progress);
+        const Offset pB = Offset(9.0, -3.0);
+        const Offset pC = Offset(-5.0, -6.0);
+        return FaunaRoamData(
+          offset: Offset.lerp(pB, pC, s)!,
+          flipX: true,
+          walkAnim: t * 5.0,
+          isMoving: true,
+        );
+      } else {
+        final double sub = cycle - 12.5;
+        return FaunaRoamData(
+          offset: Offset(-5.0 + math.cos(sub * 1.5) * 1.5, -6.0 + math.sin(sub * 1.2) * 1.0),
+          flipX: true,
+          walkAnim: 0.0,
+          isMoving: false,
+        );
+      }
+    }
   }
 
   @override
@@ -510,10 +651,22 @@ class HexTileComponent extends PositionComponent {
           VoxelIsometricRenderer.drawVoxelFurniture(canvas, center, variant: bVar, level: bLvl, isWinter: isWinter);
           break;
         case BuildingType.worker:
-          VoxelIsometricRenderer.drawVoxelLumberjack(canvas, center, variant: bVar, level: bLvl, isWinter: isWinter);
+          VoxelIsometricRenderer.drawVoxelWorkerCamp(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+            isNight: isNight,
+          );
           break;
         case BuildingType.watchtower:
-          VoxelIsometricRenderer.drawVoxelWatchtower(canvas, center, isNight: isNight, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelWatchtower(
+            canvas,
+            center,
+            level: bLvl,
+            isNight: isNight,
+            animTime: tTime,
+          );
           break;
         case BuildingType.mine:
           VoxelIsometricRenderer.drawVoxelMine(canvas, center, animTime: tTime, isNight: isNight, variant: bVar, level: bLvl, isWinter: isWinter);
@@ -522,33 +675,80 @@ class HexTileComponent extends PositionComponent {
           VoxelIsometricRenderer.drawVoxelBridge(canvas, center);
           break;
         case BuildingType.fisherman:
-          VoxelIsometricRenderer.drawVoxelFishermanBoat(canvas, center, animTime: tTime, isNight: isNight);
+          VoxelIsometricRenderer.drawVoxelFishermanBoat(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+            isNight: isNight,
+          );
           break;
         case BuildingType.fishermanHut:
-          VoxelIsometricRenderer.drawVoxelFishermanHut(canvas, center, animTime: tTime, isNight: isNight);
+          VoxelIsometricRenderer.drawVoxelFishermanHut(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+            isNight: isNight,
+          );
           break;
 
         // Özel Binalar
         case BuildingType.oasisCistern:
-          VoxelIsometricRenderer.drawVoxelOasisCistern(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelOasisCistern(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+          );
           break;
         case BuildingType.caravanserai:
-          VoxelIsometricRenderer.drawVoxelCaravanserai(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelCaravanserai(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+          );
           break;
         case BuildingType.astrolabe:
-          VoxelIsometricRenderer.drawVoxelAstrolabe(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelAstrolabe(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+          );
           break;
         case BuildingType.reindeerSanctuary:
-          VoxelIsometricRenderer.drawVoxelReindeerSanctuary(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelReindeerSanctuary(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+          );
           break;
         case BuildingType.geothermalBath:
-          VoxelIsometricRenderer.drawVoxelGeothermalBath(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelGeothermalBath(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+          );
           break;
         case BuildingType.permafrostDig:
-          VoxelIsometricRenderer.drawVoxelPermafrostDig(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelPermafrostDig(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+          );
           break;
         case BuildingType.steamVent:
-          VoxelIsometricRenderer.drawVoxelSteamVent(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelSteamVent(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+          );
           VoxelIsometricRenderer.drawVoxelGeyserBurst(
             canvas,
             Offset(center.dx, center.dy - 6),
@@ -557,7 +757,12 @@ class HexTileComponent extends PositionComponent {
           );
           break;
         case BuildingType.obsidianForge:
-          VoxelIsometricRenderer.drawVoxelObsidianForge(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelObsidianForge(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+          );
           VoxelIsometricRenderer.drawVoxelSmokePlume(
             canvas,
             Offset(center.dx, center.dy - 20),
@@ -569,7 +774,12 @@ class HexTileComponent extends PositionComponent {
           );
           break;
         case BuildingType.herbalistYurt:
-          VoxelIsometricRenderer.drawVoxelHerbalistYurt(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelHerbalistYurt(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+          );
           if (isNight) {
             VoxelIsometricRenderer.drawVoxelHearthFirelight(
               canvas,
@@ -581,31 +791,76 @@ class HexTileComponent extends PositionComponent {
           }
           break;
         case BuildingType.scribeWorkshop:
-          VoxelIsometricRenderer.drawVoxelScribeWorkshop(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelScribeWorkshop(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+          );
           break;
         case BuildingType.celestialAnvil:
-          VoxelIsometricRenderer.drawVoxelCelestialAnvil(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelCelestialAnvil(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+          );
           break;
         case BuildingType.ancestralTotem:
-          VoxelIsometricRenderer.drawVoxelAncestralTotem(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelAncestralTotem(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+          );
           break;
         case BuildingType.prismaticResonator:
-          VoxelIsometricRenderer.drawVoxelPrismaticResonator(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelPrismaticResonator(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+          );
           break;
         case BuildingType.runicStele:
-          VoxelIsometricRenderer.drawVoxelRunicStele(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelRunicStele(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+          );
           break;
         case BuildingType.granaryVault:
-          VoxelIsometricRenderer.drawVoxelGranaryVault(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelGranaryVault(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+          );
           break;
         case BuildingType.kumisYurt:
-          VoxelIsometricRenderer.drawVoxelKumisYurt(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelKumisYurt(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+          );
           break;
         case BuildingType.feltTentWorkshop:
-          VoxelIsometricRenderer.drawVoxelFeltTentWorkshop(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelFeltTentWorkshop(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+          );
           break;
         case BuildingType.damascusForge:
-          VoxelIsometricRenderer.drawVoxelDamascusForge(canvas, center, animTime: tTime);
+          VoxelIsometricRenderer.drawVoxelDamascusForge(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+          );
           break;
       }
     } else {
@@ -705,18 +960,33 @@ class HexTileComponent extends PositionComponent {
           Offset(center.dx - 8, center.dy - 6),
           scale: 1.1,
           animTime: _animTimer,
+          season: season,
+          isZud: isZud,
         );
         VoxelIsometricRenderer.drawVoxelBirchTree(
           canvas,
           Offset(center.dx + 10, center.dy + 2),
           scale: 0.8,
           animTime: _animTimer,
+          season: season,
+          isZud: isZud,
         );
         VoxelIsometricRenderer.drawVoxelMushroom(
           canvas,
           Offset(center.dx + 4, center.dy + 8),
           scale: 0.9,
         );
+        if (seed % 3 == 0) {
+          final roamDeer = getFaunaRoamData(seed * 11 + 5, speedMultiplier: 0.9);
+          VoxelIsometricRenderer.drawVoxelDeer(
+            canvas,
+            Offset(center.dx - 2 + roamDeer.offset.dx, center.dy + 4 + roamDeer.offset.dy),
+            animTime: _animTimer + roamDeer.walkAnim,
+            scale: 0.8,
+            seed: seed * 5 + 1,
+            flipX: roamDeer.flipX,
+          );
+        }
         break;
       case 1:
         VoxelIsometricRenderer.drawVoxelPine(
@@ -724,6 +994,8 @@ class HexTileComponent extends PositionComponent {
           Offset(center.dx, center.dy - 6),
           scale: 1.15,
           animTime: _animTimer,
+          season: season,
+          isZud: isZud,
         );
         if (isAutumn) {
           VoxelIsometricRenderer.drawVoxelAutumnFoliage(canvas, Offset(center.dx + 4, center.dy + 6), scale: 0.85);
@@ -737,19 +1009,25 @@ class HexTileComponent extends PositionComponent {
           Offset(center.dx + 10, center.dy - 4),
           scale: 1.0,
           animTime: _animTimer,
+          season: season,
+          isZud: isZud,
         );
         VoxelIsometricRenderer.drawVoxelPine(
           canvas,
           Offset(center.dx - 12, center.dy - 8),
           scale: 0.7,
           animTime: _animTimer,
+          season: season,
+          isZud: isZud,
         );
+        final roamDeer = getFaunaRoamData(seed * 7 + 2, speedMultiplier: 0.9);
         VoxelIsometricRenderer.drawVoxelDeer(
           canvas,
-          Offset(center.dx - 2, center.dy + 6),
-          animTime: _animTimer,
+          Offset(center.dx - 2 + roamDeer.offset.dx, center.dy + 6 + roamDeer.offset.dy),
+          animTime: _animTimer + roamDeer.walkAnim,
           seed: seed,
           scale: 0.85,
+          flipX: roamDeer.flipX,
         );
         break;
       case 3:
@@ -759,6 +1037,8 @@ class HexTileComponent extends PositionComponent {
           Offset(center.dx + 6, center.dy - 4),
           scale: 1.05,
           animTime: tileAnimTime,
+          season: season,
+          isZud: isZud,
         );
         VoxelIsometricRenderer.drawVoxelPebbles(
           canvas,
@@ -793,24 +1073,35 @@ class HexTileComponent extends PositionComponent {
     final int variant = seed % 8;
     final double tTime = tileAnimTime;
     final bool isSpring = season == 'SPRING';
-    final bool flip = seed % 2 == 0;
 
     void drawGrass(Offset pos, {double scale = 1.0}) {
+      Color topGrass = const Color(0xFF84CC16);
+      Color leftGrass = const Color(0xFF65A30D);
+      Color rightGrass = const Color(0xFF4D7C0F);
+      if (season == 'AUTUMN') {
+        topGrass = const Color(0xFFF59E0B);
+        leftGrass = const Color(0xFFD97706);
+        rightGrass = const Color(0xFFB45309);
+      } else if (season == 'WINTER' || isZud) {
+        topGrass = const Color(0xFFCBD5E1);
+        leftGrass = const Color(0xFF94A3B8);
+        rightGrass = const Color(0xFF64748B);
+      }
       VoxelIsometricRenderer.drawIsoCube(
         canvas,
         pos,
         w: 3.0 * scale,
         d: 3.0 * scale,
         h: 5.0 * scale,
-        topColor: const Color(0xFF84CC16),
-        leftColor: const Color(0xFF65A30D),
-        rightColor: const Color(0xFF4D7C0F),
+        topColor: topGrass,
+        leftColor: leftGrass,
+        rightColor: rightGrass,
       );
     }
 
     switch (variant) {
       case 0:
-        // Saf Bozkır & Dinlenen Tek Koyun (0 Çiçek)
+        // Saf Bozkır & Dinlenen/Gezinen Tek Koyun (0 Çiçek)
         drawGrass(Offset(center.dx + 6, center.dy + 6), scale: 0.9);
         drawGrass(Offset(center.dx - 8, center.dy + 4), scale: 0.8);
         drawGrass(Offset(center.dx - 4, center.dy + 8), scale: 0.75);
@@ -819,31 +1110,37 @@ class HexTileComponent extends PositionComponent {
         VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx + 8, center.dy - 4), scale: 0.75);
 
         if (seed % 2 == 0) {
+          final roamSheep = getFaunaRoamData(seed * 11 + 3, speedMultiplier: 0.85);
           VoxelIsometricRenderer.drawVoxelSheep(
             canvas,
-            Offset(center.dx - 2, center.dy - 2),
-            animTime: tTime,
+            Offset(center.dx - 2 + roamSheep.offset.dx, center.dy - 2 + roamSheep.offset.dy),
+            animTime: tTime + roamSheep.walkAnim,
             seed: seed * 11 + 3,
             scale: 0.85,
+            flipX: roamSheep.flipX,
           );
         }
         break;
 
       case 1:
         // Nadir Çiçek Vadisi & Koyun Sürüsü (2 Çiçek - Baharda Gelincikli) [Nadir Çiçek 1/8]
+        final roamSheep1 = getFaunaRoamData(seed, speedMultiplier: 0.85);
         VoxelIsometricRenderer.drawVoxelSheep(
           canvas,
-          Offset(center.dx + 6, center.dy - 3),
-          animTime: tTime,
+          Offset(center.dx + 6 + roamSheep1.offset.dx, center.dy - 3 + roamSheep1.offset.dy),
+          animTime: tTime + roamSheep1.walkAnim,
           seed: seed,
           scale: 0.95,
+          flipX: roamSheep1.flipX,
         );
+        final roamSheep2 = getFaunaRoamData(seed * 19 + 7, speedMultiplier: 1.05);
         VoxelIsometricRenderer.drawVoxelSheep(
           canvas,
-          Offset(center.dx - 10, center.dy + 5),
-          animTime: tTime,
+          Offset(center.dx - 10 + roamSheep2.offset.dx, center.dy + 5 + roamSheep2.offset.dy),
+          animTime: tTime + roamSheep2.walkAnim,
           seed: seed * 19 + 7,
           scale: 0.72,
+          flipX: roamSheep2.flipX,
         );
         VoxelIsometricRenderer.drawVoxelFlowers(
           canvas,
@@ -868,13 +1165,14 @@ class HexTileComponent extends PositionComponent {
 
       case 2:
         // Asil Bozkır Yılkı Atı & Çakıllar (0 Çiçek)
+        final roamHorse = getFaunaRoamData(seed, speedMultiplier: 1.0);
         VoxelIsometricRenderer.drawVoxelHorse(
           canvas,
-          Offset(center.dx, center.dy),
-          animTime: tTime,
+          Offset(center.dx + roamHorse.offset.dx, center.dy + roamHorse.offset.dy),
+          animTime: tTime + roamHorse.walkAnim,
           seed: seed,
           scale: 0.95,
-          flipX: flip,
+          flipX: roamHorse.flipX,
           startleProgress: tapProgress,
         );
         VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx - 8, center.dy + 6), scale: 0.8);
@@ -884,12 +1182,14 @@ class HexTileComponent extends PositionComponent {
         drawGrass(Offset(center.dx - 12, center.dy + 4), scale: 0.7);
 
         if (seed % 3 == 0) {
+          final roamSheep = getFaunaRoamData(seed * 13 + 5, speedMultiplier: 0.85);
           VoxelIsometricRenderer.drawVoxelSheep(
             canvas,
-            Offset(center.dx + 2, center.dy + 3),
-            animTime: tTime,
+            Offset(center.dx + 2 + roamSheep.offset.dx, center.dy + 3 + roamSheep.offset.dy),
+            animTime: tTime + roamSheep.walkAnim,
             seed: seed * 13 + 5,
             scale: 0.85,
+            flipX: roamSheep.flipX,
           );
         }
         break;
@@ -927,22 +1227,25 @@ class HexTileComponent extends PositionComponent {
       case 5:
         // Otlayan Yılkı Atı veya Koyun & Çiçeksiz Bozkır (0 Çiçek)
         if (seed % 2 == 0) {
+          final roamHorse = getFaunaRoamData(seed * 7 + 1, speedMultiplier: 1.0);
           VoxelIsometricRenderer.drawVoxelHorse(
             canvas,
-            Offset(center.dx + 2, center.dy - 2),
-            animTime: tTime,
+            Offset(center.dx + 2 + roamHorse.offset.dx, center.dy - 2 + roamHorse.offset.dy),
+            animTime: tTime + roamHorse.walkAnim,
             seed: seed * 7 + 1,
             scale: 0.9,
-            flipX: !flip,
+            flipX: roamHorse.flipX,
             startleProgress: tapProgress,
           );
         } else {
+          final roamSheep = getFaunaRoamData(seed * 5 + 3, speedMultiplier: 0.85);
           VoxelIsometricRenderer.drawVoxelSheep(
             canvas,
-            Offset(center.dx - 3, center.dy + 2),
-            animTime: tTime,
+            Offset(center.dx - 3 + roamSheep.offset.dx, center.dy + 2 + roamSheep.offset.dy),
+            animTime: tTime + roamSheep.walkAnim,
             seed: seed * 5 + 3,
             scale: 0.9,
+            flipX: roamSheep.flipX,
           );
         }
         drawGrass(Offset(center.dx - 8, center.dy - 6), scale: 0.85);
@@ -961,12 +1264,14 @@ class HexTileComponent extends PositionComponent {
         VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx - 8, center.dy - 4), scale: 0.8);
 
         if (seed % 3 == 1) {
+          final roamLamb = getFaunaRoamData(seed * 9 + 4, speedMultiplier: 1.15);
           VoxelIsometricRenderer.drawVoxelSheep(
             canvas,
-            Offset(center.dx - 1, center.dy - 1),
-            animTime: tTime,
+            Offset(center.dx - 1 + roamLamb.offset.dx, center.dy - 1 + roamLamb.offset.dy),
+            animTime: tTime + roamLamb.walkAnim,
             seed: seed * 9 + 4,
             scale: 0.8,
+            flipX: roamLamb.flipX,
           );
         }
         break;
@@ -1020,7 +1325,19 @@ class HexTileComponent extends PositionComponent {
       windWave: windWave,
       seed: seed,
     );
-    if (seed % 2 == 0) {
+
+    // Sarp Kayalıklarda Yaban Keçisi (1/3 Olasılık)
+    if (seed % 3 == 0) {
+      final roamIbex = getFaunaRoamData(seed * 19 + 4, speedMultiplier: 0.8);
+      VoxelIsometricRenderer.drawVoxelMountainIbex(
+        canvas,
+        Offset(center.dx + 10 + roamIbex.offset.dx, center.dy + 4 + roamIbex.offset.dy),
+        animTime: tileAnimTime + roamIbex.walkAnim,
+        seed: seed,
+        scale: 0.8,
+        flipX: roamIbex.flipX,
+      );
+    } else if (seed % 2 == 0) {
       VoxelIsometricRenderer.drawVoxelPebbles(
         canvas,
         Offset(center.dx + 14, center.dy + 8),
@@ -1083,6 +1400,17 @@ class HexTileComponent extends PositionComponent {
       case 0:
         VoxelIsometricRenderer.drawVoxelSandDunes(canvas, Offset(center.dx - 4, center.dy + 2), scale: 0.9);
         VoxelIsometricRenderer.drawVoxelCactus(canvas, Offset(center.dx + 12, center.dy - 6), scale: 0.85);
+        if (seed % 3 == 0) {
+          final roamCamel = getFaunaRoamData(seed * 13 + 7, speedMultiplier: 0.7);
+          VoxelIsometricRenderer.drawVoxelCamel(
+            canvas,
+            Offset(center.dx - 2 + roamCamel.offset.dx, center.dy + 2 + roamCamel.offset.dy),
+            animTime: tileAnimTime + roamCamel.walkAnim,
+            seed: seed,
+            scale: 0.88,
+            flipX: roamCamel.flipX,
+          );
+        }
         break;
       case 1:
         VoxelIsometricRenderer.drawVoxelCactus(canvas, Offset(center.dx - 6, center.dy), scale: 1.05);
@@ -1090,6 +1418,17 @@ class HexTileComponent extends PositionComponent {
         break;
       case 2:
         VoxelIsometricRenderer.drawVoxelSandDunes(canvas, center, scale: 1.1);
+        if (seed % 3 == 0) {
+          final roamCamel = getFaunaRoamData(seed * 7 + 1, speedMultiplier: 0.72);
+          VoxelIsometricRenderer.drawVoxelCamel(
+            canvas,
+            Offset(center.dx + 4 + roamCamel.offset.dx, center.dy - 2 + roamCamel.offset.dy),
+            animTime: tileAnimTime + roamCamel.walkAnim,
+            seed: seed * 7 + 1,
+            scale: 0.92,
+            flipX: roamCamel.flipX,
+          );
+        }
         break;
       case 3:
       default:
@@ -1116,7 +1455,19 @@ class HexTileComponent extends PositionComponent {
         break;
       case 1:
         VoxelIsometricRenderer.drawVoxelLichenRocks(canvas, Offset(center.dx - 6, center.dy), scale: 1.0);
-        VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx + 8, center.dy - 6), scale: 0.9);
+        if (seed % 2 == 0) {
+          final roamFox = getFaunaRoamData(seed * 17 + 2, speedMultiplier: 1.15);
+          VoxelIsometricRenderer.drawVoxelArcticFox(
+            canvas,
+            Offset(center.dx + 6 + roamFox.offset.dx, center.dy - 2 + roamFox.offset.dy),
+            animTime: tileAnimTime + roamFox.walkAnim,
+            seed: seed,
+            scale: 0.85,
+            flipX: roamFox.flipX,
+          );
+        } else {
+          VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx + 8, center.dy - 6), scale: 0.9);
+        }
         break;
       case 2:
         VoxelIsometricRenderer.drawVoxelPermafrostSpire(canvas, center, scale: 1.1);
@@ -1125,6 +1476,17 @@ class HexTileComponent extends PositionComponent {
       default:
         VoxelIsometricRenderer.drawVoxelPine(canvas, Offset(center.dx - 6, center.dy - 4), scale: 0.65, animTime: tileAnimTime);
         VoxelIsometricRenderer.drawVoxelLichenRocks(canvas, Offset(center.dx + 8, center.dy + 4), scale: 0.8);
+        if (seed % 3 == 0) {
+          final roamFox = getFaunaRoamData(seed * 5 + 3, speedMultiplier: 1.15);
+          VoxelIsometricRenderer.drawVoxelArcticFox(
+            canvas,
+            Offset(center.dx - 2 + roamFox.offset.dx, center.dy + 5 + roamFox.offset.dy),
+            animTime: tileAnimTime + roamFox.walkAnim,
+            seed: seed * 5 + 3,
+            scale: 0.8,
+            flipX: roamFox.flipX,
+          );
+        }
         break;
     }
     // Her tundra karosunda parıltı olmasın, sadece nadir buzul karolarında (1/5)
@@ -1139,9 +1501,11 @@ class HexTileComponent extends PositionComponent {
       case 0:
         VoxelIsometricRenderer.drawVoxelObsidianPillars(canvas, Offset(center.dx - 6, center.dy - 2), scale: 0.95, animTime: tileAnimTime);
         VoxelIsometricRenderer.drawVoxelMagmaVent(canvas, Offset(center.dx + 8, center.dy + 4), scale: 0.85, animTime: tileAnimTime);
+        VoxelIsometricRenderer.drawVoxelGeyserBurst(canvas, Offset(center.dx + 8, center.dy - 8), animTime: tileAnimTime, seed: seed);
         break;
       case 1:
         VoxelIsometricRenderer.drawVoxelMagmaVent(canvas, center, scale: 1.1, animTime: tileAnimTime);
+        VoxelIsometricRenderer.drawVoxelGeyserBurst(canvas, Offset(center.dx, center.dy - 12), animTime: tileAnimTime, seed: seed);
         break;
       case 2:
         VoxelIsometricRenderer.drawVoxelObsidianPillars(canvas, center, scale: 1.15, animTime: tileAnimTime);
@@ -1153,7 +1517,6 @@ class HexTileComponent extends PositionComponent {
         break;
     }
     VoxelIsometricRenderer.drawVoxelVolcanoEmbers(canvas, center, animTime: tileAnimTime, seed: seed);
-    VoxelIsometricRenderer.drawVoxelGeyserBurst(canvas, Offset(center.dx, center.dy - 12), animTime: tileAnimTime, seed: seed);
   }
 
   void _renderLivingWetland(Canvas canvas, Offset center, int seed, {double tapProgress = 0.0}) {
@@ -1231,6 +1594,24 @@ class HexTileComponent extends PositionComponent {
     }
   }
 
+  static final Map<String, TextPainter> _badgePainterCache = {};
+
+  static TextPainter _getOrCreateBadgePainter(String text, Color textCol) {
+    final String key = '$text-$textCol';
+    return _badgePainterCache.putIfAbsent(key, () {
+      final textSpan = TextSpan(
+        text: text,
+        style: TextStyle(
+          color: textCol,
+          fontSize: 9.5,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.2,
+        ),
+      );
+      return TextPainter(text: textSpan, textDirection: TextDirection.ltr)..layout();
+    });
+  }
+
   void _drawBadge(Canvas canvas, double x, double y, String text, Color bg, Color textCol) {
     const double w = 36.0;
     const double h = 16.0;
@@ -1247,16 +1628,7 @@ class HexTileComponent extends PositionComponent {
       ..strokeWidth = 1.4;
     canvas.drawRect(rect, _sharedStrokePaint);
 
-    final textSpan = TextSpan(
-      text: text,
-      style: TextStyle(
-        color: textCol,
-        fontSize: 9.5,
-        fontWeight: FontWeight.w900,
-        letterSpacing: 0.2,
-      ),
-    );
-    final textPainter = TextPainter(text: textSpan, textDirection: TextDirection.ltr)..layout();
+    final textPainter = _getOrCreateBadgePainter(text, textCol);
     textPainter.paint(canvas, Offset(x - textPainter.width / 2, y - textPainter.height / 2));
   }
 

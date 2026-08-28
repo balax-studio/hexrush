@@ -19,6 +19,9 @@ import '../widgets/steppe_lore_tree_dialog.dart';
 import '../widgets/trade_orders_dialog.dart';
 import '../widgets/realm_selection_dialog.dart';
 import '../widgets/debug_menu_dialog.dart';
+import '../widgets/hexpedia_dialog.dart';
+import '../widgets/tactile_dialog_route.dart';
+import '../widgets/season_transition_banner.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
@@ -138,19 +141,19 @@ class _GameScreenState extends ConsumerState<GameScreen>
                   bottom: false,
                   child: TopBarHUD(
                     onOpenSettings: () {
-                      showDialog<void>(
+                      showNeoTactileDialog<void>(
                         context: context,
                         builder: (_) => const SettingsDialog(),
                       );
                     },
                     onOpenMarket: () {
-                      showDialog<void>(
+                      showNeoTactileDialog<void>(
                         context: context,
                         builder: (_) => const MarketDialog(),
                       );
                     },
                     onOpenTore: () {
-                      showDialog<void>(
+                      showNeoTactileDialog<void>(
                         context: context,
                         builder: (_) => const ToreDialog(),
                       );
@@ -202,7 +205,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                       // Orhun Bitig Ağacı Butonu
                       TactileNeoButton(
                         onTap: () {
-                          showDialog<void>(
+                          showNeoTactileDialog<void>(
                             context: context,
                             builder: (_) => const SteppeLoreTreeDialog(),
                           );
@@ -227,7 +230,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                       // İpek Yolu Elçi Siparişleri Butonu
                       TactileNeoButton(
                         onTap: () {
-                          showDialog<void>(
+                          showNeoTactileDialog<void>(
                             context: context,
                             builder: (_) => const TradeOrdersDialog(),
                           );
@@ -252,7 +255,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                       // Büyük Göç Sefer Diyarları Butonu
                       TactileNeoButton(
                         onTap: () {
-                          showDialog<void>(
+                          showNeoTactileDialog<void>(
                             context: context,
                             builder: (_) => const RealmSelectionDialog(),
                           );
@@ -277,7 +280,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                       // Diorama Mühür & Fotoğraf Butonu
                       TactileNeoButton(
                         onTap: () {
-                          showDialog<void>(
+                          showNeoTactileDialog<void>(
                             context: context,
                             builder: (_) => const DioramaSnapshotDialog(),
                           );
@@ -299,10 +302,35 @@ class _GameScreenState extends ConsumerState<GameScreen>
                         ),
                       ),
                       const SizedBox(height: 8),
+                      // Hexpedia (Bozkır Ansiklopedisi) Butonu
+                      TactileNeoButton(
+                        onTap: () {
+                          showNeoTactileDialog<void>(
+                            context: context,
+                            builder: (_) => const HexpediaDialog(),
+                          );
+                        },
+                        backgroundColor: const Color(0xFF064E3B),
+                        borderColor: const Color(0xFF10B981),
+                        shadowColor: theme.shadowColor,
+                        shadowOffset: 2.0,
+                        height: 36,
+                        width: 36,
+                        padding: EdgeInsets.zero,
+                        alignment: Alignment.center,
+                        child: const Center(
+                          child: Icon(
+                            Icons.menu_book,
+                            size: 18,
+                            color: Color(0xFF6EE7B7),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                       // Geliştirici Denetim Konsolu (Debug Menü) Butonu
                       TactileNeoButton(
                         onTap: () {
-                          showDialog<void>(
+                          showNeoTactileDialog<void>(
                             context: context,
                             builder: (_) => const DebugMenuDialog(),
                           );
@@ -365,7 +393,10 @@ class _GameScreenState extends ConsumerState<GameScreen>
               ),
             ],
 
-            // 7. Non-blocking Bildirim Toaster
+            // 7. Taktil Mevsim Geçiş Başlığı
+            const SeasonTransitionBanner(),
+
+            // 8. Non-blocking Bildirim Toaster
             const ToastOverlay(),
           ],
         ),
