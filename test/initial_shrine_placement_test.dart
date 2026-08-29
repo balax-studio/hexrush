@@ -2,9 +2,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hex_rush/core/hex/hex_coordinates.dart';
 import 'package:hex_rush/domain/models/hex_tile_model.dart';
 import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
 
   group('Initial Shrine Placement Tests', () {
     test('Başlangıçta (0, 1) görünür çayır karosunda garantili Kutlu Tapınak yer alır', () {

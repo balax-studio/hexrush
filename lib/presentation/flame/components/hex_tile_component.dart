@@ -613,6 +613,20 @@ class HexTileComponent extends PositionComponent {
     _highlightPaint.color = Colors.white.withValues(alpha: highlightAlpha);
     canvas.drawPath(_topPath, _highlightPaint);
 
+    // Hava Perspektifi ve Yükseklik Işığı (Aerial Perspective & Height Luminance)
+    final double elevation = getBiomeElevation(tileModel.biome, isFog: tileModel.isFog);
+    if (elevation >= 16.0) {
+      _sharedFillPaint
+        ..style = PaintingStyle.fill
+        ..color = const Color(0xFFFDE68A).withValues(alpha: isNight ? 0.02 : 0.08);
+      canvas.drawPath(_topPath, _sharedFillPaint);
+    } else if (elevation <= 0.0) {
+      _sharedFillPaint
+        ..style = PaintingStyle.fill
+        ..color = const Color(0xFF0F172A).withValues(alpha: isNight ? 0.09 : 0.05);
+      canvas.drawPath(_topPath, _sharedFillPaint);
+    }
+
     // Kış ve Zud Ayazında Isınmamış Arazilerde Buzlanma / Kristalleşme Shader'ı
     if ((season == 'WINTER' || isZud) && !tileModel.isWarmed) {
       final frostShaderPaint = HexShaderService.getFrostShaderPaint(
@@ -972,6 +986,15 @@ class HexTileComponent extends PositionComponent {
           );
           break;
       }
+
+      // Binalar için Yaşanmışlık ve Mikro Çevre Detayları (Props, Çuvallar, Tuğlar)
+      VoxelIsometricRenderer.drawEnvironmentalClutter(
+        canvas,
+        center,
+        type: b.type,
+        scale: 1.0,
+        animTime: tTime,
+      );
     } else {
       switch (tileModel.biome) {
         case TileBiome.meadow:
@@ -1485,6 +1508,12 @@ class HexTileComponent extends PositionComponent {
         flipX: roamIbex.flipX,
       );
     } else if (seed % 2 == 0) {
+      // 2.5D Çok Katmanlı Yamaç Teras Basamakları
+      VoxelIsometricRenderer.drawTerracedCliffSteps(
+        canvas,
+        Offset(center.dx - 10, center.dy + 6),
+        scale: 0.85,
+      );
       VoxelIsometricRenderer.drawVoxelPebbles(
         canvas,
         Offset(center.dx + 14, center.dy + 8),
@@ -1505,6 +1534,16 @@ class HexTileComponent extends PositionComponent {
       VoxelIsometricRenderer.drawVoxelIceFloes(canvas, center, scale: 0.9, animTime: tileAnimTime);
       return;
     }
+
+    // 2.5D Kıyı Su Yansıması ve Dalga Kırılması
+    VoxelIsometricRenderer.drawWaterBankReflections(
+      canvas,
+      center,
+      width: 48.0,
+      height: 24.0,
+      silhouetteColor: const Color(0xFF0F172A),
+      time: tileAnimTime,
+    );
 
     VoxelIsometricRenderer.drawVoxelShorelineWaves(
       canvas,

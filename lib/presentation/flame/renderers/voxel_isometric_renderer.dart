@@ -17,8 +17,14 @@ class VoxelIsometricRenderer {
   static final Paint _sharedFillPaint = Paint()..style = PaintingStyle.fill;
   static final Paint _sharedStrokePaint = Paint()..style = PaintingStyle.stroke;
   static final Paint _cubeShadowPaint = Paint()..style = PaintingStyle.fill;
+  static final Paint _cubePenumbraPaint = Paint()..style = PaintingStyle.fill;
+  static final Paint _cubeSpecularPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.0;
 
   static final Path _cubeShadowPath = Path();
+  static final Path _cubePenumbraPath = Path();
+  static final Path _cubeSpecularPath = Path();
   static final Path _cubeLeftPath = Path();
   static final Path _cubeRightPath = Path();
   static final Path _cubeTopPath = Path();
@@ -26,6 +32,7 @@ class VoxelIsometricRenderer {
   static final Path _sharedPath2 = Path();
 
   /// 3D İzometrik Küp / Prizma çizer (Zero-GC, Zero-Heap-Allocations)
+  /// Donanım hızlandırmalı kenar ışığı (specular highlight) ve çift katmanlı yumuşak temas gölgesi içerir.
   static void drawIsoCube(
     Canvas canvas,
     Offset baseCenter, {
@@ -37,6 +44,7 @@ class VoxelIsometricRenderer {
     required Color rightColor,
     bool drawShadow = false,
     double shadowOpacity = 0.25,
+    bool specularHighlight = false,
   }) {
     final double dxR = (w * 0.5) * cosIso;
     final double dyR = (w * 0.5) * sinIso;
@@ -55,10 +63,23 @@ class VoxelIsometricRenderer {
     final double bBackX = bx + dxR + dxL;
     final double bBackY = by - dyR - dyL;
 
-    // Zemin temas gölgesi (İzometrik Yönlü Gölge Yayılımı)
+    // Zemin temas gölgesi (Çift Katmanlı Yumuşak Penumbra Yayılımı)
     if (drawShadow) {
-      _cubeShadowPaint.color = Colors.black.withValues(alpha: shadowOpacity);
       final double sOffset = math.min(12.0, h * 0.35);
+
+      // 1. Katman: Geniş yumuşak dış penumbra gölgesi
+      _cubePenumbraPaint.color = Colors.black.withValues(alpha: shadowOpacity * 0.4);
+      _cubePenumbraPath
+        ..reset()
+        ..moveTo(bFrontX + 1.0, bFrontY + 2.5)
+        ..lineTo(bRightX + 5.5 + sOffset * 1.35 * cosIso, bRightY + 3.0 - sOffset * 1.35 * sinIso)
+        ..lineTo(bBackX + 5.5 + sOffset * 1.35 * cosIso, bBackY + 3.0 - sOffset * 1.35 * sinIso)
+        ..lineTo(bLeftX - 4.5, bLeftY + 2.5)
+        ..close();
+      canvas.drawPath(_cubePenumbraPath, _cubePenumbraPaint);
+
+      // 2. Katman: Yoğun taban temas gölgesi
+      _cubeShadowPaint.color = Colors.black.withValues(alpha: shadowOpacity);
       _cubeShadowPath
         ..reset()
         ..moveTo(bFrontX, bFrontY + 2)
@@ -106,6 +127,25 @@ class VoxelIsometricRenderer {
       ..close();
     _sharedFillPaint.color = topColor;
     canvas.drawPath(_cubeTopPath, _sharedFillPaint);
+
+    // 4. Kenar Işığı ve Pah Vurgusu (Specular Edge Chamfer Highlight)
+    if (specularHighlight && w >= 3.0 && h >= 2.0) {
+      _cubeSpecularPaint.color = Colors.white.withValues(alpha: 0.28);
+      _cubeSpecularPath
+        ..reset()
+        ..moveTo(bLeftX, tLeftY)
+        ..lineTo(bBackX, tBackY)
+        ..lineTo(bRightX, tRightY);
+      canvas.drawPath(_cubeSpecularPath, _cubeSpecularPaint);
+
+      // Ön köşe dikey kontrast çizgisi
+      _cubeSpecularPaint.color = Colors.white.withValues(alpha: 0.14);
+      canvas.drawLine(
+        Offset(bFrontX, tFrontY),
+        Offset(bFrontX, bFrontY),
+        _cubeSpecularPaint,
+      );
+    }
   }
 
   /// 3D İzometrik Voksel Küpünü Donanım Hızlandırmalı Mesh (Canvas.drawVertices) ile çizer
@@ -232,6 +272,220 @@ class VoxelIsometricRenderer {
     );
 
     canvas.drawVertices(vertices, BlendMode.srcOver, _sharedFillPaint);
+  }
+
+  /// Çok Katmanlı Topoğrafik Yamaç Basamakları ve İstinat Duvarı (Terraced Cliff Stepping)
+  static void drawTerracedCliffSteps(
+    Canvas canvas,
+    Offset baseCenter, {
+    double scale = 1.0,
+    Color stoneTop = const Color(0xFF64748B),
+    Color stoneLeft = const Color(0xFF475569),
+    Color stoneRight = const Color(0xFF334155),
+  }) {
+    // 1. Alt Teras Basamağı
+    drawIsoCube(
+      canvas,
+      Offset(baseCenter.dx - 8 * scale * cosIso, baseCenter.dy + 4 * scale * sinIso),
+      w: 12.0 * scale,
+      d: 7.0 * scale,
+      h: 3.5 * scale,
+      topColor: stoneTop,
+      leftColor: stoneLeft,
+      rightColor: stoneRight,
+      specularHighlight: true,
+    );
+
+    // 2. Orta Teras ve Taş Merdiven Sahanlığı
+    drawIsoCube(
+      canvas,
+      Offset(baseCenter.dx - 2 * scale * cosIso, baseCenter.dy + 1 * scale * sinIso),
+      w: 9.0 * scale,
+      d: 6.0 * scale,
+      h: 5.5 * scale,
+      topColor: stoneTop,
+      leftColor: stoneLeft,
+      rightColor: stoneRight,
+      specularHighlight: true,
+    );
+
+    // 3. Ahşap İstinat Destek Kazığı (Wood Retaining Stake)
+    drawIsoCube(
+      canvas,
+      Offset(baseCenter.dx + 6 * scale * cosIso, baseCenter.dy + 3 * scale * sinIso),
+      w: 2.2 * scale,
+      d: 2.2 * scale,
+      h: 7.0 * scale,
+      topColor: const Color(0xFF92400E),
+      leftColor: const Color(0xFF78350F),
+      rightColor: const Color(0xFF451A03),
+      drawShadow: true,
+      shadowOpacity: 0.22,
+    );
+  }
+
+  /// Su Yüzeyi Dikey Ters Yansıma ve Dalgalanma Efekti (Planar Water Bank Reflections)
+  static void drawWaterBankReflections(
+    Canvas canvas,
+    Offset waterCenter, {
+    required double width,
+    required double height,
+    required Color silhouetteColor,
+    double time = 0.0,
+    double opacity = 0.18,
+  }) {
+    final double wave = math.sin(time * 2.0 + waterCenter.dx * 0.1) * 2.5;
+    final Rect refRect = Rect.fromCenter(
+      center: Offset(waterCenter.dx + wave * 0.5, waterCenter.dy + (height * 0.45)),
+      width: width * 0.85,
+      height: height * 0.75,
+    );
+
+    final shader = ui.Gradient.linear(
+      refRect.topCenter,
+      refRect.bottomCenter,
+      [
+        silhouetteColor.withValues(alpha: opacity),
+        silhouetteColor.withValues(alpha: opacity * 0.35),
+        Colors.transparent,
+      ],
+      [0.0, 0.65, 1.0],
+    );
+
+    _sharedFillPaint.shader = shader;
+    _sharedPath
+      ..reset()
+      ..moveTo(refRect.left, refRect.top)
+      ..lineTo(refRect.right, refRect.top)
+      ..lineTo(refRect.right - (width * 0.15) + wave, refRect.bottom)
+      ..lineTo(refRect.left + (width * 0.15) - wave, refRect.bottom)
+      ..close();
+
+    canvas.drawPath(_sharedPath, _sharedFillPaint);
+    _sharedFillPaint.shader = null;
+  }
+
+  /// Binalar için Yaşanmışlık ve Mikro Çevre Detayları (Environmental Clutter & Props)
+  static void drawEnvironmentalClutter(
+    Canvas canvas,
+    Offset buildingBase, {
+    required BuildingType type,
+    double scale = 1.0,
+    double animTime = 0.0,
+  }) {
+    switch (type) {
+      case BuildingType.windmill:
+      case BuildingType.bakery:
+        // 1. Un Çuvalları ve Ahşap Tahıl Fıçısı
+        drawIsoCube(
+          canvas,
+          Offset(buildingBase.dx - 9.0 * scale, buildingBase.dy + 3.0 * scale),
+          w: 3.2 * scale,
+          d: 3.2 * scale,
+          h: 4.5 * scale,
+          topColor: const Color(0xFFF1F5F9),
+          leftColor: const Color(0xFFE2E8F0),
+          rightColor: const Color(0xFFCBD5E1),
+          drawShadow: true,
+          shadowOpacity: 0.2,
+        );
+        drawIsoCube(
+          canvas,
+          Offset(buildingBase.dx - 6.5 * scale, buildingBase.dy + 4.5 * scale),
+          w: 2.8 * scale,
+          d: 2.8 * scale,
+          h: 3.5 * scale,
+          topColor: const Color(0xFFE2E8F0),
+          leftColor: const Color(0xFFCBD5E1),
+          rightColor: const Color(0xFF94A3B8),
+        );
+        break;
+
+      case BuildingType.quarry:
+      case BuildingType.mine:
+      case BuildingType.obsidianForge:
+        // 2. Maden Cevheri ve Ahşap Ray Kütükleri
+        drawIsoCube(
+          canvas,
+          Offset(buildingBase.dx + 8.0 * scale, buildingBase.dy + 4.0 * scale),
+          w: 3.5 * scale,
+          d: 3.5 * scale,
+          h: 2.8 * scale,
+          topColor: const Color(0xFF64748B),
+          leftColor: const Color(0xFF475569),
+          rightColor: const Color(0xFF334155),
+          drawShadow: true,
+        );
+        drawIsoCube(
+          canvas,
+          Offset(buildingBase.dx + 11.5 * scale, buildingBase.dy + 2.5 * scale),
+          w: 2.5 * scale,
+          d: 2.5 * scale,
+          h: 2.0 * scale,
+          topColor: const Color(0xFF94A3B8),
+          leftColor: const Color(0xFF64748B),
+          rightColor: const Color(0xFF475569),
+        );
+        break;
+
+      case BuildingType.lumberjack:
+      case BuildingType.sawmill:
+        // 3. İstiflenmiş Kütükler (Timber Stacks)
+        drawIsoCube(
+          canvas,
+          Offset(buildingBase.dx - 8.0 * scale, buildingBase.dy + 3.5 * scale),
+          w: 2.4 * scale,
+          d: 6.5 * scale,
+          h: 2.2 * scale,
+          topColor: const Color(0xFFB45309),
+          leftColor: const Color(0xFF92400E),
+          rightColor: const Color(0xFF78350F),
+          drawShadow: true,
+          shadowOpacity: 0.22,
+        );
+        drawIsoCube(
+          canvas,
+          Offset(buildingBase.dx - 8.0 * scale, buildingBase.dy + 3.5 * scale - 2.0 * scale),
+          w: 2.2 * scale,
+          d: 5.5 * scale,
+          h: 2.0 * scale,
+          topColor: const Color(0xFFD97706),
+          leftColor: const Color(0xFFB45309),
+          rightColor: const Color(0xFF92400E),
+        );
+        break;
+
+      case BuildingType.castle:
+        // 4. At Kılı Kadim Tuğ / Sancak (Ancient Steppe Tug Banner with Sway)
+        final double sway = math.sin(animTime * 1.8) * 1.5 * scale;
+        // Tuğ Direği
+        drawIsoCube(
+          canvas,
+          Offset(buildingBase.dx - 12.0 * scale, buildingBase.dy - 1.0 * scale),
+          w: 1.2 * scale,
+          d: 1.2 * scale,
+          h: 12.0 * scale,
+          topColor: const Color(0xFFF59E0B),
+          leftColor: const Color(0xFFD97706),
+          rightColor: const Color(0xFFB45309),
+          drawShadow: true,
+        );
+        // Dalgalanan Kırmızı/Altın Sancak
+        drawIsoCube(
+          canvas,
+          Offset(buildingBase.dx - 12.0 * scale + sway, buildingBase.dy - 1.0 * scale - 8.0 * scale),
+          w: 1.5 * scale,
+          d: 4.5 * scale,
+          h: 3.5 * scale,
+          topColor: const Color(0xFFEF4444),
+          leftColor: const Color(0xFFDC2626),
+          rightColor: const Color(0xFFB91C1C),
+        );
+        break;
+
+      default:
+        break;
+    }
   }
 
   // --- RÜZGARLA SALINAN AĞAÇLAR (WIND SWAY) ---
