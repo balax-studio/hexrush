@@ -42,7 +42,7 @@ jobs:
 
       - name: Build Web
         run: |
-          flutter build web --release --base-href /hexrush/
+          flutter build web --release --base-href "/${{ github.event.repository.name }}/"
           touch build/web/.nojekyll
 
       - name: Deploy to gh-pages branch
