@@ -25,10 +25,10 @@ void main() {
     vec2 coord = FlutterFragCoord().xy;
     vec2 st = (coord - uCenter) / max(uResolution.x, uResolution.y);
 
-    // Multi-octave wave ripples
-    float wave1 = sin(st.x * 24.0 + uTime * 2.2 + st.y * 12.0) * 0.5 + 0.5;
-    float wave2 = cos(st.y * 28.0 - uTime * 1.8 + st.x * 8.0) * 0.5 + 0.5;
-    float n = noise(st * 16.0 + vec2(uTime * 0.4, -uTime * 0.3));
+    // Multi-octave wave ripples (Huzurlu ve dingin su dalgalanması)
+    float wave1 = sin(st.x * 24.0 + uTime * 0.85 + st.y * 12.0) * 0.5 + 0.5;
+    float wave2 = cos(st.y * 28.0 - uTime * 0.70 + st.x * 8.0) * 0.5 + 0.5;
+    float n = noise(st * 16.0 + vec2(uTime * 0.12, -uTime * 0.08));
 
     float wavePattern = (wave1 * 0.4 + wave2 * 0.3 + n * 0.3);
 

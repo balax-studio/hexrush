@@ -462,6 +462,8 @@ class SettingsModel {
   final String language;
   final double sfxVolume;
   final bool sfxMuted;
+  final double musicVolume;
+  final bool musicMuted;
   final NotificationSettingsModel notifications;
   final String activeThemePalette;
   final String activeTitle;
@@ -470,6 +472,8 @@ class SettingsModel {
     this.language = 'tr',
     this.sfxVolume = 0.8,
     this.sfxMuted = false,
+    this.musicVolume = 0.65,
+    this.musicMuted = false,
     this.notifications = const NotificationSettingsModel(),
     this.activeThemePalette = 'basalt',
     this.activeTitle = 'nomad',
@@ -479,6 +483,8 @@ class SettingsModel {
     String? language,
     double? sfxVolume,
     bool? sfxMuted,
+    double? musicVolume,
+    bool? musicMuted,
     NotificationSettingsModel? notifications,
     String? activeThemePalette,
     String? activeTitle,
@@ -487,6 +493,8 @@ class SettingsModel {
       language: language ?? this.language,
       sfxVolume: sfxVolume ?? this.sfxVolume,
       sfxMuted: sfxMuted ?? this.sfxMuted,
+      musicVolume: musicVolume ?? this.musicVolume,
+      musicMuted: musicMuted ?? this.musicMuted,
       notifications: notifications ?? this.notifications,
       activeThemePalette: activeThemePalette ?? this.activeThemePalette,
       activeTitle: activeTitle ?? this.activeTitle,
@@ -497,6 +505,8 @@ class SettingsModel {
         'language': language,
         'sfx_volume': sfxVolume,
         'sfx_muted': sfxMuted,
+        'music_volume': musicVolume,
+        'music_muted': musicMuted,
         'notifications': notifications.toJson(),
         'active_theme_palette': activeThemePalette,
         'active_title': activeTitle,
@@ -513,6 +523,8 @@ class SettingsModel {
       language: json['language'] as String? ?? 'tr',
       sfxVolume: (json['sfx_volume'] as num?)?.toDouble() ?? 0.8,
       sfxMuted: json['sfx_muted'] as bool? ?? false,
+      musicVolume: (json['music_volume'] as num?)?.toDouble() ?? 0.65,
+      musicMuted: json['music_muted'] as bool? ?? false,
       notifications: notif,
       activeThemePalette: json['active_theme_palette'] as String? ?? 'basalt',
       activeTitle: json['active_title'] as String? ?? 'nomad',

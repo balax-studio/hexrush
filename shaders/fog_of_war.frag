@@ -46,9 +46,9 @@ void main() {
     vec2 coord = FlutterFragCoord().xy;
     vec2 st = (coord - uCenter) / max(uResolution.x, uResolution.y);
     
-    // Animate coordinates
-    vec2 q = vec2(fbm(st + 0.05 * uTime), fbm(st + vec2(1.0)));
-    vec2 r = vec2(fbm(st + 1.0 * q + vec2(1.7, 9.2) + 0.15 * uTime), fbm(st + 1.0 * q + vec2(8.3, 2.8) + 0.126 * uTime));
+    // Animate coordinates (Huzurlu ve sakin sis dalgalanması)
+    vec2 q = vec2(fbm(st + 0.012 * uTime), fbm(st + vec2(1.0)));
+    vec2 r = vec2(fbm(st + 1.0 * q + vec2(1.7, 9.2) + 0.035 * uTime), fbm(st + 1.0 * q + vec2(8.3, 2.8) + 0.028 * uTime));
     float f = fbm(st + r);
 
     // Neo-Brutalist Fog Palette (#060913 to #0f172a / #1e293b with subtle blue tint)

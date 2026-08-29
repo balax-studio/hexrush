@@ -10,6 +10,7 @@ import '../../../domain/models/combat_model.dart';
 import '../../../domain/models/hex_tile_model.dart';
 import '../../../domain/services/symbiosis_engine.dart';
 import '../hex_map_game.dart';
+import '../renderers/viewport_culling_manager.dart';
 import '../renderers/voxel_isometric_renderer.dart';
 
 /// Biyom canlılarının dinamik hareket, yön ve animasyon verisi
@@ -205,7 +206,7 @@ class HexTileComponent extends PositionComponent {
   /// Canlı Biyom Hayvanlarının Dinamik Gezinme ve Göç Hesabı (Fauna Wandering & Migration Engine)
   FaunaRoamData getFaunaRoamData(int faunaSeed, {double speedMultiplier = 1.0}) {
     final double timeOffset = ((faunaSeed * 5.41).abs() % 40.0);
-    final double t = (tileAnimTime * speedMultiplier) + timeOffset;
+    final double t = (tileAnimTime * speedMultiplier * 0.45) + timeOffset;
 
     if (compatibleNeighborOffsets.isNotEmpty) {
       final int n = compatibleNeighborOffsets.length;
@@ -223,7 +224,7 @@ class HexTileComponent extends PositionComponent {
         return FaunaRoamData(
           offset: Offset(ox, oy),
           flipX: vx < -0.2 ? true : (vx > 0.2 ? false : faunaSeed % 2 == 0),
-          walkAnim: phaseT < 3.0 ? t * 4.0 : 0.0,
+          walkAnim: phaseT < 3.0 ? t * 2.2 : 0.0,
           isMoving: phaseT < 3.0,
         );
       } else if (cycle < 9.5) {
@@ -237,7 +238,7 @@ class HexTileComponent extends PositionComponent {
         return FaunaRoamData(
           offset: currentPos,
           flipX: dir.dx < 0,
-          walkAnim: t * 6.0,
+          walkAnim: t * 2.8,
           isMoving: true,
         );
       } else if (cycle < 15.5) {
@@ -250,7 +251,7 @@ class HexTileComponent extends PositionComponent {
         return FaunaRoamData(
           offset: Offset(neighborBase.dx + ox, neighborBase.dy + oy),
           flipX: vx < -0.2 ? true : (vx > 0.2 ? false : faunaSeed % 2 == 1),
-          walkAnim: phaseT < 3.5 ? t * 3.5 : 0.0,
+          walkAnim: phaseT < 3.5 ? t * 2.0 : 0.0,
           isMoving: phaseT < 3.5,
         );
       } else if (cycle < 20.0) {
@@ -264,7 +265,7 @@ class HexTileComponent extends PositionComponent {
         return FaunaRoamData(
           offset: currentPos,
           flipX: dir.dx < 0,
-          walkAnim: t * 6.0,
+          walkAnim: t * 2.8,
           isMoving: true,
         );
       } else {
@@ -287,7 +288,7 @@ class HexTileComponent extends PositionComponent {
         return FaunaRoamData(
           offset: Offset.lerp(pA, pB, s)!,
           flipX: false,
-          walkAnim: t * 5.0,
+          walkAnim: t * 2.4,
           isMoving: true,
         );
       } else if (cycle < 8.0) {
@@ -306,7 +307,7 @@ class HexTileComponent extends PositionComponent {
         return FaunaRoamData(
           offset: Offset.lerp(pB, pC, s)!,
           flipX: true,
-          walkAnim: t * 5.0,
+          walkAnim: t * 2.4,
           isMoving: true,
         );
       } else {
@@ -341,16 +342,14 @@ class HexTileComponent extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
-    // Frustum / Viewport Culling: Ekran dışındaki karoları çizme
-    final game = findGame();
-    if (game is HexMapGame) {
-      final Rect bounds = game.visibleWorldBounds;
-      if (position.x < bounds.left ||
-          position.x > bounds.right ||
-          position.y < bounds.top ||
-          position.y > bounds.bottom) {
-        return;
-      }
+    // Frustum / Viewport Culling: Ekran dışındaki karoların render maliyetini sıfırla
+    if (!ViewportCullingManager.instance.isRectVisible(
+      position.x - hexRadius * 1.3,
+      position.y - hexRadius * 1.6,
+      position.x + hexRadius * 1.3,
+      position.y + hexRadius * 1.6,
+    )) {
+      return;
     }
 
     // Dokunsal Pop / Yaylanma zıplaması & İnşaat Düşme Fiziği (Drop & Settle Curve)

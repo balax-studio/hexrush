@@ -20,6 +20,7 @@ import 'components/worker_agent_component.dart';
 import 'components/worker_flow_arrow_component.dart';
 import 'components/voxel_enemy_component.dart';
 import 'components/voxel_projectile_component.dart';
+import 'renderers/viewport_culling_manager.dart';
 
 class HexMapGame extends FlameGame {
   final void Function(HexAxial) onTileSelected;
@@ -134,6 +135,9 @@ class HexMapGame extends FlameGame {
       }
     }
 
+    // Frustum Culling: Kamera görüş alanını güncelle
+    ViewportCullingManager.instance.updateVisibleBounds(visibleWorldBounds);
+
     // Pürüzsüz kamera sürükleme sönümlemesi (Pan Inertia)
     if (_panVelocity.length2 > 1.0) {
       gameCamera.viewfinder.position += _panVelocity * dt;
@@ -153,9 +157,9 @@ class HexMapGame extends FlameGame {
 
   void _initFloatingClouds() {
     final clouds = [
-      FloatingVoxelCloudComponent(initialPosition: Vector2(-180, -140), speed: 10.0, cloudScale: 1.1),
-      FloatingVoxelCloudComponent(initialPosition: Vector2(40, -180), speed: 14.0, cloudScale: 0.85),
-      FloatingVoxelCloudComponent(initialPosition: Vector2(-60, 120), speed: 8.0, cloudScale: 1.0),
+      FloatingVoxelCloudComponent(initialPosition: Vector2(-180, -140), speed: 3.2, cloudScale: 1.1),
+      FloatingVoxelCloudComponent(initialPosition: Vector2(40, -180), speed: 4.2, cloudScale: 0.85),
+      FloatingVoxelCloudComponent(initialPosition: Vector2(-60, 120), speed: 2.8, cloudScale: 1.0),
     ];
     for (final c in clouds) {
       _cloudComponents.add(c);

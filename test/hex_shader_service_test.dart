@@ -23,6 +23,7 @@ void main() {
       expect(HexShaderService.hasFrostShader || !HexShaderService.hasFrostShader, isTrue);
       expect(HexShaderService.hasCrystalShader || !HexShaderService.hasCrystalShader, isTrue);
       expect(HexShaderService.hasFrenzyShader || !HexShaderService.hasFrenzyShader, isTrue);
+      expect(HexShaderService.hasDioramaShader || !HexShaderService.hasDioramaShader, isTrue);
     });
 
     test('getFogShaderPaint returns null gracefully if shader asset is uncompiled in tests', () {

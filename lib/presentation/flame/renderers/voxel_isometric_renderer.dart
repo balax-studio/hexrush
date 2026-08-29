@@ -4292,14 +4292,14 @@ class VoxelIsometricRenderer {
 
     // 1. Kadim Sunak (Shrine) Keşif Parıltısı
     if (hasShrine) {
-      final double shrinePulse = 0.4 + 0.4 * math.sin(animTime * 2.6 + seed);
+      final double shrinePulse = 0.4 + 0.4 * math.sin(animTime * 0.9 + seed);
       _sharedFillPaint
         ..color = const Color(0xFF38BDF8).withValues(alpha: (0.28 * shrinePulse * alpha).clamp(0.0, 1.0))
         ..style = PaintingStyle.fill;
       canvas.drawCircle(Offset(mistCenter.dx, mistCenter.dy - 6), 12.0, _sharedFillPaint);
 
       // Yüzen Kadim Göksel Rün Kristali
-      final double floatY = math.sin(animTime * 2.2 + seed) * 3.0;
+      final double floatY = math.sin(animTime * 0.75 + seed) * 2.5;
       drawIsoCube(
         canvas,
         Offset(mistCenter.dx, mistCenter.dy - 8.0 - floatY),
@@ -4316,7 +4316,7 @@ class VoxelIsometricRenderer {
     // 2. Efsanevi Biyomlar (Göksel Krater, Kurgan, Kristal)
     if (hiddenBiome == TileBiome.celestialCrater) {
       // Göksel Yıldız Tozu Parıltısı
-      final double starPulse = 0.35 + 0.35 * math.sin(animTime * 3.0 + seed);
+      final double starPulse = 0.35 + 0.35 * math.sin(animTime * 0.95 + seed);
       _sharedFillPaint
         ..color = const Color(0xFFA855F7).withValues(alpha: (0.3 * starPulse * alpha).clamp(0.0, 1.0))
         ..style = PaintingStyle.fill;
@@ -6549,14 +6549,14 @@ class VoxelIsometricRenderer {
 
   // --- CANLI VE ORGANİK BOZKIR DÜNYASI SİSTEMİ (LIVING STEPPE ECOSYSTEM) ---
 
-  /// Global Bozkır Rüzgar Dalgası: Harita boyunca yayılan organik, heterodin rüzgar dalgası (-1.0 .. 1.0)
+  /// Global Bozkır Rüzgar Dalgası: Harita boyunca yayılan organik, heterodin sakin rüzgar dalgası (-1.0 .. 1.0)
   static double getSteppeWindWave(double globalTime, int q, int r) {
-    final double w1 = math.sin(globalTime * 0.75 + q * 0.28 + r * 0.19);
-    final double w2 = math.sin(globalTime * 1.35 - q * 0.15 + r * 0.31) * 0.35;
+    final double w1 = math.sin(globalTime * 0.32 + q * 0.28 + r * 0.19);
+    final double w2 = math.sin(globalTime * 0.55 - q * 0.15 + r * 0.31) * 0.20;
     return (w1 + w2).clamp(-1.0, 1.0);
   }
 
-  /// 3D Voxel Ocak / Otağ Bacası Dumanı (Organik Yükselen, Rüzgara Eğilen, Asenkron Partiküller)
+  /// 3D Voxel Ocak / Otağ Bacası Dumanı (Huzurla Yükselen, Rüzgara Eğilen, Asenkron Partiküller)
   static void drawVoxelSmokePlume(
     Canvas canvas,
     Offset chimneyPos, {
@@ -6570,9 +6570,9 @@ class VoxelIsometricRenderer {
     final double t = animTime + timeOffset;
 
     for (int i = 0; i < 3; i++) {
-      final double phase = (t * 0.65 + i * 0.33) % 1.0;
+      final double phase = (t * 0.25 + i * 0.33) % 1.0;
       final double puffHeight = phase * 22.0 * scale;
-      final double puffDrift = (windWave * 8.0 + math.sin(t * 1.5 + i) * 2.0) * phase * scale;
+      final double puffDrift = (windWave * 6.0 + math.sin(t * 0.6 + i) * 1.5) * phase * scale;
       final double puffSize = (3.0 + phase * 4.0) * scale;
       final double alpha = (math.sin(phase * math.pi) * 0.65).clamp(0.0, 1.0);
 
@@ -6600,8 +6600,8 @@ class VoxelIsometricRenderer {
     double radius = 10.0,
   }) {
     final double flicker = 0.6 +
-        0.25 * math.sin(animTime * 4.3 + seed * 2.7) +
-        0.15 * math.sin(animTime * 9.1 + seed * 5.1);
+        0.25 * math.sin(animTime * 1.8 + seed * 2.7) +
+        0.15 * math.sin(animTime * 3.2 + seed * 5.1);
 
     _sharedFillPaint
       ..color = const Color(0xFFF59E0B).withValues(alpha: (0.35 * flicker).clamp(0.0, 0.7))

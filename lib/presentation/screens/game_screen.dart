@@ -46,12 +46,21 @@ class _GameScreenState extends ConsumerState<GameScreen>
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkPendingOfflineGains();
+      final settings = ref.read(gameStateProvider).settings;
+      TactileAudioService.instance.updateSettings(
+        isSoundEnabled: !settings.sfxMuted,
+        isMusicEnabled: !settings.musicMuted,
+        sfxVolume: settings.sfxVolume,
+        musicVolume: settings.musicVolume,
+      );
+      TactileAudioService.instance.startBackgroundMusic();
     });
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    TactileAudioService.instance.pauseBackgroundMusic();
     super.dispose();
   }
 
@@ -61,8 +70,10 @@ class _GameScreenState extends ConsumerState<GameScreen>
         state == AppLifecycleState.inactive ||
         state == AppLifecycleState.hidden) {
       _pauseTimestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      TactileAudioService.instance.pauseBackgroundMusic();
       ref.read(gameStateProvider.notifier).saveGame();
     } else if (state == AppLifecycleState.resumed) {
+      TactileAudioService.instance.resumeBackgroundMusic();
       if (_pauseTimestamp != null) {
         ref
             .read(gameStateProvider.notifier)

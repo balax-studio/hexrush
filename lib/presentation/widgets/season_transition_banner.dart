@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/audio/tactile_audio_service.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/models/game_state_model.dart';
@@ -142,7 +143,7 @@ class _SeasonTransitionBannerState extends ConsumerState<SeasonTransitionBanner>
           setState(() {
             _isVisible = true;
           });
-          HapticFeedback.mediumImpact();
+          TactileAudioService.instance.play(TactileSoundType.seasonChange);
           _animController.forward(from: 0.0);
           _dismissTimer?.cancel();
           _dismissTimer = Timer(const Duration(milliseconds: 4200), () {

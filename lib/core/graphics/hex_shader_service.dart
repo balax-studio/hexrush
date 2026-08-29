@@ -9,6 +9,7 @@ class HexShaderService {
   static ui.FragmentProgram? _frostProgram;
   static ui.FragmentProgram? _crystalProgram;
   static ui.FragmentProgram? _frenzyProgram;
+  static ui.FragmentProgram? _dioramaProgram;
   static bool _initialized = false;
 
   static bool get isInitialized => _initialized;
@@ -18,6 +19,7 @@ class HexShaderService {
   static bool get hasFrostShader => _frostProgram != null;
   static bool get hasCrystalShader => _crystalProgram != null;
   static bool get hasFrenzyShader => _frenzyProgram != null;
+  static bool get hasDioramaShader => _dioramaProgram != null;
 
   // Zero-GC Pre-allocated Paint Objects
   static final Paint _fogPaint = Paint()..style = PaintingStyle.fill;
@@ -26,6 +28,7 @@ class HexShaderService {
   static final Paint _frostPaint = Paint()..style = PaintingStyle.fill;
   static final Paint _crystalPaint = Paint()..style = PaintingStyle.fill;
   static final Paint _frenzyPaint = Paint()..style = PaintingStyle.fill;
+  static final Paint _dioramaPaint = Paint()..style = PaintingStyle.fill;
   static final Paint _meshPaint = Paint()..style = PaintingStyle.fill;
 
   /// Asenkron olarak shader programlarını GPU belleğine yükler
@@ -66,6 +69,12 @@ class HexShaderService {
       _frenzyProgram = await ui.FragmentProgram.fromAsset('shaders/frenzy_aurora.frag');
     } catch (_) {
       _frenzyProgram = null;
+    }
+
+    try {
+      _dioramaProgram = await ui.FragmentProgram.fromAsset('shaders/post_process_diorama.frag');
+    } catch (_) {
+      _dioramaProgram = null;
     }
 
     _initialized = true;
@@ -229,6 +238,30 @@ class HexShaderService {
     }
   }
 
+  /// Ekran Uzayı Tilt-Shift Diorama & Post-Processing Shader boyasını hazırlar
+  static Paint? getDioramaShaderPaint({
+    required Size resolution,
+    required double time,
+    double dioramaStrength = 1.0,
+  }) {
+    if (_dioramaProgram == null) return null;
+    try {
+      final shader = _dioramaProgram!.fragmentShader();
+      // uniform vec2 uResolution;
+      shader.setFloat(0, resolution.width);
+      shader.setFloat(1, resolution.height);
+      // uniform float uTime;
+      shader.setFloat(2, time);
+      // uniform float uDioramaStrength;
+      shader.setFloat(3, dioramaStrength);
+
+      _dioramaPaint.shader = shader;
+      return _dioramaPaint;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Donanım Hızlandırmalı Toplu Üçgen / Mesh Çizimi (Canvas.drawVertices)
   static void drawBatchedVertices(
     Canvas canvas, {
@@ -247,6 +280,7 @@ class HexShaderService {
     _frostProgram = null;
     _crystalProgram = null;
     _frenzyProgram = null;
+    _dioramaProgram = null;
     _initialized = false;
   }
 }

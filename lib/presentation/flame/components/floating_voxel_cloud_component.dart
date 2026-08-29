@@ -12,7 +12,7 @@ class FloatingVoxelCloudComponent extends PositionComponent {
 
   FloatingVoxelCloudComponent({
     required Vector2 initialPosition,
-    this.speed = 12.0,
+    this.speed = 3.5,
     this.cloudScale = 1.0,
     this.minX = -950.0,
     this.maxX = 950.0,

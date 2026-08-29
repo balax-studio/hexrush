@@ -49,13 +49,13 @@ void main() {
     vec2 centered = uv - 0.5;
     float dist = length(centered);
 
-    // Yavaş akan magma akıntı vektörü
-    vec2 flowDir = vec2(sin(uTime * 0.4) * 0.15, uTime * 0.25);
+    // Yavaş ve kıvamlı akan magma akıntı vektörü
+    vec2 flowDir = vec2(sin(uTime * 0.15) * 0.08, uTime * 0.08);
     vec2 p = uv * 6.0 + flowDir;
 
     // Çok katmanlı dalgalanma (FBM)
     float n1 = fbmLava(p);
-    float n2 = fbmLava(p + vec2(n1 * 1.5, n1 * 1.2) - uTime * 0.1);
+    float n2 = fbmLava(p + vec2(n1 * 1.5, n1 * 1.2) - uTime * 0.03);
     float lava = smoothstep(0.32, 0.75, n2);
 
     // Renk Paleti:
@@ -72,7 +72,7 @@ void main() {
     col = mix(col, whiteHot, smoothstep(0.85, 0.98, n2));
 
     // Sıcaklık nabzı
-    float pulse = 0.85 + 0.15 * sin(uTime * 2.0 + dist * 8.0);
+    float pulse = 0.88 + 0.12 * sin(uTime * 0.8 + dist * 6.0);
     col *= pulse * uIntensity;
 
     // Altıgen kenarlara doğru hafif volkanik sis koyulaşması

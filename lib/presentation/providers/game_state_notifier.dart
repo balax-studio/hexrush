@@ -1968,12 +1968,30 @@ class GameStateNotifier extends StateNotifier<GameState> {
     state = state.copyWith(
       settings: state.settings.copyWith(sfxVolume: vol),
     );
+    TactileAudioService.instance.updateSettings(sfxVolume: vol);
   }
 
   void toggleMute() {
+    final newMuted = !state.settings.sfxMuted;
     state = state.copyWith(
-      settings: state.settings.copyWith(sfxMuted: !state.settings.sfxMuted),
+      settings: state.settings.copyWith(sfxMuted: newMuted),
     );
+    TactileAudioService.instance.updateSettings(isSoundEnabled: !newMuted);
+  }
+
+  void setMusicVolume(double vol) {
+    state = state.copyWith(
+      settings: state.settings.copyWith(musicVolume: vol),
+    );
+    TactileAudioService.instance.updateSettings(musicVolume: vol);
+  }
+
+  void toggleMusicMute() {
+    final newMuted = !state.settings.musicMuted;
+    state = state.copyWith(
+      settings: state.settings.copyWith(musicMuted: newMuted),
+    );
+    TactileAudioService.instance.updateSettings(isMusicEnabled: !newMuted);
   }
 
   void updateNotificationSettings({

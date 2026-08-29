@@ -82,12 +82,12 @@ class SettingsDialog extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
 
-            // Ses Kontrolü
+            // Ses Efektleri (SFX) Kontrolü
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  GameLocalization.get('sound', lang: lang).toUpperCase(),
+                  'SES EFEKTLERİ',
                   style: NeoBrutalistTheme.fontLabel,
                 ),
                 TactileNeoButton(
@@ -135,6 +135,65 @@ class SettingsDialog extends ConsumerWidget {
                   min: 0.0,
                   max: 1.0,
                   onChanged: (val) => notifier.setSfxVolume(val),
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 12),
+
+            // Bozkır Müziği (Chill BGM) Kontrolü
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'BOZKIR MÜZİĞİ',
+                  style: NeoBrutalistTheme.fontLabel,
+                ),
+                TactileNeoButton(
+                  onTap: () => notifier.toggleMusicMute(),
+                  backgroundColor: settings.musicMuted ? const Color(0xFF7F1D1D) : const Color(0xFF065F46),
+                  borderColor: Colors.black,
+                  shadowOffset: 2.0,
+                  height: 30,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        settings.musicMuted ? Icons.music_off_rounded : Icons.music_note_rounded,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        settings.musicMuted ? 'KAPALI' : 'AÇIK',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (!settings.musicMuted) ...[
+              const SizedBox(height: 6),
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  thumbColor: const Color(0xFF38BDF8),
+                  activeTrackColor: const Color(0xFF38BDF8),
+                  inactiveTrackColor: const Color(0xFF0F172A),
+                  trackHeight: 4,
+                  thumbShape: const _NeoRectSliderThumbShape(),
+                ),
+                child: Slider(
+                  value: settings.musicVolume,
+                  min: 0.0,
+                  max: 1.0,
+                  onChanged: (val) => notifier.setMusicVolume(val),
                 ),
               ),
             ],
