@@ -10,6 +10,8 @@ class HexShaderService {
   static ui.FragmentProgram? _crystalProgram;
   static ui.FragmentProgram? _frenzyProgram;
   static ui.FragmentProgram? _dioramaProgram;
+  static ui.FragmentProgram? _heatHazeProgram;
+  static ui.FragmentProgram? _shockwaveProgram;
   static bool _initialized = false;
 
   static bool get isInitialized => _initialized;
@@ -20,6 +22,8 @@ class HexShaderService {
   static bool get hasCrystalShader => _crystalProgram != null;
   static bool get hasFrenzyShader => _frenzyProgram != null;
   static bool get hasDioramaShader => _dioramaProgram != null;
+  static bool get hasHeatHazeShader => _heatHazeProgram != null;
+  static bool get hasShockwaveShader => _shockwaveProgram != null;
 
   // Zero-GC Pre-allocated Paint Objects
   static final Paint _fogPaint = Paint()..style = PaintingStyle.fill;
@@ -29,6 +33,8 @@ class HexShaderService {
   static final Paint _crystalPaint = Paint()..style = PaintingStyle.fill;
   static final Paint _frenzyPaint = Paint()..style = PaintingStyle.fill;
   static final Paint _dioramaPaint = Paint()..style = PaintingStyle.fill;
+  static final Paint _heatHazePaint = Paint()..style = PaintingStyle.fill;
+  static final Paint _shockwavePaint = Paint()..style = PaintingStyle.fill;
   static final Paint _meshPaint = Paint()..style = PaintingStyle.fill;
 
   /// Asenkron olarak shader programlarını GPU belleğine yükler
@@ -69,6 +75,18 @@ class HexShaderService {
       _frenzyProgram = await ui.FragmentProgram.fromAsset('shaders/frenzy_aurora.frag');
     } catch (_) {
       _frenzyProgram = null;
+    }
+
+    try {
+      _heatHazeProgram = await ui.FragmentProgram.fromAsset('shaders/heat_haze.frag');
+    } catch (_) {
+      _heatHazeProgram = null;
+    }
+
+    try {
+      _shockwaveProgram = await ui.FragmentProgram.fromAsset('shaders/shockwave_distortion.frag');
+    } catch (_) {
+      _shockwaveProgram = null;
     }
 
     try {
@@ -262,6 +280,62 @@ class HexShaderService {
     }
   }
 
+  /// Sıcaklık Titremesi ve Serap Kırılması (Heat Haze) Fragment Shader boyasını hazırlar
+  static Paint? getHeatHazeShaderPaint({
+    required Size resolution,
+    required double time,
+    required Offset center,
+    double intensity = 1.0,
+  }) {
+    if (_heatHazeProgram == null) return null;
+    try {
+      final shader = _heatHazeProgram!.fragmentShader();
+      // uniform vec2 uResolution;
+      shader.setFloat(0, resolution.width);
+      shader.setFloat(1, resolution.height);
+      // uniform float uTime;
+      shader.setFloat(2, time);
+      // uniform vec2 uCenter;
+      shader.setFloat(3, center.dx);
+      shader.setFloat(4, center.dy);
+      // uniform float uIntensity;
+      shader.setFloat(5, intensity);
+
+      _heatHazePaint.shader = shader;
+      return _heatHazePaint;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Bozkır Borusu ve Kadim Keşif Şok Dalgası (Shockwave Distortion) Fragment Shader boyasını hazırlar
+  static Paint? getShockwaveShaderPaint({
+    required Size resolution,
+    required double time,
+    required Offset center,
+    required double progress,
+  }) {
+    if (_shockwaveProgram == null) return null;
+    try {
+      final shader = _shockwaveProgram!.fragmentShader();
+      // uniform vec2 uResolution;
+      shader.setFloat(0, resolution.width);
+      shader.setFloat(1, resolution.height);
+      // uniform float uTime;
+      shader.setFloat(2, time);
+      // uniform vec2 uCenter;
+      shader.setFloat(3, center.dx);
+      shader.setFloat(4, center.dy);
+      // uniform float uProgress;
+      shader.setFloat(5, progress.clamp(0.0, 1.0));
+
+      _shockwavePaint.shader = shader;
+      return _shockwavePaint;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Donanım Hızlandırmalı Toplu Üçgen / Mesh Çizimi (Canvas.drawVertices)
   static void drawBatchedVertices(
     Canvas canvas, {
@@ -281,6 +355,8 @@ class HexShaderService {
     _crystalProgram = null;
     _frenzyProgram = null;
     _dioramaProgram = null;
+    _heatHazeProgram = null;
+    _shockwaveProgram = null;
     _initialized = false;
   }
 }

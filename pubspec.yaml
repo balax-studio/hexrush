@@ -74,6 +74,8 @@ flutter:
     - shaders/crystal_shimmer.frag
     - shaders/frenzy_aurora.frag
     - shaders/post_process_diorama.frag
+    - shaders/heat_haze.frag
+    - shaders/shockwave_distortion.frag
 
   assets:
     - assets/audio/

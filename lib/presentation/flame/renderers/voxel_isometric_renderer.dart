@@ -174,6 +174,66 @@ class VoxelIsometricRenderer {
     canvas.drawVertices(vertices, BlendMode.srcOver, _sharedFillPaint);
   }
 
+  /// Impeller Donanım Hızlandırmalı Taban Ambient Occlusion (AO) Temas Gölgesi (Canvas.drawVertices)
+  static void drawVertexAmbientOcclusion(
+    Canvas canvas,
+    Offset baseCenter, {
+    required double w,
+    required double d,
+    double spread = 4.0,
+    double maxOpacity = 0.38,
+  }) {
+    final double dxR = (w * 0.5) * cosIso;
+    final double dyR = (w * 0.5) * sinIso;
+    final double dxL = -(d * 0.5) * cosIso;
+    final double dyL = (d * 0.5) * sinIso;
+
+    final double bx = baseCenter.dx;
+    final double by = baseCenter.dy;
+
+    final double bFrontX = bx;
+    final double bFrontY = by + dyR + dyL;
+    final double bRightX = bx + dxR;
+    final double bRightY = by + dyR - dyL;
+    final double bLeftX = bx + dxL;
+    final double bLeftY = by - dyR + dyL;
+    final double bBackX = bx + dxR + dxL;
+    final double bBackY = by - dyR - dyL;
+
+    final Color innerAo = Colors.black.withValues(alpha: maxOpacity);
+    const Color outerAo = Color(0x00000000);
+
+    // Taban merkezinden dışarıya doğru gradyanlı 4 üçgenlik AO eteği
+    final positions = <Offset>[
+      // Ön etek
+      Offset(bFrontX, bFrontY), Offset(bRightX, bRightY), Offset(bRightX + spread * cosIso, bRightY + spread * sinIso),
+      Offset(bFrontX, bFrontY), Offset(bRightX + spread * cosIso, bRightY + spread * sinIso), Offset(bFrontX, bFrontY + spread),
+      // Sol etek
+      Offset(bFrontX, bFrontY), Offset(bLeftX, bLeftY), Offset(bLeftX - spread * cosIso, bLeftY + spread * sinIso),
+      Offset(bFrontX, bFrontY), Offset(bLeftX - spread * cosIso, bLeftY + spread * sinIso), Offset(bFrontX, bFrontY + spread),
+      // Arka/Sağ etek
+      Offset(bRightX, bRightY), Offset(bBackX, bBackY), Offset(bBackX + spread * cosIso, bBackY - spread * sinIso),
+      Offset(bRightX, bRightY), Offset(bBackX + spread * cosIso, bBackY - spread * sinIso), Offset(bRightX + spread * cosIso, bRightY + spread * sinIso),
+    ];
+
+    final colors = <Color>[
+      innerAo, innerAo, outerAo,
+      innerAo, outerAo, outerAo,
+      innerAo, innerAo, outerAo,
+      innerAo, outerAo, outerAo,
+      innerAo, innerAo, outerAo,
+      innerAo, outerAo, outerAo,
+    ];
+
+    final vertices = ui.Vertices(
+      VertexMode.triangles,
+      positions,
+      colors: colors,
+    );
+
+    canvas.drawVertices(vertices, BlendMode.srcOver, _sharedFillPaint);
+  }
+
   // --- RÜZGARLA SALINAN AĞAÇLAR (WIND SWAY) ---
 
   /// Rüzgarla hafifçe salınan Meşe Ağacı (Mevsim Duyarlı: Güzün Kızıl/Bakır, Kışın Karlı, Baharda Taze)

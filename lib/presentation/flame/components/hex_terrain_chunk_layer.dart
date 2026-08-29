@@ -30,13 +30,26 @@ class HexTerrainChunkLayer {
     _isDirty = false;
   }
 
+  static final Paint _filteredPaint = Paint();
+
   /// Fırınlanmış resmi ekrana çizer; eğer kirliyse veya yoksa verilen callback'i çağırır
-  void render(Canvas canvas, void Function(Canvas canvas) fallbackCallback) {
+  void render(
+    Canvas canvas,
+    void Function(Canvas canvas) fallbackCallback, {
+    ColorFilter? colorFilter,
+  }) {
     if (_isDirty || _cachedPicture == null) {
       bake(fallbackCallback);
     }
     if (_cachedPicture != null) {
-      canvas.drawPicture(_cachedPicture!);
+      if (colorFilter != null) {
+        _filteredPaint.colorFilter = colorFilter;
+        canvas.saveLayer(null, _filteredPaint);
+        canvas.drawPicture(_cachedPicture!);
+        canvas.restore();
+      } else {
+        canvas.drawPicture(_cachedPicture!);
+      }
     } else {
       fallbackCallback(canvas);
     }

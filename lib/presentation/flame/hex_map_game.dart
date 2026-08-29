@@ -20,6 +20,9 @@ import 'components/worker_agent_component.dart';
 import 'components/worker_flow_arrow_component.dart';
 import 'components/voxel_enemy_component.dart';
 import 'components/voxel_projectile_component.dart';
+import 'components/dynamic_lighting_overlay_component.dart';
+import 'components/volumetric_sun_rays_component.dart';
+import 'components/shockwave_effect_component.dart';
 import 'renderers/viewport_culling_manager.dart';
 
 class HexMapGame extends FlameGame {
@@ -38,6 +41,8 @@ class HexMapGame extends FlameGame {
   late final FlyingVoxelBirdComponent _flyingBirds;
   late final SteppeMessengerComponent _steppeMessenger;
   late final WorkerFlowArrowComponent _workerFlowArrows;
+  late final DynamicLightingOverlayComponent _lightingOverlay;
+  late final VolumetricSunRaysComponent _sunRays;
 
   GameState? _lastState;
   double _currentZoom = 1.0;
@@ -113,6 +118,14 @@ class HexMapGame extends FlameGame {
     _workerFlowArrows = WorkerFlowArrowComponent();
     gameWorld.add(_workerFlowArrows);
 
+    // Impeller Volumetrik Güneş Hüzmeleri (Gündüz & Yaz hüzmeleri)
+    _sunRays = VolumetricSunRaysComponent();
+    gameWorld.add(_sunRays);
+
+    // Impeller 2.5D Dinamik Gece Işıklandırması & Fener Maskesi
+    _lightingOverlay = DynamicLightingOverlayComponent();
+    gameWorld.add(_lightingOverlay);
+
     if (_lastState != null) {
       _buildWorldFromState(_lastState!);
     }
@@ -135,6 +148,50 @@ class HexMapGame extends FlameGame {
       }
     }
 
+    // Impeller Işık Kaynaklarını Topla ve Gece Fenerlerini Güncelle
+    if (_isNight) {
+      final List<LightEmitter> emitters = [];
+      for (final comp in _tileComponents.values) {
+        if (!comp.tileModel.isOwned || comp.tileModel.isFog) continue;
+        final bType = comp.tileModel.building?.type;
+        if (bType == BuildingType.castle) {
+          emitters.add(LightEmitter(
+            position: comp.position,
+            radius: 80.0,
+            color: const Color(0xFFF59E0B),
+            intensity: 1.2,
+          ));
+        } else if (bType == BuildingType.damascusForge || bType == BuildingType.bakery) {
+          emitters.add(LightEmitter(
+            position: comp.position,
+            radius: 54.0,
+            color: const Color(0xFFF97316),
+            intensity: 1.0,
+          ));
+        } else if (comp.tileModel.hasShrine || comp.tileModel.hasKurgan) {
+          emitters.add(LightEmitter(
+            position: comp.position,
+            radius: 64.0,
+            color: const Color(0xFF38BDF8),
+            intensity: 1.1,
+          ));
+        }
+      }
+      _lightingOverlay.updateLightingState(
+        night: true,
+        darkness: 0.65,
+        emitters: emitters,
+      );
+      _sunRays.isEnabled = false;
+    } else {
+      _lightingOverlay.updateLightingState(
+        night: false,
+        darkness: 0.0,
+        emitters: const [],
+      );
+      _sunRays.isEnabled = !(_lastState?.season.isZud ?? false);
+    }
+
     // Frustum Culling: Kamera görüş alanını güncelle
     ViewportCullingManager.instance.updateVisibleBounds(visibleWorldBounds);
 
@@ -146,6 +203,12 @@ class HexMapGame extends FlameGame {
     } else {
       _panVelocity = Vector2.zero();
     }
+  }
+
+  /// Bozkır Borusu, Sunak Uyandırma veya Kadim Keşif anında şok dalgası tetikler
+  void triggerShockwave(Vector2 worldPosition) {
+    final wave = ShockwaveEffectComponent(center: worldPosition);
+    gameWorld.add(wave);
   }
 
   /// Haritanın ekrandan tamamen çıkıp kaybolmasını ve kilitlenme hissi yaratmasını engeller
@@ -284,8 +347,9 @@ class HexMapGame extends FlameGame {
           );
         }
       } else if (!tile.isOwned && !tile.isFog) {
-        // Fetih / İnşaat Puf Partikülü
+        // Fetih / İnşaat Puf Partikülü & Impeller Şok Dalgası
         gameWorld.add(TileConquerPoofEmitter(centerPosition: tileVec));
+        triggerShockwave(tileVec);
       }
 
       onTileSelected(tappedCoord);

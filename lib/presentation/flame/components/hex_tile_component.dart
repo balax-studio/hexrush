@@ -565,6 +565,17 @@ class HexTileComponent extends PositionComponent {
         canvas.drawPath(_topPath, lavaShaderPaint);
         didDrawBiomeShader = true;
       }
+
+      // Impeller Sıcaklık Titremesi ve Serap Kırılması (Heat Haze Refraction)
+      final heatHazePaint = HexShaderService.getHeatHazeShaderPaint(
+        resolution: const Size(hexRadius * 2, hexRadius * 2),
+        time: _animTimer,
+        center: center,
+        intensity: isNight ? 0.75 : 1.1,
+      );
+      if (heatHazePaint != null) {
+        canvas.drawPath(_topPath, heatHazePaint);
+      }
     } else if (tileModel.biome == TileBiome.celestialCrater || tileModel.biome == TileBiome.crystalChasm) {
       final crystalShaderPaint = HexShaderService.getCrystalShaderPaint(
         resolution: const Size(hexRadius * 2, hexRadius * 2),
