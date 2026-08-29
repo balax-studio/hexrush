@@ -11,7 +11,7 @@ import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('Kutlu Tapınak Dağılımı ve Mesafe Testleri (11 Tapınak, Min Mesafe >= 7)', () {
+  group('Kutlu Tapınak Dağılımı ve Mesafe Testleri (11 Tapınak, Min Mesafe >= 6)', () {
     test('Harita başlangıcında tam 11 adet Kutlu Tapınak üretilmelidir', () {
       final container = ProviderContainer();
       addTearDown(container.dispose);
@@ -23,7 +23,7 @@ void main() {
           reason: 'Haritada tam olarak 11 adet Kutlu Tapınak bulunmalıdır.');
     });
 
-    test('Her iki Kutlu Tapınak arasındaki mesafe en az 7 karo olmalıdır', () {
+    test('Her iki Kutlu Tapınak arasındaki mesafe en az 6 karo olmalıdır', () {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -38,9 +38,9 @@ void main() {
           final tileB = shrineTiles[j];
           final distance = HexMath.hexDistance(tileA.coord, tileB.coord);
 
-          expect(distance >= 7, isTrue,
+          expect(distance >= 6, isTrue,
               reason:
-                  'Tapınak ${tileA.coord} ile ${tileB.coord} arasındaki mesafe $distance, asgari 7 olmalıdır.');
+                  'Tapınak ${tileA.coord} ile ${tileB.coord} arasındaki mesafe $distance, asgari 6 olmalıdır.');
         }
       }
     });

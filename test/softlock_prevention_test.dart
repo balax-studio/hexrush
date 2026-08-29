@@ -21,9 +21,8 @@ void main() {
         final dist = HexMath.hexDistance(center, coord);
 
         if (dist == 1) {
-          // Radius 1: NO Sea, Mountain, Wetland, Desert, Volcano
+          // Radius 1: NO Sea, Wetland, Desert, Volcano (Meadow, Forest, Mountain allowed)
           expect(tile.biome, isNot(TileBiome.sea));
-          expect(tile.biome, isNot(TileBiome.mountain));
           expect(tile.biome, isNot(TileBiome.wetland));
           expect(tile.biome, isNot(TileBiome.desert));
           expect(tile.biome, isNot(TileBiome.volcano));

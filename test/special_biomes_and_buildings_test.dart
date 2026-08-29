@@ -8,26 +8,26 @@ import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
 void main() {
   group('Özel Biyomlar ve Binalar Test Paketi', () {
     test('13 Yeni Bina için Castle Level Kilitleri ve Temel Veriler Doğru Olmalıdır', () {
-      // Level 2 Binalar
-      expect(BuildingType.oasisCistern.requiredCastleLevel, 2);
-      expect(BuildingType.herbalistYurt.requiredCastleLevel, 2);
+      // Seviye 10 & 25 Binalar
+      expect(BuildingType.herbalistYurt.requiredCastleLevel, 10);
+      expect(BuildingType.oasisCistern.requiredCastleLevel, 25);
+      expect(BuildingType.caravanserai.requiredCastleLevel, 25);
+      expect(BuildingType.reindeerSanctuary.requiredCastleLevel, 25);
 
-      // Level 12 Binalar (Eski Level 3)
-      expect(BuildingType.caravanserai.requiredCastleLevel, 12);
-      expect(BuildingType.reindeerSanctuary.requiredCastleLevel, 12);
-      expect(BuildingType.scribeWorkshop.requiredCastleLevel, 12);
+      // Seviye 30 & 35 Binalar
+      expect(BuildingType.scribeWorkshop.requiredCastleLevel, 30);
+      expect(BuildingType.geothermalBath.requiredCastleLevel, 35);
+      expect(BuildingType.permafrostDig.requiredCastleLevel, 35);
 
-      // Level 22 Binalar (Eski Level 4)
-      expect(BuildingType.astrolabe.requiredCastleLevel, 22);
-      expect(BuildingType.geothermalBath.requiredCastleLevel, 22);
-      expect(BuildingType.permafrostDig.requiredCastleLevel, 22);
-      expect(BuildingType.steamVent.requiredCastleLevel, 22);
+      // Seviye 40 & 45 Binalar
+      expect(BuildingType.steamVent.requiredCastleLevel, 40);
+      expect(BuildingType.obsidianForge.requiredCastleLevel, 40);
+      expect(BuildingType.astrolabe.requiredCastleLevel, 45);
 
-      // Level 32 Efsanevi Binalar (Eski Level 5)
-      expect(BuildingType.obsidianForge.requiredCastleLevel, 32);
-      expect(BuildingType.celestialAnvil.requiredCastleLevel, 32);
-      expect(BuildingType.ancestralTotem.requiredCastleLevel, 32);
-      expect(BuildingType.prismaticResonator.requiredCastleLevel, 32);
+      // Seviye 50 Efsanevi Binalar
+      expect(BuildingType.celestialAnvil.requiredCastleLevel, 50);
+      expect(BuildingType.ancestralTotem.requiredCastleLevel, 50);
+      expect(BuildingType.prismaticResonator.requiredCastleLevel, 50);
     });
 
     test('Biyomlara Özgü İzin Verilen Binalar Doğru Eşleşmelidir', () {

@@ -9,9 +9,14 @@ import 'package:hex_rush/domain/models/hex_tile_model.dart';
 import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
 import 'package:hex_rush/presentation/widgets/crown_breakdown_dialog.dart';
 import 'package:hex_rush/presentation/widgets/great_migration_dialog.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
 
   group('Taç (Crowns) Ekonomisi & Reset Hesaplama Testleri', () {
     test('Taç pasif küresel üretim çarpanı sağlamaz', () {
@@ -86,9 +91,25 @@ void main() {
     });
 
     testWidgets('GreatMigrationDialog açılır ve onay modalı tetiklenebilir', (tester) async {
+      final container = ProviderContainer(
+        overrides: [
+          gameStateProvider.overrideWith((ref) {
+            final notifier = GameStateNotifier();
+            notifier.state = notifier.state.copyWith(
+              progression: notifier.state.progression.copyWith(
+                castleLevel: 5,
+                ownedCount: 12,
+              ),
+            );
+            return notifier;
+          }),
+        ],
+      );
+
       await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
             home: Scaffold(
               body: GreatMigrationDialog(),
             ),
@@ -98,7 +119,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('BÜYÜK GÖÇ (PRESTİJ & ÇAĞ ATLAYIŞI)'), findsOneWidget);
+      expect(find.text('BÜYÜK GÖÇ (PRESTİJ & KUT KATLAYICI)'), findsOneWidget);
       expect(find.text('BÜYÜK GÖÇÜ BAŞLAT'), findsOneWidget);
 
       // Butona bas
@@ -115,6 +136,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('BÜYÜK GÖÇÜ ONAYLIYOR MUSUNUZ?'), findsNothing);
+
+      await tester.pumpWidget(const SizedBox());
+      container.dispose();
     });
   });
 }

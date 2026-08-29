@@ -126,7 +126,7 @@ void main() {
       );
 
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 400));
 
       expect(find.byType(SeasonTransitionBanner), findsOneWidget);
       expect(find.textContaining('YAZ'), findsOneWidget);
@@ -135,9 +135,10 @@ void main() {
       final closeButtonFinder = find.byIcon(Icons.close);
       expect(closeButtonFinder, findsOneWidget);
 
-      await tester.tap(closeButtonFinder, warnIfMissed: false);
+      await tester.tap(closeButtonFinder);
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump();
 
       // After dismiss animation, banner is completely hidden
       expect(find.textContaining('YAZ'), findsNothing);

@@ -6,6 +6,7 @@ import 'package:hex_rush/domain/models/game_state.dart';
 import 'package:hex_rush/domain/models/game_state_model.dart';
 import 'package:hex_rush/domain/models/hex_tile_model.dart';
 import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -14,6 +15,7 @@ void main() {
     late GameStateNotifier notifier;
 
     setUp(() {
+      SharedPreferences.setMockInitialValues({});
       notifier = GameStateNotifier();
     });
 

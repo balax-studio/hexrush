@@ -6,9 +6,14 @@ import 'package:hex_rush/domain/models/caravan_route_model.dart';
 import 'package:hex_rush/domain/models/game_state_model.dart';
 import 'package:hex_rush/domain/models/hex_tile_model.dart';
 import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
 
   group('Kut Multiplier & Prestige Scaling Tests', () {
     test('calculateKutMultiplier returns 1.0 for initial state with 0 tamga and migrations', () {

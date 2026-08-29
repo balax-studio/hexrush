@@ -129,19 +129,19 @@ class _SeasonTransitionBannerState extends ConsumerState<SeasonTransitionBanner>
 
   @override
   Widget build(BuildContext context) {
-    final season = ref.watch(gameStateProvider.select((s) => s.season));
     final lang = ref.watch(gameStateProvider.select((s) => s.settings.language));
 
-    if (_lastSeason == null) {
-      _lastSeason = season;
-    } else if (_lastSeason!.current != season.current ||
-        _lastSeason!.year != season.year ||
-        _lastSeason!.isZud != season.isZud) {
-      _lastSeason = season;
-      _updateActiveSeasonInfo(season, lang);
-      _isVisible = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
+    ref.listen<SeasonModel>(
+      gameStateProvider.select((s) => s.season),
+      (prev, next) {
+        if (prev != null &&
+            (prev.current != next.current ||
+             prev.year != next.year ||
+             prev.isZud != next.isZud)) {
+          _updateActiveSeasonInfo(next, lang);
+          setState(() {
+            _isVisible = true;
+          });
           HapticFeedback.mediumImpact();
           _animController.forward(from: 0.0);
           _dismissTimer?.cancel();
@@ -151,8 +151,8 @@ class _SeasonTransitionBannerState extends ConsumerState<SeasonTransitionBanner>
             }
           });
         }
-      });
-    }
+      },
+    );
 
     if (!_isVisible && _activeTitle.isEmpty) {
       return const SizedBox.shrink();

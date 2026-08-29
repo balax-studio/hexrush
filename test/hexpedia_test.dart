@@ -98,7 +98,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final searchField = find.byType(TextField);
-      await tester.enterText(searchField, 'kervan');
+      await tester.enterText(searchField, 'kervan hatları');
       await tester.pumpAndSettle();
 
       expect(find.text('İpek Yolu Kervan Hatları Nasıl Kurulur?'), findsOneWidget);

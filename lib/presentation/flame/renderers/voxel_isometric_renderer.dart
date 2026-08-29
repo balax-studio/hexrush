@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../../../domain/models/building_model.dart';
 import '../../../domain/models/combat_model.dart';
@@ -105,6 +106,72 @@ class VoxelIsometricRenderer {
       ..close();
     _sharedFillPaint.color = topColor;
     canvas.drawPath(_cubeTopPath, _sharedFillPaint);
+  }
+
+  /// 3D İzometrik Voksel Küpünü Donanım Hızlandırmalı Mesh (Canvas.drawVertices) ile çizer
+  static void drawIsoCubeMesh(
+    Canvas canvas,
+    Offset baseCenter, {
+    required double w,
+    required double d,
+    required double h,
+    required Color topColor,
+    required Color leftColor,
+    required Color rightColor,
+  }) {
+    final double dxR = (w * 0.5) * cosIso;
+    final double dyR = (w * 0.5) * sinIso;
+    final double dxL = -(d * 0.5) * cosIso;
+    final double dyL = (d * 0.5) * sinIso;
+
+    final double bx = baseCenter.dx;
+    final double by = baseCenter.dy;
+
+    final double bFrontX = bx;
+    final double bFrontY = by + dyR + dyL;
+    final double bRightX = bx + dxR;
+    final double bRightY = by + dyR - dyL;
+    final double bLeftX = bx + dxL;
+    final double bLeftY = by - dyR + dyL;
+    final double bBackX = bx + dxR + dxL;
+    final double bBackY = by - dyR - dyL;
+
+    final double tFrontY = bFrontY - h;
+    final double tRightY = bRightY - h;
+    final double tLeftY = bLeftY - h;
+    final double tBackY = bBackY - h;
+
+    final positions = <Offset>[
+      // Sol Yüzey (2 üçgen)
+      Offset(bLeftX, bLeftY), Offset(bFrontX, bFrontY), Offset(bFrontX, tFrontY),
+      Offset(bLeftX, bLeftY), Offset(bFrontX, tFrontY), Offset(bLeftX, tLeftY),
+      // Sağ Yüzey (2 üçgen)
+      Offset(bFrontX, bFrontY), Offset(bRightX, bRightY), Offset(bRightX, tRightY),
+      Offset(bFrontX, bFrontY), Offset(bRightX, tRightY), Offset(bFrontX, tFrontY),
+      // Üst Yüzey (2 üçgen)
+      Offset(bFrontX, tFrontY), Offset(bRightX, tRightY), Offset(bBackX, tBackY),
+      Offset(bFrontX, tFrontY), Offset(bBackX, tBackY), Offset(bLeftX, tLeftY),
+    ];
+
+    final colors = <Color>[
+      // Sol Yüzey
+      leftColor, leftColor, leftColor,
+      leftColor, leftColor, leftColor,
+      // Sağ Yüzey
+      rightColor, rightColor, rightColor,
+      rightColor, rightColor, rightColor,
+      // Üst Yüzey
+      topColor, topColor, topColor,
+      topColor, topColor, topColor,
+    ];
+
+    final vertices = ui.Vertices(
+      VertexMode.triangles,
+      positions,
+      colors: colors,
+    );
+
+    canvas.drawVertices(vertices, BlendMode.srcOver, _sharedFillPaint);
   }
 
   // --- RÜZGARLA SALINAN AĞAÇLAR (WIND SWAY) ---

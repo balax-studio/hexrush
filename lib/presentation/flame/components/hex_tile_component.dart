@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import '../../../core/graphics/hex_shader_service.dart';
 import '../../../core/hex/hex_coordinates.dart';
 import '../../../core/hex/hex_math.dart';
 import '../../../core/theme/neo_brutalist_theme.dart';
@@ -36,6 +37,7 @@ class HexTileComponent extends PositionComponent {
   bool isZud;
   bool isNight;
   String themePalette;
+  bool isFrenzyActive;
 
   // Zero-GC Cached Paint Objects
   static final Paint _workerRangeBorderPaint = Paint()
@@ -130,6 +132,7 @@ class HexTileComponent extends PositionComponent {
     required this.isZud,
     this.isNight = false,
     this.themePalette = 'basalt',
+    this.isFrenzyActive = false,
     this.compatibleNeighborOffsets = const [],
     this.onTileTapped,
   })  : _previousSeason = season,
@@ -156,8 +159,10 @@ class HexTileComponent extends PositionComponent {
     required bool newIsZud,
     bool? newIsNight,
     String? newThemePalette,
+    bool newIsFrenzyActive = false,
     List<Offset>? newCompatibleNeighborOffsets,
   }) {
+    isFrenzyActive = newIsFrenzyActive;
     if (!isSelected && newIsSelected) {
       triggerTapBounce();
     }
@@ -454,21 +459,34 @@ class HexTileComponent extends PositionComponent {
     }
     _fogPath.close();
 
-    _sharedFillPaint
-      ..color = const Color(0xFF0F172A).withValues(alpha: (0.92 * alpha).clamp(0.0, 1.0))
-      ..style = PaintingStyle.fill;
-    canvas.drawPath(_fogPath, _sharedFillPaint);
+    // 3D Voksel Canlı Sis Kubbesi, Gizem Işıltıları ve Keşif Fısıltıları
+    final int seed = (coord.q * 37 + coord.r * 19).abs();
+    final int distFromCenter = HexMath.hexDistance(coord, const HexAxial(0, 0));
+    final bool isBorderFog = distFromCenter <= 5;
+
+    // GPU Fragment Shader (Eğer destekleniyorsa dinamik gürültü ve parıltı)
+    final fogShaderPaint = HexShaderService.getFogShaderPaint(
+      resolution: const Size(hexRadius * 2, hexRadius * 2),
+      time: _animTimer,
+      center: mistCenter,
+      alpha: alpha,
+      seed: seed.toDouble(),
+    );
+
+    if (fogShaderPaint != null) {
+      canvas.drawPath(_fogPath, fogShaderPaint);
+    } else {
+      _sharedFillPaint
+        ..color = const Color(0xFF0F172A).withValues(alpha: (0.92 * alpha).clamp(0.0, 1.0))
+        ..style = PaintingStyle.fill;
+      canvas.drawPath(_fogPath, _sharedFillPaint);
+    }
 
     _sharedStrokePaint
       ..color = const Color(0xFF1E293B).withValues(alpha: alpha.clamp(0.0, 1.0))
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
     canvas.drawPath(_fogPath, _sharedStrokePaint);
-
-    // 3D Voksel Canlı Sis Kubbesi, Gizem Işıltıları ve Keşif Fısıltıları
-    final int seed = (coord.q * 37 + coord.r * 19).abs();
-    final int distFromCenter = HexMath.hexDistance(coord, const HexAxial(0, 0));
-    final bool isBorderFog = distFromCenter <= 5;
 
     VoxelIsometricRenderer.drawVoxelMysteryFog(
       canvas,
@@ -523,16 +541,91 @@ class HexTileComponent extends PositionComponent {
     if (isNight) {
       topColor = Color.lerp(topColor, const Color(0xFF0F172A), 0.45)!;
     }
-    _sharedFillPaint
-      ..style = PaintingStyle.fill
-      ..color = topColor;
-    canvas.drawPath(_topPath, _sharedFillPaint);
+
+    // GPU Fragment Shader Zemin Katmanları
+    bool didDrawBiomeShader = false;
+    if (tileModel.biome == TileBiome.sea || tileModel.biome == TileBiome.wetland) {
+      final waterShaderPaint = HexShaderService.getWaterShaderPaint(
+        resolution: const Size(hexRadius * 2, hexRadius * 2),
+        time: _animTimer,
+        center: center,
+        alpha: 1.0,
+        isNight: isNight,
+      );
+      if (waterShaderPaint != null) {
+        canvas.drawPath(_topPath, waterShaderPaint);
+        didDrawBiomeShader = true;
+      }
+    } else if (tileModel.biome == TileBiome.volcano || (tileModel.building?.type == BuildingType.obsidianForge)) {
+      final lavaShaderPaint = HexShaderService.getLavaShaderPaint(
+        resolution: const Size(hexRadius * 2, hexRadius * 2),
+        time: _animTimer,
+        intensity: isNight ? 1.35 : 1.0,
+      );
+      if (lavaShaderPaint != null) {
+        canvas.drawPath(_topPath, lavaShaderPaint);
+        didDrawBiomeShader = true;
+      }
+    } else if (tileModel.biome == TileBiome.celestialCrater || tileModel.biome == TileBiome.crystalChasm) {
+      final crystalShaderPaint = HexShaderService.getCrystalShaderPaint(
+        resolution: const Size(hexRadius * 2, hexRadius * 2),
+        time: _animTimer,
+        prismPower: 1.0,
+      );
+      if (crystalShaderPaint != null) {
+        canvas.drawPath(_topPath, crystalShaderPaint);
+        didDrawBiomeShader = true;
+      }
+    }
+
+    if (!didDrawBiomeShader) {
+      _sharedFillPaint
+        ..style = PaintingStyle.fill
+        ..color = topColor;
+      canvas.drawPath(_topPath, _sharedFillPaint);
+
+      // Kutlu Tapınak (Shrine) Üzerine Kristal Prizma Şavkı
+      if (tileModel.hasShrine) {
+        final shrineShaderPaint = HexShaderService.getCrystalShaderPaint(
+          resolution: const Size(hexRadius * 2, hexRadius * 2),
+          time: _animTimer,
+          prismPower: 0.85,
+        );
+        if (shrineShaderPaint != null) {
+          canvas.drawPath(_topPath, shrineShaderPaint);
+        }
+      }
+    }
 
     final double highlightAlpha = !tileModel.isOwned
         ? (isNight ? 0.02 : 0.05)
         : (isNight ? 0.05 : 0.12);
     _highlightPaint.color = Colors.white.withValues(alpha: highlightAlpha);
     canvas.drawPath(_topPath, _highlightPaint);
+
+    // Kış ve Zud Ayazında Isınmamış Arazilerde Buzlanma / Kristalleşme Shader'ı
+    if ((season == 'WINTER' || isZud) && !tileModel.isWarmed) {
+      final frostShaderPaint = HexShaderService.getFrostShaderPaint(
+        resolution: const Size(hexRadius * 2, hexRadius * 2),
+        time: _animTimer,
+        frostProgress: isZud ? 1.0 : 0.75,
+      );
+      if (frostShaderPaint != null) {
+        canvas.drawPath(_topPath, frostShaderPaint);
+      }
+    }
+
+    // 10x Toy Coşkusu Devredeyken Fethedilmiş Topraklarda Altın Aurası
+    if (isFrenzyActive && tileModel.isOwned) {
+      final frenzyShaderPaint = HexShaderService.getFrenzyShaderPaint(
+        resolution: const Size(hexRadius * 2, hexRadius * 2),
+        time: _animTimer,
+        intensity: 0.85,
+      );
+      if (frenzyShaderPaint != null) {
+        canvas.drawPath(_topPath, frenzyShaderPaint);
+      }
+    }
 
     // Sahipsiz / Keşfedilmiş Arazi: Silikleştirme ve karartma zemin katmanı
     if (!tileModel.isOwned) {

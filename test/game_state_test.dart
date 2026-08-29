@@ -124,9 +124,9 @@ void main() {
       const target = HexAxial(1, 0);
       const checkCoord = HexAxial(3, 0);
 
-      // Level up castle to 2, ensure resources and predictable tile state
+      // Gözcü Kulesi için Şato Seviye 5 gereklidir
       notifier.state = notifier.state.copyWith(
-        progression: notifier.state.progression.copyWith(castleLevel: 2),
+        progression: notifier.state.progression.copyWith(castleLevel: 5),
         resources: const ResourcesModel(food: 200.0, wood: 100.0),
         tiles: {
           ...notifier.state.tiles,
@@ -138,9 +138,8 @@ void main() {
       final conquered = notifier.conquerTile(target);
       expect(conquered, isTrue);
 
-      // Gözcü Kulesi için Şato Seviye 2 gereklidir
       notifier.state = notifier.state.copyWith(
-        progression: notifier.state.progression.copyWith(castleLevel: 2),
+        progression: notifier.state.progression.copyWith(castleLevel: 5),
       );
 
       final built = notifier.buildStructure(target, BuildingType.watchtower);

@@ -82,12 +82,12 @@ void main() {
 
   group('Büyük Göç (Sıfırlama) Miras Dağılım Hesaplama Testleri', () {
     test('calculateResetCrownsBreakdown doğru taç dağılımı vermeli', () {
-      final tiles = [
-        const HexTileModel(coord: HexAxial(0, 0), isOwned: true, hasBuilding: true, building: BuildingModel(type: BuildingType.castle, level: 6)),
-        const HexTileModel(coord: HexAxial(1, 0), isOwned: true, hasBuilding: true, building: BuildingModel(type: BuildingType.corn, level: 5)),
-        const HexTileModel(coord: HexAxial(0, 1), isOwned: true, hasBuilding: true, building: BuildingModel(type: BuildingType.quarry, level: 10)),
-        const HexTileModel(coord: HexAxial(-1, 0), isOwned: true, hasShrine: true),
-        const HexTileModel(coord: HexAxial(0, -1), isOwned: true),
+      final tiles = <HexTileModel>[
+        const HexTileModel(coord: HexAxial(0, 0), biome: TileBiome.meadow, state: TileState.owned, building: BuildingModel(type: BuildingType.castle, level: 6)),
+        const HexTileModel(coord: HexAxial(1, 0), biome: TileBiome.meadow, state: TileState.owned, building: BuildingModel(type: BuildingType.corn, level: 5)),
+        const HexTileModel(coord: HexAxial(0, 1), biome: TileBiome.mountain, state: TileState.owned, building: BuildingModel(type: BuildingType.quarry, level: 10)),
+        const HexTileModel(coord: HexAxial(-1, 0), biome: TileBiome.meadow, state: TileState.owned, shrine: ShrineType.speedBoost),
+        const HexTileModel(coord: HexAxial(0, -1), biome: TileBiome.forest, state: TileState.owned),
       ];
 
       const resources = ResourcesModel(

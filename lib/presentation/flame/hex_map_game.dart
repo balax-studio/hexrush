@@ -603,6 +603,8 @@ class HexMapGame extends FlameGame {
         }
       }
 
+      final bool isFrenzy = state.frenzyTimer > 0 && state.frenzyMultiplier > 1;
+
       if (_tileComponents.containsKey(coord)) {
         _tileComponents[coord]!.updateData(
           newTileModel: tile,
@@ -613,6 +615,7 @@ class HexMapGame extends FlameGame {
           newIsZud: state.season.isZud,
           newIsNight: _isNight,
           newThemePalette: state.settings.activeThemePalette,
+          newIsFrenzyActive: isFrenzy,
           newCompatibleNeighborOffsets: compatibleNeighbors,
         );
       } else {
@@ -626,6 +629,7 @@ class HexMapGame extends FlameGame {
           isZud: state.season.isZud,
           isNight: _isNight,
           themePalette: state.settings.activeThemePalette,
+          isFrenzyActive: isFrenzy,
           compatibleNeighborOffsets: compatibleNeighbors,
         );
         final pixelPos = HexMath.hexToPixel(coord, hexSize: HexTileComponent.hexRadius);

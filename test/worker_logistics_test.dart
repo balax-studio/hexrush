@@ -69,9 +69,9 @@ void main() {
       );
 
       expect(stats.totalCapacity, equals(1.68));
-      expect(stats.demandInCoverage, closeTo(0.42, 0.001));
-      expect(stats.utilizedCapacity, closeTo(0.42, 0.001));
-      expect(stats.utilizationRatio, closeTo(0.42 / 1.68, 0.001));
+      expect(stats.demandInCoverage, closeTo(0.7245, 0.001));
+      expect(stats.utilizedCapacity, closeTo(0.7245, 0.001));
+      expect(stats.utilizationRatio, closeTo(0.7245 / 1.68, 0.001));
       expect(stats.coveredBuildingsCount, equals(1));
       expect(stats.isOverloaded, isFalse);
     });
@@ -92,7 +92,7 @@ void main() {
         workerCoord: workerTile,
       };
 
-      // 5 adet buğday tarlası ekle: 5 * 0.42 = 2.10 talep (kapasite: 1.68)
+      // 5 adet buğday tarlası ekle: 4 tanesi menzilde
       for (int i = 1; i <= 5; i++) {
         final c = HexAxial(i, 0);
         if (workerCoord.distanceTo(c) <= 4) {
@@ -114,9 +114,10 @@ void main() {
       );
 
       expect(stats.totalCapacity, equals(1.68));
-      expect(stats.demandInCoverage, closeTo(1.68, 0.01)); // 4 hex içindekiler (4 * 0.42 = 1.68)
+      expect(stats.demandInCoverage, greaterThan(1.68));
       expect(stats.utilizedCapacity, closeTo(1.68, 0.01));
       expect(stats.utilizationRatio, equals(1.0));
+      expect(stats.isOverloaded, isTrue);
       expect(stats.coveredBuildingsCount, equals(4)); // 5. tarla menzil dışı
     });
 

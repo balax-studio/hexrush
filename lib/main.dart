@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/graphics/hex_shader_service.dart';
 import 'presentation/screens/game_screen.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await HexShaderService.initialize();
   runApp(
     const ProviderScope(
       child: HexRushApp(),
