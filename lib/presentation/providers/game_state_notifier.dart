@@ -2820,19 +2820,43 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
       if (enemy.currentCoord == const HexAxial(0, 0)) {
         castleHp = math.max(0.0, castleHp - (enemy.damagePerSecond * dt));
-        updatedEnemies.add(enemy.copyWith(isAttackingCastle: true));
+        updatedEnemies.add(enemy.copyWith(isAttackingCastle: true, isAttackingWall: false));
         continue;
       }
 
       final int nextIndex = enemy.pathIndex + 1;
       final HexAxial nextCoord = (nextIndex < enemy.path.length) ? enemy.path[nextIndex] : const HexAxial(0, 0);
 
+      // 1. Hedef karoda (nextCoord) henüz yıkılmamış bir sur var mı?
+      final nextTile = updatedTiles[nextCoord];
+      if (nextTile != null && nextTile.hasActiveWall && !nextTile.wall!.isBreached) {
+        final wall = nextTile.wall!;
+        final double newWallHp = math.max(0.0, wall.currentHp - (enemy.damagePerSecond * dt));
+        final double newEnemyHp = math.max(0.0, enemy.currentHp - (wall.tier.passiveThornDps * dt));
+        final bool breached = newWallHp <= 0.0;
+
+        updatedTiles[nextCoord] = nextTile.copyWith(
+          wall: wall.copyWith(currentHp: newWallHp, isBreached: breached),
+        );
+
+        if (newEnemyHp > 0.0) {
+          updatedEnemies.add(enemy.copyWith(
+            currentHp: newEnemyHp,
+            isAttackingWall: !breached,
+            isAttackingCastle: false,
+          ));
+        }
+        continue;
+      }
+
+      // 2. Mevcut karoda (currentCoord) henüz yıkılmamış bir sur var mı?
       final currentTile = updatedTiles[enemy.currentCoord];
-      if (currentTile != null && currentTile.hasActiveWall) {
+      if (currentTile != null && currentTile.hasActiveWall && !currentTile.wall!.isBreached) {
         final wall = currentTile.wall!;
         final double newWallHp = math.max(0.0, wall.currentHp - (enemy.damagePerSecond * dt));
         final double newEnemyHp = math.max(0.0, enemy.currentHp - (wall.tier.passiveThornDps * dt));
         final bool breached = newWallHp <= 0.0;
+
         updatedTiles[enemy.currentCoord] = currentTile.copyWith(
           wall: wall.copyWith(currentHp: newWallHp, isBreached: breached),
         );
@@ -2841,11 +2865,13 @@ class GameStateNotifier extends StateNotifier<GameState> {
           updatedEnemies.add(enemy.copyWith(
             currentHp: newEnemyHp,
             isAttackingWall: !breached,
+            isAttackingCastle: false,
           ));
         }
         continue;
       }
 
+      // 3. Önünde engel yoksa bir sonraki karoya adım at
       final HexAxial newCoord = nextCoord;
       final int newIdx = nextIndex;
 
@@ -2876,7 +2902,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
         for (final e in updatedEnemies) {
           if (e.isDead) continue;
-          final int dist = HexMath.hexDistance(towerTile.coord, e.currentCoord);
+          final int dist = towerTile.coord.distanceTo(e.currentCoord);
           if (dist <= stats.range && dist < closestDistance) {
             closestDistance = dist;
             targetEnemy = e;
@@ -2980,14 +3006,13 @@ class GameStateNotifier extends StateNotifier<GameState> {
       return false;
     }
 
-    final List<HexAxial> boundaryCoords = state.tiles.values
-        .where((t) => t.isOwned && t.coord != const HexAxial(0, 0))
-        .map((t) => t.coord)
-        .toList();
-
-    if (boundaryCoords.isEmpty) {
-      boundaryCoords.add(const HexAxial(1, 0));
-    }
+    // Keşfedilmiş en uzak karolardan rastgele 2-4 adet akın noktası seç
+    final List<HexAxial> boundaryCoords = CombatCalculator.selectFarthestSpawnPoints(
+      tiles: state.tiles,
+      castleCoord: const HexAxial(0, 0),
+      maxSpawns: 3,
+      seed: DateTime.now().millisecondsSinceEpoch,
+    );
 
     final double maxCastleHp = CombatCalculator.calculateCastleMaxHp(state.progression.castleLevel);
     final waveEnemies = CombatCalculator.generateWave(
@@ -3006,7 +3031,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
         activeProjectiles: [],
         waveElapsedTime: 0.0,
       ),
-      activeToast: 'BOZKIR BORUSU ÇALINDI: Seviye ${state.combatState.currentWaveTier} Akını Başladı!',
+      activeToast: 'BOZKIR BORUSU ÇALINDI: Seviye ${state.combatState.currentWaveTier} Akını (${waveEnemies.length} Düşman) Başladı!',
     );
 
     TactileAudioService.instance.play(TactileSoundType.horn);

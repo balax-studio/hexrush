@@ -7,6 +7,7 @@ enum HexpediaCategory {
   core,
   biomes,
   buildings,
+  defense,
   seasons,
   lore,
   trade,
@@ -24,6 +25,8 @@ extension HexpediaCategoryExtension on HexpediaCategory {
         return lang == 'tr' ? 'BİYOMLAR & SİMBİYOZ' : (lang == 'de' ? 'BIOME' : (lang == 'es' ? 'BIOMAS' : 'BIOMES'));
       case HexpediaCategory.buildings:
         return lang == 'tr' ? 'YAPILAR & ZİNCİR' : (lang == 'de' ? 'GEBÄUDE' : (lang == 'es' ? 'EDIFICIOS' : 'BUILDINGS'));
+      case HexpediaCategory.defense:
+        return lang == 'tr' ? 'SAVUNMA & AKIN' : (lang == 'de' ? 'VERTEIDIGUNG' : (lang == 'es' ? 'DEFENSA' : 'DEFENSE & RAIDS'));
       case HexpediaCategory.seasons:
         return lang == 'tr' ? 'İKLİM & ZUD' : (lang == 'de' ? 'KLIMA & ZUD' : (lang == 'es' ? 'CLIMA & ZUD' : 'SEASONS & ZUD'));
       case HexpediaCategory.lore:
@@ -45,6 +48,8 @@ extension HexpediaCategoryExtension on HexpediaCategory {
         return Icons.terrain;
       case HexpediaCategory.buildings:
         return Icons.apartment;
+      case HexpediaCategory.defense:
+        return Icons.shield;
       case HexpediaCategory.seasons:
         return Icons.ac_unit;
       case HexpediaCategory.lore:
@@ -1512,6 +1517,171 @@ class HexpediaRepository {
           'Switch to Diorama Mode during a 10x Toy Frenzy or snowstorm for breathtaking visuals.',
         ],
         tags: ['diorama', 'kamera', 'fotoğraf', 'lens', 'sinematik', 'tiltshift', 'camera'],
+      ),
+
+      // =============================================================
+      // 9. SAVUNMA & AKIN MEKANİKLERİ (DEFENSE & RAIDS)
+      // =============================================================
+      const HexpediaEntry(
+        id: 'defense_horn_of_steppe',
+        category: HexpediaCategory.defense,
+        titleTr: 'Bozkır Borusu & Gece Akınları',
+        titleEn: 'Horn of the Steppe & Night Raids',
+        summaryTr: 'Bozkır borusu çalındığında gece çöker ve krallığın en uzak keşfedilmiş sınırlarından düşman akınları başlar.',
+        summaryEn: 'Sounding the Steppe Horn summons nightfall and unleashes enemy raids from the farthest frontiers of your realm.',
+        contentTr: 'Bozkır Borusu sağ araç çubuğundaki altın boru butonuyla çalınır. Akın başladığında gökyüzü kararır, meşaleler yanar ve sisleri açılmış en uzak sınır karolarından düşmanlar (Bozkır Yağmacıları, Hızlı Kurtlar, Koçbaşları ve Erlik Şampiyonları) gruplar halinde Kağan Otağına doğru yürür. Düşman sayısı her akın seviyesiyle artar (4 + Seviye x 3). Şato yıkılmadan tüm akıncılar yok edilirse Taç, Atalar Tamgası ve zengin hammadde zafer ganimeti kazanılır.',
+        contentEn: 'The Steppe Horn is sounded via the golden horn button on the right toolbar. Night falls and enemies march from the farthest discovered boundary hexes towards the central Castle. Enemy numbers scale with wave tier (4 + Tier x 3). Defeating the wave without losing the Castle yields Crowns, Ancestral Tamgas, and abundant resources.',
+        icon: Icons.campaign,
+        iconColor: Color(0xFFF59E0B),
+        badgeText: 'AKIN / SAVAŞ',
+        stats: {
+          'Düşman Sayısı': '4 + (Seviye x 3)',
+          'Doğuş Noktası': 'Keşfedilmiş En Dış Sınır Karoları',
+          'Düşman Hedefi': 'Kağan Otağı (0, 0)',
+          'Zafer Ödülleri': 'Taç, Atalar Tamgası, Çoklu Hammadde',
+        },
+        stepGuideTr: [
+          'Sağ araç çubuğundaki Bozkır Borusu butonuna dokunun.',
+          'Açılan panelde akın seviyesini, düşman tiplerini ve kazanılacak ganimetleri inceleyin.',
+          'Şatonuz tamir edilmiş durumdaysa BORUYU ÇAL butonuna basarak akını başlatın.',
+          'Gözcü Kuleleri ve Surlarla düşmanları durdurup Otağınızı savunun.',
+        ],
+        stepGuideEn: [
+          'Tap the Steppe Horn button on the right toolbar.',
+          'Review the incoming wave tier, enemy forces, and victory rewards.',
+          'Ensure your Castle is repaired and tap SOUND THE HORN to start the raid.',
+          'Use Watchtowers and Perimeter Walls to stop the horde and protect the Khagan.',
+        ],
+        tipsTr: [
+          'Akın başlatmadan önce savunma kulelerinizi yükseltin ve sınır hatlarına sur çekin.',
+          'Akın sırasında Kağan Otağı hasar alırsa savaştan sonra boru menüsünden veya Şatodan anında onarın.',
+        ],
+        tipsEn: [
+          'Upgrade your watchtowers and build perimeter walls along border corridors before sounding the horn.',
+          'If your Castle takes damage, repair it immediately from the horn dialog or central tent.',
+        ],
+        tags: ['boru', 'akın', 'savaş', 'gece', 'düşman', 'ganimet', 'horn', 'raid', 'combat'],
+      ),
+
+      const HexpediaEntry(
+        id: 'defense_watchtower',
+        category: HexpediaCategory.defense,
+        titleTr: 'Gözcü Savunma Kulesi & Okçular',
+        titleEn: 'Watchtower & Defense Turrets',
+        summaryTr: 'Seviye 5 Kağan Otağı ile açılan, 3 Hex menzilli otomatik savunma kulesi. Düşmanlara parabolik 3D voksel oklar fırlatır.',
+        summaryEn: 'Unlocks at Castle Level 5. Automatically fires parabolic 3D voxel arrows at incoming enemies within a 3-hex radius.',
+        contentTr: 'Savunma Kulesi, Bozkır Akınlarına karşı en güçlü aktif savunma yapısıdır. 3 Hex menzil içerisindeki en yakın düşmanı otomatik hedefler ve parabolik yayla süzülen 3D voksel oklar fırlatır. Kule seviyesi arttıkça ok hasarı katlanır (15 -> 30 -> 60 -> 120 -> 240+ Hasar) ve Seviye 5+ kuleler alevli mancınık güllesi atarak alan hasarı (AoE) vurmaya başlar.',
+        contentEn: 'The Watchtower is your main tactical defense structure. It automatically locks onto marching enemies within a 3-hex range and shoots voxel arrows along an arc. Upgrading increases damage significantly, and Level 5+ towers launch fiery catapult boulders with area-of-effect (AoE) blast damage.',
+        icon: Icons.shield,
+        iconColor: Color(0xFF38BDF8),
+        badgeText: 'KULE / OKÇU (R=3)',
+        stats: {
+          'Açılış Seviyesi': 'Kağan Otağı Seviye 5',
+          'Etki Menzili': '3 Hex Çapı (R=3)',
+          'Saldırı Türü': 'Voksel Ok (Sv 1-4) / Alan Hasarlı Güle (Sv 5+)',
+          'Atış Sıklığı': '1.0 Saniye (Seviye arttıkça hızlanır)',
+        },
+        stepGuideTr: [
+          'Kağan Otağını Seviye 5 veya üzerine yükseltin.',
+          'Fethedilmiş boş bir karoya dokunup İNŞA ET menüsünden SAVUNMA KULESİ seçin.',
+          'Kuleleri düşmanların yürüyüş koridorlarını çapraz ateşe alacak şekilde konuşlandırın.',
+          'Kuleyi yükselterek atış hasarını ve menzil gücünü artırın.',
+        ],
+        stepGuideEn: [
+          'Upgrade the Khan Tent to Level 5 or higher.',
+          'Tap any owned empty hex and select WATCHTOWER from the build sheet.',
+          'Position towers at tactical choke points to create deadly crossfire zones.',
+          'Upgrade towers to boost arrow damage and attack cadence.',
+        ],
+        tipsTr: [
+          'Sur ile kuleyi aynı savunma hattında birleştirin; düşman suru kırmaya çalışırken kule onları yok eder.',
+          'Kuleler gece akınlarında aydınlatma meşalesi yayarak savaş atmosferini canlandırır.',
+        ],
+        tipsEn: [
+          'Combine walls with watchtowers; enemies stopped by walls will be eliminated under heavy arrow fire.',
+          'Watchtowers project atmospheric night torches during raids.',
+        ],
+        tags: ['kule', 'okçu', 'savunma', 'menzil', 'ok', 'watchtower', 'turret', 'defense'],
+      ),
+
+      const HexpediaEntry(
+        id: 'defense_perimeter_walls',
+        category: HexpediaCategory.defense,
+        titleTr: 'Hex Çevre Surları & Tahkimat',
+        titleEn: 'Perimeter Walls & Fortifications',
+        summaryTr: 'Hexin 6 kenarına örülen akıllı çevre surları. Düşmanların ilerlemesini durdurur ve yıkılana kadar yolu kapatır.',
+        summaryEn: 'Smart perimeter walls guarding all 6 hex edges. Blocks enemy advances completely until breached.',
+        contentTr: 'Surlar 3 kademeden oluşur: Ahşap Çit (120 HP), Taş Sur (300 HP) ve Demir Tahkimat (750 HP). Akıllı çevre motoru sayesinde iki komşu karoda da sur varsa aralarındaki iç kenar duvarı otomatik kaldırılır ve kusursuz bir dış kale suru oluşturulur. Düşmanlar sur olan karoya geldiklerinde içeri giremezler; durup suru yıkmaya çalışırlar ve surun dikenlerinden pasif karşı hasar alırlar. Surlar yıkıldığında (isBreached) yol açılır. Hasar gören surlar kısmi maliyetle kolayca onarılabilir.',
+        contentEn: 'Walls feature 3 tiers: Wooden Palisade (120 HP), Stone Rampart (300 HP), and Iron Fortification (750 HP). Smart edge rendering hides interior walls between adjacent fortified hexes, forming a unified outer battlement. Enemies cannot enter walled hexes until the wall is breached, taking passive thorn damage while attacking.',
+        icon: Icons.fence,
+        iconColor: Color(0xFF10B981),
+        badgeText: 'SUR / TAHKİMAT',
+        stats: {
+          'Sur Kademeleri': '1: Ahşap Çit (120 HP), 2: Taş Sur (300 HP), 3: Demir Tahkimat (750 HP)',
+          'Akıllı Kesişim': 'Komşu iki surlu karo arasındaki iç duvar gizlenir',
+          'Engel Mekaniği': 'Düşmanı durdurur, sur yıkılmadan geçişe izin vermez',
+          'Diken Hasarı': 'Saniyede 2 - 8 Pasif Karşı Hasar',
+        },
+        stepGuideTr: [
+          'Fethedilmiş herhangi bir karoya dokunun.',
+          'Alt menüdeki SUR İNŞA ET butonuna basarak Ahşap Çit, Taş Sur veya Demir Tahkimat seçin.',
+          'Mevcut surunuzu istediğiniz zaman daha üst bir kademeye GELİŞTİRİN.',
+          'Savaşta hasar alan surları ONAR butonuna basarak tamir edin.',
+        ],
+        stepGuideEn: [
+          'Tap any owned hex tile.',
+          'Tap BUILD WALL in the action sheet and select Palisade, Rampart, or Iron Fortification.',
+          'Upgrade existing walls to higher tiers at any time.',
+          'Repair damaged or breached walls using the REPAIR button.',
+        ],
+        tipsTr: [
+          'Kağan Otağının etrafındaki 6 karoya daire şeklinde sur çekerek aşılmaz bir iç kale (Citadel) kurun.',
+          'Duvarlar yıkılsa bile karo fethedilmiş kalır; savaştan sonra küçük bir odun/taş harcayarak suru eski haline getirebilirsiniz.',
+        ],
+        tipsEn: [
+          'Fortify all 6 hexes surrounding your Castle to build an impenetrable inner Citadel.',
+          'Even if breached, walls retain their foundation and can be restored with minimal resources.',
+        ],
+        tags: ['sur', 'duvar', 'çit', 'tahkimat', 'kale', 'wall', 'palisade', 'rampart', 'fortification'],
+      ),
+
+      const HexpediaEntry(
+        id: 'defense_tile_repair',
+        category: HexpediaCategory.defense,
+        titleTr: 'Savaş Hasarı & Karo Onarımı',
+        titleEn: 'War Damage & Hex Repairs',
+        summaryTr: 'Düşmanların çiğnediği karolar tahrip olur (%50 üretim kaybı). Yarı maliyetle onarılarak tam kapasiteye döndürülür.',
+        summaryEn: 'Tiles trampled by enemy raiders suffer war damage (-50% output). Repair them at half cost to restore full production.',
+        contentTr: 'Bozkır akınında düşmanların üzerinden geçtiği karolar tahrip edilir ve sarı duman sinyali yaymaya başlar. Hasarlı karolardaki yapılar %50 üretim cezası alır. Hasarlı karoya dokunulduğunda alt menüde sarı renkli ONAR butonu belirir ve bina yükseltme maliyetinin sadece %50\'si harcanarak karo anında tamir edilir ve %100 tam üretim kapasitesine geri döner.',
+        contentEn: 'During raids, hex tiles traversed by enemies become damaged, emitting yellow warning smoke and suffering a 50% production penalty. Tapping a damaged hex reveals a REPAIR button in the action sheet, allowing instant restoration to 100% capacity at only 50% of the building upgrade cost.',
+        icon: Icons.build_circle,
+        iconColor: Color(0xFFEF4444),
+        badgeText: 'ONARIM / HASAR',
+        stats: {
+          'Hasar Etkisi': '-%50 Üretim Kaybı & Sarı Hasar Dumanı',
+          'Onarım Maliyeti': 'Bina Geliştirme Maliyetinin %50\'si',
+          'Şato Onarımı': 'Eksik HP oranına göre dinamik Odun & Taş',
+          'Sur Onarımı': 'Kademeye göre cüzi Odun/Taş/Demir',
+        },
+        stepGuideTr: [
+          'Savaş sonrasında sarı duman tüten tahrip edilmiş karoyu seçin.',
+          'Alt menüdeki ONAR butonunun üzerindeki hammadde maliyetini kontrol edin.',
+          'ONAR butonuna dokunarak karoyu %100 üretime kavuşturun.',
+        ],
+        stepGuideEn: [
+          'After battle, select any damaged hex showing yellow smoke.',
+          'Check the required resource cost displayed on the REPAIR button.',
+          'Tap REPAIR to instantly restore 100% production.',
+        ],
+        tipsTr: [
+          'Öncelikli olarak temel iaşe (buğday, arpa) ve hammadde (odun, taş) karolarını onarın.',
+          'Şatonuz hasar almışsa bir sonraki akını başlatmadan önce mutlaka Kağan Otağını onarın.',
+        ],
+        tipsEn: [
+          'Prioritize repairing vital food and raw material production hexes first.',
+          'Always repair the Khan Tent before triggering the next raid wave.',
+        ],
+        tags: ['onarım', 'hasar', 'tamir', 'tahribat', 'duman', 'repair', 'damage', 'restore'],
       ),
     ];
   }

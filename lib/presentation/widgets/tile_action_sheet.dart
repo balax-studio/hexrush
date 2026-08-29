@@ -651,19 +651,43 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (wall.needsRepair) ...[
-                  TactileNeoButton(
-                    onTap: () => notifier.repairWall(tile.coord),
-                    backgroundColor: const Color(0xFFF59E0B),
-                    borderColor: theme.border,
-                    shadowOffset: 2.0,
-                    height: 28,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'ONAR',
-                      style: TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.w900),
-                    ),
-                  ),
+                  () {
+                    final wallRepairCost = CombatCalculator.calculateWallRepairCost(wall);
+                    bool canAffordWall = true;
+                    final curRes = gameState.resources;
+                    for (final entry in wallRepairCost.entries) {
+                      final double avail = switch (entry.key) {
+                        'wood' => curRes.wood,
+                        'stone' => curRes.stone,
+                        'iron' => curRes.iron,
+                        'plank' => curRes.plank,
+                        _ => 0.0,
+                      };
+                      if (avail < entry.value) {
+                        canAffordWall = false;
+                        break;
+                      }
+                    }
+                    final costStr = wallRepairCost.entries.map((e) => '${e.value.toInt()} ${e.key}').join(', ');
+                    return TactileNeoButton(
+                      onTap: canAffordWall ? () => notifier.repairWall(tile.coord) : null,
+                      isEnabled: canAffordWall,
+                      backgroundColor: canAffordWall ? const Color(0xFFF59E0B) : theme.slateBorder,
+                      borderColor: theme.border,
+                      shadowOffset: 2.0,
+                      height: 28,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      alignment: Alignment.center,
+                      child: Text(
+                        'ONAR ($costStr)',
+                        style: TextStyle(
+                          color: canAffordWall ? Colors.black : Colors.white70,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    );
+                  }(),
                   const SizedBox(width: 6),
                 ],
                 if (wall.tier != WallTier.ironFortification)
@@ -1597,13 +1621,16 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                     children: [
                       const Icon(Icons.trending_up, color: Color(0xFF38BDF8), size: 13),
                       const SizedBox(width: 6),
-                      Text(
-                        'BİR SONRAKİ 2X SIÇRAMA: SEVİYE $nextMilestone ($remaining SEVİYE KALDI)',
-                        style: const TextStyle(
-                          color: Color(0xFF94A3B8),
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.3,
+                      Flexible(
+                        child: Text(
+                          'BİR SONRAKİ 2X SIÇRAMA: SEVİYE $nextMilestone ($remaining SEVİYE KALDI)',
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.3,
+                          ),
                         ),
                       ),
                     ],

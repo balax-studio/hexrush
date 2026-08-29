@@ -30,12 +30,25 @@ void main() {
 
       final symbiosisResults = HexpediaRepository.search('simbiyoz');
       expect(symbiosisResults.any((e) => e.id == 'biome_symbiosis'), isTrue);
+
+      final raidResults = HexpediaRepository.search('akın');
+      expect(raidResults.any((e) => e.id == 'defense_horn_of_steppe'), isTrue);
+
+      final watchtowerResults = HexpediaRepository.search('kule');
+      expect(watchtowerResults.any((e) => e.id == 'defense_watchtower'), isTrue);
+
+      final wallResults = HexpediaRepository.search('sur');
+      expect(wallResults.any((e) => e.id == 'defense_perimeter_walls'), isTrue);
     });
 
     test('getByCategory filters correctly', () {
       final tradeEntries = HexpediaRepository.getByCategory(HexpediaCategory.trade);
       expect(tradeEntries.every((e) => e.category == HexpediaCategory.trade), isTrue);
       expect(tradeEntries.length, greaterThanOrEqualTo(2));
+
+      final defenseEntries = HexpediaRepository.getByCategory(HexpediaCategory.defense);
+      expect(defenseEntries.every((e) => e.category == HexpediaCategory.defense), isTrue);
+      expect(defenseEntries.length, greaterThanOrEqualTo(4));
     });
 
     test('step guide and stats are populated for key mechanics', () {

@@ -105,6 +105,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final activePalette = ref.watch(gameStateProvider.select((s) => s.settings.activeThemePalette));
     final isDioramaMode = ref.watch(gameStateProvider.select((s) => s.isDioramaMode));
     final isMacroOverview = ref.watch(gameStateProvider.select((s) => s.isMacroOverview));
+    final isRaidActive = ref.watch(gameStateProvider.select((s) => s.combatState.isActiveWave));
     final theme = NeoBrutalistTheme.getTheme(activePalette);
 
     return Scaffold(
@@ -144,20 +145,24 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 ),
               ),
 
-              // 3.2. Görev Takipçisi (Sol Üst)
-              const Positioned(
-                top: 92,
+              // 3.2. Görev Takipçisi (Sol Üst - Savaşta Can Barının Altına İner)
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
+                top: isRaidActive ? 116 : 60,
                 left: 12,
-                child: SafeArea(
+                child: const SafeArea(
                   child: QuestTrackerHUD(),
                 ),
               ),
 
               // 3.5. İlk Sefer Kutlu Göç Waypoint Rehberlik Banner'ı
-              const Positioned(
-                top: 92,
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
+                top: isRaidActive ? 116 : 60,
                 right: 12,
-                child: SafeArea(
+                child: const SafeArea(
                   child: MigrationWaypointBanner(),
                 ),
               ),

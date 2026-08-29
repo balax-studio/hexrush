@@ -14,21 +14,26 @@ class VoxelProjectileComponent extends PositionComponent {
   final double Function(HexAxial)? getElevation;
 
   double _progress = 0.0;
-  final double _speed = 3.5; // Saniyede tam mesafe katetme katsayısı
+  final double _speed = 1.6; // Saniyede tam mesafe katetme katsayısı (~0.62 sn uçuş)
   late final Vector2 _startPixelPos;
+  double _angle = 0.0;
+
+  static final Paint _trailPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeCap = StrokeCap.round;
 
   VoxelProjectileComponent({
     required this.projectile,
     required this.targetPixelPos,
     this.getElevation,
   }) : super(
-          size: Vector2(16, 16),
+          size: Vector2(24, 24),
           anchor: Anchor.center,
           priority: 2800,
         ) {
     final startPixel = HexMath.hexToPixel(projectile.sourceTowerCoord, hexSize: HexTileComponent.hexRadius);
     final double elev = getElevation?.call(projectile.sourceTowerCoord) ?? 0.0;
-    _startPixelPos = Vector2(startPixel.dx, startPixel.dy - elev - 25.0); // Kule tepesinden başla
+    _startPixelPos = Vector2(startPixel.dx, startPixel.dy - elev - 28.0); // Kule mazgalından başla
     position = _startPixelPos;
   }
 
@@ -43,8 +48,12 @@ class VoxelProjectileComponent extends PositionComponent {
       final double t = _progress;
       final Vector2 linear = _startPixelPos + (targetPixelPos - _startPixelPos) * t;
       // Parabolik yay (Arc)
-      final double arcHeight = math.sin(t * math.pi) * 35.0;
-      position = Vector2(linear.x, linear.y - arcHeight);
+      final double arcHeight = math.sin(t * math.pi) * 32.0;
+      final Vector2 nextPos = Vector2(linear.x, linear.y - arcHeight);
+
+      // Uçuş açısını hesapla
+      _angle = math.atan2(nextPos.y - position.y, nextPos.x - position.x);
+      position = nextPos;
     } else {
       removeFromParent();
     }
@@ -94,16 +103,27 @@ class VoxelProjectileComponent extends PositionComponent {
 
     canvas.save();
     canvas.translate(cx, cy);
+    canvas.rotate(_angle);
+
+    // Işıltılı Uçuş İzi / Kuyruk Parıltısı (Zero-GC static paint)
+    _trailPaint.strokeWidth = projectile.isAoE ? 3.0 : 2.0;
+    _trailPaint.color = projectile.isAoE
+        ? const Color(0x99F97316)
+        : const Color(0xAAFEF08A);
+    canvas.drawLine(const Offset(-14, 0), const Offset(0, 0), _trailPaint);
 
     if (projectile.isAoE) {
       // Alevli Mancınık Güllesi
-      _drawCube(canvas, 0, 0, 6, 6, 6, const Color(0xFFF97316));
-      _drawCube(canvas, 0, 0, 4, 4, 4, const Color(0xFFFEF08A));
+      _drawCube(canvas, 0, 0, 8, 8, 8, const Color(0xFFF97316));
+      _drawCube(canvas, 0, 0, 5, 5, 5, const Color(0xFFFEF08A));
     } else {
-      // Voksel Bozkır Oku
-      _drawCube(canvas, 0, 0, 8, 2, 2, const Color(0xFFD97706));
-      _drawCube(canvas, 3, 0, 3, 3, 3, const Color(0xFFE2E8F0));
-      _drawCube(canvas, -3, 0, 2, 2, 2, const Color(0xFF78350F));
+      // Voksel Bozkır Oku (Büyük, net seçilebilir ok)
+      // Ok gövdesi (Ahşap mil)
+      _drawCube(canvas, 0, 0, 14, 2.5, 2.5, const Color(0xFFD97706));
+      // Ok ucu (Demir temren)
+      _drawCube(canvas, 7, 0, 4, 4, 4, const Color(0xFFF8FAFC));
+      // Ok tüyü (Kırmızı savaş yelesi)
+      _drawCube(canvas, -7, 0, 3, 3, 3, const Color(0xFFDC2626));
     }
 
     canvas.restore();

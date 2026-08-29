@@ -163,26 +163,59 @@ class HornOfSteppeDialog extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    if (isCastleDamaged)
-                      TactileNeoButton(
-                        onTap: () => notifier.repairCastle(),
-                        backgroundColor: const Color(0xFFDC2626),
-                        borderColor: const Color(0xFF020617),
-                        height: 28,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        alignment: Alignment.center,
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.build, size: 12, color: Colors.white),
-                            SizedBox(width: 4),
-                            Text(
-                              'ONAR',
-                              style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
+                    if (isCastleDamaged) () {
+                      final castleRepairCost = CombatCalculator.calculateCastleRepairCost(
+                        castleLevel: castleLevel,
+                        castleCurrentHp: combat.castleCurrentHp,
+                        castleMaxHp: combat.castleMaxHp,
+                      );
+                      bool canAffordCastleRepair = true;
+                      for (final e in castleRepairCost.entries) {
+                        final double avail = switch (e.key) {
+                          'wood' => gameState.resources.wood,
+                          'stone' => gameState.resources.stone,
+                          _ => 0.0,
+                        };
+                        if (avail < e.value) {
+                          canAffordCastleRepair = false;
+                          break;
+                        }
+                      }
+                      final costStr = castleRepairCost.entries
+                          .map((e) => '${e.value.toInt()} ${e.key == 'wood' ? 'Odun' : 'Taş'}')
+                          .join(', ');
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TactileNeoButton(
+                            onTap: canAffordCastleRepair ? () => notifier.repairCastle() : null,
+                            isEnabled: canAffordCastleRepair,
+                            backgroundColor: canAffordCastleRepair ? const Color(0xFFDC2626) : theme.slateBorder,
+                            borderColor: const Color(0xFF020617),
+                            height: 28,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            alignment: Alignment.center,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.build, size: 12, color: Colors.white),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'ONAR ($costStr)',
+                                  style: TextStyle(
+                                    color: canAffordCastleRepair ? Colors.white : Colors.white70,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
+                          ),
+                        ],
+                      );
+                    }(),
                   ],
                 ),
               ),

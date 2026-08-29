@@ -6,6 +6,7 @@ import '../../core/hex/hex_coordinates.dart';
 import '../../core/hex/hex_math.dart';
 import '../../domain/models/building_model.dart';
 import '../../domain/models/game_state.dart';
+import '../../domain/models/hex_tile_model.dart';
 import 'components/floating_resource_number_component.dart';
 import 'components/floating_voxel_cloud_component.dart';
 import 'components/flying_voxel_bird_component.dart';
@@ -459,11 +460,20 @@ class HexMapGame extends FlameGame {
     for (final proj in combat.activeProjectiles) {
       if (!_spawnedProjectileIds.contains(proj.id)) {
         _spawnedProjectileIds.add(proj.id);
-        final targetEnemy = _enemyComponents[proj.targetEnemyId];
-        final targetPixel = HexMath.hexToPixel(const HexAxial(0, 0), hexSize: HexTileComponent.hexRadius);
-        final Vector2 targetPos = targetEnemy != null
-            ? targetEnemy.position.clone()
-            : Vector2(targetPixel.dx, targetPixel.dy);
+        final targetEnemyComp = _enemyComponents[proj.targetEnemyId];
+        Vector2 targetPos;
+        if (targetEnemyComp != null) {
+          targetPos = targetEnemyComp.position.clone();
+        } else {
+          final enemyInst = combat.activeEnemies.where((e) => e.id == proj.targetEnemyId).firstOrNull;
+          final targetCoord = enemyInst?.currentCoord ?? const HexAxial(0, 0);
+          final targetPixel = HexMath.hexToPixel(targetCoord, hexSize: HexTileComponent.hexRadius);
+          final double elev = HexTileComponent.getBiomeElevation(
+            state.tiles[targetCoord]?.biome ?? TileBiome.meadow,
+            isFog: state.tiles[targetCoord]?.isFog ?? false,
+          );
+          targetPos = Vector2(targetPixel.dx, targetPixel.dy - elev);
+        }
 
         final pComp = VoxelProjectileComponent(
           projectile: proj,

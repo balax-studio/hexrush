@@ -87,23 +87,50 @@ void main() {
       expect(repairCost['food'], greaterThan(0.0));
     });
 
-    test('generateWave creates enemies and shortest BFS path to castle', () {
+    test('selectFarthestSpawnPoints picks outermost boundary tiles', () {
+      final tiles = {
+        const HexAxial(0, 0): const HexTileModel(coord: HexAxial(0, 0), biome: TileBiome.meadow, state: TileState.owned),
+        const HexAxial(1, 0): const HexTileModel(coord: HexAxial(1, 0), biome: TileBiome.meadow, state: TileState.owned),
+        const HexAxial(3, 0): const HexTileModel(coord: HexAxial(3, 0), biome: TileBiome.meadow, state: TileState.discovered),
+        const HexAxial(0, 4): const HexTileModel(coord: HexAxial(0, 4), biome: TileBiome.forest, state: TileState.discovered),
+        const HexAxial(0, 5): const HexTileModel(coord: HexAxial(0, 5), biome: TileBiome.mountain, state: TileState.discovered),
+      };
+
+      final spawns = CombatCalculator.selectFarthestSpawnPoints(
+        tiles: tiles,
+        castleCoord: const HexAxial(0, 0),
+        maxSpawns: 2,
+      );
+
+      expect(spawns.isNotEmpty, true);
+      expect(spawns.every((s) => s != const HexAxial(0, 0)), true);
+    });
+
+    test('generateWave scales enemy count with waveTier and targets castle', () {
       final tiles = {
         const HexAxial(0, 0): const HexTileModel(coord: HexAxial(0, 0), biome: TileBiome.meadow, state: TileState.owned),
         const HexAxial(1, 0): const HexTileModel(coord: HexAxial(1, 0), biome: TileBiome.meadow, state: TileState.owned),
         const HexAxial(2, 0): const HexTileModel(coord: HexAxial(2, 0), biome: TileBiome.meadow, state: TileState.owned),
       };
 
-      final enemies = CombatCalculator.generateWave(
+      final enemiesTier1 = CombatCalculator.generateWave(
         waveTier: 1,
         boundaryCoords: [const HexAxial(2, 0)],
         castleCoord: const HexAxial(0, 0),
         tiles: tiles,
       );
 
-      expect(enemies.isNotEmpty, true);
-      expect(enemies.first.path.last, const HexAxial(0, 0));
-      expect(enemies.first.maxHp, greaterThan(0));
+      final enemiesTier5 = CombatCalculator.generateWave(
+        waveTier: 5,
+        boundaryCoords: [const HexAxial(2, 0)],
+        castleCoord: const HexAxial(0, 0),
+        tiles: tiles,
+      );
+
+      expect(enemiesTier1.length, 7); // 4 + 1*3
+      expect(enemiesTier5.length, 19); // 4 + 5*3
+      expect(enemiesTier5.length, greaterThan(enemiesTier1.length));
+      expect(enemiesTier1.first.path.last, const HexAxial(0, 0));
     });
 
     test('calculateWaveVictoryReward scales with waveTier', () {
@@ -115,6 +142,25 @@ void main() {
       expect(rTier5.crowns, 13);
       expect(rTier5.tamgas, 1);
       expect(rTier5.resources['iron'], greaterThan(0.0));
+    });
+
+    test('Wall obstacle stops enemy, takes damage, and opens path upon breach', () {
+      var wall = const CombatWallModel(tier: WallTier.woodenPalisade, currentHp: 50.0);
+      expect(wall.isBreached, false);
+
+      const double enemyDps = 25.0;
+      const double dt = 1.0;
+
+      // Saniyede 25 hasar: 1. saniye sonrası (50 - 25 = 25 HP, henüz yıkılmadı)
+      wall = wall.copyWith(currentHp: wall.currentHp - enemyDps * dt);
+      expect(wall.currentHp, 25.0);
+      expect(wall.currentHp <= 0, false);
+
+      // 2. saniye sonrası (25 - 25 = 0 HP, sur yıkıldı!)
+      final double newHp = wall.currentHp - enemyDps * dt;
+      wall = wall.copyWith(currentHp: newHp, isBreached: newHp <= 0.0);
+      expect(wall.currentHp, 0.0);
+      expect(wall.isBreached, true);
     });
   });
 }

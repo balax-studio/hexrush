@@ -153,7 +153,47 @@ class CombatCalculator {
     };
   }
 
-  /// Seviye N Dalga Düşman Üretimi
+  /// Keşfedilmiş en uzak sınırlardaki karolardan rastgele 2-4 adet akın başlangıç noktası seçer
+  static List<HexAxial> selectFarthestSpawnPoints({
+    required Map<HexAxial, HexTileModel> tiles,
+    required HexAxial castleCoord,
+    int maxSpawns = 3,
+    int seed = 42,
+  }) {
+    // Sis olmayan, açık ve keşfedilmiş karolar
+    final discoveredTiles = tiles.values
+        .where((t) => !t.isFog && t.coord != castleCoord)
+        .toList();
+
+    if (discoveredTiles.isEmpty) {
+      return [const HexAxial(1, 0)];
+    }
+
+    // Şatoya olan mesafelerine göre maksimum mesafeyi bul
+    int maxDist = 0;
+    for (final t in discoveredTiles) {
+      final int d = t.coord.distanceTo(castleCoord);
+      if (d > maxDist) maxDist = d;
+    }
+
+    // En uzak hizada yer alan sınır karolarını filtrele (maxDist veya maxDist - 1)
+    final candidates = discoveredTiles
+        .where((t) => t.coord.distanceTo(castleCoord) >= math.max(1, maxDist - 1))
+        .map((t) => t.coord)
+        .toList();
+
+    if (candidates.isEmpty) {
+      return [discoveredTiles.first.coord];
+    }
+
+    final math.Random random = math.Random(seed);
+    candidates.shuffle(random);
+
+    final int takeCount = math.min(maxSpawns, candidates.length);
+    return candidates.take(takeCount).toList();
+  }
+
+  /// Seviye N Dalga Düşman Üretimi (Düşman sayısı çağrı seviyesiyle artar)
   static List<CombatEnemyInstance> generateWave({
     required int waveTier,
     required List<HexAxial> boundaryCoords,
@@ -163,15 +203,16 @@ class CombatCalculator {
     if (boundaryCoords.isEmpty) return [];
 
     final int tier = math.max(1, waveTier);
-    final int enemyCount = 3 + tier * 2;
+    // Çağrı seviyesiyle artan düşman sayısı (Sv 1 -> 7, Sv 2 -> 10, Sv 5 -> 19, Sv 10 -> 34)
+    final int enemyCount = 4 + tier * 3;
     final List<CombatEnemyInstance> enemies = [];
 
-    final math.Random random = math.Random(tier * 7919);
+    final math.Random random = math.Random(tier * 7919 + boundaryCoords.length * 37);
 
     for (int i = 0; i < enemyCount; i++) {
-      final HexAxial spawnCoord = boundaryCoords[random.nextInt(boundaryCoords.length)];
+      final HexAxial spawnCoord = boundaryCoords[i % boundaryCoords.length];
 
-      // En kısa yolu BFS ile hesapla
+      // En kısa yolu BFS ile hesapla (Düşmanın amacı şatoya ilerlemektir)
       final List<HexAxial> path = calculatePathToCastle(
         start: spawnCoord,
         target: castleCoord,
@@ -294,8 +335,25 @@ class CombatCalculator {
       }
     }
 
-    // Doğrudan hedef çizgisi (yedek)
-    return [start, target];
+    // Doğrudan hedef çizgisi (yedek): mesafe azaltan adımlarla Şatoya yaklaş
+    final List<HexAxial> fallbackPath = [start];
+    HexAxial curr = start;
+    while (curr != target) {
+      HexAxial bestNeighbor = curr;
+      int minD = curr.distanceTo(target);
+      for (final n in curr.neighbors) {
+        final int d = n.distanceTo(target);
+        if (d < minD) {
+          minD = d;
+          bestNeighbor = n;
+        }
+      }
+      if (bestNeighbor == curr) break;
+      curr = bestNeighbor;
+      fallbackPath.add(curr);
+    }
+    if (fallbackPath.last != target) fallbackPath.add(target);
+    return fallbackPath;
   }
 
   /// Zafer Ödülü Hesaplama (Seviye N Tamamlandığında)
