@@ -259,11 +259,11 @@ class HexTileComponent extends PositionComponent {
         final double phaseT = cycle;
         final double ox = math.cos(phaseT * 0.7) * 7.0;
         final double oy = math.sin(phaseT * 0.5) * 4.0;
-        final double vx = -math.sin(phaseT * 0.7) * 7.0;
+        final double vx = -math.sin(phaseT * 0.7) * 4.9;
         return FaunaRoamData(
           offset: Offset(ox, oy),
-          flipX: vx < -0.2 ? true : (vx > 0.2 ? false : faunaSeed % 2 == 0),
-          walkAnim: phaseT < 3.0 ? t * 2.2 : 0.0,
+          flipX: vx > 0.15 ? true : (vx < -0.15 ? false : faunaSeed % 2 != 0),
+          walkAnim: phaseT < 3.0 ? t * 2.5 : 0.0,
           isMoving: phaseT < 3.0,
         );
       } else if (cycle < 9.5) {
@@ -276,8 +276,8 @@ class HexTileComponent extends PositionComponent {
         final Offset dir = endPt - startPt;
         return FaunaRoamData(
           offset: currentPos,
-          flipX: dir.dx < 0,
-          walkAnim: t * 2.8,
+          flipX: dir.dx > 0, // dx > 0 ise sağa bakar (flipX = true), dx < 0 ise sola bakar (flipX = false)
+          walkAnim: t * 3.0,
           isMoving: true,
         );
       } else if (cycle < 15.5) {
@@ -286,11 +286,11 @@ class HexTileComponent extends PositionComponent {
         final Offset neighborBase = targetOffset * 0.68;
         final double ox = math.sin(phaseT * 0.6) * 6.0;
         final double oy = math.cos(phaseT * 0.4) * 3.5;
-        final double vx = math.cos(phaseT * 0.6) * 6.0;
+        final double vx = math.cos(phaseT * 0.6) * 3.6;
         return FaunaRoamData(
           offset: Offset(neighborBase.dx + ox, neighborBase.dy + oy),
-          flipX: vx < -0.2 ? true : (vx > 0.2 ? false : faunaSeed % 2 == 1),
-          walkAnim: phaseT < 3.5 ? t * 2.0 : 0.0,
+          flipX: vx > 0.15 ? true : (vx < -0.15 ? false : faunaSeed % 2 != 0),
+          walkAnim: phaseT < 3.5 ? t * 2.2 : 0.0,
           isMoving: phaseT < 3.5,
         );
       } else if (cycle < 20.0) {
@@ -303,15 +303,15 @@ class HexTileComponent extends PositionComponent {
         final Offset dir = endPt - startPt;
         return FaunaRoamData(
           offset: currentPos,
-          flipX: dir.dx < 0,
-          walkAnim: t * 2.8,
+          flipX: dir.dx > 0, // Geri dönerken hareket yönüne göre yüzünü dön
+          walkAnim: t * 3.0,
           isMoving: true,
         );
       } else {
         // 5. Dinlenme / Çevreye Bakma (20s - 22s)
         return FaunaRoamData(
           offset: Offset.zero,
-          flipX: faunaSeed % 2 == 0,
+          flipX: faunaSeed % 2 != 0,
           walkAnim: 0.0,
           isMoving: false,
         );
@@ -326,15 +326,15 @@ class HexTileComponent extends PositionComponent {
         const Offset pB = Offset(9.0, -3.0);
         return FaunaRoamData(
           offset: Offset.lerp(pA, pB, s)!,
-          flipX: false,
-          walkAnim: t * 2.4,
+          flipX: true, // Sağa doğru yürüyor
+          walkAnim: t * 2.6,
           isMoving: true,
         );
       } else if (cycle < 8.0) {
         final double sub = cycle - 4.5;
         return FaunaRoamData(
           offset: Offset(9.0 + math.sin(sub * 1.5) * 1.5, -3.0 + math.cos(sub * 1.2) * 1.0),
-          flipX: false,
+          flipX: true,
           walkAnim: 0.0,
           isMoving: false,
         );
@@ -345,15 +345,15 @@ class HexTileComponent extends PositionComponent {
         const Offset pC = Offset(-5.0, -6.0);
         return FaunaRoamData(
           offset: Offset.lerp(pB, pC, s)!,
-          flipX: true,
-          walkAnim: t * 2.4,
+          flipX: false, // Sola doğru yürüyor
+          walkAnim: t * 2.6,
           isMoving: true,
         );
       } else {
         final double sub = cycle - 12.5;
         return FaunaRoamData(
           offset: Offset(-5.0 + math.cos(sub * 1.5) * 1.5, -6.0 + math.sin(sub * 1.2) * 1.0),
-          flipX: true,
+          flipX: false,
           walkAnim: 0.0,
           isMoving: false,
         );
