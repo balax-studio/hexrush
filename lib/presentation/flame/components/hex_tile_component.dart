@@ -1385,9 +1385,9 @@ class HexTileComponent extends PositionComponent {
     final bool isSpring = season == 'SPRING';
 
     void drawGrass(Offset pos, {double scale = 1.0}) {
-      Color topGrass = const Color(0xFF84CC16);
-      Color leftGrass = const Color(0xFF65A30D);
-      Color rightGrass = const Color(0xFF4D7C0F);
+      Color topGrass = const Color(0xFF65A30D);
+      Color leftGrass = const Color(0xFF4D7C0F);
+      Color rightGrass = const Color(0xFF3F6212);
       if (season == 'AUTUMN') {
         topGrass = const Color(0xFFF59E0B);
         leftGrass = const Color(0xFFD97706);
@@ -1989,9 +1989,9 @@ class HexTileComponent extends PositionComponent {
         } else if (isAutumn) {
           baseColor = const Color(0xFFD97706);
         } else if (isSummer) {
-          baseColor = const Color(0xFF84CC16);
+          baseColor = const Color(0xFF65A30D);
         } else {
-          baseColor = const Color(0xFF22C55E);
+          baseColor = const Color(0xFF2E7D32);
         }
         break;
 
@@ -2001,9 +2001,9 @@ class HexTileComponent extends PositionComponent {
         } else if (isAutumn) {
           baseColor = const Color(0xFFEA580C);
         } else if (isSummer) {
-          baseColor = const Color(0xFF15803D);
+          baseColor = const Color(0xFF14532D);
         } else {
-          baseColor = const Color(0xFF16A34A);
+          baseColor = const Color(0xFF15803D);
         }
         break;
 
