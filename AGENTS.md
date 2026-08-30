@@ -125,3 +125,7 @@ Bu dosya, projede çalışan tüm yapay zeka ajanları ve geliştiriciler için 
     - **Kompakt Test Raporlaması:** Testler asla ham ve yüzlerce satırlık log basacak şekilde çalıştırılamaz. Daima öncelikle hedeflenen test dosyası (`flutter test test/ilgili_test.dart`) veya genel doğrulamada kompakt mod (`flutter test --reporter compact`) kullanılmalıdır.
     - **Cerrahi Satır Dilimleri:** 500 satırdan büyük dosyalarda (`tile_action_sheet.dart`, `economy_calculator.dart` vb.) körü körüne yüzlerce satır okunamaz. `grep_search` ile satır numarası saptandıktan sonra en fazla 30-50 satırlık hassas aralık (`StartLine`/`EndLine`) görüntülenmelidir.
     - **Yapay Zeka Yoksayma Dosyaları:** `.geminiignore` ve `.cursorignore` kuralları korunmalı; ses, görsel, build ve coverage klasörleri LLM bağlamına kesinlikle yüklenmemelidir.
+
+26. **Kısa & Öz İletişim ve Mevcut Voksel Envanteri Önceliği (Concise Chat & Existing Asset Leverage):**
+    - **Kısa ve Net Cevap Standardı:** Kullanıcıya yanıtlarda asla uzun teorik açıklamalar, laf kalabalığı veya ağır teknik jargon kullanılmaz. Daima 2-4 maddelik, eyleme dönük, sade ve net özetler sunulur.
+    - **Mevcut Voksel Envanteri:** `VoxelIsometricRenderer` içinde 60'tan fazla model (ağaçlar, hayvanlar, kinetik binalar, arazi katmanları) zaten mevcuttur. Yeni özellik veya motor önerisi yerine, mevcut modellerin sahne içi görsel parametrelerinin (rüzgar, ışık, animasyon) parlatılmasına (fine-tuning) öncelik verilir.

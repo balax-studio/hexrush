@@ -43,8 +43,8 @@ class VoxelIsometricRenderer {
     required Color leftColor,
     required Color rightColor,
     bool drawShadow = false,
-    double shadowOpacity = 0.25,
-    bool specularHighlight = false,
+    double shadowOpacity = 0.30,
+    bool specularHighlight = true,
   }) {
     final double dxR = (w * 0.5) * cosIso;
     final double dyR = (w * 0.5) * sinIso;
@@ -63,29 +63,29 @@ class VoxelIsometricRenderer {
     final double bBackX = bx + dxR + dxL;
     final double bBackY = by - dyR - dyL;
 
-    // Zemin temas gölgesi (Çift Katmanlı Yumuşak Penumbra Yayılımı)
+    // Zemin temas gölgesi (İzometrik 45° Yönlü Çift Katmanlı Penumbra Yayılımı)
     if (drawShadow) {
-      final double sOffset = math.min(12.0, h * 0.35);
+      final double sOffset = math.min(16.0, h * 0.42);
 
-      // 1. Katman: Geniş yumuşak dış penumbra gölgesi
-      _cubePenumbraPaint.color = Colors.black.withValues(alpha: shadowOpacity * 0.4);
+      // 1. Katman: Geniş yumuşak dış penumbra gölgesi (45° Işık İzdüşümü)
+      _cubePenumbraPaint.color = Colors.black.withValues(alpha: shadowOpacity * 0.35);
       _cubePenumbraPath
         ..reset()
-        ..moveTo(bFrontX + 1.0, bFrontY + 2.5)
-        ..lineTo(bRightX + 5.5 + sOffset * 1.35 * cosIso, bRightY + 3.0 - sOffset * 1.35 * sinIso)
-        ..lineTo(bBackX + 5.5 + sOffset * 1.35 * cosIso, bBackY + 3.0 - sOffset * 1.35 * sinIso)
-        ..lineTo(bLeftX - 4.5, bLeftY + 2.5)
+        ..moveTo(bFrontX + 1.0, bFrontY + 2.0)
+        ..lineTo(bRightX + 6.0 + sOffset * cosIso, bRightY + 2.5 - sOffset * 0.5 * sinIso)
+        ..lineTo(bBackX + 6.0 + sOffset * cosIso, bBackY + 2.5 - sOffset * 0.5 * sinIso)
+        ..lineTo(bLeftX - 3.5, bLeftY + 2.0)
         ..close();
       canvas.drawPath(_cubePenumbraPath, _cubePenumbraPaint);
 
-      // 2. Katman: Yoğun taban temas gölgesi
+      // 2. Katman: Yoğun taban temas gölgesi (Sert Göbek)
       _cubeShadowPaint.color = Colors.black.withValues(alpha: shadowOpacity);
       _cubeShadowPath
         ..reset()
-        ..moveTo(bFrontX, bFrontY + 2)
-        ..lineTo(bRightX + 3.5 + sOffset * cosIso, bRightY + 2 - sOffset * sinIso)
-        ..lineTo(bBackX + 3.5 + sOffset * cosIso, bBackY + 2 - sOffset * sinIso)
-        ..lineTo(bLeftX - 3.5, bLeftY + 2)
+        ..moveTo(bFrontX, bFrontY + 1.5)
+        ..lineTo(bRightX + 3.5 + sOffset * 0.7 * cosIso, bRightY + 1.5 - sOffset * 0.35 * sinIso)
+        ..lineTo(bBackX + 3.5 + sOffset * 0.7 * cosIso, bBackY + 1.5 - sOffset * 0.35 * sinIso)
+        ..lineTo(bLeftX - 2.5, bLeftY + 1.5)
         ..close();
       canvas.drawPath(_cubeShadowPath, _cubeShadowPaint);
     }
@@ -95,7 +95,7 @@ class VoxelIsometricRenderer {
     final double tLeftY = bLeftY - h;
     final double tBackY = bBackY - h;
 
-    // 1. Sol Yüzey
+    // 1. Sol Yüzey (Orta Işık / Dolaylı Gün Işığı)
     _cubeLeftPath
       ..reset()
       ..moveTo(bLeftX, bLeftY)
@@ -106,7 +106,7 @@ class VoxelIsometricRenderer {
     _sharedFillPaint.color = leftColor;
     canvas.drawPath(_cubeLeftPath, _sharedFillPaint);
 
-    // 2. Sağ Yüzey
+    // 2. Sağ Yüzey (Ana Gölge Tarafı)
     _cubeRightPath
       ..reset()
       ..moveTo(bFrontX, bFrontY)
@@ -117,7 +117,7 @@ class VoxelIsometricRenderer {
     _sharedFillPaint.color = rightColor;
     canvas.drawPath(_cubeRightPath, _sharedFillPaint);
 
-    // 3. Üst Yüzey
+    // 3. Üst Yüzey (Doğrudan Güneş Işığı)
     _cubeTopPath
       ..reset()
       ..moveTo(bFrontX, tFrontY)
@@ -128,9 +128,12 @@ class VoxelIsometricRenderer {
     _sharedFillPaint.color = topColor;
     canvas.drawPath(_cubeTopPath, _sharedFillPaint);
 
-    // 4. Kenar Işığı ve Pah Vurgusu (Specular Edge Chamfer Highlight)
-    if (specularHighlight && w >= 3.0 && h >= 2.0) {
-      _cubeSpecularPaint.color = Colors.white.withValues(alpha: 0.28);
+    // 4. Kenar Işığı, Pah Vurgusu ve Taban Temas Çizgileri (Specular Edge Chamfer & Contact AO)
+    if (specularHighlight && w >= 2.5 && h >= 1.5) {
+      // Üst ve arka kenarlar parlak pah çizgisi (Rim Light)
+      _cubeSpecularPaint
+        ..color = Colors.white.withValues(alpha: 0.32)
+        ..strokeWidth = 1.0;
       _cubeSpecularPath
         ..reset()
         ..moveTo(bLeftX, tLeftY)
@@ -138,11 +141,24 @@ class VoxelIsometricRenderer {
         ..lineTo(bRightX, tRightY);
       canvas.drawPath(_cubeSpecularPath, _cubeSpecularPaint);
 
-      // Ön köşe dikey kontrast çizgisi
-      _cubeSpecularPaint.color = Colors.white.withValues(alpha: 0.14);
+      // Ön köşe dikey ışık kırılma çizgisi
+      _cubeSpecularPaint.color = Colors.white.withValues(alpha: 0.18);
       canvas.drawLine(
         Offset(bFrontX, tFrontY),
         Offset(bFrontX, bFrontY),
+        _cubeSpecularPaint,
+      );
+
+      // Alt taban temas kararması (Ambient Occlusion Contact Line)
+      _cubeSpecularPaint.color = Colors.black.withValues(alpha: 0.26);
+      canvas.drawLine(
+        Offset(bLeftX, bLeftY),
+        Offset(bFrontX, bFrontY),
+        _cubeSpecularPaint,
+      );
+      canvas.drawLine(
+        Offset(bFrontX, bFrontY),
+        Offset(bRightX, bRightY),
         _cubeSpecularPaint,
       );
     }
@@ -511,10 +527,11 @@ class VoxelIsometricRenderer {
       w: trunkW,
       d: trunkW,
       h: trunkH,
-      topColor: const Color(0xFF9A5E35),
-      leftColor: const Color(0xFF784522),
-      rightColor: const Color(0xFF5A3114),
+      topColor: const Color(0xFFB45309),
+      leftColor: const Color(0xFF78350F),
+      rightColor: const Color(0xFF451A03),
       drawShadow: true,
+      shadowOpacity: 0.35,
     );
 
     final Offset foliageCenter = Offset(baseCenter.dx + windSway * 0.5, baseCenter.dy - trunkH + 4 * scale);
@@ -525,58 +542,66 @@ class VoxelIsometricRenderer {
 
     if (foliageTint != null) {
       top = foliageTint;
-      mid = foliageTint.withValues(alpha: 0.85);
-      dark = foliageTint.withValues(alpha: 0.65);
+      mid = foliageTint.withValues(alpha: 0.78);
+      dark = foliageTint.withValues(alpha: 0.50);
     } else if (season == 'AUTUMN') {
-      top = const Color(0xFFF97316);
-      mid = const Color(0xFFEA580C);
-      dark = const Color(0xFF9A3412);
+      top = const Color(0xFFFB923C);
+      mid = const Color(0xFFC2410C);
+      dark = const Color(0xFF7C2D12);
     } else if (season == 'WINTER' || isZud) {
-      top = const Color(0xFFF1F5F9);
+      top = const Color(0xFFFFFFFF);
       mid = const Color(0xFF94A3B8);
       dark = const Color(0xFF475569);
     } else if (season == 'SUMMER') {
       top = const Color(0xFF4ADE80);
-      mid = const Color(0xFF16A34A);
-      dark = const Color(0xFF14532D);
+      mid = const Color(0xFF15803D);
+      dark = const Color(0xFF052E16);
     } else {
       // Spring
       top = const Color(0xFF86EFAC);
-      mid = const Color(0xFF22C55E);
-      dark = const Color(0xFF15803D);
+      mid = const Color(0xFF16A34A);
+      dark = const Color(0xFF14532D);
     }
 
+    // 1. Katman: Geniş Alt Kanopi (Gövdeye ve Zemine Gölge Düşürür)
     drawIsoCube(
       canvas,
       foliageCenter,
-      w: 22.0 * scale,
-      d: 22.0 * scale,
+      w: 24.0 * scale,
+      d: 24.0 * scale,
       h: 12.0 * scale,
       topColor: top,
       leftColor: mid,
       rightColor: dark,
+      drawShadow: true,
+      shadowOpacity: 0.28,
     );
 
+    // 2. Katman: Orta Kanopi
     drawIsoCube(
       canvas,
       Offset(foliageCenter.dx + windSway * 0.3, foliageCenter.dy - 10 * scale),
-      w: 16.0 * scale,
-      d: 16.0 * scale,
+      w: 17.0 * scale,
+      d: 17.0 * scale,
       h: 10.0 * scale,
       topColor: top,
       leftColor: mid,
       rightColor: dark,
+      drawShadow: true,
+      shadowOpacity: 0.20,
     );
 
+    // 3. Katman: Tepe Kanopi Taç Bloğu (En Güneşli Tepe Noktası)
     drawIsoCube(
       canvas,
       Offset(foliageCenter.dx + windSway * 0.6, foliageCenter.dy - 18 * scale),
-      w: 10.0 * scale,
-      d: 10.0 * scale,
+      w: 11.0 * scale,
+      d: 11.0 * scale,
       h: 8.0 * scale,
-      topColor: (season == 'WINTER' || isZud) ? const Color(0xFFFFFFFF) : const Color(0xFFBBF7D0),
+      topColor: (season == 'WINTER' || isZud) ? const Color(0xFFFFFFFF) : (season == 'AUTUMN' ? const Color(0xFFFDE047) : const Color(0xFFBBF7D0)),
       leftColor: mid,
       rightColor: dark,
+      specularHighlight: true,
     );
   }
 
@@ -600,10 +625,11 @@ class VoxelIsometricRenderer {
       w: trunkW,
       d: trunkW,
       h: trunkH,
-      topColor: const Color(0xFFF1F5F9),
-      leftColor: const Color(0xFFE2E8F0),
-      rightColor: const Color(0xFF94A3B8),
+      topColor: const Color(0xFFFFFFFF),
+      leftColor: const Color(0xFFCBD5E1),
+      rightColor: const Color(0xFF64748B),
       drawShadow: true,
+      shadowOpacity: 0.32,
     );
 
     Color folTop;
@@ -612,25 +638,25 @@ class VoxelIsometricRenderer {
     Color capTop;
 
     if (season == 'AUTUMN') {
-      folTop = const Color(0xFFFBBF24);
+      folTop = const Color(0xFFFDE047);
       folMid = const Color(0xFFD97706);
-      folDark = const Color(0xFFB45309);
+      folDark = const Color(0xFF92400E);
       capTop = const Color(0xFFFEF08A);
     } else if (season == 'WINTER' || isZud) {
-      folTop = const Color(0xFFF8FAFC);
-      folMid = const Color(0xFFCBD5E1);
-      folDark = const Color(0xFF64748B);
+      folTop = const Color(0xFFFFFFFF);
+      folMid = const Color(0xFF94A3B8);
+      folDark = const Color(0xFF475569);
       capTop = const Color(0xFFFFFFFF);
     } else if (season == 'SUMMER') {
       folTop = const Color(0xFFBEF264);
-      folMid = const Color(0xFF84CC16);
-      folDark = const Color(0xFF4D7C0F);
+      folMid = const Color(0xFF65A30D);
+      folDark = const Color(0xFF365314);
       capTop = const Color(0xFFD9F99D);
     } else {
       // Spring
       folTop = const Color(0xFFD9F99D);
-      folMid = const Color(0xFFA3E635);
-      folDark = const Color(0xFF65A30D);
+      folMid = const Color(0xFF84CC16);
+      folDark = const Color(0xFF4D7C0F);
       capTop = const Color(0xFFECFCCB);
     }
 
@@ -638,27 +664,30 @@ class VoxelIsometricRenderer {
     drawIsoCube(
       canvas,
       folBase,
-      w: 16.0 * scale,
-      d: 16.0 * scale,
+      w: 17.0 * scale,
+      d: 17.0 * scale,
       h: 14.0 * scale,
       topColor: folTop,
       leftColor: folMid,
       rightColor: folDark,
+      drawShadow: true,
+      shadowOpacity: 0.25,
     );
 
     drawIsoCube(
       canvas,
       Offset(folBase.dx + windSway * 0.5, folBase.dy - 12 * scale),
-      w: 10.0 * scale,
-      d: 10.0 * scale,
+      w: 11.0 * scale,
+      d: 11.0 * scale,
       h: 10.0 * scale,
       topColor: capTop,
       leftColor: folMid,
       rightColor: folDark,
+      specularHighlight: true,
     );
   }
 
-  /// Rüzgarla hafif salınan Çam Ağacı (Mevsim Duyarlı: Kışın Karla Örtülü Katmanlar)
+  /// Rüzgarla salınan Bozkır Çam Ağacı (Evergreen Taiga Pine)
   static void drawVoxelPine(
     Canvas canvas,
     Offset baseCenter, {
@@ -676,10 +705,11 @@ class VoxelIsometricRenderer {
       w: 5.0 * scale,
       d: 5.0 * scale,
       h: 12.0 * scale,
-      topColor: const Color(0xFF78350F),
-      leftColor: const Color(0xFF5A270B),
-      rightColor: const Color(0xFF3F1905),
+      topColor: const Color(0xFF92400E),
+      leftColor: const Color(0xFF78350F),
+      rightColor: const Color(0xFF451A03),
       drawShadow: true,
+      shadowOpacity: 0.35,
     );
 
     final bool isWinterOrZud = season == 'WINTER' || isZud;
@@ -692,14 +722,14 @@ class VoxelIsometricRenderer {
       final Offset c = Offset(baseCenter.dx + sway, startY - (i * 7.0 * scale));
 
       final Color pineTop = isWinterOrZud
-          ? const Color(0xFFF1F5F9)
-          : (season == 'AUTUMN' ? const Color(0xFF0D9488) : const Color(0xFF34D399));
+          ? const Color(0xFFFFFFFF)
+          : (season == 'AUTUMN' ? const Color(0xFF14B8A6) : const Color(0xFF34D399));
       final Color pineLeft = isWinterOrZud
           ? const Color(0xFF94A3B8)
           : (season == 'AUTUMN' ? const Color(0xFF0F766E) : const Color(0xFF059669));
       final Color pineRight = isWinterOrZud
           ? const Color(0xFF475569)
-          : (season == 'AUTUMN' ? const Color(0xFF115E59) : const Color(0xFF065F46));
+          : (season == 'AUTUMN' ? const Color(0xFF115E59) : const Color(0xFF064E3B));
 
       drawIsoCube(
         canvas,
@@ -710,6 +740,9 @@ class VoxelIsometricRenderer {
         topColor: pineTop,
         leftColor: pineLeft,
         rightColor: pineRight,
+        drawShadow: i == 0,
+        shadowOpacity: 0.28,
+        specularHighlight: true,
       );
 
       // Kışın katmanların tepesinde ince kar şapkası (Snowcap frosting)
@@ -721,8 +754,9 @@ class VoxelIsometricRenderer {
           d: size * 0.65,
           h: 2.0 * scale,
           topColor: const Color(0xFFFFFFFF),
-          leftColor: const Color(0xFFF1F5F9),
-          rightColor: const Color(0xFFCBD5E1),
+          leftColor: const Color(0xFFE2E8F0),
+          rightColor: const Color(0xFF94A3B8),
+          specularHighlight: true,
         );
       }
     }
@@ -842,26 +876,26 @@ class VoxelIsometricRenderer {
     Color woolRight;
 
     switch (coatVariant) {
-      case 1: // Kara Koyun (Black Sheep)
-        woolTop = const Color(0xFF334155);
+      case 1: // Kara Koyun (Black Sheep - Kömür/Gece Tonu)
+        woolTop = const Color(0xFF475569);
         woolLeft = const Color(0xFF1E293B);
-        woolRight = const Color(0xFF0F172A);
+        woolRight = const Color(0xFF020617);
         break;
       case 2: // Bozkır Kehribar / Kahve Koyun (Caramel Brown)
-        woolTop = const Color(0xFFD97706);
+        woolTop = const Color(0xFFF59E0B);
         woolLeft = const Color(0xFFB45309);
-        woolRight = const Color(0xFF92400E);
+        woolRight = const Color(0xFF78350F);
         break;
       case 3: // Alaca / Benekli (Patchy spotted)
-        woolTop = const Color(0xFFF1F5F9);
-        woolLeft = const Color(0xFFE2E8F0);
-        woolRight = const Color(0xFFCBD5E1);
+        woolTop = const Color(0xFFFFFFFF);
+        woolLeft = const Color(0xFFCBD5E1);
+        woolRight = const Color(0xFF64748B);
         break;
-      case 0: // Klasik Kar Beyazı (Pure White)
+      case 0: // Klasik Kar Beyazı (Pure White - 3D Gölgeli İpek Yünü)
       default:
         woolTop = const Color(0xFFFFFFFF);
-        woolLeft = const Color(0xFFF8FAFC);
-        woolRight = const Color(0xFFE2E8F0);
+        woolLeft = const Color(0xFFCBD5E1);
+        woolRight = const Color(0xFF64748B);
         break;
     }
 
@@ -1107,11 +1141,11 @@ class VoxelIsometricRenderer {
       w: 12.0 * scale,
       d: 8.0 * scale,
       h: 8.0 * scale,
-      topColor: const Color(0xFFD97706),
+      topColor: const Color(0xFFF59E0B),
       leftColor: const Color(0xFFB45309),
-      rightColor: const Color(0xFF92400E),
+      rightColor: const Color(0xFF78350F),
       drawShadow: true,
-      shadowOpacity: 0.25,
+      shadowOpacity: 0.32,
     );
 
     drawIsoCube(
@@ -1121,8 +1155,8 @@ class VoxelIsometricRenderer {
       d: 5.0 * scale,
       h: 8.0 * scale,
       topColor: const Color(0xFFFDE68A),
-      leftColor: const Color(0xFFF59E0B),
-      rightColor: const Color(0xFFD97706),
+      leftColor: const Color(0xFFD97706),
+      rightColor: const Color(0xFF92400E),
     );
 
     drawIsoCube(
@@ -1131,9 +1165,9 @@ class VoxelIsometricRenderer {
       w: 3.0 * scale,
       d: 3.0 * scale,
       h: 4.0 * scale,
-      topColor: const Color(0xFF78350F),
-      leftColor: const Color(0xFF5A270B),
-      rightColor: const Color(0xFF3F1905),
+      topColor: const Color(0xFF92400E),
+      leftColor: const Color(0xFF78350F),
+      rightColor: const Color(0xFF451A03),
     );
   }
 
@@ -1160,9 +1194,9 @@ class VoxelIsometricRenderer {
     final double headSway = math.sin(t * 1.8) * 1.2 * scale;
     final double tailWag = math.sin(t * 3.0) * 1.0 * scale;
 
-    const Color bodyTop = Color(0xFFD97706);
+    const Color bodyTop = Color(0xFFF59E0B);
     const Color bodyLeft = Color(0xFFB45309);
-    const Color bodyRight = Color(0xFF92400E);
+    const Color bodyRight = Color(0xFF78350F);
 
     // Gövde Tabanı
     drawIsoCube(
@@ -1175,7 +1209,7 @@ class VoxelIsometricRenderer {
       leftColor: bodyLeft,
       rightColor: bodyRight,
       drawShadow: true,
-      shadowOpacity: 0.28,
+      shadowOpacity: 0.35,
     );
 
     // Ön Hörgüç (Front Hump)
@@ -1185,9 +1219,9 @@ class VoxelIsometricRenderer {
       w: 5.0 * scale,
       d: 6.0 * scale,
       h: 6.0 * scale,
-      topColor: const Color(0xFFF59E0B),
-      leftColor: bodyLeft,
-      rightColor: bodyRight,
+      topColor: const Color(0xFFFDE047),
+      leftColor: const Color(0xFFD97706),
+      rightColor: const Color(0xFF92400E),
     );
 
     // Arka Hörgüç (Rear Hump)
@@ -1197,9 +1231,9 @@ class VoxelIsometricRenderer {
       w: 5.0 * scale,
       d: 6.0 * scale,
       h: 6.0 * scale,
-      topColor: const Color(0xFFF59E0B),
-      leftColor: bodyLeft,
-      rightColor: bodyRight,
+      topColor: const Color(0xFFFDE047),
+      leftColor: const Color(0xFFD97706),
+      rightColor: const Color(0xFF92400E),
     );
 
     // İpek Yolu Heybesi / Kırmızı Eyer Örtüsü (Nomad Saddle Rug)
@@ -1552,29 +1586,29 @@ class VoxelIsometricRenderer {
     Color maneColor;
 
     switch (coatVariant) {
-      case 0: // Doru At
-        coatTop = const Color(0xFFB45309);
+      case 0: // Doru At (Canlı Kehribar Sırt, Derin Maun Yanlar)
+        coatTop = const Color(0xFFD97706);
         coatLeft = const Color(0xFF92400E);
-        coatRight = const Color(0xFF78350F);
+        coatRight = const Color(0xFF451A03);
         maneColor = const Color(0xFF0F172A);
         break;
-      case 1: // Yağız At
-        coatTop = const Color(0xFF334155);
+      case 1: // Yağız At (Kömür Siyahı & Işıltılı Sırt)
+        coatTop = const Color(0xFF475569);
         coatLeft = const Color(0xFF1E293B);
-        coatRight = const Color(0xFF0F172A);
+        coatRight = const Color(0xFF020617);
         maneColor = const Color(0xFF020617);
         break;
-      case 2: // Kır At
-        coatTop = const Color(0xFFF1F5F9);
+      case 2: // Kır At (3D Gölgeli İpek Beyazı)
+        coatTop = const Color(0xFFFFFFFF);
         coatLeft = const Color(0xFFCBD5E1);
-        coatRight = const Color(0xFF94A3B8);
+        coatRight = const Color(0xFF64748B);
         maneColor = const Color(0xFFE2E8F0);
         break;
       case 3: // Kestane / Alaca
       default:
-        coatTop = const Color(0xFFD97706);
+        coatTop = const Color(0xFFF59E0B);
         coatLeft = const Color(0xFFB45309);
-        coatRight = const Color(0xFF92400E);
+        coatRight = const Color(0xFF78350F);
         maneColor = const Color(0xFFFEF08A);
         break;
     }
@@ -3357,14 +3391,14 @@ class VoxelIsometricRenderer {
 
     // 1. Ana Saray / Taş Monolit Kaide
     final Color wallTop = tier >= 3
-        ? const Color(0xFFF1F5F9)
-        : (tier >= 2 ? const Color(0xFFE2E8F0) : (tier >= 1 ? const Color(0xFFCBD5E1) : const Color(0xFF94A3B8)));
+        ? const Color(0xFFFFFFFF)
+        : (tier >= 2 ? const Color(0xFFF1F5F9) : (tier >= 1 ? const Color(0xFFE2E8F0) : const Color(0xFFCBD5E1)));
     final Color wallLeft = tier >= 3
         ? const Color(0xFFCBD5E1)
-        : (tier >= 2 ? const Color(0xFF94A3B8) : (tier >= 1 ? const Color(0xFF64748B) : const Color(0xFF475569)));
+        : (tier >= 2 ? const Color(0xFF94A3B8) : (tier >= 1 ? const Color(0xFF94A3B8) : const Color(0xFF64748B)));
     final Color wallRight = tier >= 3
-        ? const Color(0xFF94A3B8)
-        : (tier >= 2 ? const Color(0xFF64748B) : (tier >= 1 ? const Color(0xFF475569) : const Color(0xFF334155)));
+        ? const Color(0xFF64748B)
+        : (tier >= 2 ? const Color(0xFF475569) : (tier >= 1 ? const Color(0xFF475569) : const Color(0xFF1E293B)));
 
     drawIsoCube(
       canvas,
@@ -3376,6 +3410,7 @@ class VoxelIsometricRenderer {
       leftColor: wallLeft,
       rightColor: wallRight,
       drawShadow: true,
+      shadowOpacity: 0.42,
     );
 
     // 2. Ana Kapı & Portal (Seviye 5+ Altın Kemerli, Seviye 30+ Çift Katlı Anıtsal Taç Kapı)
@@ -3551,19 +3586,19 @@ class VoxelIsometricRenderer {
     final double towerH;
 
     if (level >= 25) {
-      towerTop = const Color(0xFF334155);
+      towerTop = const Color(0xFF475569);
       towerLeft = const Color(0xFF1E293B);
-      towerRight = const Color(0xFF0F172A);
+      towerRight = const Color(0xFF020617);
       towerH = 32.0;
     } else if (level >= 10) {
-      towerTop = v == 1 ? const Color(0xFF94A3B8) : const Color(0xFFCBD5E1);
-      towerLeft = v == 1 ? const Color(0xFF64748B) : const Color(0xFF94A3B8);
+      towerTop = v == 1 ? const Color(0xFFE2E8F0) : const Color(0xFFFFFFFF);
+      towerLeft = v == 1 ? const Color(0xFF94A3B8) : const Color(0xFFCBD5E1);
       towerRight = v == 1 ? const Color(0xFF475569) : const Color(0xFF64748B);
       towerH = 26.0;
     } else {
-      towerTop = const Color(0xFFB45309);
+      towerTop = const Color(0xFFD97706);
       towerLeft = const Color(0xFF92400E);
-      towerRight = const Color(0xFF78350F);
+      towerRight = const Color(0xFF451A03);
       towerH = 22.0;
     }
 
@@ -3577,6 +3612,7 @@ class VoxelIsometricRenderer {
       leftColor: towerLeft,
       rightColor: towerRight,
       drawShadow: true,
+      shadowOpacity: 0.38,
     );
 
     // Lv 25+ İmparatorluk Altın Kaide Süslemesi
