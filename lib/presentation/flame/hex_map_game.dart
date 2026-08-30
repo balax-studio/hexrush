@@ -673,6 +673,35 @@ class HexMapGame extends FlameGame {
 
       final bool isFrenzy = state.frenzyTimer > 0 && state.frenzyMultiplier > 1;
 
+      // Komşu Kuzeybatı / Üst Karoların Kot Farkı (Cliff Cast Shadow Matrix)
+      double maxNwElevation = 0.0;
+      final currentElev = HexTileComponent.getBiomeElevation(tile.biome, isFog: tile.isFog);
+      final nwNeighborCoords = [
+        HexAxial(coord.q, coord.r - 1),
+        HexAxial(coord.q - 1, coord.r),
+        HexAxial(coord.q - 1, coord.r + 1),
+      ];
+      for (final nCoord in nwNeighborCoords) {
+        final nTile = state.tiles[nCoord];
+        if (nTile != null && !nTile.isFog) {
+          final nElev = HexTileComponent.getBiomeElevation(nTile.biome, isFog: false);
+          if (nElev > currentElev && nElev > maxNwElevation) {
+            maxNwElevation = nElev;
+          }
+        }
+      }
+      final double nwDelta = maxNwElevation > currentElev ? (maxNwElevation - currentElev) : 0.0;
+
+      // Komşulardan hangileri sisli veya harita dışı? (Island Perimeter Mask)
+      int fogMask = 0;
+      for (int i = 0; i < 6; i++) {
+        final nCoord = coord.neighbors[i];
+        final nTile = state.tiles[nCoord];
+        if (nTile == null || nTile.isFog) {
+          fogMask |= (1 << i);
+        }
+      }
+
       if (_tileComponents.containsKey(coord)) {
         _tileComponents[coord]!.updateData(
           newTileModel: tile,
@@ -685,6 +714,8 @@ class HexMapGame extends FlameGame {
           newThemePalette: state.settings.activeThemePalette,
           newIsFrenzyActive: isFrenzy,
           newCompatibleNeighborOffsets: compatibleNeighbors,
+          newNorthWestDeltaElevation: nwDelta,
+          newFogNeighborMask: fogMask,
         );
       } else {
         final comp = HexTileComponent(
@@ -699,6 +730,8 @@ class HexMapGame extends FlameGame {
           themePalette: state.settings.activeThemePalette,
           isFrenzyActive: isFrenzy,
           compatibleNeighborOffsets: compatibleNeighbors,
+          northWestDeltaElevation: nwDelta,
+          fogNeighborMask: fogMask,
         );
         final pixelPos = HexMath.hexToPixel(coord, hexSize: HexTileComponent.hexRadius);
         comp.priority = (pixelPos.dy + 1000).toInt();

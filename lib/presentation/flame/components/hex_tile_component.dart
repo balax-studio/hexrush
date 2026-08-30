@@ -117,11 +117,40 @@ class HexTileComponent extends PositionComponent {
     ..style = PaintingStyle.stroke
     ..strokeWidth = 1.6;
 
+  // Uçurum, Jeolojik Katman ve Kot Farkı Derinlik Araçları (Zero-GC)
+  static final Paint _strataDarkPaint = Paint()..style = PaintingStyle.stroke..strokeWidth = 1.2;
+  static final Paint _strataLightPaint = Paint()..style = PaintingStyle.stroke..strokeWidth = 0.8;
+  static final Paint _cliffLipHighlightPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.2
+    ..color = const Color(0x33FFFFFF);
+  static final Paint _cliffBaseAoPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2.5
+    ..color = const Color(0x55020617);
+  static final Paint _cliffCastShadowPaint = Paint()..style = PaintingStyle.fill;
+  static final Path _cliffShadowPath = Path();
+
+  // Neo-Brutalist Ada Sınırı ve Uçurum Katmanı (Island Perimeter Diorama Slabs)
+  static final Paint _islandPerimeterBorderPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2.8
+    ..color = const Color(0xFF020617);
+  static final Paint _islandPerimeterAccentPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.2;
+  static final Paint _islandPerimeterShadowPaint = Paint()
+    ..style = PaintingStyle.fill
+    ..color = const Color(0x66000000);
+  static final Path _islandShadowPath = Path();
+
   static final Path _fogPath = Path();
   static final Path _wallPath = Path();
   static final Path _topPath = Path();
 
   List<Offset> compatibleNeighborOffsets;
+  double northWestDeltaElevation;
+  int fogNeighborMask;
 
   HexTileComponent({
     required this.coord,
@@ -135,6 +164,8 @@ class HexTileComponent extends PositionComponent {
     this.themePalette = 'basalt',
     this.isFrenzyActive = false,
     this.compatibleNeighborOffsets = const [],
+    this.northWestDeltaElevation = 0.0,
+    this.fogNeighborMask = 0,
     this.onTileTapped,
   })  : _previousSeason = season,
         _currentSeason = season,
@@ -162,6 +193,8 @@ class HexTileComponent extends PositionComponent {
     String? newThemePalette,
     bool newIsFrenzyActive = false,
     List<Offset>? newCompatibleNeighborOffsets,
+    double? newNorthWestDeltaElevation,
+    int? newFogNeighborMask,
   }) {
     isFrenzyActive = newIsFrenzyActive;
     if (!isSelected && newIsSelected) {
@@ -172,6 +205,12 @@ class HexTileComponent extends PositionComponent {
     }
     if (newCompatibleNeighborOffsets != null) {
       compatibleNeighborOffsets = newCompatibleNeighborOffsets;
+    }
+    if (newNorthWestDeltaElevation != null) {
+      northWestDeltaElevation = newNorthWestDeltaElevation;
+    }
+    if (newFogNeighborMask != null) {
+      fogNeighborMask = newFogNeighborMask;
     }
 
     final bool buildingAdded = !tileModel.hasBuilding && newTileModel.hasBuilding;
@@ -418,23 +457,27 @@ class HexTileComponent extends PositionComponent {
     if (isFog) return 0.0;
     switch (biome) {
       case TileBiome.sea:
-      case TileBiome.wetland:
         return 0.0;
-      case TileBiome.meadow:
+      case TileBiome.wetland:
+        return 4.0;
+      case TileBiome.crystalChasm:
+        return 6.0;
       case TileBiome.desert:
         return 10.0;
-      case TileBiome.forest:
-      case TileBiome.tundra:
-        return 12.0;
-      case TileBiome.mountain:
-      case TileBiome.volcano:
-        return 20.0;
-      case TileBiome.celestialCrater:
+      case TileBiome.meadow:
         return 14.0;
+      case TileBiome.forest:
+        return 20.0;
+      case TileBiome.tundra:
+        return 24.0;
+      case TileBiome.celestialCrater:
+        return 28.0;
       case TileBiome.kurganValley:
-        return 16.0;
-      case TileBiome.crystalChasm:
-        return 8.0;
+        return 32.0;
+      case TileBiome.volcano:
+        return 38.0;
+      case TileBiome.mountain:
+        return 44.0;
     }
   }
 
@@ -463,6 +506,12 @@ class HexTileComponent extends PositionComponent {
     final int distFromCenter = HexMath.hexDistance(coord, const HexAxial(0, 0));
     final bool isBorderFog = distFromCenter <= 5;
 
+    // Katı Opaque Bazalt Zemin Katmanı (Arka katmanların görünmesini %100 engeller)
+    _sharedFillPaint
+      ..color = const Color(0xFF020617)
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(_fogPath, _sharedFillPaint);
+
     // GPU Fragment Shader (Eğer destekleniyorsa dinamik gürültü ve parıltı)
     final fogShaderPaint = HexShaderService.getFogShaderPaint(
       resolution: const Size(hexRadius * 2, hexRadius * 2),
@@ -474,15 +523,10 @@ class HexTileComponent extends PositionComponent {
 
     if (fogShaderPaint != null) {
       canvas.drawPath(_fogPath, fogShaderPaint);
-    } else {
-      _sharedFillPaint
-        ..color = const Color(0xFF0F172A).withValues(alpha: (0.92 * alpha).clamp(0.0, 1.0))
-        ..style = PaintingStyle.fill;
-      canvas.drawPath(_fogPath, _sharedFillPaint);
     }
 
     _sharedStrokePaint
-      ..color = const Color(0xFF1E293B).withValues(alpha: alpha.clamp(0.0, 1.0))
+      ..color = const Color(0xFF0A0F1D).withValues(alpha: (0.45 * alpha).clamp(0.0, 1.0))
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
     canvas.drawPath(_fogPath, _sharedStrokePaint);
@@ -501,13 +545,29 @@ class HexTileComponent extends PositionComponent {
   }
 
   void _render3DExtrudedWalls(Canvas canvas, List<Offset> corners, double elevation) {
-    final double wallH = baseDepth3D + elevation;
+    final bool isPerimeter = fogNeighborMask != 0;
+    final double wallH = baseDepth3D + elevation + (isPerimeter ? 8.0 : 0.0);
     final (wallLeft, wallRight, bedrock) = _getBiome3DWallColors(tileModel.biome);
 
     _sharedFillPaint.style = PaintingStyle.fill;
+    const List<int> wallToDir = [0, 5, 4, 3];
     for (int i = 1; i <= 3; i++) {
       final pA = corners[i];
       final pB = corners[(i + 1) % 6];
+
+      // Eğer bu yüzey sis/boşluğa bakıyorsa sert 4px neo-brutalist düşen gölge
+      final int dir = wallToDir[i];
+      final bool facesAbyss = (fogNeighborMask & (1 << dir)) != 0;
+      if (facesAbyss) {
+        _islandShadowPath
+          ..reset()
+          ..moveTo(pA.dx, pA.dy + wallH)
+          ..lineTo(pB.dx, pB.dy + wallH)
+          ..lineTo(pB.dx + 4.0, pB.dy + wallH + 5.0)
+          ..lineTo(pA.dx + 4.0, pA.dy + wallH + 5.0)
+          ..close();
+        canvas.drawPath(_islandShadowPath, _islandPerimeterShadowPaint);
+      }
 
       _wallPath
         ..reset()
@@ -521,8 +581,34 @@ class HexTileComponent extends PositionComponent {
           ? wallLeft
           : (i == 2 ? wallRight : bedrock);
 
-      _sharedFillPaint.color = col;
+      _sharedFillPaint.color = facesAbyss ? Color.lerp(col, const Color(0xFF020617), 0.25)! : col;
       canvas.drawPath(_wallPath, _sharedFillPaint);
+
+      // Jeolojik Katman Çizgileri (Sedimentary Strata Bands for Elevated Cliffs)
+      if (wallH >= 28.0) {
+        final double stepCount = wallH >= 46.0 ? 3.0 : 2.0;
+        for (double s = 1.0; s < stepCount; s += 1.0) {
+          final double hOff = wallH * (s / stepCount);
+          final pA1 = Offset(pA.dx, pA.dy + hOff);
+          final pB1 = Offset(pB.dx, pB.dy + hOff);
+
+          _strataDarkPaint.color = Colors.black.withValues(alpha: 0.22);
+          canvas.drawLine(pA1, pB1, _strataDarkPaint);
+
+          _strataLightPaint.color = Colors.white.withValues(alpha: 0.14);
+          canvas.drawLine(Offset(pA1.dx, pA1.dy + 1.0), Offset(pB1.dx, pB1.dy + 1.0), _strataLightPaint);
+        }
+      }
+
+      // Taban Temas Gölgeleri (Contact Ambient Occlusion at Wall Base)
+      canvas.drawLine(
+        Offset(pA.dx, pA.dy + wallH),
+        Offset(pB.dx, pB.dy + wallH),
+        _cliffBaseAoPaint,
+      );
+
+      // Uçurum Üst Kenar Işığı (Cliff Lip Specular Highlight)
+      canvas.drawLine(pA, pB, _cliffLipHighlightPaint);
     }
   }
 
@@ -613,17 +699,50 @@ class HexTileComponent extends PositionComponent {
     _highlightPaint.color = Colors.white.withValues(alpha: highlightAlpha);
     canvas.drawPath(_topPath, _highlightPaint);
 
+    // Uçurum Düşen Gölgeleri (Cliff Cast Shadow from NW Higher Neighbor)
+    if (northWestDeltaElevation > 4.0 && !tileModel.isFog) {
+      final double shadowFactor = (northWestDeltaElevation / 50.0).clamp(0.10, 0.40);
+      final double shadowAlpha = (0.12 + shadowFactor * 0.25).clamp(0.12, 0.35);
+
+      _cliffShadowPath
+        ..reset()
+        ..moveTo(corners[4].dx, corners[4].dy)
+        ..lineTo(corners[5].dx, corners[5].dy)
+        ..lineTo(corners[0].dx, corners[0].dy)
+        ..lineTo(corners[1].dx, corners[1].dy)
+        ..lineTo(
+          corners[1].dx + (center.dx - corners[1].dx) * shadowFactor,
+          corners[1].dy + (center.dy - corners[1].dy) * shadowFactor,
+        )
+        ..lineTo(
+          corners[0].dx + (center.dx - corners[0].dx) * shadowFactor,
+          corners[0].dy + (center.dy - corners[0].dy) * shadowFactor,
+        )
+        ..lineTo(
+          corners[5].dx + (center.dx - corners[5].dx) * shadowFactor,
+          corners[5].dy + (center.dy - corners[5].dy) * shadowFactor,
+        )
+        ..lineTo(
+          corners[4].dx + (center.dx - corners[4].dx) * shadowFactor,
+          corners[4].dy + (center.dy - corners[4].dy) * shadowFactor,
+        )
+        ..close();
+
+      _cliffCastShadowPaint.color = const Color(0xFF020617).withValues(alpha: shadowAlpha);
+      canvas.drawPath(_cliffShadowPath, _cliffCastShadowPaint);
+    }
+
     // Hava Perspektifi ve Yükseklik Işığı (Aerial Perspective & Height Luminance)
     final double elevation = getBiomeElevation(tileModel.biome, isFog: tileModel.isFog);
-    if (elevation >= 16.0) {
+    if (elevation >= 24.0) {
       _sharedFillPaint
         ..style = PaintingStyle.fill
-        ..color = const Color(0xFFFDE68A).withValues(alpha: isNight ? 0.02 : 0.08);
+        ..color = const Color(0xFFFDE68A).withValues(alpha: isNight ? 0.03 : 0.09);
       canvas.drawPath(_topPath, _sharedFillPaint);
-    } else if (elevation <= 0.0) {
+    } else if (elevation <= 4.0) {
       _sharedFillPaint
         ..style = PaintingStyle.fill
-        ..color = const Color(0xFF0F172A).withValues(alpha: isNight ? 0.09 : 0.05);
+        ..color = const Color(0xFF0F172A).withValues(alpha: isNight ? 0.10 : 0.06);
       canvas.drawPath(_topPath, _sharedFillPaint);
     }
 
@@ -679,6 +798,27 @@ class HexTileComponent extends PositionComponent {
     // Seçili Karo Neo-Brutalist Sarı Vurgusu
     if (isSelected) {
       canvas.drawPath(_topPath, _selectBorderPaint);
+    }
+
+    // Sert Neo-Brutalist Ada Sınır Çerçevesi (Island Perimeter Bezel)
+    if (fogNeighborMask != 0 && !tileModel.isFog) {
+      _islandPerimeterAccentPaint.color = tileModel.isOwned
+          ? const Color(0xFFF59E0B).withValues(alpha: isNight ? 0.50 : 0.85)
+          : const Color(0xFF475569).withValues(alpha: isNight ? 0.40 : 0.65);
+
+      const List<int> dirStartCorners = [0, 5, 4, 3, 2, 1];
+      const List<int> dirEndCorners = [1, 0, 5, 4, 3, 2];
+
+      for (int dir = 0; dir < 6; dir++) {
+        if ((fogNeighborMask & (1 << dir)) != 0) {
+          final pA = corners[dirStartCorners[dir]];
+          final pB = corners[dirEndCorners[dir]];
+          // 1. Dış katı koyu taş kenarlık
+          canvas.drawLine(pA, pB, _islandPerimeterBorderPaint);
+          // 2. İç altın/kehribar taktil hat
+          canvas.drawLine(pA, pB, _islandPerimeterAccentPaint);
+        }
+      }
     }
   }
 

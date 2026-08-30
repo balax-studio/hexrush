@@ -51,18 +51,12 @@ void main() {
     vec2 r = vec2(fbm(st + 1.0 * q + vec2(1.7, 9.2) + 0.035 * uTime), fbm(st + 1.0 * q + vec2(8.3, 2.8) + 0.028 * uTime));
     float f = fbm(st + r);
 
-    // Neo-Brutalist Fog Palette (#060913 to #0f172a / #1e293b with subtle blue tint)
-    vec3 deepDark = vec3(0.039, 0.059, 0.098); // #0a0f19
-    vec3 mistGlow = vec3(0.118, 0.161, 0.231); // #1e293b
-    vec3 borderAura = vec3(0.22, 0.74, 0.97);  // #38bdf8 sky blue hint
+    // Neo-Brutalist Deep Basalt Void Palette (#020617 to #0a0f1d)
+    vec3 deepDark = vec3(0.008, 0.024, 0.055); // #020617
+    vec3 mistGlow = vec3(0.025, 0.045, 0.080); // #070b14
 
-    vec3 col = mix(deepDark, mistGlow, clamp(f * f * 4.0, 0.0, 1.0));
+    vec3 col = mix(deepDark, mistGlow, clamp(f * f * 2.5, 0.0, 1.0));
     
-    // Radial boundary fade
-    float dist = length(st * 2.0);
-    float edgeGlow = smoothstep(0.7, 0.95, dist) * (1.0 - smoothstep(0.95, 1.1, dist));
-    col += borderAura * edgeGlow * 0.45;
-
-    float finalAlpha = clamp(uAlpha * (0.88 + 0.12 * f), 0.0, 1.0);
-    fragColor = vec4(col * finalAlpha, finalAlpha);
+    // Solid opaque basalt surface (Zero see-through artifacts)
+    fragColor = vec4(col, 1.0);
 }

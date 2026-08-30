@@ -4640,83 +4640,44 @@ class VoxelIsometricRenderer {
 
     final Offset mistCenter = Offset(center.dx, center.dy - disperseRise);
 
-    // 1. Kadim Sunak (Shrine) Keşif Parıltısı
+    // 1. Kadim Sunak (Shrine) Keşif Rünü
     if (hasShrine) {
-      final double shrinePulse = 0.4 + 0.4 * math.sin(animTime * 0.9 + seed);
-      _sharedFillPaint
-        ..color = const Color(0xFF38BDF8).withValues(alpha: (0.28 * shrinePulse * alpha).clamp(0.0, 1.0))
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(Offset(mistCenter.dx, mistCenter.dy - 6), 12.0, _sharedFillPaint);
-
-      // Yüzen Kadim Göksel Rün Kristali
-      final double floatY = math.sin(animTime * 0.75 + seed) * 2.5;
-      drawIsoCube(
-        canvas,
-        Offset(mistCenter.dx, mistCenter.dy - 8.0 - floatY),
-        w: 5.0,
-        d: 5.0,
-        h: 8.0,
-        topColor: const Color(0xFFE0F2FE).withValues(alpha: alpha),
-        leftColor: const Color(0xFF7DD3FC).withValues(alpha: alpha),
-        rightColor: const Color(0xFF0284C7).withValues(alpha: alpha),
-      );
+      final double shrinePulse = 0.65 + 0.35 * math.sin(animTime * 1.5 + seed);
+      _sharedStrokePaint
+        ..color = const Color(0xFF38BDF8).withValues(alpha: (shrinePulse * alpha).clamp(0.0, 1.0))
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.0;
+      canvas.drawCircle(Offset(mistCenter.dx, mistCenter.dy - 2), 7.0, _sharedStrokePaint);
+      canvas.drawLine(Offset(mistCenter.dx - 4, mistCenter.dy - 2), Offset(mistCenter.dx + 4, mistCenter.dy - 2), _sharedStrokePaint);
       return;
     }
 
-    // 2. Efsanevi Biyomlar (Göksel Krater, Kurgan, Kristal)
+    // 2. Efsanevi Biyom Rünik Tamgaları
     if (hiddenBiome == TileBiome.celestialCrater) {
-      // Göksel Yıldız Tozu Parıltısı
-      final double starPulse = 0.35 + 0.35 * math.sin(animTime * 0.95 + seed);
-      _sharedFillPaint
-        ..color = const Color(0xFFA855F7).withValues(alpha: (0.3 * starPulse * alpha).clamp(0.0, 1.0))
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(Offset(mistCenter.dx, mistCenter.dy - 4), 10.0, _sharedFillPaint);
-      drawIsoCube(
-        canvas,
-        Offset(mistCenter.dx, mistCenter.dy - 6.0),
-        w: 4.0,
-        d: 4.0,
-        h: 4.0,
-        topColor: const Color(0xFFE9D5FF).withValues(alpha: alpha),
-        leftColor: const Color(0xFFC084FC).withValues(alpha: alpha),
-        rightColor: const Color(0xFF9333EA).withValues(alpha: alpha),
-      );
+      final double starPulse = 0.6 + 0.35 * math.sin(animTime * 1.8 + seed);
+      _sharedStrokePaint
+        ..color = const Color(0xFFA855F7).withValues(alpha: (starPulse * alpha).clamp(0.0, 1.0))
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.8;
+      canvas.drawLine(Offset(mistCenter.dx - 5, mistCenter.dy - 2), Offset(mistCenter.dx + 5, mistCenter.dy - 2), _sharedStrokePaint);
+      canvas.drawLine(Offset(mistCenter.dx, mistCenter.dy - 7), Offset(mistCenter.dx, mistCenter.dy + 3), _sharedStrokePaint);
       return;
     } else if (hiddenBiome == TileBiome.kurganValley) {
-      // Atalar Kurganı Altın Ruhu
-      final double kurganPulse = 0.35 + 0.35 * math.sin(animTime * 2.0 + seed);
-      _sharedFillPaint
-        ..color = const Color(0xFFF59E0B).withValues(alpha: (0.28 * kurganPulse * alpha).clamp(0.0, 1.0))
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(Offset(mistCenter.dx, mistCenter.dy - 4), 10.0, _sharedFillPaint);
-      drawIsoCube(
-        canvas,
-        Offset(mistCenter.dx, mistCenter.dy - 6.0),
-        w: 5.0,
-        d: 5.0,
-        h: 5.0,
-        topColor: const Color(0xFFFEF3C7).withValues(alpha: alpha),
-        leftColor: const Color(0xFFFBBF24).withValues(alpha: alpha),
-        rightColor: const Color(0xFFD97706).withValues(alpha: alpha),
-      );
+      final double kurganPulse = 0.6 + 0.35 * math.sin(animTime * 2.0 + seed);
+      _sharedStrokePaint
+        ..color = const Color(0xFFF59E0B).withValues(alpha: (kurganPulse * alpha).clamp(0.0, 1.0))
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.0;
+      canvas.drawCircle(Offset(mistCenter.dx, mistCenter.dy - 2), 5.0, _sharedStrokePaint);
       return;
     } else if (hiddenBiome == TileBiome.crystalChasm) {
-      // Kristal Yarığı Mor Işıltısı
-      final double crystalPulse = 0.35 + 0.35 * math.sin(animTime * 2.8 + seed);
-      _sharedFillPaint
-        ..color = const Color(0xFFEC4899).withValues(alpha: (0.28 * crystalPulse * alpha).clamp(0.0, 1.0))
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(Offset(mistCenter.dx, mistCenter.dy - 4), 10.0, _sharedFillPaint);
-      drawIsoCube(
-        canvas,
-        Offset(mistCenter.dx, mistCenter.dy - 6.0),
-        w: 4.0,
-        d: 4.0,
-        h: 6.0,
-        topColor: const Color(0xFFFCE7F3).withValues(alpha: alpha),
-        leftColor: const Color(0xFFF472B6).withValues(alpha: alpha),
-        rightColor: const Color(0xFFDB2777).withValues(alpha: alpha),
-      );
+      final double crystalPulse = 0.6 + 0.35 * math.sin(animTime * 2.2 + seed);
+      _sharedStrokePaint
+        ..color = const Color(0xFFEC4899).withValues(alpha: (crystalPulse * alpha).clamp(0.0, 1.0))
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.8;
+      canvas.drawLine(Offset(mistCenter.dx - 4, mistCenter.dy + 2), Offset(mistCenter.dx, mistCenter.dy - 6), _sharedStrokePaint);
+      canvas.drawLine(Offset(mistCenter.dx, mistCenter.dy - 6), Offset(mistCenter.dx + 4, mistCenter.dy + 2), _sharedStrokePaint);
       return;
     }
 
@@ -4725,7 +4686,7 @@ class VoxelIsometricRenderer {
     if (isRareMystery) {
       drawVoxelPetroglyph(
         canvas,
-        Offset(mistCenter.dx, mistCenter.dy - 4),
+        Offset(mistCenter.dx, mistCenter.dy - 2),
         seed: seed,
         animTime: animTime,
         isBorderFog: isBorderFog,

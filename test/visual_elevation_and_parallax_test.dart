@@ -95,10 +95,17 @@ void main() {
     });
 
     test('HexTileComponent yükseklik hesaplaması biyomlara göre doğru döner', () {
-      expect(HexTileComponent.getBiomeElevation(TileBiome.mountain), 20.0);
+      expect(HexTileComponent.getBiomeElevation(TileBiome.mountain), 44.0);
+      expect(HexTileComponent.getBiomeElevation(TileBiome.volcano), 38.0);
+      expect(HexTileComponent.getBiomeElevation(TileBiome.kurganValley), 32.0);
+      expect(HexTileComponent.getBiomeElevation(TileBiome.celestialCrater), 28.0);
+      expect(HexTileComponent.getBiomeElevation(TileBiome.tundra), 24.0);
+      expect(HexTileComponent.getBiomeElevation(TileBiome.forest), 20.0);
+      expect(HexTileComponent.getBiomeElevation(TileBiome.meadow), 14.0);
+      expect(HexTileComponent.getBiomeElevation(TileBiome.desert), 10.0);
+      expect(HexTileComponent.getBiomeElevation(TileBiome.crystalChasm), 6.0);
+      expect(HexTileComponent.getBiomeElevation(TileBiome.wetland), 4.0);
       expect(HexTileComponent.getBiomeElevation(TileBiome.sea), 0.0);
-      expect(HexTileComponent.getBiomeElevation(TileBiome.forest), 12.0);
-      expect(HexTileComponent.getBiomeElevation(TileBiome.meadow), 10.0);
     });
   });
 }
