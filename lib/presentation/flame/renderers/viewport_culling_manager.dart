@@ -12,10 +12,7 @@ class ViewportCullingManager {
   double _minY = -10000;
   double _maxX = 10000;
   double _maxY = 10000;
-  bool _enabled = true;
-
-  bool get isEnabled => _enabled;
-  set isEnabled(bool value) => _enabled = value;
+  bool isEnabled = true;
 
   /// Kamera sınırlarını günceller (Güvenlik payı / margin ekleyerek)
   void updateVisibleBounds(Rect visibleRect, {double margin = 72.0}) {
@@ -27,7 +24,7 @@ class ViewportCullingManager {
 
   /// Verilen merkez koordinatın ve yarıçapın ekran sınırları içinde olup olmadığını doğrular
   bool isVisible(Offset center, {double radius = 56.0}) {
-    if (!_enabled) return true;
+    if (!isEnabled) return true;
     final double x = center.dx;
     final double y = center.dy;
 
@@ -41,7 +38,7 @@ class ViewportCullingManager {
 
   /// Verilen dikdörtgen alanın ekranda olup olmadığını doğrular
   bool isRectVisible(double left, double top, double right, double bottom) {
-    if (!_enabled) return true;
+    if (!isEnabled) return true;
     if (right < _minX) return false;
     if (left > _maxX) return false;
     if (bottom < _minY) return false;
@@ -56,6 +53,6 @@ class ViewportCullingManager {
     _minY = -100000;
     _maxX = 100000;
     _maxY = 100000;
-    _enabled = true;
+    isEnabled = true;
   }
 }

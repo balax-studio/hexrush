@@ -20,8 +20,8 @@ void main() {
   group('9 Yenilikçi Mekanik & Fonksiyon Testleri', () {
     test('1. Yaylak-Kışlak & Toprak Solunumu (Soil Respiration 2.5x Boost)', () {
       // Dinlenen ve 10 sn solunum biriktiren karo 2.5x çarpan almalı
-      final tileWithRespiration = HexTileModel(
-        coord: const HexAxial(0, 0),
+      const tileWithRespiration = HexTileModel(
+        coord: HexAxial(0, 0),
         biome: TileBiome.meadow,
         state: TileState.owned,
         soilHealth: 0.5,
@@ -32,8 +32,8 @@ void main() {
       expect(restingBoost, equals(2.5));
 
       // Dinlenmekte olan karo üretim yapmaz (0.0x)
-      final tileResting = HexTileModel(
-        coord: const HexAxial(0, 0),
+      const tileResting = HexTileModel(
+        coord: HexAxial(0, 0),
         biome: TileBiome.meadow,
         state: TileState.owned,
         soilHealth: 0.5,
@@ -44,8 +44,8 @@ void main() {
       expect(currentlyResting, equals(0.0));
 
       // Yorgun toprak (%0 sağlık) %70 verim verir
-      final tileExhausted = HexTileModel(
-        coord: const HexAxial(0, 0),
+      const tileExhausted = HexTileModel(
+        coord: HexAxial(0, 0),
         biome: TileBiome.meadow,
         state: TileState.owned,
         soilHealth: 0.0,
@@ -56,8 +56,8 @@ void main() {
       expect(exhaustedSoil, closeTo(0.70, 0.001));
 
       // Taze toprak (%100 sağlık) %100 verim verir
-      final tileFresh = HexTileModel(
-        coord: const HexAxial(0, 0),
+      const tileFresh = HexTileModel(
+        coord: HexAxial(0, 0),
         biome: TileBiome.meadow,
         state: TileState.owned,
         soilHealth: 1.0,
@@ -95,26 +95,26 @@ void main() {
     });
 
     test('3. Ekolojik Simbiyoz & Hibrit Biyom Dönüşümü (+%50 Bonus)', () {
-      final center = HexTileModel(
-        coord: const HexAxial(0, 0),
+      const center = HexTileModel(
+        coord: HexAxial(0, 0),
         biome: TileBiome.meadow,
         state: TileState.owned,
       );
 
-      final forest1 = HexTileModel(
-        coord: const HexAxial(1, 0),
+      const forest1 = HexTileModel(
+        coord: HexAxial(1, 0),
         biome: TileBiome.forest,
         state: TileState.owned,
       );
 
-      final forest2 = HexTileModel(
-        coord: const HexAxial(0, 1),
+      const forest2 = HexTileModel(
+        coord: HexAxial(0, 1),
         biome: TileBiome.forest,
         state: TileState.owned,
       );
 
-      final wetland = HexTileModel(
-        coord: const HexAxial(-1, 0),
+      const wetland = HexTileModel(
+        coord: HexAxial(-1, 0),
         biome: TileBiome.wetland,
         state: TileState.owned,
       );

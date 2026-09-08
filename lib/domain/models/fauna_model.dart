@@ -14,6 +14,10 @@ enum FaunaType {
   crane,
   swallow,
   seagull,
+  steppeBear,
+  wildBoar,
+  steppeDeer,
+  redFox,
 }
 
 /// Fauna Davranış Durum Makinesi (Behavior State Machine)
@@ -41,6 +45,15 @@ enum FaunaCoatVariant {
   goldenEagle, // Asil Bozkır Kartalı Kahve-Altın
   crestedCrane, // Telli Turna Beyaz-Gri
   swallowIndigo, // Kırlangıç Gece Laciverti
+  grizzlyBrown, // Bozayı Kahvesi (Ayı)
+  polarWhite, // Kutup Kar Beyazı (Kutup Ayısı)
+  blackBear, // Gece Ayısı Karası
+  boarDarkBristle, // Koyu Yaban Domuzu Kılı
+  boarClay, // Kızıl Toprak Domuz Kılı
+  stagForestBrown, // Asil Orman Geyiği
+  stagSpottedFawn, // Ak Benekli Bozkır Geyiği
+  reindeerSnow, // Kuzey Ren Geyiği Külü
+  foxAuburnRed, // Canlı Kızıl Bozkır Tilkisi
 }
 
 /// Biyom Canlısının Canlı Durum Modeli (Immutable Fauna Entity)

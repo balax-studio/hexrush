@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hex_rush/domain/economy/economy_calculator.dart';
 import 'package:hex_rush/domain/models/ad_reward_model.dart';
-import 'package:hex_rush/domain/models/game_state_model.dart';
 
 void main() {
   group('Ad Reward Economy Calculator Tests', () {

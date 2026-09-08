@@ -24,34 +24,34 @@ void main() {
     });
 
     test('Food breakdown correctly lists corn/barley as producers and windmill/bakery as consumers', () {
-      final cornCoord = const HexAxial(0, 0);
-      final windmillCoord = const HexAxial(1, 0);
-      final bakeryCoord = const HexAxial(2, 0);
+      const cornCoord = HexAxial(0, 0);
+      const windmillCoord = HexAxial(1, 0);
+      const bakeryCoord = HexAxial(2, 0);
 
       final tiles = <HexAxial, HexTileModel>{
-        cornCoord: HexTileModel(
+        cornCoord: const HexTileModel(
           coord: cornCoord,
           biome: TileBiome.meadow,
           state: TileState.owned,
-          building: const BuildingModel(
+          building: BuildingModel(
             type: BuildingType.corn,
             level: 10,
           ),
         ),
-        windmillCoord: HexTileModel(
+        windmillCoord: const HexTileModel(
           coord: windmillCoord,
           biome: TileBiome.meadow,
           state: TileState.owned,
-          building: const BuildingModel(
+          building: BuildingModel(
             type: BuildingType.windmill,
             level: 5,
           ),
         ),
-        bakeryCoord: HexTileModel(
+        bakeryCoord: const HexTileModel(
           coord: bakeryCoord,
           biome: TileBiome.meadow,
           state: TileState.owned,
-          building: const BuildingModel(
+          building: BuildingModel(
             type: BuildingType.bakery,
             level: 3,
           ),
@@ -81,34 +81,34 @@ void main() {
     });
 
     test('Wood breakdown correctly lists lumberjack as producer and sawmill/damascusForge as consumers', () {
-      final lumberCoord = const HexAxial(0, 0);
-      final sawmillCoord = const HexAxial(1, 0);
-      final forgeCoord = const HexAxial(2, 0);
+      const lumberCoord = HexAxial(0, 0);
+      const sawmillCoord = HexAxial(1, 0);
+      const forgeCoord = HexAxial(2, 0);
 
       final tiles = <HexAxial, HexTileModel>{
-        lumberCoord: HexTileModel(
+        lumberCoord: const HexTileModel(
           coord: lumberCoord,
           biome: TileBiome.forest,
           state: TileState.owned,
-          building: const BuildingModel(
+          building: BuildingModel(
             type: BuildingType.lumberjack,
             level: 8,
           ),
         ),
-        sawmillCoord: HexTileModel(
+        sawmillCoord: const HexTileModel(
           coord: sawmillCoord,
           biome: TileBiome.forest,
           state: TileState.owned,
-          building: const BuildingModel(
+          building: BuildingModel(
             type: BuildingType.sawmill,
             level: 4,
           ),
         ),
-        forgeCoord: HexTileModel(
+        forgeCoord: const HexTileModel(
           coord: forgeCoord,
           biome: TileBiome.mountain,
           state: TileState.owned,
-          building: const BuildingModel(
+          building: BuildingModel(
             type: BuildingType.damascusForge,
             level: 1,
           ),
@@ -132,24 +132,24 @@ void main() {
     });
 
     test('Flour breakdown shows windmill as producer and bakery as consumer', () {
-      final windmillCoord = const HexAxial(0, 0);
-      final bakeryCoord = const HexAxial(1, 0);
+      const windmillCoord = HexAxial(0, 0);
+      const bakeryCoord = HexAxial(1, 0);
 
       final tiles = <HexAxial, HexTileModel>{
-        windmillCoord: HexTileModel(
+        windmillCoord: const HexTileModel(
           coord: windmillCoord,
           biome: TileBiome.meadow,
           state: TileState.owned,
-          building: const BuildingModel(
+          building: BuildingModel(
             type: BuildingType.windmill,
             level: 4,
           ),
         ),
-        bakeryCoord: HexTileModel(
+        bakeryCoord: const HexTileModel(
           coord: bakeryCoord,
           biome: TileBiome.meadow,
           state: TileState.owned,
-          building: const BuildingModel(
+          building: BuildingModel(
             type: BuildingType.bakery,
             level: 2,
           ),

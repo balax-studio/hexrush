@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hex_rush/core/hex/hex_coordinates.dart';
 import 'package:hex_rush/domain/economy/economy_calculator.dart';
 import 'package:hex_rush/domain/models/building_model.dart';
-import 'package:hex_rush/domain/models/game_state_model.dart';
 import 'package:hex_rush/domain/models/hex_tile_model.dart';
 import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
 import 'package:hex_rush/presentation/widgets/tile_action_sheet.dart';
@@ -20,17 +19,17 @@ void main() {
   group('Building Milestones Production and Cost Tests', () {
     test('Building production boosts by 2x at milestone levels 10, 25, 50, 100, 200', () {
       const bType = BuildingType.corn;
-      final b1 = BuildingModel(type: bType, level: 1);
-      final b9 = BuildingModel(type: bType, level: 9);
-      final b10 = BuildingModel(type: bType, level: 10);
-      final b24 = BuildingModel(type: bType, level: 24);
-      final b25 = BuildingModel(type: bType, level: 25);
-      final b49 = BuildingModel(type: bType, level: 49);
-      final b50 = BuildingModel(type: bType, level: 50);
-      final b99 = BuildingModel(type: bType, level: 99);
-      final b100 = BuildingModel(type: bType, level: 100);
-      final b199 = BuildingModel(type: bType, level: 199);
-      final b200 = BuildingModel(type: bType, level: 200);
+      const b1 = BuildingModel(type: bType, level: 1);
+      const b9 = BuildingModel(type: bType, level: 9);
+      const b10 = BuildingModel(type: bType, level: 10);
+      const b24 = BuildingModel(type: bType, level: 24);
+      const b25 = BuildingModel(type: bType, level: 25);
+      const b49 = BuildingModel(type: bType, level: 49);
+      const b50 = BuildingModel(type: bType, level: 50);
+      const b99 = BuildingModel(type: bType, level: 99);
+      const b100 = BuildingModel(type: bType, level: 100);
+      const b199 = BuildingModel(type: bType, level: 199);
+      const b200 = BuildingModel(type: bType, level: 200);
 
       final base = b1.baseProductionRate;
 
@@ -49,11 +48,20 @@ void main() {
       // Level 25: base * 25 * 2^2 (4x total milestone boost)
       expect(b25.currentProductionRate, closeTo(base * 25 * 4, 0.001));
 
+      // Level 49: base * 49 * 2^2
+      expect(b49.currentProductionRate, closeTo(base * 49 * 4, 0.001));
+
       // Level 50: base * 50 * 2^3 (8x total milestone boost)
       expect(b50.currentProductionRate, closeTo(base * 50 * 8, 0.001));
 
+      // Level 99: base * 99 * 2^3
+      expect(b99.currentProductionRate, closeTo(base * 99 * 8, 0.001));
+
       // Level 100: base * 100 * 2^4 (16x total milestone boost)
       expect(b100.currentProductionRate, closeTo(base * 100 * 16, 0.001));
+
+      // Level 199: base * 199 * 2^4
+      expect(b199.currentProductionRate, closeTo(base * 199 * 16, 0.001));
 
       // Level 200: base * 200 * 2^5 (32x total milestone boost)
       expect(b200.currentProductionRate, closeTo(base * 200 * 32, 0.001));
@@ -61,12 +69,11 @@ void main() {
 
     test('Upgrade cost increases by 10x normal rate at milestone steps', () {
       const bType = BuildingType.corn;
-      final b8 = BuildingModel(type: bType, level: 8);
-      final b9 = BuildingModel(type: bType, level: 9);
-      final b10 = BuildingModel(type: bType, level: 10);
-      final b23 = BuildingModel(type: bType, level: 23);
-      final b24 = BuildingModel(type: bType, level: 24);
-      final b25 = BuildingModel(type: bType, level: 25);
+      const b8 = BuildingModel(type: bType, level: 8);
+      const b9 = BuildingModel(type: bType, level: 9);
+      const b10 = BuildingModel(type: bType, level: 10);
+      const b23 = BuildingModel(type: bType, level: 23);
+      const b24 = BuildingModel(type: bType, level: 24);
 
       final cost8 = b8.upgradeCost;
       final cost9 = b9.upgradeCost;
@@ -88,13 +95,13 @@ void main() {
     });
 
     test('isNextLevelMilestone correctly identifies levels 9, 24, 49, 99, 199', () {
-      expect(BuildingModel(type: BuildingType.corn, level: 1).isNextLevelMilestone, isFalse);
-      expect(BuildingModel(type: BuildingType.corn, level: 9).isNextLevelMilestone, isTrue);
-      expect(BuildingModel(type: BuildingType.corn, level: 10).isNextLevelMilestone, isFalse);
-      expect(BuildingModel(type: BuildingType.corn, level: 24).isNextLevelMilestone, isTrue);
-      expect(BuildingModel(type: BuildingType.corn, level: 49).isNextLevelMilestone, isTrue);
-      expect(BuildingModel(type: BuildingType.corn, level: 99).isNextLevelMilestone, isTrue);
-      expect(BuildingModel(type: BuildingType.corn, level: 199).isNextLevelMilestone, isTrue);
+      expect(const BuildingModel(type: BuildingType.corn, level: 1).isNextLevelMilestone, isFalse);
+      expect(const BuildingModel(type: BuildingType.corn, level: 9).isNextLevelMilestone, isTrue);
+      expect(const BuildingModel(type: BuildingType.corn, level: 10).isNextLevelMilestone, isFalse);
+      expect(const BuildingModel(type: BuildingType.corn, level: 24).isNextLevelMilestone, isTrue);
+      expect(const BuildingModel(type: BuildingType.corn, level: 49).isNextLevelMilestone, isTrue);
+      expect(const BuildingModel(type: BuildingType.corn, level: 99).isNextLevelMilestone, isTrue);
+      expect(const BuildingModel(type: BuildingType.corn, level: 199).isNextLevelMilestone, isTrue);
     });
 
     test('EconomyCalculator calculates building production matching milestone boosts', () {
@@ -120,8 +127,8 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
 
-      final testCoord = const HexAxial(0, 1);
-      final tile = HexTileModel(
+      const testCoord = HexAxial(0, 1);
+      const tile = HexTileModel(
         coord: testCoord,
         biome: TileBiome.meadow,
         state: TileState.owned,

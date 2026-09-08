@@ -1,7 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hex_rush/core/hex/hex_coordinates.dart';
 import 'package:hex_rush/domain/models/building_model.dart';
 import 'package:hex_rush/domain/models/hex_tile_model.dart';
 import 'package:hex_rush/presentation/flame/components/hex_tile_component.dart';

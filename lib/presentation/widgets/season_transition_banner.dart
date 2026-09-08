@@ -25,7 +25,6 @@ class _SeasonTransitionBannerState extends ConsumerState<SeasonTransitionBanner>
   late Animation<Offset> _slideAnimation;
   late Animation<double> _fadeAnimation;
 
-  SeasonModel? _lastSeason;
   Timer? _dismissTimer;
   String _activeTitle = '';
   String _activeBonus = '';

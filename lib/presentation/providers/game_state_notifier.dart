@@ -240,7 +240,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
           // Merkez (0,0) - Şato yeri
           biome = TileBiome.meadow;
         } else if (dist == 1) {
-          // Radius 1: Yalnızca Çayır ve Orman (Dağ ve Tapınak yok)
+          // Radius 1: Yalnızca Çayır ve Orman (Erken aşamada soft-lock önleme)
           if (coord.q == 1 && coord.r == 0) {
             biome = TileBiome.forest;
           } else if (coord.q == 0 && coord.r == 1) {
@@ -717,16 +717,14 @@ class GameStateNotifier extends StateNotifier<GameState> {
       final double caravanMult = EconomyCalculator.calculateCaravanRouteMultiplier(tile.coord, state.caravanRoutes);
       final double symbiosisMult = EconomyCalculator.calculateSymbiosisMultiplier(tile);
       final double ancestralMult = EconomyCalculator.calculateAncestralRelicMultiplier(state.discoveredKurgans);
-      final double omenMult = state.celestialOmen != null
-          ? EconomyCalculator.calculateCelestialOmenMultiplier(
-              state.celestialOmen!,
-              resourceType: b.type == BuildingType.lumberjack || b.type == BuildingType.sawmill
-                  ? 'wood'
-                  : b.type == BuildingType.mine || b.type == BuildingType.quarry
-                      ? 'iron'
-                      : 'food',
-            )
-          : 1.0;
+      final double omenMult = EconomyCalculator.calculateCelestialOmenMultiplier(
+        state.celestialOmen,
+        resourceType: b.type == BuildingType.lumberjack || b.type == BuildingType.sawmill
+            ? 'wood'
+            : b.type == BuildingType.mine || b.type == BuildingType.quarry
+                ? 'iron'
+                : 'food',
+      );
 
       final double damagePenalty = tile.isDamaged ? 0.5 : 1.0;
       final double rate = EconomyCalculator.calculateBuildingProduction(
@@ -3251,5 +3249,19 @@ class GameStateNotifier extends StateNotifier<GameState> {
     TactileAudioService.instance.play(TactileSoundType.build);
     saveGame();
     return true;
+  }
+
+  /// Geliştirici ve test araçları için kontrollü state mutasyonu
+  @override
+  GameState get debugState => state;
+
+  void debugModifyState(GameState Function(GameState) modifier) {
+    state = modifier(state);
+    saveGame();
+  }
+
+  void debugSetState(GameState newState) {
+    state = newState;
+    saveGame();
   }
 }

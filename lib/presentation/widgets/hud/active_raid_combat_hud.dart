@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/neo_brutalist_theme.dart';
-import '../../../domain/models/combat_model.dart';
 import '../../providers/game_state_notifier.dart';
 
 /// Akın Savaşında Ekranın Üstünde Görünen Canlı Savaş HUD'ı

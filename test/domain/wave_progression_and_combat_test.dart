@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hex_rush/core/hex/hex_coordinates.dart';
 import 'package:hex_rush/domain/models/building_model.dart';
 import 'package:hex_rush/domain/models/combat_model.dart';
-import 'package:hex_rush/domain/models/game_state.dart';
 import 'package:hex_rush/domain/models/game_state_model.dart';
 import 'package:hex_rush/domain/models/hex_tile_model.dart';
 import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
@@ -65,6 +64,7 @@ void main() {
       final prevFood = notifier.state.resources.food;
       notifier.testTick();
       final double damagedGain = notifier.state.resources.food - prevFood;
+      expect(damagedGain, greaterThan(0.0));
 
       // Hasarlı karo onarımı
       final repaired = notifier.repairHexTile(farmCoord);

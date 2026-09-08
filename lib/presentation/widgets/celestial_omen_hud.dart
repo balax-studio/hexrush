@@ -52,7 +52,7 @@ class CelestialOmenHud extends ConsumerWidget {
       preferBelow: true,
       child: GestureDetector(
         onTap: () {
-          showNeoTactileDialog(
+          showNeoTactileDialog<void>(
             context: context,
             builder: (ctx) => _ShamanBlessingDialog(adService: adService),
           );

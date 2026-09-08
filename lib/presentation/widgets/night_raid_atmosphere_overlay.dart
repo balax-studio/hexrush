@@ -30,17 +30,17 @@ class NightRaidAtmosphereOverlay extends ConsumerWidget {
             ),
 
             // 2. Kenar Savaş Sisi ve Vinyet (Radial Dark War Vignette)
-            DecoratedBox(
+            const DecoratedBox(
               decoration: BoxDecoration(
                 gradient: RadialGradient(
                   center: Alignment.center,
                   radius: 0.95,
-                  colors: const [
+                  colors: [
                     Colors.transparent,
                     Color(0x331E1B4B),
                     Color(0xBB020617),
                   ],
-                  stops: const [0.45, 0.75, 1.0],
+                  stops: [0.45, 0.75, 1.0],
                 ),
               ),
             ),

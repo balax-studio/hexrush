@@ -2,9 +2,7 @@ import 'dart:math' as math;
 import '../../core/hex/hex_coordinates.dart';
 import '../models/building_model.dart';
 import '../models/combat_model.dart';
-import '../models/game_state_model.dart';
 import '../models/hex_tile_model.dart';
-import 'economy_calculator.dart';
 
 class TowerCombatStats {
   final int level;

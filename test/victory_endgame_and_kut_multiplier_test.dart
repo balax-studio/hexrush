@@ -250,14 +250,14 @@ void main() {
       expect(BuildingType.celestialAnvil.requiredCastleLevel, equals(50));
     });
 
-    test('initial state guarantees forest and mountain in radius 1 to prevent resource soft-lock', () {
+    test('initial state guarantees forest in radius 1 and mountain in radius 3 to prevent resource soft-lock', () {
       final notifier = GameStateNotifier();
       final tiles = notifier.state.tiles;
 
       final adjacentTiles = const HexAxial(0, 0).neighbors.map((c) => tiles[c]).whereType<HexTileModel>().toList();
       expect(adjacentTiles.any((t) => t.biome == TileBiome.forest), isTrue);
-      expect(adjacentTiles.any((t) => t.biome == TileBiome.mountain), isTrue);
       expect(adjacentTiles.any((t) => t.biome == TileBiome.meadow), isTrue);
+      expect(tiles[const HexAxial(-2, 3)]?.biome, equals(TileBiome.mountain));
     });
   });
 }

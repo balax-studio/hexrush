@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/audio/tactile_audio_service.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../core/utils/number_formatter.dart';
@@ -32,9 +31,9 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
       barrierColor: Colors.black.withValues(alpha: 0.75),
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF0F172A),
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: NeoBrutalistTheme.sharpRadius,
-          side: const BorderSide(color: Color(0xFFEF4444), width: 2.5),
+          side: BorderSide(color: Color(0xFFEF4444), width: 2.5),
         ),
         title: const Row(
           children: [

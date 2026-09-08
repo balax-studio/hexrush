@@ -244,7 +244,7 @@ class _HexpediaDialogState extends ConsumerState<HexpediaDialog> {
                   : ListView.separated(
                       padding: const EdgeInsets.all(12),
                       itemCount: entries.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      separatorBuilder: (_, _) => const SizedBox(height: 10),
                       itemBuilder: (context, index) {
                         final entry = entries[index];
                         final isExpanded = _expandedIds.contains(entry.id);

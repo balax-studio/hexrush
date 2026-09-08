@@ -135,17 +135,15 @@ class VoxelEnemyComponent extends PositionComponent {
     Color baseColor,
   ) {
     final top = baseColor;
-    final left = Color.fromARGB(
-      baseColor.alpha,
-      (baseColor.red * 0.72).round(),
-      (baseColor.green * 0.72).round(),
-      (baseColor.blue * 0.72).round(),
+    final left = baseColor.withValues(
+      red: baseColor.r * 0.72,
+      green: baseColor.g * 0.72,
+      blue: baseColor.b * 0.72,
     );
-    final right = Color.fromARGB(
-      baseColor.alpha,
-      (baseColor.red * 0.86).round(),
-      (baseColor.green * 0.86).round(),
-      (baseColor.blue * 0.86).round(),
+    final right = baseColor.withValues(
+      red: baseColor.r * 0.86,
+      green: baseColor.g * 0.86,
+      blue: baseColor.b * 0.86,
     );
 
     VoxelIsometricRenderer.drawIsoCube(

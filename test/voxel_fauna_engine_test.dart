@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flame/components.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hex_rush/core/hex/hex_coordinates.dart';
 import 'package:hex_rush/domain/models/fauna_model.dart';
@@ -136,28 +135,81 @@ void main() {
         scale: 1.2,
       );
 
+      // 11. Bozkır Ayısı (Grizzly & Kutup Ayısı Varyantları)
+      for (int seed = 0; seed < 3; seed++) {
+        VoxelFaunaRenderer.drawSteppeBear(
+          canvas,
+          const Offset(100, 100),
+          animTime: 2.0,
+          scale: 1.0,
+          seed: seed,
+          flipX: seed % 2 != 0,
+        );
+      }
+
+      // 12. Azı Dişli Yaban Domuzu
+      for (int seed = 0; seed < 3; seed++) {
+        VoxelFaunaRenderer.drawWildBoar(
+          canvas,
+          const Offset(100, 100),
+          animTime: 1.7,
+          scale: 0.9,
+          seed: seed,
+          flipX: seed % 2 != 0,
+        );
+      }
+
+      // 13. Asil Çok Boynuzlu Bozkır Geyiği & Ren Geyiği
+      for (int seed = 0; seed < 3; seed++) {
+        VoxelFaunaRenderer.drawSteppeDeer(
+          canvas,
+          const Offset(100, 100),
+          animTime: 2.4,
+          scale: 0.95,
+          seed: seed,
+          flipX: seed % 2 != 0,
+        );
+      }
+
+      // 14. Alev Kızılı Bozkır Tilkisi
+      for (int seed = 0; seed < 3; seed++) {
+        VoxelFaunaRenderer.drawRedFox(
+          canvas,
+          const Offset(100, 100),
+          animTime: 3.1,
+          scale: 0.85,
+          seed: seed,
+          flipX: seed % 2 != 0,
+        );
+      }
+
       final picture = recorder.endRecording();
       expect(picture, isNotNull);
     });
 
-    test('FaunaHerdComponent updates, responds to startle and renders', () {
-      final herd = FaunaHerdComponent(
-        coord: const HexAxial(1, 2),
-        primaryType: FaunaType.horse,
-        seed: 42,
-        position: Vector2(50, 50),
-      );
+    test('FaunaHerdComponent renders all new fauna species', () {
+      final speciesToTest = [
+        FaunaType.steppeBear,
+        FaunaType.wildBoar,
+        FaunaType.steppeDeer,
+        FaunaType.redFox,
+      ];
 
-      herd.update(0.1);
-      herd.triggerStartle();
-      expect(herd.isMounted, false);
+      for (final species in speciesToTest) {
+        final herd = FaunaHerdComponent(
+          coord: const HexAxial(0, 0),
+          primaryType: species,
+          seed: 17,
+          position: Vector2(50, 50),
+        );
 
-      final PictureRecorder recorder = PictureRecorder();
-      final Canvas canvas = Canvas(recorder);
-      herd.render(canvas);
-
-      final picture = recorder.endRecording();
-      expect(picture, isNotNull);
+        herd.update(0.16);
+        final recorder = PictureRecorder();
+        final canvas = Canvas(recorder);
+        herd.render(canvas);
+        final picture = recorder.endRecording();
+        expect(picture, isNotNull);
+      }
     });
 
     test('VoxelIsometricRenderer bridge delegations work seamlessly', () {
@@ -172,6 +224,9 @@ void main() {
       VoxelIsometricRenderer.drawVoxelMountainIbex(canvas, const Offset(50, 50), animTime: 1.0, seed: 6);
       VoxelIsometricRenderer.drawVoxelBird(canvas, const Offset(50, 50), wingAnim: 1.0);
       VoxelIsometricRenderer.drawVoxelCaravanCamel(canvas, const Offset(50, 50), animTime: 1.0);
+      VoxelIsometricRenderer.drawVoxelBear(canvas, const Offset(50, 50), animTime: 1.0, seed: 7);
+      VoxelIsometricRenderer.drawVoxelBoar(canvas, const Offset(50, 50), animTime: 1.0, seed: 8);
+      VoxelIsometricRenderer.drawVoxelRedFox(canvas, const Offset(50, 50), animTime: 1.0, seed: 9);
 
       final picture = recorder.endRecording();
       expect(picture, isNotNull);

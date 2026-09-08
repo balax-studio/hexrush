@@ -168,6 +168,50 @@ class FaunaHerdComponent extends PositionComponent {
         );
         break;
 
+      case FaunaType.steppeBear:
+        VoxelFaunaRenderer.drawSteppeBear(
+          canvas,
+          center,
+          animTime: animTime,
+          scale: isWinter ? 1.05 : 1.0,
+          seed: seed,
+          flipX: (seed % 2 != 0),
+        );
+        break;
+
+      case FaunaType.wildBoar:
+        VoxelFaunaRenderer.drawWildBoar(
+          canvas,
+          center,
+          animTime: animTime,
+          scale: 0.90,
+          seed: seed,
+          flipX: (seed % 2 != 0),
+        );
+        break;
+
+      case FaunaType.steppeDeer:
+        VoxelFaunaRenderer.drawSteppeDeer(
+          canvas,
+          center,
+          animTime: animTime,
+          scale: 0.95,
+          seed: seed,
+          flipX: (seed % 2 != 0),
+        );
+        break;
+
+      case FaunaType.redFox:
+        VoxelFaunaRenderer.drawRedFox(
+          canvas,
+          center,
+          animTime: animTime,
+          scale: 0.85,
+          seed: seed,
+          flipX: (seed % 2 != 0),
+        );
+        break;
+
       case FaunaType.skyEagle:
       case FaunaType.crane:
       case FaunaType.swallow:

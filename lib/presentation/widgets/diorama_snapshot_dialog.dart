@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../domain/models/game_state.dart';
 import '../providers/game_state_notifier.dart';
 import 'tactile_neo_button.dart';
 

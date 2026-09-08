@@ -21,8 +21,6 @@ class SymbiosisEngine {
     int wetlandCount = 0;
     int desertCount = 0;
     int mountainCount = 0;
-    int seaCount = 0;
-    int volcanoCount = 0;
     int tundraCount = 0;
 
     for (final n in neighbors) {
@@ -41,12 +39,6 @@ class SymbiosisEngine {
           break;
         case TileBiome.mountain:
           mountainCount++;
-          break;
-        case TileBiome.sea:
-          seaCount++;
-          break;
-        case TileBiome.volcano:
-          volcanoCount++;
           break;
         case TileBiome.tundra:
           tundraCount++;

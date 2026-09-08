@@ -5,7 +5,6 @@ import '../../core/hex/hex_coordinates.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/economy/economy_calculator.dart';
 import '../../domain/models/celestial_omen_model.dart';
-import '../../domain/models/game_state.dart';
 import '../../domain/models/hex_tile_model.dart';
 import '../providers/game_state_notifier.dart';
 import 'offline_gains_dialog.dart';
@@ -140,15 +139,14 @@ class DebugMenuDialog extends ConsumerWidget {
                             color: const Color(0xFF065F46),
                             borderColor: const Color(0xFF34D399),
                             onTap: () {
-                              notifier.state = notifier.state.copyWith(
-                                resources: notifier.state.resources.copyWith(
-                                  food: notifier.state.resources.food + 10000,
-                                  wood: notifier.state.resources.wood + 10000,
-                                  stone: notifier.state.resources.stone + 10000,
-                                  iron: notifier.state.resources.iron + 10000,
+                              notifier.debugModifyState((s) => s.copyWith(
+                                resources: s.resources.copyWith(
+                                  food: s.resources.food + 10000,
+                                  wood: s.resources.wood + 10000,
+                                  stone: s.resources.stone + 10000,
+                                  iron: s.resources.iron + 10000,
                                 ),
-                              );
-                              notifier.saveGame();
+                              ));
                             },
                           ),
                         ),
@@ -160,16 +158,15 @@ class DebugMenuDialog extends ConsumerWidget {
                             color: const Color(0xFF047857),
                             borderColor: const Color(0xFF34D399),
                             onTap: () {
-                              notifier.state = notifier.state.copyWith(
-                                resources: notifier.state.resources.copyWith(
-                                  flour: notifier.state.resources.flour + 5000,
-                                  plank: notifier.state.resources.plank + 5000,
-                                  bread: notifier.state.resources.bread + 5000,
-                                  furniture: notifier.state.resources.furniture + 5000,
-                                  fish: notifier.state.resources.fish + 5000,
+                              notifier.debugModifyState((s) => s.copyWith(
+                                resources: s.resources.copyWith(
+                                  flour: s.resources.flour + 5000,
+                                  plank: s.resources.plank + 5000,
+                                  bread: s.resources.bread + 5000,
+                                  furniture: s.resources.furniture + 5000,
+                                  fish: s.resources.fish + 5000,
                                 ),
-                              );
-                              notifier.saveGame();
+                              ));
                             },
                           ),
                         ),
@@ -185,15 +182,14 @@ class DebugMenuDialog extends ConsumerWidget {
                             color: const Color(0xFF0F766E),
                             borderColor: const Color(0xFF2DD4BF),
                             onTap: () {
-                              notifier.state = notifier.state.copyWith(
-                                resources: notifier.state.resources.copyWith(
-                                  kumis: notifier.state.resources.kumis + 2000,
-                                  felt: notifier.state.resources.felt + 2000,
-                                  damascusSteel: notifier.state.resources.damascusSteel + 2000,
-                                  wisdom: notifier.state.resources.wisdom + 500,
+                              notifier.debugModifyState((s) => s.copyWith(
+                                resources: s.resources.copyWith(
+                                  kumis: s.resources.kumis + 2000,
+                                  felt: s.resources.felt + 2000,
+                                  damascusSteel: s.resources.damascusSteel + 2000,
+                                  wisdom: s.resources.wisdom + 500,
                                 ),
-                              );
-                              notifier.saveGame();
+                              ));
                             },
                           ),
                         ),
@@ -205,12 +201,11 @@ class DebugMenuDialog extends ConsumerWidget {
                             color: const Color(0xFF78350F),
                             borderColor: const Color(0xFFFBBF24),
                             onTap: () {
-                              notifier.state = notifier.state.copyWith(
-                                resources: notifier.state.resources.copyWith(
-                                  crowns: notifier.state.resources.crowns + 500,
+                              notifier.debugModifyState((s) => s.copyWith(
+                                resources: s.resources.copyWith(
+                                  crowns: s.resources.crowns + 500,
                                 ),
-                              );
-                              notifier.saveGame();
+                              ));
                             },
                           ),
                         ),
@@ -243,11 +238,10 @@ class DebugMenuDialog extends ConsumerWidget {
                       borderColor: const Color(0xFF818CF8),
                       onTap: () {
                         final nextYear = gameState.yearIndex + 1;
-                        notifier.state = notifier.state.copyWith(
+                        notifier.debugModifyState((s) => s.copyWith(
                           yearIndex: nextYear,
                           celestialOmen: CelestialOmen.fromYearIndex(nextYear),
-                        );
-                        notifier.saveGame();
+                        ));
                       },
                     ),
 
@@ -347,8 +341,7 @@ class DebugMenuDialog extends ConsumerWidget {
                                   state: v.state == TileState.fog ? TileState.discovered : v.state,
                                 );
                               });
-                              notifier.state = notifier.state.copyWith(tiles: updated);
-                              notifier.saveGame();
+                              notifier.debugModifyState((s) => s.copyWith(tiles: updated));
                               notifier.showToast('Haritadaki tüm sisler açıldı.');
                             },
                           ),
@@ -372,8 +365,7 @@ class DebugMenuDialog extends ConsumerWidget {
                                   updated[k] = v.copyWith(state: TileState.fog);
                                 }
                               });
-                              notifier.state = notifier.state.copyWith(tiles: updated);
-                              notifier.saveGame();
+                              notifier.debugModifyState((s) => s.copyWith(tiles: updated));
                               notifier.showToast('Dış sisler yeniden kapatıldı.');
                             },
                           ),
@@ -394,13 +386,12 @@ class DebugMenuDialog extends ConsumerWidget {
                               gameState.tiles.forEach((k, v) {
                                 updated[k] = v.copyWith(state: TileState.owned);
                               });
-                              notifier.state = notifier.state.copyWith(
+                              notifier.debugModifyState((s) => s.copyWith(
                                 tiles: updated,
-                                progression: notifier.state.progression.copyWith(
+                                progression: s.progression.copyWith(
                                   ownedCount: updated.values.where((t) => t.isOwned).length,
                                 ),
-                              );
-                              notifier.saveGame();
+                              ));
                               notifier.showToast('Tüm karolar sahiplenildi.');
                             },
                           ),
@@ -514,14 +505,13 @@ class DebugMenuDialog extends ConsumerWidget {
     return Expanded(
       child: TactileNeoButton(
         onTap: () {
-          notifier.state = notifier.state.copyWith(
-            season: notifier.state.season.copyWith(
+          notifier.debugModifyState((s) => s.copyWith(
+            season: s.season.copyWith(
               current: seasonKey,
               isZud: isZud,
               timer: 60.0,
             ),
-          );
-          notifier.saveGame();
+          ));
         },
         backgroundColor: bg,
         borderColor: Colors.white24,
@@ -585,8 +575,7 @@ class DebugMenuDialog extends ConsumerWidget {
       building: tile.building!.copyWith(level: level),
     );
 
-    ref.read(gameStateProvider.notifier).state = state.copyWith(tiles: updatedTiles);
-    ref.read(gameStateProvider.notifier).saveGame();
+    ref.read(gameStateProvider.notifier).debugModifyState((s) => s.copyWith(tiles: updatedTiles));
     ref.read(gameStateProvider.notifier).showToast('${tile.building!.type.name.toUpperCase()} Seviye $level yapıldı.');
   }
 }

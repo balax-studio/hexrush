@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/tactile_audio_service.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/economy/combat_calculator.dart';
-import '../../domain/models/combat_model.dart';
 import '../providers/game_state_notifier.dart';
 import 'tactile_neo_button.dart';
 
@@ -108,7 +107,7 @@ class HornOfSteppeDialog extends ConsumerWidget {
                     Text(
                       'Bozkır Yağmacıları sınır karolardan Kağan Otağı\'na doğru taarruz edecek. Geçtikleri karolar tahrip olur (%50 üretim kaybı). Gözcü Kuleleri (R=3) ve Surlar ile Otağ\'ı savunun!',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.85),
+                        color: Colors.white.withValues(alpha: 0.85),
                         fontSize: 10,
                         height: 1.35,
                       ),

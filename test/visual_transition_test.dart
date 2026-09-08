@@ -121,7 +121,7 @@ void main() {
 
     test('HexTileComponent distinguishes owned vs unowned discovered tile state in rendering', () {
       const coord = HexAxial(2, 1);
-      final unownedTile = const HexTileModel(
+      const unownedTile = HexTileModel(
         coord: coord,
         biome: TileBiome.forest,
         state: TileState.discovered,

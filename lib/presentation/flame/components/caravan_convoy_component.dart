@@ -1,7 +1,5 @@
-import 'dart:math' as math;
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import '../../../core/hex/hex_coordinates.dart';
 import '../../../core/hex/hex_math.dart';
 import '../../../domain/models/caravan_route_model.dart';
 import '../renderers/voxel_isometric_renderer.dart';

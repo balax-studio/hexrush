@@ -27,6 +27,7 @@ import '../widgets/hud/active_raid_combat_hud.dart';
 import '../widgets/night_raid_atmosphere_overlay.dart';
 import '../widgets/season_transition_banner.dart';
 import '../widgets/migration_waypoint_banner.dart';
+import '../widgets/hud/tactile_context_hint.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
@@ -229,6 +230,23 @@ class _GameScreenState extends ConsumerState<GameScreen>
                   child: TileActionSheet(),
                 ),
               ),
+
+              // 5.5. Taktiksel Bozkır Bağlamsal İpucu (FTUE & Zud Kışı)
+              if (selectedCoord == null)
+                Positioned(
+                  bottom: 12,
+                  left: 14,
+                  right: 14,
+                  child: SafeArea(
+                    top: false,
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 480),
+                        child: const TactileContextHint(),
+                      ),
+                    ),
+                  ),
+                ),
 
               // 6. Sağ Taktiksel Hızlı Eylem Butonları (Kuş Bakışı & Diorama)
               Positioned(

@@ -59,11 +59,11 @@ void main() {
       const coord = HexAxial(1, 0);
 
       // Place a corn tile with 25.0 accumulated resources
-      final tile = HexTileModel(
+      const tile = HexTileModel(
         coord: coord,
         biome: TileBiome.meadow,
         state: TileState.owned,
-        building: const BuildingModel(
+        building: BuildingModel(
           type: BuildingType.corn,
           level: 1,
           accumulatedResource: 25.0,
@@ -100,11 +100,11 @@ void main() {
       );
 
       // Now build a level 3 lumberjack on the same tile (1, 0)
-      final lumberTile = HexTileModel(
+      const lumberTile = HexTileModel(
         coord: coord,
         biome: TileBiome.meadow,
         state: TileState.owned,
-        building: const BuildingModel(
+        building: BuildingModel(
           type: BuildingType.lumberjack,
           level: 3,
         ),

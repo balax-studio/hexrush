@@ -16,7 +16,7 @@ void main() {
 
   group('AdReward State & Persistence Tests', () {
     test('GameState holds adTracking and copyWith updates it', () {
-      final initial = GameState(tiles: const {});
+      const initial = GameState(tiles: {});
       expect(initial.adTracking.totalAdsWatched, 0);
 
       final updated = initial.copyWith(

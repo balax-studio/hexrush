@@ -22,8 +22,8 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
 
-      final testCoord = const HexAxial(0, 1);
-      final tile = HexTileModel(
+      const testCoord = HexAxial(0, 1);
+      const tile = HexTileModel(
         coord: testCoord,
         biome: TileBiome.meadow,
         state: TileState.owned,

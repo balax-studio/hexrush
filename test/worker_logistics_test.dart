@@ -7,12 +7,12 @@ import 'package:hex_rush/domain/models/hex_tile_model.dart';
 void main() {
   group('Worker Logistics & Carrying Capacity Telemetry Tests', () {
     test('Isolated Worker Hut has full idle capacity and 0% utilization', () {
-      final workerCoord = const HexAxial(0, 0);
-      final workerTile = HexTileModel(
+      const workerCoord = HexAxial(0, 0);
+      const workerTile = HexTileModel(
         coord: workerCoord,
         biome: TileBiome.meadow,
         state: TileState.owned,
-        building: const BuildingModel(
+        building: BuildingModel(
           type: BuildingType.worker,
           level: 1,
         ),
@@ -35,24 +35,24 @@ void main() {
     });
 
     test('Worker with nearby corn field within 4 hexes calculates correct utilization', () {
-      final workerCoord = const HexAxial(0, 0);
-      final cornCoord = const HexAxial(1, 0); // distance = 1 (within 4)
+      const workerCoord = HexAxial(0, 0);
+      const cornCoord = HexAxial(1, 0); // distance = 1 (within 4)
 
-      final workerTile = HexTileModel(
+      const workerTile = HexTileModel(
         coord: workerCoord,
         biome: TileBiome.meadow,
         state: TileState.owned,
-        building: const BuildingModel(
+        building: BuildingModel(
           type: BuildingType.worker,
           level: 1, // capacity = 1.68
         ),
       );
 
-      final cornTile = HexTileModel(
+      const cornTile = HexTileModel(
         coord: cornCoord,
         biome: TileBiome.meadow,
         state: TileState.owned,
-        building: const BuildingModel(
+        building: BuildingModel(
           type: BuildingType.corn,
           level: 1, // rate = 0.42
         ),
@@ -77,12 +77,12 @@ void main() {
     });
 
     test('Worker overloaded with many fields caps utilization at 100% and marks isOverloaded', () {
-      final workerCoord = const HexAxial(0, 0);
-      final workerTile = HexTileModel(
+      const workerCoord = HexAxial(0, 0);
+      const workerTile = HexTileModel(
         coord: workerCoord,
         biome: TileBiome.meadow,
         state: TileState.owned,
-        building: const BuildingModel(
+        building: BuildingModel(
           type: BuildingType.worker,
           level: 1, // capacity = 1.68
         ),
@@ -122,12 +122,12 @@ void main() {
     });
 
     test('Worker speed multiplier increases capacity proportionally', () {
-      final workerCoord = const HexAxial(0, 0);
-      final workerTile = HexTileModel(
+      const workerCoord = HexAxial(0, 0);
+      const workerTile = HexTileModel(
         coord: workerCoord,
         biome: TileBiome.meadow,
         state: TileState.owned,
-        building: const BuildingModel(
+        building: BuildingModel(
           type: BuildingType.worker,
           level: 2, // 1.68 * 2 = 3.36
         ),

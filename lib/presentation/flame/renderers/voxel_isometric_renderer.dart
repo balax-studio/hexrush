@@ -34,7 +34,7 @@ class VoxelIsometricRenderer {
 
   /// 3D İzometrik Küp / Prizma çizer (Zero-GC, Zero-Heap-Allocations)
   /// Donanım hızlandırmalı kenar ışığı (specular highlight) ve çift katmanlı yumuşak temas gölgesi içerir.
-  static void drawIsoCube(
+ static void drawIsoCube(
     Canvas canvas,
     Offset baseCenter, {
     required double w,
@@ -47,28 +47,30 @@ class VoxelIsometricRenderer {
     double shadowOpacity = 0.30,
     bool specularHighlight = true,
   }) {
-    final double dxR = (w * 0.5) * cosIso;
-    final double dyR = (w * 0.5) * sinIso;
-    final double dxL = -(d * 0.5) * cosIso;
-    final double dyL = (d * 0.5) * sinIso;
+    final double halfW = w * 0.5;
+    final double halfD = d * 0.5;
+
+    final double wx = halfW * cosIso;
+    final double wy = halfW * sinIso;
+    final double dx = -halfD * cosIso;
+    final double dy = halfD * sinIso;
 
     final double bx = baseCenter.dx;
     final double by = baseCenter.dy;
 
-    final double bFrontX = bx;
-    final double bFrontY = by + dyR + dyL;
-    final double bRightX = bx + dxR;
-    final double bRightY = by + dyR - dyL;
-    final double bLeftX = bx + dxL;
-    final double bLeftY = by - dyR + dyL;
-    final double bBackX = bx + dxR + dxL;
-    final double bBackY = by - dyR - dyL;
+    final double bFrontX = bx + wx + dx;
+    final double bFrontY = by + wy + dy;
+    final double bRightX = bx + wx - dx;
+    final double bRightY = by + wy - dy;
+    final double bLeftX = bx - wx + dx;
+    final double bLeftY = by - wy + dy;
+    final double bBackX = bx - wx - dx;
+    final double bBackY = by - wy - dy;
 
-    // Zemin temas gölgesi (İzometrik 45° Yönlü Çift Katmanlı Penumbra Yayılımı)
+    // Zemin temas gölgesi
     if (drawShadow) {
       final double sOffset = math.min(16.0, h * 0.42);
 
-      // 1. Katman: Geniş yumuşak dış penumbra gölgesi (45° Işık İzdüşümü)
       _cubePenumbraPaint.color = Colors.black.withValues(alpha: shadowOpacity * 0.35);
       _cubePenumbraPath
         ..reset()
@@ -79,7 +81,6 @@ class VoxelIsometricRenderer {
         ..close();
       canvas.drawPath(_cubePenumbraPath, _cubePenumbraPaint);
 
-      // 2. Katman: Yoğun taban temas gölgesi (Sert Göbek)
       _cubeShadowPaint.color = Colors.black.withValues(alpha: shadowOpacity);
       _cubeShadowPath
         ..reset()
@@ -96,7 +97,7 @@ class VoxelIsometricRenderer {
     final double tLeftY = bLeftY - h;
     final double tBackY = bBackY - h;
 
-    // 1. Sol Yüzey (Orta Işık / Dolaylı Gün Işığı)
+    // 1. Sol Yüzey
     _cubeLeftPath
       ..reset()
       ..moveTo(bLeftX, bLeftY)
@@ -107,7 +108,7 @@ class VoxelIsometricRenderer {
     _sharedFillPaint.color = leftColor;
     canvas.drawPath(_cubeLeftPath, _sharedFillPaint);
 
-    // 2. Sağ Yüzey (Ana Gölge Tarafı)
+    // 2. Sağ Yüzey
     _cubeRightPath
       ..reset()
       ..moveTo(bFrontX, bFrontY)
@@ -118,7 +119,7 @@ class VoxelIsometricRenderer {
     _sharedFillPaint.color = rightColor;
     canvas.drawPath(_cubeRightPath, _sharedFillPaint);
 
-    // 3. Üst Yüzey (Doğrudan Güneş Işığı)
+    // 3. Üst Yüzey
     _cubeTopPath
       ..reset()
       ..moveTo(bFrontX, tFrontY)
@@ -129,9 +130,8 @@ class VoxelIsometricRenderer {
     _sharedFillPaint.color = topColor;
     canvas.drawPath(_cubeTopPath, _sharedFillPaint);
 
-    // 4. Kenar Işığı, Pah Vurgusu ve Taban Temas Çizgileri (Specular Edge Chamfer & Contact AO)
+    // 4. Kenar Vurgusu
     if (specularHighlight && w >= 2.5 && h >= 1.5) {
-      // Üst ve arka kenarlar parlak pah çizgisi (Rim Light)
       _cubeSpecularPaint
         ..color = Colors.white.withValues(alpha: 0.32)
         ..strokeWidth = 1.0;
@@ -142,7 +142,6 @@ class VoxelIsometricRenderer {
         ..lineTo(bRightX, tRightY);
       canvas.drawPath(_cubeSpecularPath, _cubeSpecularPaint);
 
-      // Ön köşe dikey ışık kırılma çizgisi
       _cubeSpecularPaint.color = Colors.white.withValues(alpha: 0.18);
       canvas.drawLine(
         Offset(bFrontX, tFrontY),
@@ -150,7 +149,6 @@ class VoxelIsometricRenderer {
         _cubeSpecularPaint,
       );
 
-      // Alt taban temas kararması (Ambient Occlusion Contact Line)
       _cubeSpecularPaint.color = Colors.black.withValues(alpha: 0.26);
       canvas.drawLine(
         Offset(bLeftX, bLeftY),
@@ -164,7 +162,6 @@ class VoxelIsometricRenderer {
       );
     }
   }
-
   /// 3D İzometrik Voksel Küpünü Donanım Hızlandırmalı Mesh (Canvas.drawVertices) ile çizer
   static void drawIsoCubeMesh(
     Canvas canvas,
@@ -856,7 +853,7 @@ class VoxelIsometricRenderer {
     );
   }
 
-  /// 3D Voxel Karaca / Dağ Keçisi (VoxelFaunaRenderer Köprüsü)
+  /// 3D Voxel Asil Bozkır Geyiği & Ren Geyiği (VoxelFaunaRenderer Köprüsü)
   static void drawVoxelDeer(
     Canvas canvas,
     Offset pos, {
@@ -865,7 +862,64 @@ class VoxelIsometricRenderer {
     int seed = 0,
     bool flipX = false,
   }) {
-    VoxelFaunaRenderer.drawMountainIbex(
+    VoxelFaunaRenderer.drawSteppeDeer(
+      canvas,
+      pos,
+      animTime: animTime,
+      scale: scale,
+      seed: seed,
+      flipX: flipX,
+    );
+  }
+
+  /// 3D Voxel Bozkır Ayısı & Kutup Ayısı (VoxelFaunaRenderer Köprüsü)
+  static void drawVoxelBear(
+    Canvas canvas,
+    Offset pos, {
+    double animTime = 0.0,
+    double scale = 1.0,
+    int seed = 0,
+    bool flipX = false,
+  }) {
+    VoxelFaunaRenderer.drawSteppeBear(
+      canvas,
+      pos,
+      animTime: animTime,
+      scale: scale,
+      seed: seed,
+      flipX: flipX,
+    );
+  }
+
+  /// 3D Voxel Yaban Domuzu (VoxelFaunaRenderer Köprüsü)
+  static void drawVoxelBoar(
+    Canvas canvas,
+    Offset pos, {
+    double animTime = 0.0,
+    double scale = 1.0,
+    int seed = 0,
+    bool flipX = false,
+  }) {
+    VoxelFaunaRenderer.drawWildBoar(
+      canvas,
+      pos,
+      animTime: animTime,
+      scale: scale,
+      seed: seed,
+      flipX: flipX,
+    );
+  }
+
+  /// 3D Voxel Kızıl Bozkır Tilkisi (VoxelFaunaRenderer Köprüsü)
+  static void drawVoxelRedFox(
+    Canvas canvas,
+    Offset pos, {
+    double animTime = 0.0,
+    double scale = 1.0,
+    int seed = 0,
+    bool flipX = false,
+  }) {
+    VoxelFaunaRenderer.drawRedFox(
       canvas,
       pos,
       animTime: animTime,
@@ -6881,9 +6935,9 @@ class VoxelIsometricRenderer {
       w: 7.0,
       d: 7.0,
       h: 4.0,
-      topColor: Color(0xFFEF4444).withValues(alpha: emberPulse),
-      leftColor: Color(0xFFDC2626).withValues(alpha: emberPulse),
-      rightColor: Color(0xFFB91C1C).withValues(alpha: emberPulse),
+      topColor: const Color(0xFFEF4444).withValues(alpha: emberPulse),
+      leftColor: const Color(0xFFDC2626).withValues(alpha: emberPulse),
+      rightColor: const Color(0xFFB91C1C).withValues(alpha: emberPulse),
     );
 
     // Örs & Çelik Külçesi

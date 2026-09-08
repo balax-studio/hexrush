@@ -86,7 +86,7 @@ class SettingsDialog extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   'SES EFEKTLERİ',
                   style: NeoBrutalistTheme.fontLabel,
                 ),
@@ -145,7 +145,7 @@ class SettingsDialog extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   'BOZKIR MÜZİĞİ',
                   style: NeoBrutalistTheme.fontLabel,
                 ),

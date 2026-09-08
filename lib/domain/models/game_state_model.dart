@@ -1,5 +1,4 @@
 import 'trade_order_model.dart';
-import 'steppe_lore_tree_model.dart';
 
 class ResourcesModel {
   final double food;

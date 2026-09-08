@@ -6,7 +6,6 @@ import '../../../core/hex/hex_coordinates.dart';
 import '../../../core/hex/hex_math.dart';
 import '../../../core/theme/neo_brutalist_theme.dart';
 import '../../../domain/models/building_model.dart';
-import '../../../domain/models/combat_model.dart';
 import '../../../domain/models/hex_tile_model.dart';
 import '../../../domain/services/symbiosis_engine.dart';
 import '../hex_map_game.dart';
@@ -1313,6 +1312,17 @@ class HexTileComponent extends PositionComponent {
         } else {
           VoxelIsometricRenderer.drawVoxelPebbles(canvas, Offset(center.dx + 6, center.dy + 6), scale: 0.85);
         }
+        if (seed % 3 == 0) {
+          final roamBoar = getFaunaRoamData(seed * 13 + 7, speedMultiplier: 0.85);
+          VoxelFaunaRenderer.drawWildBoar(
+            canvas,
+            Offset(center.dx - 4 + roamBoar.offset.dx, center.dy + 4 + roamBoar.offset.dy),
+            animTime: _animTimer + roamBoar.walkAnim,
+            scale: 0.88,
+            seed: seed,
+            flipX: roamBoar.flipX,
+          );
+        }
         break;
       case 2:
         VoxelIsometricRenderer.drawVoxelPine(
@@ -1356,6 +1366,17 @@ class HexTileComponent extends PositionComponent {
           Offset(center.dx - 10, center.dy + 6),
           scale: 0.9,
         );
+        if (seed % 4 == 0) {
+          final roamBear = getFaunaRoamData(seed * 17 + 3, speedMultiplier: 0.75);
+          VoxelFaunaRenderer.drawSteppeBear(
+            canvas,
+            Offset(center.dx - 2 + roamBear.offset.dx, center.dy + 4 + roamBear.offset.dy),
+            animTime: tileAnimTime + roamBear.walkAnim,
+            scale: 0.95,
+            seed: seed,
+            flipX: roamBear.flipX,
+          );
+        }
         break;
     }
 
@@ -1579,6 +1600,18 @@ class HexTileComponent extends PositionComponent {
         drawGrass(Offset(center.dx - 8, center.dy - 6), scale: 0.8);
         drawGrass(Offset(center.dx + 6, center.dy + 2), scale: 0.75);
         drawGrass(Offset(center.dx - 2, center.dy - 2), scale: 0.85);
+
+        if (seed % 4 == 0) {
+          final roamFox = getFaunaRoamData(seed * 15 + 1, speedMultiplier: 1.2);
+          VoxelFaunaRenderer.drawRedFox(
+            canvas,
+            Offset(center.dx + roamFox.offset.dx, center.dy + 3 + roamFox.offset.dy),
+            animTime: tTime + roamFox.walkAnim,
+            seed: seed,
+            scale: 0.85,
+            flipX: roamFox.flipX,
+          );
+        }
         break;
     }
 
@@ -1619,7 +1652,7 @@ class HexTileComponent extends PositionComponent {
       seed: seed,
     );
 
-    // Sarp Kayalıklarda Yaban Keçisi veya Bozkır Kurdu
+    // Sarp Kayalıklarda Yaban Keçisi, Bozkır Kurdu veya Bozayı
     if (seed % 3 == 0) {
       final roamIbex = getFaunaRoamData(seed * 19 + 4, speedMultiplier: 0.8);
       VoxelFaunaRenderer.drawMountainIbex(
@@ -1639,6 +1672,16 @@ class HexTileComponent extends PositionComponent {
         seed: seed * 13 + 9,
         scale: 0.85,
         flipX: roamWolf.flipX,
+      );
+    } else if (seed % 7 == 0) {
+      final roamBear = getFaunaRoamData(seed * 23 + 5, speedMultiplier: 0.75);
+      VoxelFaunaRenderer.drawSteppeBear(
+        canvas,
+        Offset(center.dx - 6 + roamBear.offset.dx, center.dy + 5 + roamBear.offset.dy),
+        animTime: tileAnimTime + roamBear.walkAnim,
+        seed: seed,
+        scale: 0.95,
+        flipX: roamBear.flipX,
       );
     } else if (seed % 2 == 0) {
       // 2.5D Çok Katmanlı Yamaç Teras Basamakları
@@ -1790,6 +1833,17 @@ class HexTileComponent extends PositionComponent {
         break;
       case 2:
         VoxelIsometricRenderer.drawVoxelPermafrostSpire(canvas, center, scale: 1.1);
+        if (seed % 3 == 0) {
+          final roamBear = getFaunaRoamData(seed * 29 + 7, speedMultiplier: 0.7);
+          VoxelFaunaRenderer.drawSteppeBear(
+            canvas,
+            Offset(center.dx - 2 + roamBear.offset.dx, center.dy + 4 + roamBear.offset.dy),
+            animTime: tileAnimTime + roamBear.walkAnim,
+            seed: 1, // Kutup kar beyazı varyantı
+            scale: 1.05,
+            flipX: roamBear.flipX,
+          );
+        }
         break;
       case 3:
       default:

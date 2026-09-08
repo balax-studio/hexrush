@@ -10,7 +10,6 @@ import '../../domain/economy/economy_calculator.dart';
 import '../../domain/models/building_model.dart';
 import '../../domain/models/combat_model.dart';
 import '../../domain/models/game_state.dart';
-import '../../domain/models/game_state_model.dart';
 import '../../domain/models/hex_tile_model.dart';
 import '../../domain/services/symbiosis_engine.dart';
 import '../providers/game_state_notifier.dart';
@@ -558,7 +557,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
           const SizedBox(height: 6),
           Text(
             'Düşman akınında hasar aldı. Normal üretime dönmek için onarın:',
-            style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 10),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 10),
           ),
           const SizedBox(height: 8),
           Row(

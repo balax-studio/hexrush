@@ -147,8 +147,8 @@ class WorkerFlowArrowComponent extends PositionComponent {
       }
 
       // Başlangıç ve bitiş noktalarını binaların merkezinden biraz ofsetle
-      final double startOffsetDist = 14.0;
-      final double endOffsetDist = 18.0;
+      const double startOffsetDist = 14.0;
+      const double endOffsetDist = 18.0;
 
       final pStart = flow.startPixel + flow.dir * startOffsetDist;
       final pEnd = flow.endPixel - flow.dir * endOffsetDist;
@@ -181,7 +181,7 @@ class WorkerFlowArrowComponent extends PositionComponent {
       canvas.drawPath(_arrowPath, _arrowHeadBorderPaint);
 
       // 4. Hat üzerinde deterministik olarak akan yeşil enerji parçacıkları (Kinetik Lojistik Akışı)
-      final double speed = 0.55; // Saniyede yarım tur
+      const double speed = 0.55; // Saniyede yarım tur
       final double phase = (_animTimer * speed + (i * 0.23)) % 1.0;
       final Vector2 pulsePos = pStart + (pEnd - pStart) * phase;
       final Offset pulseOffset = Offset(pulsePos.x, pulsePos.y);

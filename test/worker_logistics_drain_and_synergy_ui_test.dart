@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hex_rush/core/hex/hex_coordinates.dart';
 import 'package:hex_rush/domain/models/building_model.dart';
-import 'package:hex_rush/domain/models/game_state_model.dart';
 import 'package:hex_rush/domain/models/hex_tile_model.dart';
 import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
 import 'package:hex_rush/presentation/widgets/tile_action_sheet.dart';
@@ -16,17 +15,17 @@ void main() {
       final notifier = GameStateNotifier();
 
       // Setup a worker at (0, 1) and a corn farm at (0, 0)
-      final farmCoord = const HexAxial(0, 0);
-      final workerCoord = const HexAxial(0, 1);
+      const farmCoord = HexAxial(0, 0);
+      const workerCoord = HexAxial(0, 1);
 
       final updatedTiles = Map<HexAxial, HexTileModel>.from(notifier.state.tiles);
 
       // Corn farm with level 1 and 5.0 backlogged accumulated resources
-      updatedTiles[farmCoord] = HexTileModel(
+      updatedTiles[farmCoord] = const HexTileModel(
         coord: farmCoord,
         biome: TileBiome.meadow,
         state: TileState.owned,
-        building: const BuildingModel(
+        building: BuildingModel(
           type: BuildingType.corn,
           level: 1,
           accumulatedResource: 5.0,
@@ -34,11 +33,11 @@ void main() {
       );
 
       // Worker hut with level 2 (carrying capacity = 3.36)
-      updatedTiles[workerCoord] = HexTileModel(
+      updatedTiles[workerCoord] = const HexTileModel(
         coord: workerCoord,
         biome: TileBiome.meadow,
         state: TileState.owned,
-        building: const BuildingModel(
+        building: BuildingModel(
           type: BuildingType.worker,
           level: 2,
         ),
@@ -58,8 +57,8 @@ void main() {
     });
 
     testWidgets('TileActionSheet renders unified green total synergy stat and expands on tap', (tester) async {
-      final farmCoord = const HexAxial(0, 0);
-      final millCoord = const HexAxial(0, 1); // Adjacent -> Chain Synergy (2.0x)
+      const farmCoord = HexAxial(0, 0);
+      const millCoord = HexAxial(0, 1); // Adjacent -> Chain Synergy (2.0x)
 
       final container = ProviderContainer(
         overrides: [
@@ -67,18 +66,18 @@ void main() {
             final notifier = GameStateNotifier();
             final updatedTiles = Map<HexAxial, HexTileModel>.from(notifier.state.tiles);
 
-            updatedTiles[farmCoord] = HexTileModel(
+            updatedTiles[farmCoord] = const HexTileModel(
               coord: farmCoord,
               biome: TileBiome.meadow,
               state: TileState.owned,
-              building: const BuildingModel(type: BuildingType.corn, level: 1),
+              building: BuildingModel(type: BuildingType.corn, level: 1),
             );
 
-            updatedTiles[millCoord] = HexTileModel(
+            updatedTiles[millCoord] = const HexTileModel(
               coord: millCoord,
               biome: TileBiome.meadow,
               state: TileState.owned,
-              building: const BuildingModel(type: BuildingType.windmill, level: 1),
+              building: BuildingModel(type: BuildingType.windmill, level: 1),
             );
 
             notifier.state = notifier.state.copyWith(

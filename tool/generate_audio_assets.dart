@@ -8,7 +8,7 @@ void main() async {
     audioDir.createSync(recursive: true);
   }
 
-  print('Synthesizing HexRush Organic Audio Suite...');
+  stdout.writeln('Synthesizing HexRush Organic Audio Suite...');
 
   // 1. UI & Tactile SFX
   _generateWav('assets/audio/tap.wav', _generateTapSound());
@@ -27,13 +27,13 @@ void main() async {
   // 2. Relaxing Chill Steppe Background Music (Loopable 32-second track)
   _generateWav('assets/audio/steppe_chill_loop.wav', _generateSteppeChillMusic());
 
-  print('Audio Suite Generation Complete! 13 assets generated in assets/audio/');
+  stdout.writeln('Audio Suite Generation Complete! 13 assets generated in assets/audio/');
 }
 
 void _generateWav(String path, List<double> samples, {int sampleRate = 44100, int channels = 1}) {
   final byteData = _encodeWav(samples, sampleRate: sampleRate, channels: channels);
   File(path).writeAsBytesSync(byteData.buffer.asUint8List());
-  print('Generated $path (${samples.length / sampleRate}s, ${byteData.lengthInBytes} bytes)');
+  stdout.writeln('Generated $path (${samples.length / sampleRate}s, ${byteData.lengthInBytes} bytes)');
 }
 
 ByteData _encodeWav(List<double> samples, {int sampleRate = 44100, int channels = 1}) {

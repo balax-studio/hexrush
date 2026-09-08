@@ -69,8 +69,8 @@ class HornOfSteppeHUD extends ConsumerWidget {
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEF4444),
+              decoration: const BoxDecoration(
+                color: Color(0xFFEF4444),
                 borderRadius: NeoBrutalistTheme.sharpRadius,
               ),
               child: Text(
