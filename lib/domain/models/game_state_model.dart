@@ -205,6 +205,7 @@ class ProgressionModel {
   final Map<String, bool> victoryMilestones;
   final List<String> activeOaths;
   final double kutMultiplier;
+  final bool hasSeenIntro;
 
   const ProgressionModel({
     this.castleLevel = 1,
@@ -228,6 +229,7 @@ class ProgressionModel {
     },
     this.activeOaths = const [],
     this.kutMultiplier = 1.0,
+    this.hasSeenIntro = false,
   });
 
   ProgressionModel copyWith({
@@ -248,6 +250,7 @@ class ProgressionModel {
     Map<String, bool>? victoryMilestones,
     List<String>? activeOaths,
     double? kutMultiplier,
+    bool? hasSeenIntro,
   }) {
     return ProgressionModel(
       castleLevel: castleLevel ?? this.castleLevel,
@@ -269,6 +272,7 @@ class ProgressionModel {
       victoryMilestones: victoryMilestones ?? this.victoryMilestones,
       activeOaths: activeOaths ?? this.activeOaths,
       kutMultiplier: kutMultiplier ?? this.kutMultiplier,
+      hasSeenIntro: hasSeenIntro ?? this.hasSeenIntro,
     );
   }
 
@@ -290,6 +294,7 @@ class ProgressionModel {
         'victory_milestones': victoryMilestones,
         'active_oaths': activeOaths,
         'kut_multiplier': kutMultiplier,
+        'has_seen_intro': hasSeenIntro,
       };
 
   factory ProgressionModel.fromJson(Map<String, dynamic> json) {
@@ -363,6 +368,7 @@ class ProgressionModel {
       victoryMilestones: victories,
       activeOaths: oaths,
       kutMultiplier: (json['kut_multiplier'] as num?)?.toDouble() ?? 1.0,
+      hasSeenIntro: json['has_seen_intro'] as bool? ?? false,
     );
   }
 }

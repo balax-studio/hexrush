@@ -228,7 +228,6 @@ void main() {
           plank: 100,
           bread: 100,
         ),
-        progression: notifier.state.progression.copyWith(castleLevel: 5),
       );
 
       // Kervan kur

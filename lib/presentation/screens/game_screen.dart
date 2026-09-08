@@ -28,6 +28,7 @@ import '../widgets/night_raid_atmosphere_overlay.dart';
 import '../widgets/season_transition_banner.dart';
 import '../widgets/migration_waypoint_banner.dart';
 import '../widgets/hud/tactile_context_hint.dart';
+import '../widgets/intro_story_dialog.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
@@ -40,6 +41,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
     with WidgetsBindingObserver {
   int? _pauseTimestamp;
   bool _isOfflineDialogShowing = false;
+  bool _isManualStoryOpen = false;
 
   @override
   void initState() {
@@ -428,6 +430,28 @@ class _GameScreenState extends ConsumerState<GameScreen>
                         ),
                       ),
                       const SizedBox(height: 8),
+                      // Bozkır Destanı (Giriş Hikayesi) Butonu
+                      TactileNeoButton(
+                        onTap: () {
+                          setState(() => _isManualStoryOpen = true);
+                        },
+                        backgroundColor: const Color(0xFF451A03),
+                        borderColor: const Color(0xFFD97706),
+                        shadowColor: theme.shadowColor,
+                        shadowOffset: 2.0,
+                        height: 36,
+                        width: 36,
+                        padding: EdgeInsets.zero,
+                        alignment: Alignment.center,
+                        child: const Center(
+                          child: Icon(
+                            Icons.history_edu,
+                            size: 18,
+                            color: Color(0xFFF59E0B),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                       // Geliştirici Denetim Konsolu (Debug Menü) Butonu
                       TactileNeoButton(
                         onTap: () {
@@ -499,6 +523,21 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
             // 8. Non-blocking Bildirim Toaster
             const ToastOverlay(),
+
+            // 9. Bozkır Destanı Giriş Hikayesi Ekranı (İlk Açılışta veya Butonla Tetiklendiğinde)
+            if (!ref.watch(gameStateProvider.select((s) => s.progression.hasSeenIntro)) || _isManualStoryOpen)
+              Positioned.fill(
+                child: Container(
+                  color: const Color(0xE6020617),
+                  child: IntroStoryDialog(
+                    onComplete: () {
+                      if (_isManualStoryOpen) {
+                        setState(() => _isManualStoryOpen = false);
+                      }
+                    },
+                  ),
+                ),
+              ),
           ],
         ),
       ),

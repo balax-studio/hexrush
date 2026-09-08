@@ -6,6 +6,7 @@ import '../../core/theme/neo_brutalist_theme.dart';
 import '../providers/game_state_notifier.dart';
 import 'great_migration_dialog.dart';
 import 'icons/game_vector_icons.dart';
+import 'intro_story_dialog.dart';
 import 'tactile_neo_button.dart';
 import 'tactile_dialog_route.dart';
 
@@ -326,6 +327,39 @@ class SettingsDialog extends ConsumerWidget {
                   SizedBox(width: 6),
                   Text(
                     'BÜYÜK GÖÇ & SIFIRLAMA EKRANI',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            // Bozkır Destanı & Başlangıç Hikayesi Butonu
+            TactileNeoButton(
+              onTap: () {
+                Navigator.of(context).pop();
+                IntroStoryDialog.show(context);
+              },
+              backgroundColor: const Color(0xFF1E293B),
+              borderColor: const Color(0xFFF59E0B),
+              shadowColor: const Color(0xFF020617),
+              shadowOffset: 2.5,
+              height: 38,
+              padding: EdgeInsets.zero,
+              alignment: Alignment.center,
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.history_edu, color: Color(0xFFF59E0B), size: 16),
+                  SizedBox(width: 6),
+                  Text(
+                    'BOZKIR DESTANI (GİRİŞ HİKAYESİ)',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 11,

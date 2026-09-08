@@ -1753,6 +1753,13 @@ class GameStateNotifier extends StateNotifier<GameState> {
     return true;
   }
 
+  void completeIntroStory() {
+    state = state.copyWith(
+      progression: state.progression.copyWith(hasSeenIntro: true),
+    );
+    saveGame();
+  }
+
   bool claimTitle(String titleKey) {
     if (state.titles[titleKey] == true) {
       showToast('Bu unvana zaten sahipsiniz.');
