@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/audio/tactile_audio_service.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
@@ -33,10 +34,11 @@ class SettingsDialog extends ConsumerWidget {
           borderRadius: NeoBrutalistTheme.standardRadius,
           boxShadow: NeoBrutalistTheme.hardShadow(offset: 4.0),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -371,6 +373,43 @@ class SettingsDialog extends ConsumerWidget {
               ),
             ),
 
+            const SizedBox(height: 10),
+
+            // Gizlilik Politikası Butonu
+            TactileNeoButton(
+              onTap: () async {
+                final uri = Uri.parse(
+                  'https://docs.google.com/document/d/e/2PACX-1vT3zbnKsGeO3fr4Or-GmlSlB9v91gu_SQ8kMHlTfu7WywoCh3y8MGKJ5WFhnDC8pdmeddzqFtsAaosr/pub',
+                );
+                try {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                } catch (_) {}
+              },
+              backgroundColor: const Color(0xFF0F172A),
+              borderColor: const Color(0xFF38BDF8),
+              shadowColor: const Color(0xFF020617),
+              shadowOffset: 2.5,
+              height: 38,
+              padding: EdgeInsets.zero,
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.privacy_tip_outlined, color: Color(0xFF38BDF8), size: 16),
+                  const SizedBox(width: 6),
+                  Text(
+                    GameLocalization.get('privacy_policy', lang: lang).toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
             const SizedBox(height: 12),
             const Center(
               child: Text(
@@ -381,8 +420,9 @@ class SettingsDialog extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildLangButton(BuildContext context, GameStateNotifier notifier, String code, String label, bool isSelected) {
     return TactileNeoButton(

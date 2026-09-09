@@ -10,7 +10,7 @@ import '../../domain/models/hex_tile_model.dart';
 import 'components/floating_resource_number_component.dart';
 import 'components/floating_voxel_cloud_component.dart';
 import 'components/hex_tile_component.dart';
-import 'components/snow_particle_emitter.dart';
+import 'components/season_weather_particle_emitter.dart';
 import 'components/steppe_messenger_component.dart';
 import 'components/caravan_convoy_component.dart';
 import 'components/harvest_sparkle_emitter.dart';

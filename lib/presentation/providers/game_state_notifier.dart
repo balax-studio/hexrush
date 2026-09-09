@@ -2048,7 +2048,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     AdRewardType type, {
     IAdRewardService? adService,
   }) async {
-    final service = adService ?? MockAdRewardService();
+    final service = adService ?? AdRewardServiceFactory.defaultService;
     final currentTracking = state.adTracking.checkDailyReset();
     final currentCount = currentTracking.getWatchCount(type);
     final maxAllowed = EconomyCalculator.getMaxDailyWatches(type);
