@@ -1198,23 +1198,41 @@ class VoxelIsometricRenderer {
 
   /// 3D Voxel Ekin / Buğday Tarlası (Çoklu Görsel Varyantlar & Rüzgar Salınımlı)
   static void drawVoxelCropField(Canvas canvas, Offset baseCenter, {double animTime = 0.0, int variant = 0}) {
+    // 1. Zemin Toprak Tabanı
     drawIsoCube(
       canvas,
       baseCenter,
       w: 38.0,
       d: 38.0,
       h: 4.0,
-      topColor: const Color(0xFF854D0E),
-      leftColor: const Color(0xFF713F12),
-      rightColor: const Color(0xFF522C0A),
+      topColor: const Color(0xFF78350F),
+      leftColor: const Color(0xFF5A2508),
+      rightColor: const Color(0xFF451A03),
       drawShadow: true,
     );
 
     final Offset fieldTop = Offset(baseCenter.dx, baseCenter.dy - 4.0);
+
+    // 2. Sürülmüş Toprak Karıkları (Tilled Soil Ridges / Furrows)
+    for (int ridge = -2; ridge <= 2; ridge++) {
+      final double rOffX = (ridge * 6.5) * cosIso;
+      final double rOffY = (ridge * 6.5) * sinIso;
+      drawIsoCube(
+        canvas,
+        Offset(fieldTop.dx + rOffX, fieldTop.dy + rOffY),
+        w: 3.0,
+        d: 32.0,
+        h: 1.2,
+        topColor: const Color(0xFF92400E),
+        leftColor: const Color(0xFF78350F),
+        rightColor: const Color(0xFF5A2508),
+      );
+    }
+
     final int v = variant % 3;
 
     if (v == 1) {
-      // Varyant 1: Çapraz Ekinler & Saman Balyaları
+      // Varyant 1: Çapraz Yoğun Ekinler & Saman Balyaları
       // 2 Köşede Saman Balyası
       drawIsoCube(
         canvas,
@@ -1237,79 +1255,121 @@ class VoxelIsometricRenderer {
         rightColor: const Color(0xFFCA8A04),
       );
 
-      // Çapraz ekin sıraları
-      for (int i = -1; i <= 1; i++) {
-        for (int j = -1; j <= 1; j++) {
-          if (i == -1 && j == -1) continue; // Saman balyası yeri
-          final double windSway = math.sin(animTime * 3.0 + i * 1.1 + j * 0.7) * 1.6;
-          final double offX = (i * 9.0 * cosIso) - (j * 7.0 * cosIso) + windSway;
-          final double offY = (i * 9.0 * sinIso) + (j * 7.0 * sinIso);
+      // İnce ve Yoğun Başak Sıraları (5x5)
+      for (int r = -2; r <= 2; r++) {
+        for (int c = -2; c <= 2; c++) {
+          if (r <= -1 && c <= -1) continue; // Saman balyası alanı
+          final double windSway = math.sin(animTime * 3.2 + r * 0.8 + c * 0.5) * 1.8;
+          final double offX = (c * 5.5 * cosIso) - (r * 5.5 * cosIso) + windSway;
+          final double offY = (c * 5.5 * sinIso) + (r * 5.5 * sinIso);
+          final double stalkH = 8.5 + ((r.abs() + c.abs()) % 3) * 1.4;
+          final stalkPos = Offset(fieldTop.dx + offX, fieldTop.dy + offY);
+
+          // İnce Başak Sapı
           drawIsoCube(
             canvas,
-            Offset(fieldTop.dx + offX, fieldTop.dy + offY),
-            w: 4.5,
-            d: 4.5,
-            h: 8.0 + ((i + j + 3) % 2) * 2.5,
+            stalkPos,
+            w: 1.8,
+            d: 1.8,
+            h: stalkH,
+            topColor: const Color(0xFFFACC15),
+            leftColor: const Color(0xFFEAB308),
+            rightColor: const Color(0xFFCA8A04),
+          );
+          // Tepe Başak Püskülü / Taneciği (Grain Head)
+          drawIsoCube(
+            canvas,
+            Offset(stalkPos.dx + windSway * 0.4, stalkPos.dy - stalkH),
+            w: 2.6,
+            d: 2.6,
+            h: 2.8,
             topColor: const Color(0xFFFEF08A),
             leftColor: const Color(0xFFFACC15),
-            rightColor: const Color(0xFFCA8A04),
+            rightColor: const Color(0xFFEAB308),
           );
         }
       }
     } else if (v == 2) {
-      // Varyant 2: Sulama Arkı & İkiz Ekin Yatağı
+      // Varyant 2: Mavi Sulama Arkı & Çift Yaka Yoğun Başak Tarlası
       // Ortadan geçen mavi sulama arkı
       drawIsoCube(
         canvas,
         Offset(fieldTop.dx, fieldTop.dy),
         w: 36.0,
-        d: 5.0,
+        d: 4.5,
         h: 1.0,
         topColor: const Color(0xFF38BDF8),
         leftColor: const Color(0xFF0284C7),
         rightColor: const Color(0xFF0369A1),
       );
 
-      // Sağ ve Sol yakadaki ekin dizileri
+      // Sağ ve Sol yakada sık ince başak kümeleri
       for (int side in [-1, 1]) {
-        for (int c = -1; c <= 1; c++) {
-          final double windSway = math.sin(animTime * 2.8 + side * 1.5 + c * 0.9) * 1.4;
-          final double offX = (c * 9.0 * cosIso) + (side * 8.0 * sinIso) + windSway;
-          final double offY = (c * 9.0 * sinIso) + (side * 8.0 * cosIso);
-          drawIsoCube(
-            canvas,
-            Offset(fieldTop.dx + offX, fieldTop.dy + offY),
-            w: 4.0,
-            d: 4.0,
-            h: 8.5 + ((c + 2) % 2) * 2.0,
-            topColor: side == 1 ? const Color(0xFFFEF08A) : const Color(0xFF86EFAC),
-            leftColor: side == 1 ? const Color(0xFFFACC15) : const Color(0xFF4ADE80),
-            rightColor: side == 1 ? const Color(0xFFCA8A04) : const Color(0xFF22C55E),
-          );
+        for (int r = -2; r <= 2; r++) {
+          for (int c = 0; c <= 1; c++) {
+            final double windSway = math.sin(animTime * 3.0 + side * 1.4 + r * 0.7 + c * 0.5) * 1.6;
+            final double offX = (r * 5.8 * cosIso) + (side * (8.5 + c * 4.5) * sinIso) + windSway;
+            final double offY = (r * 5.8 * sinIso) + (side * (8.5 + c * 4.5) * cosIso);
+            final double stalkH = 8.0 + ((r + c + 4) % 3) * 1.5;
+            final stalkPos = Offset(fieldTop.dx + offX, fieldTop.dy + offY);
+
+            // İnce Başak Sapı
+            drawIsoCube(
+              canvas,
+              stalkPos,
+              w: 1.8,
+              d: 1.8,
+              h: stalkH,
+              topColor: side == 1 ? const Color(0xFFFACC15) : const Color(0xFF86EFAC),
+              leftColor: side == 1 ? const Color(0xFFEAB308) : const Color(0xFF4ADE80),
+              rightColor: side == 1 ? const Color(0xFFCA8A04) : const Color(0xFF22C55E),
+            );
+            // Tepe Başak Taneciği
+            drawIsoCube(
+              canvas,
+              Offset(stalkPos.dx + windSway * 0.3, stalkPos.dy - stalkH),
+              w: 2.5,
+              d: 2.5,
+              h: 2.6,
+              topColor: side == 1 ? const Color(0xFFFEF08A) : const Color(0xFFBBF7D0),
+              leftColor: side == 1 ? const Color(0xFFFACC15) : const Color(0xFF86EFAC),
+              rightColor: side == 1 ? const Color(0xFFCA8A04) : const Color(0xFF4ADE80),
+            );
+          }
         }
       }
     } else {
-      // Varyant 0: 3x3 Klasik Sıralar & Ahşap Korkuluk Haçı
-      const int rows = 3;
-      const int cols = 3;
+      // Varyant 0: 5x5 Yoğun İnce Başaklar & Ahşap Korkuluk Haçı
+      for (int r = -2; r <= 2; r++) {
+        for (int c = -2; c <= 2; c++) {
+          if (r == 0 && c == 0) continue; // Merkezde ahşap korkuluk
+          final double windSway = math.sin(animTime * 3.0 + (r * 0.7) + (c * 0.5)) * 1.8;
+          final double offX = (c * 5.6 * cosIso) - (r * 5.6 * cosIso) + windSway;
+          final double offY = (c * 5.6 * sinIso) + (r * 5.6 * sinIso);
+          final Offset stalkPos = Offset(fieldTop.dx + offX, fieldTop.dy + offY);
+          final double stalkH = 8.5 + ((r.abs() + c.abs() + 2) % 3) * 1.5;
 
-      for (int r = 0; r < rows; r++) {
-        for (int c = 0; c < cols; c++) {
-          if (r == 1 && c == 1) continue; // Ortada korkuluk
-          final double windSway = math.sin(animTime * 3.0 + (r * 0.8) + (c * 0.6)) * 1.5;
-          final double offX = (c - 1) * 8.0 * cosIso - (r - 1) * 8.0 * cosIso + windSway;
-          final double offY = (c - 1) * 8.0 * sinIso + (r - 1) * 8.0 * sinIso;
-          final Offset cropPos = Offset(fieldTop.dx + offX, fieldTop.dy + offY);
-
+          // İnce Başak Sapı (w: 1.8, d: 1.8)
           drawIsoCube(
             canvas,
-            cropPos,
-            w: 4.0,
-            d: 4.0,
-            h: 8.0 + ((r + c) % 2) * 2.0,
+            stalkPos,
+            w: 1.8,
+            d: 1.8,
+            h: stalkH,
+            topColor: const Color(0xFFFACC15),
+            leftColor: const Color(0xFFEAB308),
+            rightColor: const Color(0xFFCA8A04),
+          );
+          // Altın Sarı Tepe Başak Püskülü (Grain Head)
+          drawIsoCube(
+            canvas,
+            Offset(stalkPos.dx + windSway * 0.35, stalkPos.dy - stalkH),
+            w: 2.6,
+            d: 2.6,
+            h: 3.0,
             topColor: const Color(0xFFFEF08A),
             leftColor: const Color(0xFFFACC15),
-            rightColor: const Color(0xFFCA8A04),
+            rightColor: const Color(0xFFEAB308),
           );
         }
       }
@@ -1320,15 +1380,15 @@ class VoxelIsometricRenderer {
         fieldTop,
         w: 2.5,
         d: 2.5,
-        h: 11.0,
+        h: 12.0,
         topColor: const Color(0xFF92400E),
         leftColor: const Color(0xFF78350F),
         rightColor: const Color(0xFF451A03),
       );
       drawIsoCube(
         canvas,
-        Offset(fieldTop.dx, fieldTop.dy - 7.0),
-        w: 8.0,
+        Offset(fieldTop.dx, fieldTop.dy - 7.5),
+        w: 8.5,
         d: 2.0,
         h: 2.0,
         topColor: const Color(0xFFB45309),
@@ -1337,7 +1397,7 @@ class VoxelIsometricRenderer {
       );
       drawIsoCube(
         canvas,
-        Offset(fieldTop.dx, fieldTop.dy - 11.0),
+        Offset(fieldTop.dx, fieldTop.dy - 12.0),
         w: 3.5,
         d: 3.5,
         h: 3.0,
@@ -1348,8 +1408,9 @@ class VoxelIsometricRenderer {
     }
   }
 
-  /// 3D Voxel Arpa / Darı Tarlası (Çoklu Görsel Varyantlar)
+  /// 3D Voxel Arpa / Darı Tarlası (Yoğun İnce Kehribar Başaklar)
   static void drawVoxelBarleyField(Canvas canvas, Offset baseCenter, {double animTime = 0.0, int variant = 0}) {
+    // Toprak Tabanı
     drawIsoCube(
       canvas,
       baseCenter,
@@ -1363,11 +1424,27 @@ class VoxelIsometricRenderer {
     );
 
     final Offset fieldTop = Offset(baseCenter.dx, baseCenter.dy - 4.0);
+
+    // Sürülmüş Toprak Karıkları
+    for (int ridge = -2; ridge <= 2; ridge++) {
+      final double rOffX = (ridge * 6.5) * cosIso;
+      final double rOffY = (ridge * 6.5) * sinIso;
+      drawIsoCube(
+        canvas,
+        Offset(fieldTop.dx + rOffX, fieldTop.dy + rOffY),
+        w: 2.8,
+        d: 32.0,
+        h: 1.0,
+        topColor: const Color(0xFF854D0E),
+        leftColor: const Color(0xFF713F12),
+        rightColor: const Color(0xFF522C0A),
+      );
+    }
+
     final int v = variant % 3;
 
     if (v == 1) {
-      // Varyant 1: Ahşap Çitler & Rüzgar Flama Direği
-      // Kenar ahşap çitler
+      // Varyant 1: Ahşap Çitler & Rüzgar Flama Direği + Yoğun İnce Arpa Başakları
       for (double side in [-1.0, 1.0]) {
         drawIsoCube(
           canvas,
@@ -1405,27 +1482,40 @@ class VoxelIsometricRenderer {
         rightColor: const Color(0xFF991B1B),
       );
 
-      // Gür arpa başakları
-      for (int r = -1; r <= 1; r++) {
-        for (int c = -1; c <= 1; c++) {
-          final double windSway = math.sin(animTime * 2.6 + r * 1.0 + c * 0.8) * 1.6;
-          final double offX = (c * 7.5 * cosIso) - (r * 7.5 * cosIso) + windSway;
-          final double offY = (c * 7.5 * sinIso) + (r * 7.5 * sinIso);
+      // İnce ve Yoğun Arpa Başakları (5x5)
+      for (int r = -2; r <= 2; r++) {
+        for (int c = -2; c <= 2; c++) {
+          final double windSway = math.sin(animTime * 2.8 + r * 0.9 + c * 0.6) * 1.8;
+          final double offX = (c * 5.4 * cosIso) - (r * 5.4 * cosIso) + windSway;
+          final double offY = (c * 5.4 * sinIso) + (r * 5.4 * sinIso);
+          final double stalkH = 9.0 + ((r.abs() + c.abs()) % 3) * 1.6;
+          final stalkPos = Offset(fieldTop.dx + offX, fieldTop.dy + offY);
+
           drawIsoCube(
             canvas,
-            Offset(fieldTop.dx + offX, fieldTop.dy + offY),
-            w: 3.5,
-            d: 3.5,
-            h: 9.5 + ((r * 2 + c + 4) % 3) * 1.5,
+            stalkPos,
+            w: 1.8,
+            d: 1.8,
+            h: stalkH,
             topColor: const Color(0xFFFDE047),
             leftColor: const Color(0xFFEAB308),
             rightColor: const Color(0xFFB45309),
           );
+          // Kehribar Tepe Taneciği
+          drawIsoCube(
+            canvas,
+            Offset(stalkPos.dx + windSway * 0.35, stalkPos.dy - stalkH),
+            w: 2.6,
+            d: 2.6,
+            h: 2.8,
+            topColor: const Color(0xFFFEF08A),
+            leftColor: const Color(0xFFFDE047),
+            rightColor: const Color(0xFFEAB308),
+          );
         }
       }
     } else if (v == 2) {
-      // Varyant 2: Keten Tahıl Çuvalları & Eğimli Arpa Demetleri
-      // 2 Keten Çuval
+      // Varyant 2: Keten Tahıl Çuvalları & Eğimli İnce Arpa Demetleri
       final Offset sackPos = Offset(fieldTop.dx + 11.0 * cosIso, fieldTop.dy - 10.0 * sinIso);
       drawIsoCube(
         canvas,
@@ -1448,25 +1538,38 @@ class VoxelIsometricRenderer {
         rightColor: const Color(0xFFB45309),
       );
 
-      // Eğimli arpa demetleri
-      for (int i = 0; i < 7; i++) {
-        final double a = i * (math.pi / 3.5);
-        final double windSway = math.sin(animTime * 2.5 + i) * 1.5;
-        final double px = fieldTop.dx + math.cos(a) * 10.0 * cosIso + windSway;
-        final double py = fieldTop.dy + math.sin(a) * 10.0 * sinIso;
+      // Çember Ekseninde Çoklu İnce Arpa Başakları (12 adet ince çubuk)
+      for (int i = 0; i < 12; i++) {
+        final double a = i * (math.pi * 2 / 12.0);
+        final double windSway = math.sin(animTime * 2.6 + i * 0.8) * 1.6;
+        final double px = fieldTop.dx + math.cos(a) * 10.5 * cosIso + windSway;
+        final double py = fieldTop.dy + math.sin(a) * 10.5 * sinIso;
+        final double stalkH = 9.0 + (i % 3) * 1.5;
+        final stalkPos = Offset(px, py);
+
         drawIsoCube(
           canvas,
-          Offset(px, py),
-          w: 4.0,
-          d: 4.0,
-          h: 9.0 + (i % 3) * 1.5,
+          stalkPos,
+          w: 1.8,
+          d: 1.8,
+          h: stalkH,
           topColor: const Color(0xFFFDE047),
           leftColor: const Color(0xFFEAB308),
           rightColor: const Color(0xFFB45309),
         );
+        drawIsoCube(
+          canvas,
+          Offset(stalkPos.dx + windSway * 0.3, stalkPos.dy - stalkH),
+          w: 2.5,
+          d: 2.5,
+          h: 2.8,
+          topColor: const Color(0xFFFEF08A),
+          leftColor: const Color(0xFFFDE047),
+          rightColor: const Color(0xFFEAB308),
+        );
       }
     } else {
-      // Varyant 0: 4 Köşede Dikili Yontma Taş Sınır İşaretleri & Kehribar Başaklar
+      // Varyant 0: 4 Köşede Dikili Taşlar & 5x5 İnce Kehribar Başaklar
       for (final signX in [-1.0, 1.0]) {
         for (final signY in [-1.0, 1.0]) {
           final double sx = baseCenter.dx + (signX * 14.0 * cosIso) - (signY * 14.0 * cosIso);
@@ -1474,8 +1577,8 @@ class VoxelIsometricRenderer {
           drawIsoCube(
             canvas,
             Offset(sx, sy),
-            w: 4.0,
-            d: 4.0,
+            w: 3.5,
+            d: 3.5,
             h: 6.0,
             topColor: const Color(0xFF94A3B8),
             leftColor: const Color(0xFF64748B),
@@ -1484,24 +1587,33 @@ class VoxelIsometricRenderer {
         }
       }
 
-      const int rows = 3;
-      const int cols = 3;
-      for (int r = 0; r < rows; r++) {
-        for (int c = 0; c < cols; c++) {
-          final double windSway = math.sin(animTime * 2.5 + (r * 0.9) + (c * 0.7)) * 1.8;
-          final double offX = (c - 1) * 7.5 * cosIso - (r - 1) * 7.5 * cosIso + windSway;
-          final double offY = (c - 1) * 7.5 * sinIso + (r - 1) * 7.5 * sinIso;
-          final Offset cropPos = Offset(fieldTop.dx + offX, fieldTop.dy + offY);
+      for (int r = -2; r <= 2; r++) {
+        for (int c = -2; c <= 2; c++) {
+          final double windSway = math.sin(animTime * 2.7 + (r * 0.8) + (c * 0.6)) * 1.8;
+          final double offX = (c * 5.4 * cosIso) - (r * 5.4 * cosIso) + windSway;
+          final double offY = (c * 5.4 * sinIso) + (r * 5.4 * sinIso);
+          final Offset stalkPos = Offset(fieldTop.dx + offX, fieldTop.dy + offY);
+          final double stalkH = 9.0 + ((r.abs() + c.abs()) % 3) * 1.5;
 
           drawIsoCube(
             canvas,
-            cropPos,
-            w: 3.5,
-            d: 3.5,
-            h: 9.0 + ((r * 2 + c) % 3) * 1.5,
+            stalkPos,
+            w: 1.8,
+            d: 1.8,
+            h: stalkH,
             topColor: const Color(0xFFFDE047),
             leftColor: const Color(0xFFEAB308),
             rightColor: const Color(0xFFB45309),
+          );
+          drawIsoCube(
+            canvas,
+            Offset(stalkPos.dx + windSway * 0.35, stalkPos.dy - stalkH),
+            w: 2.6,
+            d: 2.6,
+            h: 2.8,
+            topColor: const Color(0xFFFEF08A),
+            leftColor: const Color(0xFFFDE047),
+            rightColor: const Color(0xFFEAB308),
           );
         }
       }
@@ -4809,18 +4921,64 @@ class VoxelIsometricRenderer {
       );
     }
 
-    // 5. Kargo / Sırt Yükü (Cargo Cube)
+    // 5. Kargo / Sırt Yükü (Ahşap Küfe / Sepet & Kaynak Blokları)
     if (hasCargo) {
+      // Ahşap Taşıma Küfesi (Backpack Pack Frame)
+      final Offset packPos = Offset(pos.dx - (3.5 * flipX) * cosIso, pos.dy - 5.0 - bobY - 3.5 * sinIso);
       drawIsoCube(
         canvas,
-        Offset(pos.dx + (4.5 * flipX) * cosIso, pos.dy - 4.0 - bobY + 4.0 * sinIso),
+        packPos,
+        w: 5.0,
+        d: 5.0,
+        h: 6.5,
+        topColor: const Color(0xFFB45309),
+        leftColor: const Color(0xFF92400E),
+        rightColor: const Color(0xFF78350F),
+      );
+
+      // Küfe İçindeki Kaynak Yükü (Resource Cargo Voxels)
+      drawIsoCube(
+        canvas,
+        Offset(packPos.dx + (1.0 * flipX), packPos.dy - 4.5),
         w: 5.5,
         d: 5.5,
-        h: 5.5,
+        h: 5.0,
         topColor: cargoColor,
         leftColor: cargoColor.withValues(alpha: 0.85),
         rightColor: cargoColor.withValues(alpha: 0.65),
       );
+
+      // Kargo Bağlama İpleri / Bant
+      drawIsoCube(
+        canvas,
+        Offset(packPos.dx, packPos.dy - 6.0),
+        w: 5.2,
+        d: 1.5,
+        h: 1.0,
+        topColor: const Color(0xFFFEF08A),
+        leftColor: const Color(0xFFFBBF24),
+        rightColor: const Color(0xFFF59E0B),
+      );
+    }
+
+    // 6. Teslimat Anı Mikro-Işıltıları (Delivery Sparkles at Destination)
+    if (actionState == 2) {
+      for (int sp = 0; sp < 4; sp++) {
+        final double spAngle = sp * (math.pi / 2.0) + (walkAnim * 1.5);
+        final double spDist = 6.0 + (sp % 2) * 3.5;
+        final double spX = pos.dx + math.cos(spAngle) * spDist;
+        final double spY = pos.dy - 10.0 - bobY + math.sin(spAngle) * spDist * 0.5;
+        drawIsoCube(
+          canvas,
+          Offset(spX, spY),
+          w: 1.6,
+          d: 1.6,
+          h: 1.6,
+          topColor: const Color(0xFFFEF08A),
+          leftColor: const Color(0xFFFBBF24),
+          rightColor: const Color(0xFFF59E0B),
+        );
+      }
     }
   }
 

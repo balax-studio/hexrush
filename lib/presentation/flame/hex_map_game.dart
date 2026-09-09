@@ -428,7 +428,7 @@ class HexMapGame extends FlameGame {
     if (tilesRefChanged || selectionChanged || seasonChanged || themeChanged) {
       _updateTiles(state, prev: prev);
     }
-    if (tilesRefChanged) {
+    if (tilesRefChanged || _workerComponents.isEmpty) {
       _updateWorkers(state);
     }
     if (caravanChanged) {
@@ -737,41 +737,102 @@ class HexMapGame extends FlameGame {
     final castlePos = HexMath.hexToPixel(const HexAxial(0, 0), hexSize: HexTileComponent.hexRadius);
     final castleVec = Vector2(castlePos.dx, castlePos.dy);
 
+    // 1. Haritadaki aktif Taşıma / Depolama binalarını tespit et
+    final List<HexAxial> storageCoords = [];
+    for (final entry in state.tiles.entries) {
+      final t = entry.value;
+      if (t.isOwned && t.hasBuilding) {
+        final bType = t.building!.type;
+        if (bType == BuildingType.granaryVault ||
+            bType == BuildingType.caravanserai ||
+            bType == BuildingType.worker) {
+          storageCoords.add(entry.key);
+        }
+      }
+    }
+
+    // 2. Her bina için lojistik rotasını belirle ve işçi bileşenini yönet
     for (final entry in state.tiles.entries) {
       final tile = entry.value;
       if (tile.isOwned && tile.hasBuilding && tile.building!.type != BuildingType.castle) {
         activeBuildingCoords.add(entry.key);
 
+        final bType = tile.building!.type;
+        final bool isStorageHub = bType == BuildingType.granaryVault ||
+            bType == BuildingType.caravanserai ||
+            bType == BuildingType.worker;
+
+        // Hedef Pozisyonu Belirleme:
+        // - Taşıma/Depolama binaları doğrudan Kağan Otağı'na (Şato) taşır.
+        // - Üretim binaları varsa en yakın Taşıma/Depolama binasına, yoksa doğrudan Şato'ya taşır.
+        Vector2 targetVec;
+        if (isStorageHub) {
+          targetVec = castleVec;
+        } else if (storageCoords.isNotEmpty) {
+          // En yakın depo binasını eksenel mesafeye göre bul
+          HexAxial nearestStorage = storageCoords.first;
+          int minDistance = entry.key.distanceTo(nearestStorage);
+          for (final sCoord in storageCoords) {
+            final dist = entry.key.distanceTo(sCoord);
+            if (dist < minDistance) {
+              minDistance = dist;
+              nearestStorage = sCoord;
+            }
+          }
+          final sPos = HexMath.hexToPixel(nearestStorage, hexSize: HexTileComponent.hexRadius);
+          targetVec = Vector2(sPos.dx, sPos.dy);
+        } else {
+          targetVec = castleVec;
+        }
+
+        // Kargo rengini belirle
+        Color cargoColor = const Color(0xFFFBBF24);
+        if (isStorageHub) {
+          cargoColor = const Color(0xFFF59E0B);
+        } else if (bType == BuildingType.corn) {
+          cargoColor = const Color(0xFFFBBF24);
+        } else if (bType == BuildingType.barley) {
+          cargoColor = const Color(0xFFFDE047);
+        } else if (bType == BuildingType.pasture) {
+          cargoColor = const Color(0xFF10B981);
+        } else if (bType == BuildingType.orchard) {
+          cargoColor = const Color(0xFFF43F5E);
+        } else if (bType == BuildingType.quarry) {
+          cargoColor = const Color(0xFF94A3B8);
+        } else if (bType == BuildingType.resinCamp || bType == BuildingType.lumberjack) {
+          cargoColor = const Color(0xFFB45309);
+        } else if (bType == BuildingType.sawmill) {
+          cargoColor = const Color(0xFFD97706);
+        } else if (bType == BuildingType.windmill) {
+          cargoColor = const Color(0xFFFEF08A);
+        } else if (bType == BuildingType.bakery) {
+          cargoColor = const Color(0xFFF59E0B);
+        } else if (bType == BuildingType.furniture) {
+          cargoColor = const Color(0xFF78350F);
+        } else if (bType == BuildingType.mine || bType == BuildingType.permafrostDig) {
+          cargoColor = const Color(0xFF94A3B8);
+        } else if (bType == BuildingType.obsidianForge || bType == BuildingType.damascusForge) {
+          cargoColor = const Color(0xFFEA580C);
+        } else if (bType == BuildingType.fisherman || bType == BuildingType.fishermanHut) {
+          cargoColor = const Color(0xFF38BDF8);
+        }
+
+        // İşçi bileşeni yoksa oluştur veya hedef değiştiyse güncelle
         if (!_workerComponents.containsKey(entry.key)) {
           final tilePos = HexMath.hexToPixel(entry.key, hexSize: HexTileComponent.hexRadius);
           final tileVec = Vector2(tilePos.dx, tilePos.dy);
-
-          Color cargoColor = const Color(0xFFFBBF24);
-          if (tile.building!.type == BuildingType.corn) cargoColor = const Color(0xFFFBBF24);
-          if (tile.building!.type == BuildingType.barley) cargoColor = const Color(0xFFFDE047);
-          if (tile.building!.type == BuildingType.pasture) cargoColor = const Color(0xFF10B981);
-          if (tile.building!.type == BuildingType.orchard) cargoColor = const Color(0xFFF43F5E);
-          if (tile.building!.type == BuildingType.quarry) cargoColor = const Color(0xFF94A3B8);
-          if (tile.building!.type == BuildingType.resinCamp) cargoColor = const Color(0xFFB45309);
-          if (tile.building!.type == BuildingType.lumberjack) cargoColor = const Color(0xFFB45309);
-          if (tile.building!.type == BuildingType.sawmill) cargoColor = const Color(0xFFD97706);
-          if (tile.building!.type == BuildingType.windmill) cargoColor = const Color(0xFFFEF08A);
-          if (tile.building!.type == BuildingType.bakery) cargoColor = const Color(0xFFF59E0B);
-          if (tile.building!.type == BuildingType.furniture) cargoColor = const Color(0xFF78350F);
-          if (tile.building!.type == BuildingType.mine) cargoColor = const Color(0xFF94A3B8);
-          if (tile.building!.type == BuildingType.fisherman || tile.building!.type == BuildingType.fishermanHut) {
-            cargoColor = const Color(0xFF38BDF8);
-          }
-
           final int workerSeed = (entry.key.q * 31 + entry.key.r * 17).abs();
+
           final worker = WorkerAgentComponent(
             startPos: tileVec,
-            endPos: castleVec,
+            endPos: targetVec,
             cargoColor: cargoColor,
             seed: workerSeed,
           );
           _workerComponents[entry.key] = worker;
           gameWorld.add(worker);
+        } else {
+          _workerComponents[entry.key]?.updateEndPos(targetVec);
         }
       }
     }

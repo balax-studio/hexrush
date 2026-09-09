@@ -842,6 +842,14 @@ class HexTileComponent extends PositionComponent {
       final bool isWinter = _currentSeason == 'WINTER' || isZud;
       final int bLvl = b.level;
 
+      if (tapProgress > 0.0) {
+        final double bounceScale = 1.0 + math.sin(tapProgress * math.pi) * 0.08;
+        canvas.save();
+        canvas.translate(center.dx, center.dy);
+        canvas.scale(1.0 + (1.0 - bounceScale) * 0.5, bounceScale);
+        canvas.translate(-center.dx, -center.dy);
+      }
+
       switch (b.type) {
         case BuildingType.castle:
           VoxelIsometricRenderer.drawVoxelCastle(canvas, center, b.level, isNight: isNight);
@@ -1135,6 +1143,22 @@ class HexTileComponent extends PositionComponent {
         scale: 1.0,
         animTime: tTime,
       );
+
+      // Kışın Isıtılan Binalarda Sıcak Ocak/Buhar Dumanı
+      if (tileModel.isWarmed && b.type != BuildingType.castle && b.type != BuildingType.bakery) {
+        VoxelIsometricRenderer.drawVoxelSmokePlume(
+          canvas,
+          Offset(center.dx + 4, center.dy - 18),
+          animTime: tTime,
+          seed: seed,
+          windWave: windWave,
+          scale: 0.8,
+        );
+      }
+
+      if (tapProgress > 0.0) {
+        canvas.restore();
+      }
     } else {
       switch (tileModel.biome) {
         case TileBiome.meadow:
