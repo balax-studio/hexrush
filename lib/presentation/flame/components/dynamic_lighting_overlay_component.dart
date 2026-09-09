@@ -54,6 +54,8 @@ class DynamicLightingOverlayComponent extends Component {
     _animTime += dt;
   }
 
+  static const List<double> _radialStops = [0.0, 0.55, 1.0];
+
   @override
   void render(Canvas canvas) {
     if (!isNight && nightDarkness <= 0.01) return;
@@ -61,18 +63,13 @@ class DynamicLightingOverlayComponent extends Component {
     final double alpha = nightDarkness;
     if (alpha <= 0.01) return;
 
-    // 1. Ekran / Harita boyutunda karanlık gece tülü
+    // 1. Ekran / Harita boyutunda karanlık gece tülü (Doğrudan çizim, sıfır saveLayer GPU maliyeti)
     const Rect bounds = Rect.fromLTRB(-1200, -1000, 1200, 1000);
+    _darkOverlayPaint.color = const Color(0xFF030712).withValues(alpha: alpha);
+    canvas.drawRect(bounds, _darkOverlayPaint);
 
-    // 2. Işık kaynakları varsa Impeller Donanım Kompozitlemesi uygula
+    // 2. Işık kaynakları varsa doğrudan BlendMode.screen ile fener aydınlatması
     if (_emitters.isNotEmpty) {
-      canvas.saveLayer(bounds, Paint());
-
-      // Karanlık zemin
-      _darkOverlayPaint.color = const Color(0xFF030712).withValues(alpha: alpha);
-      canvas.drawRect(bounds, _darkOverlayPaint);
-
-      // Noktasal ışık fenerlerini del ve aydınlat
       for (final emitter in _emitters) {
         final double flicker = 1.0 + 0.06 * math.sin(_animTime * 2.2 + emitter.position.x);
         final double r = emitter.radius * flicker;
@@ -85,18 +82,12 @@ class DynamicLightingOverlayComponent extends Component {
             emitter.color.withValues(alpha: (0.28 * emitter.intensity * alpha).clamp(0.0, 1.0)),
             Colors.transparent,
           ],
-          [0.0, 0.55, 1.0],
+          _radialStops,
         );
 
         _lightHolePaint.shader = shader;
         canvas.drawCircle(Offset(emitter.position.x, emitter.position.y), r, _lightHolePaint);
       }
-
-      canvas.restore();
-    } else {
-      // Işık kaynağı yoksa düz yumuşak gece örtüsü
-      _darkOverlayPaint.color = const Color(0xFF030712).withValues(alpha: alpha);
-      canvas.drawRect(bounds, _darkOverlayPaint);
     }
   }
 }

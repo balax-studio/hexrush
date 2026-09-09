@@ -8,6 +8,7 @@ class ShockwaveEffectComponent extends Component {
   double duration;
   double _elapsed = 0.0;
   bool isFinished = false;
+  static final Paint _fallbackPaint = Paint()..style = PaintingStyle.stroke;
 
   ShockwaveEffectComponent({
     required this.center,
@@ -59,12 +60,11 @@ class ShockwaveEffectComponent extends Component {
       // Fallback: Standart halka çizimi (Shader desteklenmeyen ortamlar / testler)
       final double ringRadius = progress * 180.0;
       final double alpha = (1.0 - progress) * 0.7;
-      final fallbackPaint = Paint()
-        ..style = PaintingStyle.stroke
+      _fallbackPaint
         ..strokeWidth = 4.0 * (1.0 - progress * 0.5)
         ..color = const Color(0xFFFBBF24).withValues(alpha: alpha);
 
-      canvas.drawCircle(Offset(center.x, center.y), ringRadius, fallbackPaint);
+      canvas.drawCircle(Offset(center.x, center.y), ringRadius, _fallbackPaint);
     }
   }
 }

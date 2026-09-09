@@ -46,6 +46,53 @@ class HexMapGame extends FlameGame {
   double _currentZoom = 1.0;
   double _dayNightClock = 0.0;
   bool _isNight = false;
+  final List<LightEmitter> _cachedLightEmitters = [];
+
+  void _refreshNightLighting() {
+    if (_isNight) {
+      _cachedLightEmitters.clear();
+      for (final comp in _tileComponents.values) {
+        if (!comp.tileModel.isOwned || comp.tileModel.isFog) continue;
+        final bType = comp.tileModel.building?.type;
+        if (bType == BuildingType.castle) {
+          _cachedLightEmitters.add(LightEmitter(
+            position: comp.position,
+            radius: 80.0,
+            color: const Color(0xFFF59E0B),
+            intensity: 1.2,
+          ));
+        } else if (bType == BuildingType.damascusForge || bType == BuildingType.bakery) {
+          _cachedLightEmitters.add(LightEmitter(
+            position: comp.position,
+            radius: 54.0,
+            color: const Color(0xFFF97316),
+            intensity: 1.0,
+          ));
+        } else if (comp.tileModel.hasShrine || comp.tileModel.hasKurgan) {
+          _cachedLightEmitters.add(LightEmitter(
+            position: comp.position,
+            radius: 64.0,
+            color: const Color(0xFF38BDF8),
+            intensity: 1.1,
+          ));
+        }
+      }
+      _lightingOverlay.updateLightingState(
+        night: true,
+        darkness: 0.65,
+        emitters: _cachedLightEmitters,
+      );
+      _sunRays.isEnabled = false;
+    } else {
+      _cachedLightEmitters.clear();
+      _lightingOverlay.updateLightingState(
+        night: false,
+        darkness: 0.0,
+        emitters: const [],
+      );
+      _sunRays.isEnabled = !(_lastState?.season.isZud ?? false);
+    }
+  }
 
   // Kamera sürtünmesi / sönümleme (Smooth Pan Inertia)
   Vector2 _panVelocity = Vector2.zero();
@@ -136,50 +183,7 @@ class HexMapGame extends FlameGame {
       for (final comp in _tileComponents.values) {
         comp.isNight = _isNight;
       }
-    }
-
-    // Impeller Işık Kaynaklarını Topla ve Gece Fenerlerini Güncelle
-    if (_isNight) {
-      final List<LightEmitter> emitters = [];
-      for (final comp in _tileComponents.values) {
-        if (!comp.tileModel.isOwned || comp.tileModel.isFog) continue;
-        final bType = comp.tileModel.building?.type;
-        if (bType == BuildingType.castle) {
-          emitters.add(LightEmitter(
-            position: comp.position,
-            radius: 80.0,
-            color: const Color(0xFFF59E0B),
-            intensity: 1.2,
-          ));
-        } else if (bType == BuildingType.damascusForge || bType == BuildingType.bakery) {
-          emitters.add(LightEmitter(
-            position: comp.position,
-            radius: 54.0,
-            color: const Color(0xFFF97316),
-            intensity: 1.0,
-          ));
-        } else if (comp.tileModel.hasShrine || comp.tileModel.hasKurgan) {
-          emitters.add(LightEmitter(
-            position: comp.position,
-            radius: 64.0,
-            color: const Color(0xFF38BDF8),
-            intensity: 1.1,
-          ));
-        }
-      }
-      _lightingOverlay.updateLightingState(
-        night: true,
-        darkness: 0.65,
-        emitters: emitters,
-      );
-      _sunRays.isEnabled = false;
-    } else {
-      _lightingOverlay.updateLightingState(
-        night: false,
-        darkness: 0.0,
-        emitters: const [],
-      );
-      _sunRays.isEnabled = !(_lastState?.season.isZud ?? false);
+      _refreshNightLighting();
     }
 
     // Frustum Culling: Kamera görüş alanını güncelle
@@ -641,7 +645,7 @@ class HexMapGame extends FlameGame {
 
       // Değişmeyen, seçimi ve menzil durumu değişmeyen karoları atla (Saniyelik tam harita tarama yükünü sıfırlar)
       if (!globalChange &&
-          prevTile == tile &&
+          _isTileVisuallyIdentical(prevTile, tile) &&
           isSel == wasSel &&
           _tileComponents.containsKey(coord)) {
         final comp = _tileComponents[coord]!;
@@ -730,6 +734,24 @@ class HexMapGame extends FlameGame {
         gameWorld.add(comp);
       }
     }
+    if (_isNight) {
+      _refreshNightLighting();
+    }
+  }
+
+  static bool _isTileVisuallyIdentical(HexTileModel? a, HexTileModel b) {
+    if (identical(a, b)) return true;
+    if (a == null) return false;
+    return a.biome == b.biome &&
+        a.state == b.state &&
+        a.isWarmed == b.isWarmed &&
+        a.shrine == b.shrine &&
+        a.ancestralKurgan == b.ancestralKurgan &&
+        a.isDamaged == b.isDamaged &&
+        a.symbiosis == b.symbiosis &&
+        a.building?.type == b.building?.type &&
+        a.building?.level == b.building?.level &&
+        a.wall?.isBreached == b.wall?.isBreached;
   }
 
   void _updateWorkers(GameState state) {

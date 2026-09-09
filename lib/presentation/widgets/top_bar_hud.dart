@@ -35,6 +35,8 @@ class TopBarHUD extends ConsumerStatefulWidget {
 
 class _TopBarHUDState extends ConsumerState<TopBarHUD> {
   bool _isDrawerExpanded = false;
+  NetResourceRates? _cachedNetRates;
+  int _lastRatesHash = 0;
 
   void _showResourceExplanation(
     BuildContext context, {
@@ -471,22 +473,42 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
       kutMultiplier: gameState.progression.kutMultiplier,
     );
 
-    final double seasonMult = EconomyCalculator.getSeasonProductionMultiplier(
-      season: gameState.season.current,
-      isZud: gameState.season.isZud,
-      isTileWarmed: false,
-      titles: gameState.titles,
+    final int ratesHash = Object.hash(
+      gameState.tiles.length,
+      gameState.progression.castleLevel,
+      gameState.resources.crowns,
+      gameState.toreTalents.length,
+      gameState.titles.length,
+      gameState.progression.kutMultiplier,
+      gameState.season.current,
+      gameState.season.isZud,
+      gameState.frenzyMultiplier,
+      gameState.shrineMultiplier,
+      gameState.tiles.values.where((t) => t.hasBuilding).length,
     );
 
-    final netRates = EconomyCalculator.calculateNetRates(
-      tiles: gameState.tiles.values,
-      globalMultiplier: globalMult,
-      seasonMultiplier: seasonMult * gameState.frenzyMultiplier,
-      shrineMultiplier: gameState.shrineMultiplier,
-      tileMap: gameState.tiles,
-      season: gameState.season.current,
-      isZud: gameState.season.isZud,
-    );
+    if (_cachedNetRates == null || _lastRatesHash != ratesHash) {
+      _lastRatesHash = ratesHash;
+
+      final double seasonMult = EconomyCalculator.getSeasonProductionMultiplier(
+        season: gameState.season.current,
+        isZud: gameState.season.isZud,
+        isTileWarmed: false,
+        titles: gameState.titles,
+      );
+
+      _cachedNetRates = EconomyCalculator.calculateNetRates(
+        tiles: gameState.tiles.values,
+        globalMultiplier: globalMult,
+        seasonMultiplier: seasonMult * gameState.frenzyMultiplier,
+        shrineMultiplier: gameState.shrineMultiplier,
+        tileMap: gameState.tiles,
+        season: gameState.season.current,
+        isZud: gameState.season.isZud,
+      );
+    }
+
+    final netRates = _cachedNetRates!;
 
     final int nextCastleLvl = gameState.progression.castleLevel + 1;
     final castleCosts = EconomyCalculator.getCastleUpgradeCost(nextCastleLvl);

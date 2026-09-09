@@ -50,6 +50,11 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
       curve: Curves.easeOutBack,
       reverseCurve: Curves.easeInCubic,
     ));
+    _slideController.addStatusListener((status) {
+      if (status == AnimationStatus.dismissed && mounted) {
+        setState(() {});
+      }
+    });
   }
 
   @override
@@ -61,6 +66,11 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
   @override
   Widget build(BuildContext context) {
     final selectedCoord = ref.watch(gameStateProvider.select((s) => s.selectedCoord));
+
+    if (selectedCoord == null && _slideController.isDismissed) {
+      return const SizedBox.shrink();
+    }
+
     final gameState = ref.watch(gameStateProvider);
 
     if (selectedCoord != null) {
