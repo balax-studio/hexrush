@@ -107,7 +107,7 @@ class GoogleMobileAdsRewardService implements IAdRewardService {
     );
 
     try {
-      _rewardedAd!.show(
+      await _rewardedAd!.show(
         onUserEarnedReward: (adWithoutView, reward) {
           userEarnedReward = true;
         },

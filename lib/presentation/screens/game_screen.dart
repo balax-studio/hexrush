@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/tactile_audio_service.dart';
@@ -20,7 +19,6 @@ import '../widgets/tore_dialog.dart';
 import '../widgets/steppe_lore_tree_dialog.dart';
 import '../widgets/trade_orders_dialog.dart';
 import '../widgets/realm_selection_dialog.dart';
-import '../widgets/debug_menu_dialog.dart';
 import '../widgets/hexpedia_dialog.dart';
 import '../widgets/tactile_dialog_route.dart';
 import '../widgets/horn_of_steppe_dialog.dart';
@@ -452,33 +450,6 @@ class _GameScreenState extends ConsumerState<GameScreen>
                           ),
                         ),
                       ),
-                      if (kDebugMode) ...[
-                        const SizedBox(height: 8),
-                        // Geliştirici Denetim Konsolu (Debug Menü) Butonu
-                        TactileNeoButton(
-                          onTap: () {
-                            showNeoTactileDialog<void>(
-                              context: context,
-                              builder: (_) => const DebugMenuDialog(),
-                            );
-                          },
-                          backgroundColor: const Color(0xFF581C87),
-                          borderColor: const Color(0xFFA855F7),
-                          shadowColor: theme.shadowColor,
-                          shadowOffset: 2.0,
-                          height: 36,
-                          width: 36,
-                          padding: EdgeInsets.zero,
-                          alignment: Alignment.center,
-                          child: const Center(
-                            child: Icon(
-                              Icons.terminal,
-                              size: 18,
-                              color: Color(0xFFE9D5FF),
-                            ),
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                 ),
