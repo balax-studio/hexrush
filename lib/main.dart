@@ -1,11 +1,27 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
+import 'core/config/admob_config.dart';
 import 'core/graphics/hex_shader_service.dart';
+import 'domain/services/ad_reward_service.dart';
 import 'presentation/screens/game_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await HexShaderService.initialize();
+
+  if (AdMobConfig.isSupportedPlatform) {
+    try {
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        await AppTrackingTransparency.requestTrackingAuthorization();
+      }
+      await MobileAds.instance.initialize();
+      GoogleMobileAdsRewardService.instance.preloadAd();
+    } catch (_) {}
+  }
+
   runApp(
     const ProviderScope(
       child: HexRushApp(),

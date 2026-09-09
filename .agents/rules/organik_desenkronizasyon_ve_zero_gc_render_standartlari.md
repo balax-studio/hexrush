@@ -61,3 +61,37 @@ canvas.drawPath(_fogPath, _sharedFillPaint);
 
 ### 3.3. Hafif Atmosferik Vinyet (Zero-Drop Blur)
 - Performans düşüşüne sebep olacak ağır tam ekran Gaussian Blur filtreleri yerine, `DioramaLensOverlay` içindeki çok kademeli `RadialGradient` vinyet katmanları (`0.0, 0.48, 0.72, 0.88, 1.0` durakları) ile sinematik yumuşak geçiş sağlanmalıdır.
+
+---
+
+## 4. Pahalı GPU `saveLayer` Kesin Yasağı ve Doğrudan Harmanlama
+
+### 4.1. `canvas.saveLayer` Yasağı
+- Gece atmosferi, sis, fener ışığı, gölgeler veya parçacık sistemlerinde `canvas.saveLayer(bounds, Paint())` kullanımı KESİNLİKLE YASAKTIR.
+- `saveLayer`, GPU üzerinde tam ekran boyutunda offscreen framebuffer/doku ayırır ve özellikle mobil/web platformlarında kare hızını 20-30 FPS'e düşürür.
+- Tüm gece karartmaları ve fener efektleri doğrudan ana hedef yüzeye `BlendMode.screen`, `BlendMode.plus` veya `BlendMode.colorDodge` harmanlama modları ve `RadialGradient` ile çizilmelidir.
+
+### 4.2. Emitter ve Işık Kaynağı Önbellekleme
+- `update(double dt)` veya `render(Canvas canvas)` döngülerinde her karede `final List<LightEmitter> emitters = [];` veya `new LightEmitter(...)` üretilemez.
+- Işık kaynakları yalnızca gün/gece geçişi olduğunda veya haritada bina inşaatı yapıldığında güncellenen `_cachedLightEmitters` havuzunda tutulmalıdır.
+
+---
+
+## 5. Harita Motorunda Görsel Eşitlik Koruması (`_isTileVisuallyIdentical`)
+
+### 5.1. Ekonomik Sayaç Artışlarında Karo Tarama Yasağı
+- Pasif üretim sırasında binaların `accumulatedResource`, `soilHealth` veya `restTimeAccumulated` gibi ekonomik sayaçları saniyelik olarak güncellenir.
+- Bu sayaç artışlarında karo görseli değişmediği için, `HexMapGame._updateTiles` döngüsünde `prevTile == tile` yerine `_isTileVisuallyIdentical(prevTile, tile)` kontrolü zorunludur.
+- Görsel durumu (biyom, sis, sahiplik, bina tipi, bina seviyesi, tapınak, kurgan, kış koruması, sur) değişmeyen karolar için 6-yönlü komşu taraması, kot farkı ve `updateData` çağrısı kesinlikle atlanmalıdır (`continue`).
+
+---
+
+## 6. Flutter UI Katmanında Ağır Matematik ve Ticker İzolasyonu
+
+### 6.1. Saniyelik `calculateNetRates` Çalıştırma Yasağı
+- `TopBarHUD` ve diğer HUD bileşenleri pasif kaynak sayaç artışlarında yeniden çizildiğinde, `EconomyCalculator.calculateNetRates(...)` gibi haritadaki tüm karoları ve komşuluk sinerjilerini tarayan ağır fonksiyonları doğrudan `build()` içinde her saniye ÇALIŞTIRAMAZ.
+- `ratesHash` (karo sayısı, bina sayısı, kale seviyesi, taç, mevsim, zud, frenzy, tapınak) mekanizması ile oranlar önbelleklenmeli; yalnızca yapısal bir ekonomi değişkeni değiştiğinde yeniden hesaplanmalıdır.
+
+### 6.2. Boştaki Panellerde Dinlemeyi Kapatma (Idle Early Exit)
+- `TileActionSheet`, `Hexpedia` vb. paneller kapalıyken veya boştayken (`selectedCoord == null` ve `isDismissed`), `ref.watch(gameStateProvider)` ile saniyelik sayaç artışlarında gereksiz `build()` tetiklememelidir; doğrudan `const SizedBox.shrink()` ile dinleme kesilmelidir.
+

@@ -18,6 +18,9 @@ Thumbs.db
 
 # Screenshots & Archives
 *.png
+!ios/Runner/Assets.xcassets/**/*.png
+!android/app/src/main/res/**/*.png
+!web/favicon.png
 *.zip
 *.log
 *.tmp

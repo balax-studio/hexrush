@@ -20,6 +20,9 @@ class VolumetricSunRaysComponent extends Component {
     _time += dt;
   }
 
+  static final Path _sharedRayPath = Path();
+  static const List<double> _colorStops = [0.0, 0.65, 1.0];
+
   @override
   void render(Canvas canvas) {
     if (!isEnabled || intensity <= 0.01) return;
@@ -34,7 +37,8 @@ class VolumetricSunRaysComponent extends Component {
       final double breath = 0.8 + 0.2 * math.sin(_time * 0.6 + i * 1.5);
       final double currentAlpha = alphaBase * breath;
 
-      final Path rayPath = Path()
+      _sharedRayPath
+        ..reset()
         ..moveTo(xOffset, -900)
         ..lineTo(xOffset + beamWidth, -900)
         ..lineTo(xOffset + beamWidth + 650, 900)
@@ -45,15 +49,15 @@ class VolumetricSunRaysComponent extends Component {
         Offset(xOffset, -900),
         Offset(xOffset + 650, 900),
         [
-          const Color(0xFFFDE68A).withValues(alpha: currentAlpha * 1.2), // Warm pale gold
-          const Color(0xFFF59E0B).withValues(alpha: currentAlpha * 0.6),
+          const Color(0xFFFDE68A).withValues(alpha: (currentAlpha * 1.2).clamp(0.0, 1.0)),
+          const Color(0xFFF59E0B).withValues(alpha: (currentAlpha * 0.6).clamp(0.0, 1.0)),
           Colors.transparent,
         ],
-        [0.0, 0.65, 1.0],
+        _colorStops,
       );
 
       _rayPaint.shader = shader;
-      canvas.drawPath(rayPath, _rayPaint);
+      canvas.drawPath(_sharedRayPath, _rayPaint);
     }
   }
 }

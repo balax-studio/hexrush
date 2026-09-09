@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/tactile_audio_service.dart';
@@ -451,31 +452,33 @@ class _GameScreenState extends ConsumerState<GameScreen>
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      // Geliştirici Denetim Konsolu (Debug Menü) Butonu
-                      TactileNeoButton(
-                        onTap: () {
-                          showNeoTactileDialog<void>(
-                            context: context,
-                            builder: (_) => const DebugMenuDialog(),
-                          );
-                        },
-                        backgroundColor: const Color(0xFF581C87),
-                        borderColor: const Color(0xFFA855F7),
-                        shadowColor: theme.shadowColor,
-                        shadowOffset: 2.0,
-                        height: 36,
-                        width: 36,
-                        padding: EdgeInsets.zero,
-                        alignment: Alignment.center,
-                        child: const Center(
-                          child: Icon(
-                            Icons.terminal,
-                            size: 18,
-                            color: Color(0xFFE9D5FF),
+                      if (kDebugMode) ...[
+                        const SizedBox(height: 8),
+                        // Geliştirici Denetim Konsolu (Debug Menü) Butonu
+                        TactileNeoButton(
+                          onTap: () {
+                            showNeoTactileDialog<void>(
+                              context: context,
+                              builder: (_) => const DebugMenuDialog(),
+                            );
+                          },
+                          backgroundColor: const Color(0xFF581C87),
+                          borderColor: const Color(0xFFA855F7),
+                          shadowColor: theme.shadowColor,
+                          shadowOffset: 2.0,
+                          height: 36,
+                          width: 36,
+                          padding: EdgeInsets.zero,
+                          alignment: Alignment.center,
+                          child: const Center(
+                            child: Icon(
+                              Icons.terminal,
+                              size: 18,
+                              color: Color(0xFFE9D5FF),
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
