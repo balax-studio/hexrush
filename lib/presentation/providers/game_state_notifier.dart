@@ -2175,7 +2175,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       ),
       clearPendingOfflineGains: true,
       activeToast: isBoosted
-          ? 'Kervan bereketiyle 1.5x çevrimdışı kazanç ambara aktarıldı!'
+          ? 'Bozkır bereketiyle 2.0x çift kat çevrimdışı kazanç ambara aktarıldı!'
           : 'Çevrimdışı bozkır kazancı ambara aktarıldı.',
     );
 

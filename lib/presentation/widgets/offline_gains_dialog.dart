@@ -204,6 +204,36 @@ class OfflineGainsDialog extends ConsumerWidget {
                 ],
               ),
             ),
+            if (canWatchAd)
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF451A03),
+                  borderRadius: NeoBrutalistTheme.standardRadius,
+                  border: Border.all(color: const Color(0xFFF59E0B), width: 1.0),
+                ),
+                child: Row(
+                  children: [
+                    const GameVectorIcon(
+                      type: GameIconType.crown,
+                      size: 14,
+                      color: Color(0xFFFDE047),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'BOZKIR BEREKETİ: Reklamla tüm kaynakları 2 katına çıkarın!',
+                        style: NeoBrutalistTheme.fontBadge.copyWith(
+                          color: const Color(0xFFFDE047),
+                          fontSize: 10,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             const SizedBox(height: 18),
 
             // Aksiyon Butonları
@@ -233,7 +263,7 @@ class OfflineGainsDialog extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
 
-                // 1.5x Reklamlı Bereketli Topla
+                // 2.0x Reklamlı Bereketli Topla
                 Expanded(
                   flex: 3,
                   child: TactileNeoButton(
@@ -257,7 +287,7 @@ class OfflineGainsDialog extends ConsumerWidget {
                     child: Center(
                       child: Text(
                         canWatchAd
-                            ? '1.5X TOPLA ($currentWatches/$maxWatches)'
+                            ? '2X TOPLA ($currentWatches/$maxWatches)'
                             : 'LİMİT DOLDU ($maxWatches/$maxWatches)',
                         style: TextStyle(
                           color: canWatchAd ? Colors.black : const Color(0xFF94A3B8),

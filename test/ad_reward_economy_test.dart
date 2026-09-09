@@ -53,7 +53,7 @@ void main() {
       expect(bonusLvl5['wood']!, greaterThan(bonusLvl1['wood']!));
     });
 
-    test('calculateOfflineAdBoostedGains returns 1.5x of offline gains', () {
+    test('calculateOfflineAdBoostedGains returns 2.0x of offline gains', () {
       const original = OfflineGainsResult(
         seconds: 3600,
         food: 50.0,
@@ -62,9 +62,9 @@ void main() {
       );
 
       final boosted = EconomyCalculator.calculateOfflineAdBoostedGains(original);
-      expect(boosted.food, 75.0);
-      expect(boosted.wood, 60.0);
-      expect(boosted.stone, 30.0);
+      expect(boosted.food, 100.0);
+      expect(boosted.wood, 80.0);
+      expect(boosted.stone, 40.0);
       expect(boosted.seconds, 3600);
     });
   });

@@ -47,7 +47,7 @@ void main() {
       expect(find.textContaining('100'), findsWidgets);
       expect(find.textContaining('50'), findsWidgets);
       expect(find.text('TOPLA'), findsOneWidget);
-      expect(find.textContaining('1.5X TOPLA'), findsOneWidget);
+      expect(find.textContaining('2X TOPLA'), findsOneWidget);
     });
 
     testWidgets('clicking standard collect closes dialog and claims normal amount', (tester) async {
@@ -65,7 +65,7 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('clicking ad boost triggers ad service and claims 1.5x boosted gains', (tester) async {
+    testWidgets('clicking ad boost triggers ad service and claims 2.0x boosted gains', (tester) async {
       final mockAdService = MockAdRewardService(shouldSucceed: true);
       const gains = OfflineGainsResult(
         seconds: 3600,
@@ -76,7 +76,7 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(gains, adService: mockAdService));
       await tester.pumpAndSettle();
 
-      final adButton = find.textContaining('1.5X TOPLA');
+      final adButton = find.textContaining('2X TOPLA');
       await tester.tap(adButton);
       await tester.pumpAndSettle();
 

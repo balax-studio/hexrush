@@ -1272,7 +1272,18 @@ class EconomyCalculator {
     required double globalMultiplier,
   }) {
     const double maxOfflineSeconds = 8 * 3600.0;
-    final double cappedSeconds = math.min(maxOfflineSeconds, math.max(0.0, elapsedSeconds));
+    final double rawSeconds = math.max(0.0, elapsedSeconds);
+    // 1-2 Saatlik Altın Pencere (Golden Retention Window):
+    // İlk 2 saat (7200s) %100 üretim verimi ile ambar dolar.
+    // 2-8 saat arasında kademeli mahzen tamponu (silo kapasitesi) devreye girer.
+    double effectiveSeconds;
+    if (rawSeconds <= 7200.0) {
+      effectiveSeconds = rawSeconds;
+    } else {
+      final double excess = math.min(maxOfflineSeconds - 7200.0, rawSeconds - 7200.0);
+      effectiveSeconds = 7200.0 + (excess * 0.60);
+    }
+    final double cappedSeconds = effectiveSeconds;
     if (cappedSeconds < 15.0) {
       return OfflineGainsResult(seconds: cappedSeconds.toInt());
     }
@@ -2084,7 +2095,7 @@ class EconomyCalculator {
     }
   }
 
-  /// 11. Gezgin Kervan Dinamik Reklam Ödül Paketi
+  /// 11. Gezgin Kervan Dinamik Reklam Ödül Paketi (Hoş Geldin & Dönüş İkramı)
   static Map<String, double> calculateCaravanAdBonus({
     required int castleLevel,
     required int crowns,
@@ -2092,19 +2103,19 @@ class EconomyCalculator {
   }) {
     final double mult = getGlobalMultiplier(castleLevel: castleLevel, crowns: crowns);
     final double dimReturn = getAdRewardDiminishingReturn(dailyWatches);
-    final double baseAmount = (20.0 + castleLevel * 10.0) * mult * dimReturn;
+    final double baseAmount = (30.0 + castleLevel * 15.0) * mult * dimReturn;
 
     return {
-      'wood': (baseAmount * 1.2).clamp(20.0, 500.0),
-      'food': (baseAmount * 1.5).clamp(20.0, 600.0),
-      'stone': (baseAmount * 0.8).clamp(10.0, 300.0),
-      'iron': (baseAmount * 0.5).clamp(5.0, 150.0),
+      'wood': (baseAmount * 1.2).clamp(30.0, 1000.0),
+      'food': (baseAmount * 1.5).clamp(30.0, 1200.0),
+      'stone': (baseAmount * 0.8).clamp(15.0, 600.0),
+      'iron': (baseAmount * 0.5).clamp(8.0, 300.0),
     };
   }
 
-  /// 12. Çevrimdışı 1.5x Katlanmış Kazanç Hesabı
+  /// 12. Çevrimdışı 2.0x Çift Kat Bereketli Kazanç Hesabı
   static OfflineGainsResult calculateOfflineAdBoostedGains(OfflineGainsResult original) {
-    const double boost = 1.5;
+    const double boost = 2.0;
     return OfflineGainsResult(
       seconds: original.seconds,
       food: original.food * boost,

@@ -26,7 +26,7 @@ void main() {
       container.dispose();
     });
 
-    test('BUG-001: claimOfflineGains properly credits standard and 1.5x boosted resources', () async {
+    test('BUG-001: claimOfflineGains properly credits standard and 2.0x boosted resources', () async {
       final notifier = container.read(gameStateProvider.notifier);
       final initialFood = container.read(gameStateProvider).resources.food;
       final initialWood = container.read(gameStateProvider).resources.wood;
@@ -48,10 +48,10 @@ void main() {
       expect(container.read(gameStateProvider).resources.food, equals(initialFood + 20.0));
       expect(container.read(gameStateProvider).resources.wood, equals(initialWood + 10.0));
 
-      // 1.5x Boosted claim
+      // 2.0x Boosted claim
       final foodBeforeBoost = container.read(gameStateProvider).resources.food;
       await notifier.claimOfflineGains(gains, isBoosted: true);
-      expect(container.read(gameStateProvider).resources.food, equals(foodBeforeBoost + 30.0)); // 20 * 1.5 = 30
+      expect(container.read(gameStateProvider).resources.food, equals(foodBeforeBoost + 40.0)); // 20 * 2.0 = 40
     });
 
     test('BUG-004: demolishBuilding collects accumulated resources before dismantling building', () {
