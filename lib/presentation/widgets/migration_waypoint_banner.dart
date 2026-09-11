@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/tactile_audio_service.dart';
+import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/economy/economy_calculator.dart';
 import '../providers/game_state_notifier.dart';
@@ -44,6 +45,7 @@ class _MigrationWaypointBannerState extends ConsumerState<MigrationWaypointBanne
   @override
   Widget build(BuildContext context) {
     final gameState = ref.watch(gameStateProvider);
+    final lang = gameState.settings.language;
     final activePalette = gameState.settings.activeThemePalette;
     final theme = NeoBrutalistTheme.getTheme(activePalette);
 
@@ -85,14 +87,14 @@ class _MigrationWaypointBannerState extends ConsumerState<MigrationWaypointBanne
           borderColor: const Color(0xFFF59E0B),
           shadowOffset: 2.0,
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.navigation, size: 13, color: Color(0xFFFBBF24)),
-              SizedBox(width: 5),
+              const Icon(Icons.navigation, size: 13, color: Color(0xFFFBBF24)),
+              const SizedBox(width: 5),
               Text(
-                'GÖÇ VAKTİ!',
-                style: TextStyle(
+                GameLocalization.get('time_to_migrate', lang: lang),
+                style: const TextStyle(
                   color: Color(0xFFFBBF24),
                   fontSize: 10,
                   fontWeight: FontWeight.w900,
@@ -149,13 +151,13 @@ class _MigrationWaypointBannerState extends ConsumerState<MigrationWaypointBanne
                   child: const Icon(Icons.navigation, size: 14, color: Color(0xFFFBBF24)),
                 ),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'KUTLU GÖÇ VAKTİ GELDİ!',
-                        style: TextStyle(
+                        GameLocalization.get('sacred_migration_time', lang: lang),
+                        style: const TextStyle(
                           color: Color(0xFFFFD700),
                           fontSize: 11,
                           fontWeight: FontWeight.w900,
@@ -163,8 +165,8 @@ class _MigrationWaypointBannerState extends ConsumerState<MigrationWaypointBanne
                         ),
                       ),
                       Text(
-                        'İlk çağ tamamlandı • Büyüme yavaşlıyor',
-                        style: TextStyle(
+                        GameLocalization.get('first_era_complete', lang: lang),
+                        style: const TextStyle(
                           color: Color(0xFF94A3B8),
                           fontSize: 9,
                           fontWeight: FontWeight.w700,
@@ -189,9 +191,9 @@ class _MigrationWaypointBannerState extends ConsumerState<MigrationWaypointBanne
             const SizedBox(height: 8),
 
             // Açıklama Metni
-            const Text(
-              'Oban ilk sınırlarına ulaştı. Şimdi Büyük Göç başlatarak kalıcı Atalar Tamgası ve Kut Çarpanı kazanabilir, yeni sefere çok daha güçlü başlayabilirsin!',
-              style: TextStyle(
+            Text(
+              GameLocalization.get('migration_waypoint_desc', lang: lang),
+              style: const TextStyle(
                 color: Color(0xFFCBD5E1),
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
@@ -244,9 +246,9 @@ class _MigrationWaypointBannerState extends ConsumerState<MigrationWaypointBanne
                     backgroundColor: const Color(0xFF1E293B),
                     borderColor: theme.slateBorder,
                     alignment: Alignment.center,
-                    child: const Text(
-                      'DAHA SONRA',
-                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w900),
+                    child: Text(
+                      GameLocalization.get('later', lang: lang),
+                      style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w900),
                     ),
                   ),
                 ),
@@ -266,14 +268,14 @@ class _MigrationWaypointBannerState extends ConsumerState<MigrationWaypointBanne
                     borderColor: Colors.black,
                     shadowOffset: 2.0,
                     alignment: Alignment.center,
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.flight_takeoff, size: 12, color: Colors.white),
-                        SizedBox(width: 4),
+                        const Icon(Icons.flight_takeoff, size: 12, color: Colors.white),
+                        const SizedBox(width: 4),
                         Text(
-                          'ŞİMDİ GÖÇ ET',
-                          style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.4),
+                          GameLocalization.get('migrate_now', lang: lang),
+                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.4),
                         ),
                       ],
                     ),

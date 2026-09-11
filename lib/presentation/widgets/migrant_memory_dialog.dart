@@ -51,7 +51,7 @@ class MigrantMemoryDialog extends ConsumerWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'GÖÇMEN HAFIZASI',
+                      GameLocalization.get('migrant_memory_title', lang: lang),
                       style: NeoBrutalistTheme.fontHeaderMonolith.copyWith(
                         color: const Color(0xFFD97706),
                         fontSize: 16,
@@ -191,12 +191,12 @@ class MigrantMemoryDialog extends ConsumerWidget {
                               Row(
                                 children: [
                                   Text(
-                                    'Fethedilen: ${record.ownedCount} Karo',
+                                    GameLocalization.get('conquered_tiles_count', lang: lang, args: [record.ownedCount.toString()]),
                                     style: const TextStyle(color: Colors.white70, fontSize: 10),
                                   ),
                                   const SizedBox(width: 12),
                                   Text(
-                                    'Atlatılan Zud: ${record.zudCount}',
+                                    GameLocalization.get('zuds_survived_count', lang: lang, args: [record.zudCount.toString()]),
                                     style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 10),
                                   ),
                                 ],
@@ -204,7 +204,7 @@ class MigrantMemoryDialog extends ConsumerWidget {
                               if (record.topSynergy.isNotEmpty) ...[
                                 const SizedBox(height: 2),
                                 Text(
-                                  'En Yüksek Verim: ${record.topSynergy}',
+                                  GameLocalization.get('top_synergy_label', lang: lang, args: [record.topSynergy]),
                                   style: const TextStyle(color: Color(0xFF10B981), fontSize: 10),
                                 ),
                               ],
@@ -238,16 +238,16 @@ class MigrantMemoryDialog extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'KUTLU MİRAS SANDIĞI',
-                              style: TextStyle(
+                            Text(
+                              GameLocalization.get('sacred_legacy_chest', lang: lang),
+                              style: const TextStyle(
                                 color: Color(0xFFFFD700),
                                 fontSize: 11,
                                 fontWeight: FontWeight.w900,
                               ),
                             ),
                             Text(
-                              'Ataların kutlu tamgalarını +1 artırarak yeni çağa daha güçlü başla.',
+                              GameLocalization.get('sacred_legacy_chest_desc', lang: lang),
                               style: TextStyle(
                                 color: Colors.white.withAlpha(160),
                                 fontSize: 9,

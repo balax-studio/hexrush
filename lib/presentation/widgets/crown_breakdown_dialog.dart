@@ -85,9 +85,9 @@ class CrownBreakdownDialog extends ConsumerWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'ŞAN & TAÇ DÖKÜMÜ',
-                            style: TextStyle(
+                          Text(
+                            GameLocalization.get('glory_crown_breakdown', lang: lang),
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 14,
                               fontWeight: FontWeight.w900,
@@ -135,9 +135,9 @@ class CrownBreakdownDialog extends ConsumerWidget {
                   children: [
                     Column(
                       children: [
-                        const Text(
-                          'MEVCUT TAÇ',
-                          style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w800),
+                        Text(
+                          GameLocalization.get('current_crowns', lang: lang),
+                          style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w800),
                         ),
                         const SizedBox(height: 3),
                         Text(
@@ -149,9 +149,9 @@ class CrownBreakdownDialog extends ConsumerWidget {
                     Container(width: 1.5, height: 32, color: const Color(0xFF334155)),
                     Column(
                       children: [
-                        const Text(
-                          'GÖÇTE KAZANILACAK',
-                          style: TextStyle(color: Color(0xFFFFD700), fontSize: 10, fontWeight: FontWeight.w800),
+                        Text(
+                          GameLocalization.get('to_earn_in_migration', lang: lang),
+                          style: const TextStyle(color: Color(0xFFFFD700), fontSize: 10, fontWeight: FontWeight.w800),
                         ),
                         const SizedBox(height: 3),
                         Text(
@@ -166,9 +166,9 @@ class CrownBreakdownDialog extends ConsumerWidget {
               const SizedBox(height: 12),
 
               // Detaylı Hesaplama Dökümü
-              const Text(
-                'TAÇ HESAPLAMA VE KAZANIM DETAYLARI',
-                style: TextStyle(
+              Text(
+                GameLocalization.get('crown_calc_details', lang: lang),
+                style: const TextStyle(
                   color: Color(0xFF94A3B8),
                   fontSize: 10,
                   fontWeight: FontWeight.w900,

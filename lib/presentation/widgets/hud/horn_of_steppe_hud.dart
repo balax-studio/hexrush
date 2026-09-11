@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/audio/tactile_audio_service.dart';
+import '../../../core/localization/game_localization.dart';
 import '../../../core/theme/neo_brutalist_theme.dart';
 import '../../../domain/models/combat_model.dart';
 import '../../providers/game_state_notifier.dart';
@@ -13,6 +14,7 @@ class HornOfSteppeHUD extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final combat = ref.watch(gameStateProvider.select((s) => s.combatState));
     final castleLevel = ref.watch(gameStateProvider.select((s) => s.progression.castleLevel));
+    final lang = ref.watch(gameStateProvider.select((s) => s.settings.language));
     final theme = NeoBrutalistTheme.getTheme(
       ref.watch(gameStateProvider.select((s) => s.settings.activeThemePalette)),
     );
@@ -35,14 +37,14 @@ class HornOfSteppeHUD extends ConsumerWidget {
           ],
         ),
         child: combat.isActiveWave
-            ? _buildActiveCombatHUD(context, ref, combat, theme)
-            : _buildIdleHornHUD(context, ref, combat, castleLevel, theme),
+            ? _buildActiveCombatHUD(context, ref, combat, theme, lang)
+            : _buildIdleHornHUD(context, ref, combat, castleLevel, theme, lang),
       ),
     );
   }
 
   Widget _buildActiveCombatHUD(
-      BuildContext context, WidgetRef ref, CombatState combat, NeoBrutalistThemeData theme) {
+      BuildContext context, WidgetRef ref, CombatState combat, NeoBrutalistThemeData theme, String lang) {
     final double hpRatio = combat.castleHpPercentage;
 
     return Column(
@@ -57,7 +59,7 @@ class HornOfSteppeHUD extends ConsumerWidget {
                 const Icon(Icons.flash_on, color: Color(0xFFFDE047), size: 16),
                 const SizedBox(width: 4),
                 Text(
-                  'AKIN SAVAŞI: SEVİYE ${combat.currentWaveTier}',
+                  GameLocalization.get('steppe_raid_lvl', lang: lang, args: [combat.currentWaveTier.toString()]),
                   style: const TextStyle(
                     color: Color(0xFFFDE047),
                     fontSize: 11,
@@ -74,7 +76,7 @@ class HornOfSteppeHUD extends ConsumerWidget {
                 borderRadius: NeoBrutalistTheme.sharpRadius,
               ),
               child: Text(
-                'KALAN: ${combat.remainingEnemyCount}',
+                GameLocalization.get('remaining_enemies', lang: lang, args: [combat.remainingEnemyCount.toString()]),
                 style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900),
               ),
             ),
@@ -123,7 +125,7 @@ class HornOfSteppeHUD extends ConsumerWidget {
   }
 
   Widget _buildIdleHornHUD(BuildContext context, WidgetRef ref, CombatState combat, int castleLevel,
-      NeoBrutalistThemeData theme) {
+      NeoBrutalistThemeData theme, String lang) {
     final notifier = ref.read(gameStateProvider.notifier);
     final bool isCastleDestroyed = combat.isCastleDestroyed;
 
@@ -138,7 +140,7 @@ class HornOfSteppeHUD extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'AKIN BORUSU: SEVİYE ${combat.currentWaveTier}',
+                  GameLocalization.get('raid_horn_lvl', lang: lang, args: [combat.currentWaveTier.toString()]),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 11,
@@ -148,10 +150,10 @@ class HornOfSteppeHUD extends ConsumerWidget {
                 ),
                 Text(
                   isCastleDestroyed
-                      ? 'Şato Hasarlı (Onarım Gerekli)'
+                      ? GameLocalization.get('castle_damaged_repair', lang: lang)
                       : (combat.maxCompletedWaveTier > 0
-                          ? 'En Yüksek: Seviye ${combat.maxCompletedWaveTier}'
-                          : 'Bozkır Yağmacılarına Meydan Oku'),
+                          ? GameLocalization.get('highest_tier', lang: lang, args: [combat.maxCompletedWaveTier.toString()])
+                          : GameLocalization.get('challenge_raiders', lang: lang)),
                   style: TextStyle(
                     color: isCastleDestroyed ? const Color(0xFFEF4444) : const Color(0xFF94A3B8),
                     fontSize: 9,
@@ -171,14 +173,14 @@ class HornOfSteppeHUD extends ConsumerWidget {
             height: 30,
             padding: const EdgeInsets.symmetric(horizontal: 10),
             alignment: Alignment.center,
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.build, size: 12, color: Colors.white),
-                SizedBox(width: 4),
+                const Icon(Icons.build, size: 12, color: Colors.white),
+                const SizedBox(width: 4),
                 Text(
-                  'ŞATOYU ONAR',
-                  style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900),
+                  GameLocalization.get('repair_castle', lang: lang),
+                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900),
                 ),
               ],
             ),

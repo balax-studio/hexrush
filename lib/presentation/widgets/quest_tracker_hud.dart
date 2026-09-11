@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/tactile_audio_service.dart';
+import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/economy/economy_calculator.dart';
 import '../../domain/models/quest_model.dart';
@@ -48,7 +49,7 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
   @override
   Widget build(BuildContext context) {
     final quests = ref.watch(gameStateProvider.select((s) => s.quests));
-    final isTr = ref.watch(gameStateProvider.select((s) => s.settings.language == 'tr'));
+    final lang = ref.watch(gameStateProvider.select((s) => s.settings.language));
     final notifier = ref.read(gameStateProvider.notifier);
     final activePalette = ref.watch(gameStateProvider.select((s) => s.settings.activeThemePalette));
     final theme = NeoBrutalistTheme.getTheme(activePalette);
@@ -75,9 +76,9 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
     final bool allDone = activeQuest.id == 'done';
     final bool isCompleted = activeQuest.isCompleted && !allDone;
     final double progressRatio = activeQuest.progress;
-    final String title = isTr ? activeQuest.titleTr : activeQuest.titleEn;
-    final String description =
-        isTr ? activeQuest.descriptionTr : activeQuest.descriptionEn;
+    final String title = activeQuest.getTitle(lang);
+    final String description = activeQuest.getDescription(lang);
+    final bool isTr = lang == 'tr';
 
     // Animasyon Ticker'ı sadece görev tamamlandığında çalıştırılır (60 FPS CPU döngüsünü sıfırlar)
     if (isCompleted) {
@@ -333,7 +334,7 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                               borderColor: Colors.black,
                               height: 32,
                               alignment: Alignment.center,
-                              child: const Text('BENGÜ TAŞ DİK (+10 Tamga, +%25 Kut)', style: TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.w900)),
+                              child: Text(GameLocalization.get('claim_bengutas', lang: lang), style: const TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.w900)),
                             );
                           }
                           if (canSilk) {
@@ -343,7 +344,7 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                               borderColor: Colors.black,
                               height: 32,
                               alignment: Alignment.center,
-                              child: const Text('İPEK YOLUNU BAĞLA (+10 Tamga, +%25 Kut)', style: TextStyle(color: Colors.black, fontSize: 9.5, fontWeight: FontWeight.w900)),
+                              child: Text(GameLocalization.get('claim_silkroad', lang: lang), style: const TextStyle(color: Colors.black, fontSize: 9.5, fontWeight: FontWeight.w900)),
                             );
                           }
                           if (canRealm) {
@@ -353,7 +354,7 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                               borderColor: Colors.black,
                               height: 32,
                               alignment: Alignment.center,
-                              child: const Text('DİYARLARI BİRLEŞTİR (+15 Tamga, +%25 Kut)', style: TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.w900)),
+                              child: Text(GameLocalization.get('claim_realmconquest', lang: lang), style: const TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.w900)),
                             );
                           }
 
@@ -364,9 +365,9 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                               borderRadius: BorderRadius.circular(3),
                               border: Border.all(color: const Color(0xFF334155)),
                             ),
-                            child: const Text(
-                              'Hedef: 500 Bilgelik veya 4 Kervan Hattı ile Ebedi Zafer ilan et.',
-                              style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9, height: 1.3),
+                            child: Text(
+                              GameLocalization.get('victory_quest_target', lang: lang),
+                              style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9, height: 1.3),
                             ),
                           );
                         }),

@@ -1565,8 +1565,8 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('BİRİKMİŞ STOK:',
-                  style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w800)),
+              Text(GameLocalization.get('accumulated_stock', lang: lang),
+                  style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w800)),
               Text(
                 '+${NumberFormatter.format(b.accumulatedResource, decimals: 1)}',
                 style: const TextStyle(

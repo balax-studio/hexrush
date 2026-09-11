@@ -204,6 +204,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                 doctrines,
                 notifier,
                 true,
+                lang,
               ),
               _buildSlotCard(
                 DoctrineSlotType.military,
@@ -212,6 +213,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                 doctrines,
                 notifier,
                 true,
+                lang,
               ),
               _buildSlotCard(
                 DoctrineSlotType.nomadic,
@@ -220,6 +222,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                 doctrines,
                 notifier,
                 true,
+                lang,
               ),
               _buildSlotCard(
                 DoctrineSlotType.wildcard,
@@ -228,6 +231,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                 doctrines,
                 notifier,
                 castleLvl >= 12,
+                lang,
                 lockMsg: 'Otağ Lv.12 Gerekli',
               ),
             ],
@@ -284,7 +288,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                                 borderRadius: BorderRadius.circular(2),
                               ),
                               child: Text(
-                                _getSlotTypeName(doc.slotType),
+                                _getSlotTypeName(doc.slotType, lang),
                                 style: const TextStyle(
                                   color: Colors.black,
                                   fontSize: 8,
@@ -295,7 +299,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
-                                doc.titleTr,
+                                doc.getTitle(lang),
                                 style: TextStyle(
                                   color: isEquipped ? const Color(0xFF6EE7B7) : Colors.white,
                                   fontSize: 11,
@@ -307,7 +311,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          doc.descriptionTr,
+                          doc.getDescription(lang),
                           style: TextStyle(
                             color: isUnlocked ? Colors.white70 : Colors.white38,
                             fontSize: 10,
@@ -397,7 +401,8 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
     String? equippedId,
     List<DoctrineCardModel> allDoctrines,
     GameStateNotifier notifier,
-    bool isUnlocked, {
+    bool isUnlocked,
+    String lang, {
     String? lockMsg,
   }) {
     final DoctrineCardModel? equipped = equippedId != null
@@ -447,7 +452,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
             )
           else if (equipped != null)
             Text(
-              equipped.titleTr,
+              equipped.getTitle(lang),
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 10,
@@ -479,17 +484,8 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
     }
   }
 
-  String _getSlotTypeName(DoctrineSlotType type) {
-    switch (type) {
-      case DoctrineSlotType.economic:
-        return 'İKTİSAT';
-      case DoctrineSlotType.military:
-        return 'ASKERİ';
-      case DoctrineSlotType.nomadic:
-        return 'BOZKIR';
-      case DoctrineSlotType.wildcard:
-        return 'JOKER';
-    }
+  String _getSlotTypeName(DoctrineSlotType type, String lang) {
+    return GameLocalization.get('slot_${type.name}', lang: lang).toUpperCase();
   }
 
   // --- SEKME 2: KADİM YETENEKLER ---
@@ -507,7 +503,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
         'branch': 'gokTengri',
         'key': 'rainBlessing',
         'icon': GameIconType.food,
-        'title': 'GÖK TENGRİ: YAĞMUR BEREKETİ (LV.$rainLvl)',
+        'title': '${GameLocalization.get('ritual_rain', lang: lang)} (LV.$rainLvl)',
         'desc': 'Tüm krallık üretim hızını her seviyede +%5 artırır.',
         'cost': rainLvl + 1,
         'lvl': rainLvl,
@@ -516,7 +512,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
         'branch': 'tonyukuk',
         'key': 'silkNetwork',
         'icon': GameIconType.tore,
-        'title': 'TONYUKUK: İPEK AĞI (LV.$silkLvl)',
+        'title': '${GameLocalization.get('ritual_silk', lang: lang)} (LV.$silkLvl)',
         'desc': 'Üretim çarpanını her seviyede +%4 artırır.',
         'cost': silkLvl + 1,
         'lvl': silkLvl,
@@ -525,7 +521,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
         'branch': 'tonyukuk',
         'key': 'pavedRoads',
         'icon': GameIconType.wood,
-        'title': 'TONYUKUK: TAŞ YOLLAR (LV.$roadsLvl)',
+        'title': '${GameLocalization.get('ritual_roads', lang: lang)} (LV.$roadsLvl)',
         'desc': 'İşçi taşıma hızını her seviyede +%8 artırır.',
         'cost': roadsLvl + 1,
         'lvl': roadsLvl,
@@ -534,7 +530,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
         'branch': 'kulTigin',
         'key': 'braveHeart',
         'icon': GameIconType.frenzy,
-        'title': 'KÜL TİGİN: CESUR YÜREK (LV.$braveLvl)',
+        'title': '${GameLocalization.get('ritual_brave', lang: lang)} (LV.$braveLvl)',
         'desc': 'Toprak fethetme gıda maliyetini her seviyede %5 düşürür.',
         'cost': braveLvl + 1,
         'lvl': braveLvl,
@@ -654,7 +650,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
       {
         'key': 'nomad',
         'icon': GameIconType.tore,
-        'title': 'BOZKIR GÖÇERİ',
+        'title': GameLocalization.get('title_nomad', lang: lang),
         'palette': 'KADİM BAZALT TEMASI',
         'desc': 'Bozkırın kadim topraklarına adım atmış özgür göçer.',
         'inscription': 'Çadırını kuran, göğün altında ateşini yakan her göçerin temel hakkı.',
@@ -664,7 +660,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
       {
         'key': 'conqueror',
         'icon': GameIconType.land,
-        'title': 'TOPRAK FATİHİ',
+        'title': GameLocalization.get('title_conqueror', lang: lang),
         'palette': 'KIZIL KURGAN TEMASI',
         'desc': '15 Toprak gerektirir. (Fetih Maliyeti -%10)',
         'inscription': 'Bozkırın ufuklarını yurt tutan, sınırları aşarak çadırını kuran fatihlerin izi.',
@@ -674,7 +670,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
       {
         'key': 'merchant',
         'icon': GameIconType.market,
-        'title': 'İPEK YOLU TÜCCARI',
+        'title': GameLocalization.get('title_merchant', lang: lang),
         'palette': 'ALTAY YEŞİMİ TEMASI',
         'desc': '50 Un ve 50 Kereste gerektirir. (Pazar Gelirleri +%20)',
         'inscription': 'Kervan yollarını bağlayan, un ve keresteyi berekete çeviren usta tacirlerin kaydı.',
@@ -684,7 +680,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
       {
         'key': 'zudMaster',
         'icon': GameIconType.winter,
-        'title': 'ZUD FATİHİ',
+        'title': GameLocalization.get('title_zud_master', lang: lang),
         'palette': 'GÖK TENGRİ TEMASI',
         'desc': 'Kış Yılı 2\'ye ulaşmayı gerektirir. (Kış Kayıpları -%20)',
         'inscription': 'Dondurucu boranları ve kara kışları dize getiren, ocağı hiç sönmeyen bilgelerin anısı.',
@@ -694,7 +690,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
       {
         'key': 'khagan',
         'icon': GameIconType.crown,
-        'title': 'BÜYÜK KAĞAN',
+        'title': GameLocalization.get('title_khagan', lang: lang),
         'palette': 'ALTIN KAĞANLIK TEMASI',
         'desc': 'Kağan Otağı Lv.4 ve 10 Toprak gerektirir. (+%15 Küresel Hız)',
         'inscription': 'On boyu birleştiren, kutlu otağı kuran ve bozkıra nizam veren ulu hükümdar yazıtı.',

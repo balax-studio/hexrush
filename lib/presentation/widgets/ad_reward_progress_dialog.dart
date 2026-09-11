@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
+import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import 'icons/game_vector_icons.dart';
 import 'tactile_dialog_route.dart';
 
 Future<bool> showAdRewardProgressDialog(
   BuildContext context, {
-  String title = 'ÖDÜL ALINIYOR',
-  String message = 'Ödül alınıyor lütfen bekleyiniz...',
+  String? title,
+  String? message,
+  String lang = 'tr',
 }) async {
+  final displayTitle = title ?? GameLocalization.get('reward_processing', lang: lang);
+  final displayMessage = message ?? GameLocalization.get('reward_processing_please_wait', lang: lang);
+
   final result = await showNeoTactileDialog<bool>(
     context: context,
     barrierDismissible: false,
     builder: (ctx) => _AdRewardProgressDialogWidget(
-      title: title,
-      message: message,
+      title: displayTitle,
+      message: displayMessage,
     ),
   );
   return result ?? false;

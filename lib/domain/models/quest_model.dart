@@ -23,8 +23,12 @@ class QuestModel {
   final String id;
   final String titleTr;
   final String titleEn;
+  final String titleEs;
+  final String titleDe;
   final String descriptionTr;
   final String descriptionEn;
+  final String descriptionEs;
+  final String descriptionDe;
   final QuestType type;
   final BuildingType? targetBuilding;
   final String? targetResource;
@@ -39,8 +43,12 @@ class QuestModel {
     required this.id,
     required this.titleTr,
     required this.titleEn,
+    this.titleEs = '',
+    this.titleDe = '',
     required this.descriptionTr,
     required this.descriptionEn,
+    this.descriptionEs = '',
+    this.descriptionDe = '',
     required this.type,
     this.targetBuilding,
     this.targetResource,
@@ -52,14 +60,32 @@ class QuestModel {
     this.isClaimed = false,
   });
 
+  String getTitle(String lang) {
+    if (lang == 'tr') return titleTr;
+    if (lang == 'es') return titleEs.isNotEmpty ? titleEs : titleEn;
+    if (lang == 'de') return titleDe.isNotEmpty ? titleDe : titleEn;
+    return titleEn;
+  }
+
+  String getDescription(String lang) {
+    if (lang == 'tr') return descriptionTr;
+    if (lang == 'es') return descriptionEs.isNotEmpty ? descriptionEs : descriptionEn;
+    if (lang == 'de') return descriptionDe.isNotEmpty ? descriptionDe : descriptionEn;
+    return descriptionEn;
+  }
+
   double get progress => targetAmount > 0 ? (currentAmount / targetAmount).clamp(0.0, 1.0) : 0.0;
 
   QuestModel copyWith({
     String? id,
     String? titleTr,
     String? titleEn,
+    String? titleEs,
+    String? titleDe,
     String? descriptionTr,
     String? descriptionEn,
+    String? descriptionEs,
+    String? descriptionDe,
     QuestType? type,
     BuildingType? targetBuilding,
     String? targetResource,
@@ -78,8 +104,12 @@ class QuestModel {
       id: id ?? this.id,
       titleTr: titleTr ?? this.titleTr,
       titleEn: titleEn ?? this.titleEn,
+      titleEs: titleEs ?? this.titleEs,
+      titleDe: titleDe ?? this.titleDe,
       descriptionTr: descriptionTr ?? this.descriptionTr,
       descriptionEn: descriptionEn ?? this.descriptionEn,
+      descriptionEs: descriptionEs ?? this.descriptionEs,
+      descriptionDe: descriptionDe ?? this.descriptionDe,
       type: type ?? this.type,
       targetBuilding: targetBuilding ?? this.targetBuilding,
       targetResource: targetResource ?? this.targetResource,
@@ -96,8 +126,12 @@ class QuestModel {
         'id': id,
         'titleTr': titleTr,
         'titleEn': titleEn,
+        'titleEs': titleEs,
+        'titleDe': titleDe,
         'descriptionTr': descriptionTr,
         'descriptionEn': descriptionEn,
+        'descriptionEs': descriptionEs,
+        'descriptionDe': descriptionDe,
         'type': type.name,
         'targetBuilding': targetBuilding?.name,
         'targetResource': targetResource,
@@ -114,8 +148,12 @@ class QuestModel {
       id: json['id'] as String? ?? 'quest_${DateTime.now().millisecondsSinceEpoch}',
       titleTr: json['titleTr'] as String? ?? 'Görev',
       titleEn: json['titleEn'] as String? ?? 'Quest',
+      titleEs: json['titleEs'] as String? ?? '',
+      titleDe: json['titleDe'] as String? ?? '',
       descriptionTr: json['descriptionTr'] as String? ?? '',
       descriptionEn: json['descriptionEn'] as String? ?? '',
+      descriptionEs: json['descriptionEs'] as String? ?? '',
+      descriptionDe: json['descriptionDe'] as String? ?? '',
       type: QuestType.values.firstWhere(
         (e) => e.name == json['type'],
         orElse: () => QuestType.buildStructure,

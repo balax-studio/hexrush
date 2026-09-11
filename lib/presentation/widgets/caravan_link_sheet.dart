@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/hex/hex_coordinates.dart';
+import '../../core/localization/game_localization.dart';
 import '../providers/game_state_notifier.dart';
 import 'tactile_neo_button.dart';
 
@@ -29,8 +30,8 @@ class CaravanLinkSheet extends ConsumerWidget {
       return dist <= 8;
     }).toList();
 
-    final title = lang == 'tr' ? 'İPEK YOLU KERVAN HATTI KUR' : 'ESTABLISH SILK ROAD CARAVAN ROUTE';
-    final originText = lang == 'tr' ? 'Başlangıç' : 'Origin';
+    final title = GameLocalization.get('establish_caravan_route', lang: lang);
+    final originText = GameLocalization.get('origin', lang: lang);
     final costText = lang == 'tr'
         ? 'Maliyet: 30 Kalas, 20 Ekmek | Bonus: +%25 Takas Rezonansı'
         : 'Cost: 30 Planks, 20 Bread | Bonus: +25% Trade Resonance';
@@ -38,9 +39,9 @@ class CaravanLinkSheet extends ConsumerWidget {
         ? '8 Hex menzilinde kervan bağlanabilecek başka bir fethedilmiş arazi bulunamadı.'
         : 'No other conquered lands found within 8 hex range.';
     final distanceText = lang == 'tr' ? 'Mesafe' : 'Distance';
-    final connectedText = lang == 'tr' ? 'BAĞLI' : 'CONNECTED';
-    final connectBtn = lang == 'tr' ? 'HAT ÇEK' : 'CONNECT';
-    final closeBtn = lang == 'tr' ? 'KAPAT' : 'CLOSE';
+    final connectedText = GameLocalization.get('connected', lang: lang);
+    final connectBtn = GameLocalization.get('connect', lang: lang);
+    final closeBtn = GameLocalization.get('close', lang: lang);
 
     return Container(
       padding: const EdgeInsets.all(16),

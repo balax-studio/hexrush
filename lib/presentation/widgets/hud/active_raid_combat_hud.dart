@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/localization/game_localization.dart';
 import '../../../core/theme/neo_brutalist_theme.dart';
 import '../../providers/game_state_notifier.dart';
 
@@ -10,6 +11,7 @@ class ActiveRaidCombatHUD extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final combat = ref.watch(gameStateProvider.select((s) => s.combatState));
+    final lang = ref.watch(gameStateProvider.select((s) => s.settings.language));
     if (!combat.isActiveWave) {
       return const SizedBox.shrink();
     }
@@ -43,7 +45,7 @@ class ActiveRaidCombatHUD extends ConsumerWidget {
                     const Icon(Icons.flash_on, color: Color(0xFFFDE047), size: 16),
                     const SizedBox(width: 6),
                     Text(
-                      'BOZKIR BASKINI: SEVİYE ${combat.currentWaveTier}',
+                      GameLocalization.get('steppe_raid_lvl', lang: lang, args: [combat.currentWaveTier.toString()]),
                       style: const TextStyle(
                         color: Color(0xFFFDE047),
                         fontSize: 11,
@@ -61,7 +63,7 @@ class ActiveRaidCombatHUD extends ConsumerWidget {
                     border: Border.all(color: const Color(0xFF020617), width: 1),
                   ),
                   child: Text(
-                    'KALAN DÜŞMAN: ${combat.remainingEnemyCount}',
+                    GameLocalization.get('remaining_enemies', lang: lang, args: [combat.remainingEnemyCount.toString()]),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 10,

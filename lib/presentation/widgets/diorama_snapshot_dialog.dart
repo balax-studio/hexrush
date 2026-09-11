@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/localization/game_localization.dart';
 import '../providers/game_state_notifier.dart';
 import 'tactile_neo_button.dart';
 
@@ -9,6 +10,7 @@ class DioramaSnapshotDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(gameStateProvider);
+    final lang = state.settings.language;
     final int totalTiles = state.tiles.values.where((t) => t.isOwned).length;
     final int migrations = state.progression.totalMigrations;
     final omen = state.celestialOmen;
@@ -30,13 +32,13 @@ class DioramaSnapshotDialog extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.camera_alt, color: Color(0xFFF59E0B), size: 22),
-                SizedBox(width: 8),
+                const Icon(Icons.camera_alt, color: Color(0xFFF59E0B), size: 22),
+                const SizedBox(width: 8),
                 Text(
-                  'DİORAMA & KRALLIK MÜHRÜ',
-                  style: TextStyle(
+                  GameLocalization.get('diorama_seal_title', lang: lang),
+                  style: const TextStyle(
                     color: Color(0xFFF59E0B),
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
@@ -55,9 +57,9 @@ class DioramaSnapshotDialog extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'BOZKIR KAĞANLIĞI DİORAMASI',
-                    style: TextStyle(
+                  Text(
+                    GameLocalization.get('diorama_khaganate_title', lang: lang),
+                    style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
@@ -65,7 +67,7 @@ class DioramaSnapshotDialog extends ConsumerWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Fethedilen Toprak: $totalTiles Hex | Göç Çağı: $migrations | Yıl: ${omen.title}',
+                    '${GameLocalization.get('conquered_tiles_count', lang: lang, args: [totalTiles.toString()])} | ${GameLocalization.get('total_migrations', lang: lang)}: $migrations | Yıl: ${omen.getTitle(lang)}',
                     style: const TextStyle(
                       color: Color(0xFF94A3B8),
                       fontSize: 11,
@@ -98,14 +100,14 @@ class DioramaSnapshotDialog extends ConsumerWidget {
                     height: 40,
                     padding: EdgeInsets.zero,
                     alignment: Alignment.center,
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.fullscreen, size: 18, color: Colors.black),
-                        SizedBox(width: 6),
+                        const Icon(Icons.fullscreen, size: 18, color: Colors.black),
+                        const SizedBox(width: 6),
                         Text(
-                          'TAM EKRAN DİORAMA',
-                          style: TextStyle(
+                          GameLocalization.get('fullscreen_diorama', lang: lang),
+                          style: const TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.w900,
                             fontSize: 11,
@@ -125,9 +127,9 @@ class DioramaSnapshotDialog extends ConsumerWidget {
                   height: 40,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   alignment: Alignment.center,
-                  child: const Text(
-                    'KAPAT',
-                    style: TextStyle(
+                  child: Text(
+                    GameLocalization.get('close', lang: lang),
+                    style: const TextStyle(
                       color: Color(0xFFCBD5E1),
                       fontSize: 12,
                       fontWeight: FontWeight.w900,
