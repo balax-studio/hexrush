@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/models/trade_order_model.dart';
 import '../providers/game_state_notifier.dart';
@@ -12,6 +13,7 @@ class TradeOrdersDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final palette = ref.watch(gameStateProvider.select((s) => s.settings.activeThemePalette));
+    final lang = ref.watch(gameStateProvider.select((s) => s.settings.language));
     final theme = NeoBrutalistTheme.getTheme(palette);
     final state = ref.watch(gameStateProvider);
     final orders = state.progression.activeTradeOrders;
@@ -46,10 +48,10 @@ class TradeOrdersDialog extends ConsumerWidget {
                 children: [
                   const GameVectorIcon(type: GameIconType.crown, size: 20, color: Color(0xFFFFD700)),
                   const SizedBox(width: 10),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'İPEK YOLU ELÇİ SİPARİŞLERİ',
-                      style: TextStyle(
+                      GameLocalization.get('trade_orders_title', lang: lang),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 13,
                         fontWeight: FontWeight.w900,
@@ -76,7 +78,7 @@ class TradeOrdersDialog extends ConsumerWidget {
               child: orders.isEmpty
                   ? Center(
                       child: Text(
-                        'Şu anda bekleyen elçi buyruğu bulunmuyor.',
+                        GameLocalization.get('no_envoy_orders', lang: lang),
                         style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
                       ),
                     )
@@ -86,7 +88,7 @@ class TradeOrdersDialog extends ConsumerWidget {
                       separatorBuilder: (_, _) => const SizedBox(height: 10),
                       itemBuilder: (context, index) {
                         final order = orders[index];
-                        return _buildOrderCard(context, ref, theme, state, order);
+                        return _buildOrderCard(context, ref, theme, state, order, lang);
                       },
                     ),
             ),
@@ -102,6 +104,7 @@ class TradeOrdersDialog extends ConsumerWidget {
     NeoBrutalistThemeData theme,
     dynamic state,
     TradeOrderModel order,
+    String lang,
   ) {
     final currentRes = state.resources;
     bool canAffordAll = true;
@@ -221,9 +224,9 @@ class TradeOrdersDialog extends ConsumerWidget {
                       color: const Color(0xFF064E3B),
                       borderRadius: BorderRadius.circular(2),
                     ),
-                    child: const Text(
-                      'TESLİM EDİLDİ',
-                      style: TextStyle(
+                    child: Text(
+                      GameLocalization.get('order_delivered', lang: lang),
+                      style: const TextStyle(
                         color: Color(0xFF6EE7B7),
                         fontSize: 9,
                         fontWeight: FontWeight.w900,
@@ -240,7 +243,7 @@ class TradeOrdersDialog extends ConsumerWidget {
                     backgroundColor: canAffordAll ? theme.primaryGold : theme.surfaceLight,
                     borderColor: canAffordAll ? const Color(0xFFB45309) : theme.slateBorder,
                     child: Text(
-                      'BUYRUĞU TESLİM ET',
+                      GameLocalization.get('deliver_order_btn', lang: lang),
                       style: TextStyle(
                         color: canAffordAll ? Colors.black : Colors.grey.shade500,
                         fontSize: 10,

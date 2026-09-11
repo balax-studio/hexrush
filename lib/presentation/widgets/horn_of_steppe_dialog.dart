@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/tactile_audio_service.dart';
+import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/economy/combat_calculator.dart';
 import '../providers/game_state_notifier.dart';
@@ -12,6 +13,7 @@ class HornOfSteppeDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final gameState = ref.watch(gameStateProvider);
+    final lang = gameState.settings.language;
     final combat = gameState.combatState;
     final castleLevel = gameState.progression.castleLevel;
     final theme = NeoBrutalistTheme.getTheme(gameState.settings.activeThemePalette);
@@ -20,6 +22,23 @@ class HornOfSteppeDialog extends ConsumerWidget {
     final int currentTier = combat.currentWaveTier;
     final victoryReward = CombatCalculator.calculateWaveVictoryReward(currentTier);
     final bool isCastleDamaged = combat.isCastleDestroyed || combat.castleCurrentHp < combat.castleMaxHp;
+
+    final headerTitle = '${lang == 'tr' ? 'BOZKIR AKINI' : 'STEPPE RAID'}: ${lang == 'tr' ? 'SEVİYE' : 'LEVEL'} $currentTier';
+    final infoTitle = lang == 'tr' ? 'AKIN BİLGİSİ & SAVUNMA PLANI' : 'RAID INFO & DEFENSE STRATEGY';
+    final infoDesc = lang == 'tr'
+        ? 'Bozkır Yağmacıları sınır karolardan Kağan Otağı\'na doğru taarruz edecek. Geçtikleri karolar tahrip olur (%50 üretim kaybı). Gözcü Kuleleri (R=3) ve Surlar ile Otağ\'ı savunun!'
+        : 'Steppe raiders attack from border tiles towards the Khan Yurt. Damaged tiles suffer -50% yield. Defend with Watchtowers (R=3) and Walls!';
+
+    final castleLabel = '${lang == 'tr' ? 'KAĞAN OTAĞI' : 'KHAGAN YURT'} (${lang == 'tr' ? 'SV' : 'LV'}. $castleLevel)';
+    final hpLabel = '${lang == 'tr' ? 'Can Puanı' : 'Hit Points'}: ${combat.castleCurrentHp.toInt()} / ${combat.castleMaxHp.toInt()} HP';
+
+    final victoryTitle = lang == 'tr' ? 'SEVİYE ZAFER GANİMETİ (TEK SEFERLİK)' : 'LEVEL VICTORY REWARD (ONE-TIME)';
+    final crownsLabel = '+${victoryReward.crowns} ${lang == 'tr' ? 'TAÇ' : 'CROWNS'}';
+    final tamgaLabel = '+${victoryReward.tamgas} ${lang == 'tr' ? 'ATALAR TAMGASI' : 'ANCESTRAL TAMGAS'}';
+
+    final actionBtnText = combat.isCastleDestroyed
+        ? (lang == 'tr' ? 'ÖNCE ŞATOYU ONARIN' : 'REPAIR YURT FIRST')
+        : (lang == 'tr' ? 'BORUYU ÇAL (AKINI BAŞLAT)' : 'SOUND HORN (START RAID)');
 
     return Center(
       child: Material(
@@ -53,7 +72,7 @@ class HornOfSteppeDialog extends ConsumerWidget {
                       const Icon(Icons.campaign, color: Color(0xFFF59E0B), size: 22),
                       const SizedBox(width: 8),
                       Text(
-                        'BOZKIR AKINI: SEVİYE $currentTier',
+                        headerTitle,
                         style: const TextStyle(
                           color: Color(0xFFFDE047),
                           fontSize: 14,
@@ -88,13 +107,13 @@ class HornOfSteppeDialog extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       children: [
-                        Icon(Icons.shield_outlined, size: 14, color: Color(0xFF94A3B8)),
-                        SizedBox(width: 6),
+                        const Icon(Icons.shield_outlined, size: 14, color: Color(0xFF94A3B8)),
+                        const SizedBox(width: 6),
                         Text(
-                          'AKIN BİLGİSİ & SAVUNMA PLANI',
-                          style: TextStyle(
+                          infoTitle,
+                          style: const TextStyle(
                             color: Color(0xFF94A3B8),
                             fontSize: 10,
                             fontWeight: FontWeight.w900,
@@ -105,7 +124,7 @@ class HornOfSteppeDialog extends ConsumerWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Bozkır Yağmacıları sınır karolardan Kağan Otağı\'na doğru taarruz edecek. Geçtikleri karolar tahrip olur (%50 üretim kaybı). Gözcü Kuleleri (R=3) ve Surlar ile Otağ\'ı savunun!',
+                      infoDesc,
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.85),
                         fontSize: 10,
@@ -143,7 +162,7 @@ class HornOfSteppeDialog extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'KAĞAN OTAĞI (SV. $castleLevel)',
+                              castleLabel,
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 11,
@@ -151,7 +170,7 @@ class HornOfSteppeDialog extends ConsumerWidget {
                               ),
                             ),
                             Text(
-                              'Can Puanı: ${combat.castleCurrentHp.toInt()} / ${combat.castleMaxHp.toInt()} HP',
+                              hpLabel,
                               style: TextStyle(
                                 color: isCastleDamaged ? const Color(0xFFFCA5A5) : const Color(0xFF94A3B8),
                                 fontSize: 10,
@@ -180,9 +199,12 @@ class HornOfSteppeDialog extends ConsumerWidget {
                           break;
                         }
                       }
+                      final woodName = GameLocalization.get('wood', lang: lang);
+                      final stoneName = GameLocalization.get('stone', lang: lang);
                       final costStr = castleRepairCost.entries
-                          .map((e) => '${e.value.toInt()} ${e.key == 'wood' ? 'Odun' : 'Taş'}')
+                          .map((e) => '${e.value.toInt()} ${e.key == 'wood' ? woodName : stoneName}')
                           .join(', ');
+                      final repairLabel = '${lang == 'tr' ? 'ONAR' : 'REPAIR'} ($costStr)';
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
@@ -202,7 +224,7 @@ class HornOfSteppeDialog extends ConsumerWidget {
                                 const Icon(Icons.build, size: 12, color: Colors.white),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'ONAR ($costStr)',
+                                  repairLabel,
                                   style: TextStyle(
                                     color: canAffordCastleRepair ? Colors.white : Colors.white70,
                                     fontSize: 9,
@@ -231,13 +253,13 @@ class HornOfSteppeDialog extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       children: [
-                        Icon(Icons.military_tech, size: 14, color: Color(0xFF6EE7B7)),
-                        SizedBox(width: 6),
+                        const Icon(Icons.military_tech, size: 14, color: Color(0xFF6EE7B7)),
+                        const SizedBox(width: 6),
                         Text(
-                          'SEVİYE ZAFER GANİMETİ (TEK SEFERLİK)',
-                          style: TextStyle(
+                          victoryTitle,
+                          style: const TextStyle(
                             color: Color(0xFF6EE7B7),
                             fontSize: 10,
                             fontWeight: FontWeight.w900,
@@ -252,17 +274,18 @@ class HornOfSteppeDialog extends ConsumerWidget {
                       runSpacing: 4,
                       children: [
                         Text(
-                          '+${victoryReward.crowns} TAÇ',
+                          crownsLabel,
                           style: const TextStyle(color: Color(0xFFFDE047), fontSize: 11, fontWeight: FontWeight.w900),
                         ),
                         if (victoryReward.tamgas > 0)
                           Text(
-                            '+${victoryReward.tamgas} ATALAR TAMGASI',
+                            tamgaLabel,
                             style: const TextStyle(color: Color(0xFF67E8F9), fontSize: 11, fontWeight: FontWeight.w900),
                           ),
                         ...victoryReward.resources.entries.map((e) {
+                          final resLabel = GameLocalization.get(e.key.toLowerCase(), lang: lang).toUpperCase();
                           return Text(
-                            '+${e.value.toInt()} ${e.key.toUpperCase()}',
+                            '+${e.value.toInt()} $resLabel',
                             style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                           );
                         }),
@@ -298,7 +321,7 @@ class HornOfSteppeDialog extends ConsumerWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      combat.isCastleDestroyed ? 'ÖNCE ŞATOYU ONARIN' : 'BORUYU ÇAL (AKINI BAŞLAT)',
+                      actionBtnText,
                       style: TextStyle(
                         color: combat.isCastleDestroyed ? const Color(0xFF94A3B8) : Colors.black,
                         fontSize: 12,

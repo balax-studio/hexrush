@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/tactile_audio_service.dart';
 import '../../core/hex/hex_coordinates.dart';
 import '../../core/hex/hex_math.dart';
+import '../../core/localization/game_localization.dart';
 import '../../data/save_repository.dart';
 import '../../domain/economy/combat_calculator.dart';
 import '../../domain/economy/economy_calculator.dart';
@@ -2122,6 +2123,15 @@ class GameStateNotifier extends StateNotifier<GameState> {
           activeToast: 'Kutlu Miras: +1 Kalıcı Atalar Tamgası Kazanıldı!',
         );
         break;
+
+      case AdRewardType.frenzyBoost:
+        state = state.copyWith(
+          frenzyMultiplier: 10,
+          frenzyTimer: state.frenzyTimer + 240.0,
+          adTracking: updatedTracking,
+          activeToast: '10x Üretim Çılgınlığı Aktif (4 Dakika).',
+        );
+        break;
     }
 
     unawaited(TactileAudioService.instance.play(TactileSoundType.reward));
@@ -2175,8 +2185,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
       ),
       clearPendingOfflineGains: true,
       activeToast: isBoosted
-          ? 'Bozkır bereketiyle 2.0x çift kat çevrimdışı kazanç ambara aktarıldı!'
-          : 'Çevrimdışı bozkır kazancı ambara aktarıldı.',
+          ? GameLocalization.get('offline_gains_boosted_toast', lang: state.settings.language)
+          : GameLocalization.get('offline_gains_toast', lang: state.settings.language),
     );
 
     unawaited(TactileAudioService.instance.play(TactileSoundType.reward));

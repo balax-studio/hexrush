@@ -17,6 +17,7 @@ class CelestialOmenHud extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final omen = ref.watch(gameStateProvider.select((s) => s.celestialOmen));
+    final lang = ref.watch(gameStateProvider.select((s) => s.settings.language));
 
     IconData getAnimalIcon(CelestialAnimal animal) {
       switch (animal) {
@@ -47,8 +48,11 @@ class CelestialOmenHud extends ConsumerWidget {
       }
     }
 
+    final title = omen.getTitle(lang);
+    final desc = omen.getDescription(lang);
+
     return Tooltip(
-      message: '${omen.title}: ${omen.description}',
+      message: '$title: $desc',
       preferBelow: true,
       child: GestureDetector(
         onTap: () {
@@ -75,7 +79,7 @@ class CelestialOmenHud extends ConsumerWidget {
               Icon(getAnimalIcon(omen.animal), color: const Color(0xFFF59E0B), size: 14),
               const SizedBox(width: 5),
               Text(
-                omen.title.toUpperCase(),
+                title.toUpperCase(),
                 style: const TextStyle(
                   color: Color(0xFFF59E0B),
                   fontWeight: FontWeight.bold,
@@ -99,6 +103,7 @@ class _ShamanBlessingDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final gameState = ref.watch(gameStateProvider);
     final notifier = ref.read(gameStateProvider.notifier);
+    final lang = gameState.settings.language;
     final omen = gameState.celestialOmen;
 
     final blessingWatches =
@@ -106,6 +111,33 @@ class _ShamanBlessingDialog extends ConsumerWidget {
     final maxBlessing =
         EconomyCalculator.getMaxDailyWatches(AdRewardType.celestialBlessing);
     final bool canBlessing = blessingWatches < maxBlessing;
+
+    final title = omen.getTitle(lang);
+    final desc = omen.getDescription(lang);
+
+    final dialogTitle = lang == 'tr'
+        ? 'ŞAMAN KEHANETİ & GÖK BEREKETİ'
+        : 'SHAMAN PROPHECY & CELESTIAL BLESSING';
+
+    final activeYearLabel = lang == 'tr'
+        ? 'AKTİF YIL: ${title.toUpperCase()}'
+        : 'ACTIVE YEAR: ${title.toUpperCase()}';
+
+    final prayerTitle = lang == 'tr'
+        ? 'GÖK TENGRİ DUASI (+%25 KUT)'
+        : 'PRAYER TO GÖK TENGRİ (+25% GLORY)';
+
+    final prayerDesc = lang == 'tr'
+        ? 'Şaman duasıyla tüm toprakların üretim ve bereketini 10 dakika boyunca %25 güçlendir.'
+        : 'Empower all production and pasture yields by +25% for 10 minutes through shamanic prayer.';
+
+    final btnText = canBlessing
+        ? (lang == 'tr'
+            ? 'DUAYI KABUL ET ($blessingWatches/$maxBlessing)'
+            : 'ACCEPT PRAYER ($blessingWatches/$maxBlessing)')
+        : (lang == 'tr'
+            ? 'GÜNLÜK DUA LİMİTİ DOLDU'
+            : 'DAILY PRAYER LIMIT REACHED');
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -130,7 +162,7 @@ class _ShamanBlessingDialog extends ConsumerWidget {
                     const Icon(Icons.auto_awesome, color: Color(0xFFD97706), size: 18),
                     const SizedBox(width: 8),
                     Text(
-                      'ŞAMAN KEHANETİ & GÖK BEREKETİ',
+                      dialogTitle,
                       style: NeoBrutalistTheme.fontHeaderMonolith.copyWith(
                         color: const Color(0xFFD97706),
                         fontSize: 13,
@@ -160,7 +192,7 @@ class _ShamanBlessingDialog extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'AKTİF YIL: ${omen.title.toUpperCase()}',
+                    activeYearLabel,
                     style: const TextStyle(
                       color: Color(0xFFF59E0B),
                       fontSize: 12,
@@ -169,7 +201,7 @@ class _ShamanBlessingDialog extends ConsumerWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    omen.description,
+                    desc,
                     style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 11),
                   ),
                 ],
@@ -186,18 +218,18 @@ class _ShamanBlessingDialog extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'GÖK TENGRİ DUASI (+%25 KUT)',
-                    style: TextStyle(
+                  Text(
+                    prayerTitle,
+                    style: const TextStyle(
                       color: Color(0xFFF59E0B),
                       fontSize: 11,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
                   const SizedBox(height: 3),
-                  const Text(
-                    'Şaman duasıyla tüm toprakların üretim ve bereketini 10 dakika boyunca %25 güçlendir.',
-                    style: TextStyle(color: Colors.white70, fontSize: 10),
+                  Text(
+                    prayerDesc,
+                    style: const TextStyle(color: Colors.white70, fontSize: 10),
                   ),
                   const SizedBox(height: 8),
                   TactileNeoButton(
@@ -216,9 +248,7 @@ class _ShamanBlessingDialog extends ConsumerWidget {
                     },
                     child: Center(
                       child: Text(
-                        canBlessing
-                            ? 'DUAYI KABUL ET ($blessingWatches/$maxBlessing)'
-                            : 'GÜNLÜK DUA LİMİTİ DOLDU',
+                        btnText,
                         style: TextStyle(
                           color: canBlessing ? Colors.black : const Color(0xFF94A3B8),
                           fontSize: 11,

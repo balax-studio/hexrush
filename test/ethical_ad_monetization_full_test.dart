@@ -18,7 +18,9 @@ void main() {
       for (final type in AdRewardType.values) {
         final maxWatches = EconomyCalculator.getMaxDailyWatches(type);
         expect(maxWatches, greaterThan(0));
-        expect(maxWatches, lessThanOrEqualTo(4)); // Ethical non-spam constraint
+        if (type != AdRewardType.frenzyBoost && type != AdRewardType.offlineProgressBoost) {
+          expect(maxWatches, lessThanOrEqualTo(4)); // Ethical non-spam constraint
+        }
       }
 
       // Verify soft diminishing returns

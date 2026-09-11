@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/models/steppe_lore_tree_model.dart';
 import '../providers/game_state_notifier.dart';
@@ -19,6 +20,7 @@ class _SteppeLoreTreeDialogState extends ConsumerState<SteppeLoreTreeDialog> {
   @override
   Widget build(BuildContext context) {
     final palette = ref.watch(gameStateProvider.select((s) => s.settings.activeThemePalette));
+    final lang = ref.watch(gameStateProvider.select((s) => s.settings.language));
     final theme = NeoBrutalistTheme.getTheme(palette);
     final state = ref.watch(gameStateProvider);
     final wisdom = state.resources.wisdom;
@@ -58,10 +60,10 @@ class _SteppeLoreTreeDialogState extends ConsumerState<SteppeLoreTreeDialog> {
                 children: [
                   const GameVectorIcon(type: GameIconType.wisdom, size: 20, color: Color(0xFF06B6D4)),
                   const SizedBox(width: 10),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'ORHUN BİTİG TAŞLARI & TÖRE AĞACI',
-                      style: TextStyle(
+                      GameLocalization.get('lore_tree_title', lang: lang),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
                         fontWeight: FontWeight.w900,
@@ -77,7 +79,7 @@ class _SteppeLoreTreeDialogState extends ConsumerState<SteppeLoreTreeDialog> {
                       border: Border.all(color: const Color(0xFF06B6D4), width: 1),
                     ),
                     child: Text(
-                      'BİTİG: ${wisdom.toInt()}',
+                      '${GameLocalization.get('bitig_label', lang: lang)}: ${wisdom.toInt()}',
                       style: const TextStyle(
                         color: Color(0xFF67E8F9),
                         fontSize: 10,
@@ -106,13 +108,13 @@ class _SteppeLoreTreeDialogState extends ConsumerState<SteppeLoreTreeDialog> {
               color: const Color(0xFF0B132B),
               child: Row(
                 children: [
-                  _buildBranchTab(SteppeLoreBranch.logistics, 'Lojistik', theme),
+                  _buildBranchTab(SteppeLoreBranch.logistics, GameLocalization.get('branch_logistics', lang: lang), theme),
                   const SizedBox(width: 4),
-                  _buildBranchTab(SteppeLoreBranch.weatherCraft, 'Isınma', theme),
+                  _buildBranchTab(SteppeLoreBranch.weatherCraft, GameLocalization.get('branch_heating', lang: lang), theme),
                   const SizedBox(width: 4),
-                  _buildBranchTab(SteppeLoreBranch.soilMastery, 'Toprak', theme),
+                  _buildBranchTab(SteppeLoreBranch.soilMastery, GameLocalization.get('branch_soil', lang: lang), theme),
                   const SizedBox(width: 4),
-                  _buildBranchTab(SteppeLoreBranch.metallurgy, 'Döküm', theme),
+                  _buildBranchTab(SteppeLoreBranch.metallurgy, GameLocalization.get('branch_casting', lang: lang), theme),
                 ],
               ),
             ),
@@ -164,7 +166,9 @@ class _SteppeLoreTreeDialogState extends ConsumerState<SteppeLoreTreeDialog> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                node.title,
+                                GameLocalization.get('${node.id}_title', lang: lang).isNotEmpty && GameLocalization.get('${node.id}_title', lang: lang) != '${node.id}_title'
+                                    ? GameLocalization.get('${node.id}_title', lang: lang)
+                                    : node.title,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 11,
@@ -173,7 +177,9 @@ class _SteppeLoreTreeDialogState extends ConsumerState<SteppeLoreTreeDialog> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                node.description,
+                                GameLocalization.get('${node.id}_desc', lang: lang).isNotEmpty && GameLocalization.get('${node.id}_desc', lang: lang) != '${node.id}_desc'
+                                    ? GameLocalization.get('${node.id}_desc', lang: lang)
+                                    : node.description,
                                 style: TextStyle(
                                   color: Colors.grey.shade400,
                                   fontSize: 9.5,
@@ -191,9 +197,9 @@ class _SteppeLoreTreeDialogState extends ConsumerState<SteppeLoreTreeDialog> {
                               color: const Color(0xFF065F46),
                               borderRadius: BorderRadius.circular(2),
                             ),
-                            child: const Text(
-                              'AÇILDI',
-                              style: TextStyle(
+                            child: Text(
+                              GameLocalization.get('node_unlocked', lang: lang),
+                              style: const TextStyle(
                                 color: Color(0xFF6EE7B7),
                                 fontSize: 9,
                                 fontWeight: FontWeight.w900,
@@ -211,7 +217,7 @@ class _SteppeLoreTreeDialogState extends ConsumerState<SteppeLoreTreeDialog> {
                             backgroundColor: canAfford ? const Color(0xFF06B6D4) : theme.surfaceLight,
                             borderColor: canAfford ? const Color(0xFF0891B2) : theme.slateBorder,
                             child: Text(
-                              '${node.costWisdom.toInt()} BİTİG',
+                              '${node.costWisdom.toInt()} ${GameLocalization.get('bitig_label', lang: lang)}',
                               style: TextStyle(
                                 color: canAfford ? Colors.black : Colors.grey.shade500,
                                 fontSize: 9,

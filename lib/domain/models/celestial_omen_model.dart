@@ -1,25 +1,31 @@
 import 'package:flutter/foundation.dart';
 
 enum CelestialAnimal {
-  rat, // Sıçan Yılı (Akıl ve Stok)
-  ox, // Sığır Yılı (Bereket ve Dayanıklılık)
-  tiger, // Pars Yılı (Cesaret ve Kereste)
-  rabbit, // Tavşan Yılı (Hız ve Nüfus)
-  dragon, // Ejder Yılı (Mistik Kristal ve Maden)
-  snake, // Yılan Yılı (Gizem ve Şifa)
-  horse, // At Yılı (Bozkır Rüzgarı ve Kervan Hızı)
-  sheep, // Koyun Yılı (Huzur ve Yün)
-  monkey, // Maymun Yılı (Zanaat ve Alet)
-  rooster, // Tavuk Yılı (Güneş ve Hasat)
-  dog, // Köpek Yılı (Sadakat ve Koruma)
-  pig, // Domuz Yılı (Toprak ve Bolluk)
+  rat, // Sıçan Yılı
+  ox, // Sığır Yılı
+  tiger, // Pars Yılı
+  rabbit, // Tavşan Yılı
+  dragon, // Ejder Yılı
+  snake, // Yılan Yılı
+  horse, // At Yılı
+  sheep, // Koyun Yılı
+  monkey, // Maymun Yılı
+  rooster, // Tavuk Yılı
+  dog, // Köpek Yılı
+  pig, // Domuz Yılı
 }
 
 @immutable
 class CelestialOmen {
   final CelestialAnimal animal;
-  final String title;
-  final String description;
+  final String titleTr;
+  final String titleEn;
+  final String titleEs;
+  final String titleDe;
+  final String descriptionTr;
+  final String descriptionEn;
+  final String descriptionEs;
+  final String descriptionDe;
   final double woodMultiplier;
   final double meatMultiplier;
   final double goldMultiplier;
@@ -29,124 +35,52 @@ class CelestialOmen {
 
   const CelestialOmen({
     required this.animal,
-    required this.title,
-    required this.description,
+    String? title,
+    String? description,
+    String? titleTr,
+    String? titleEn,
+    this.titleEs = '',
+    this.titleDe = '',
+    String? descriptionTr,
+    String? descriptionEn,
+    this.descriptionEs = '',
+    this.descriptionDe = '',
     this.woodMultiplier = 1.0,
     this.meatMultiplier = 1.0,
     this.goldMultiplier = 1.0,
     this.ironMultiplier = 1.0,
     this.workerSpeedMultiplier = 1.0,
     this.migrationDiscount = 0.0,
-  });
+  })  : titleTr = titleTr ?? title ?? 'At Yılı',
+        titleEn = titleEn ?? title ?? 'Year of the Horse',
+        descriptionTr = descriptionTr ?? description ?? 'Bozkır kervanları ve toplayıcılar %50 daha hızlı hareket eder.',
+        descriptionEn = descriptionEn ?? description ?? 'Steppe caravans and foragers move 50% faster.';
 
-  String get name => title;
+  String get title => titleTr;
+  String get description => descriptionTr;
+  String get name => titleTr;
+
+  String getTitle(String lang) {
+    if (lang == 'tr') return titleTr;
+    if (lang == 'es') return titleEs.isNotEmpty ? titleEs : titleEn;
+    if (lang == 'de') return titleDe.isNotEmpty ? titleDe : titleEn;
+    return titleEn;
+  }
+
+  String getDescription(String lang) {
+    if (lang == 'tr') return descriptionTr;
+    if (lang == 'es') return descriptionEs.isNotEmpty ? descriptionEs : descriptionEn;
+    if (lang == 'de') return descriptionDe.isNotEmpty ? descriptionDe : descriptionEn;
+    return descriptionEn;
+  }
 
   static CelestialOmen fromYearIndex(int yearIndex) => getOmenForYear(yearIndex);
-
-  static CelestialOmen getOmenForYear(int yearIndex) {
-    final animal = CelestialAnimal.values[yearIndex.abs() % CelestialAnimal.values.length];
-    switch (animal) {
-      case CelestialAnimal.tiger:
-        return const CelestialOmen(
-          animal: CelestialAnimal.tiger,
-          title: 'Pars Yılı',
-          description: 'Ormanlar coşar, kereste üretimi 2 katına çıkar.',
-          woodMultiplier: 2.0,
-        );
-      case CelestialAnimal.horse:
-        return const CelestialOmen(
-          animal: CelestialAnimal.horse,
-          title: 'At Yılı',
-          description: 'Bozkır kervanları ve toplayıcılar %50 daha hızlı hareket eder.',
-          workerSpeedMultiplier: 1.5,
-          meatMultiplier: 1.25,
-        );
-      case CelestialAnimal.dragon:
-        return const CelestialOmen(
-          animal: CelestialAnimal.dragon,
-          title: 'Ejder Yılı',
-          description: 'Madenler ve volkanik ocaklar zengin filiz döker.',
-          ironMultiplier: 1.8,
-          goldMultiplier: 1.5,
-        );
-      case CelestialAnimal.sheep:
-        return const CelestialOmen(
-          animal: CelestialAnimal.sheep,
-          title: 'Koyun Yılı',
-          description: 'Çayırlar sakinleşir, yün ve süt bereketi artar.',
-          meatMultiplier: 1.6,
-        );
-      case CelestialAnimal.ox:
-        return const CelestialOmen(
-          animal: CelestialAnimal.ox,
-          title: 'Sığır Yılı',
-          description: 'Toprak ağır ve dayanıklıdır; zud soğuğuna karşı direnç sağlar.',
-          woodMultiplier: 1.3,
-          ironMultiplier: 1.3,
-        );
-      case CelestialAnimal.snake:
-        return const CelestialOmen(
-          animal: CelestialAnimal.snake,
-          title: 'Yılan Yılı',
-          description: 'Şifacılar ve simyacılar kadim iksirler üretir.',
-          goldMultiplier: 1.6,
-        );
-      case CelestialAnimal.rabbit:
-        return const CelestialOmen(
-          animal: CelestialAnimal.rabbit,
-          title: 'Tavşan Yılı',
-          description: 'Hızlı yerleşim; büyük göç maliyetleri %25 düşer.',
-          migrationDiscount: 0.25,
-          workerSpeedMultiplier: 1.2,
-        );
-      case CelestialAnimal.rat:
-        return const CelestialOmen(
-          animal: CelestialAnimal.rat,
-          title: 'Sıçan Yılı',
-          description: 'Ambarlar bereketle dolar, tahıl ve un verimi artar.',
-          meatMultiplier: 1.4,
-          woodMultiplier: 1.2,
-        );
-      case CelestialAnimal.monkey:
-        return const CelestialOmen(
-          animal: CelestialAnimal.monkey,
-          title: 'Maymun Yılı',
-          description: 'Zanaatkarlar mobilya ve yapı malzemelerini hızla işler.',
-          woodMultiplier: 1.5,
-          ironMultiplier: 1.4,
-        );
-      case CelestialAnimal.rooster:
-        return const CelestialOmen(
-          animal: CelestialAnimal.rooster,
-          title: 'Tavuk Yılı',
-          description: 'Güneş erken doğar, altın ve ticaret verimi yükselir.',
-          goldMultiplier: 1.7,
-        );
-      case CelestialAnimal.dog:
-        return const CelestialOmen(
-          animal: CelestialAnimal.dog,
-          title: 'Köpek Yılı',
-          description: 'Oba koruma altındadır; işçiler yorulmadan çalışır.',
-          workerSpeedMultiplier: 1.3,
-        );
-      case CelestialAnimal.pig:
-        return const CelestialOmen(
-          animal: CelestialAnimal.pig,
-          title: 'Domuz Yılı',
-          description: 'Kara toprak cömerttir, tüm temel kaynaklar dengeli artar.',
-          woodMultiplier: 1.25,
-          meatMultiplier: 1.25,
-          goldMultiplier: 1.25,
-          ironMultiplier: 1.25,
-        );
-    }
-  }
 
   Map<String, dynamic> toJson() {
     return {
       'animal': animal.name,
-      'title': title,
-      'description': description,
+      'title': titleTr,
+      'description': descriptionTr,
       'wood_multiplier': woodMultiplier,
       'meat_multiplier': meatMultiplier,
       'gold_multiplier': goldMultiplier,
@@ -162,18 +96,178 @@ class CelestialOmen {
       (a) => a.name == animalName,
       orElse: () => CelestialAnimal.horse,
     );
+    return getOmenForYear(matchedAnimal.index);
+  }
 
-    return CelestialOmen(
-      animal: matchedAnimal,
-      title: json['title'] as String? ?? 'At Yılı',
-      description: json['description'] as String? ?? '',
-      woodMultiplier: (json['wood_multiplier'] as num?)?.toDouble() ?? 1.0,
-      meatMultiplier: (json['meat_multiplier'] as num?)?.toDouble() ?? 1.0,
-      goldMultiplier: (json['gold_multiplier'] as num?)?.toDouble() ?? 1.0,
-      ironMultiplier: (json['iron_multiplier'] as num?)?.toDouble() ?? 1.0,
-      workerSpeedMultiplier: (json['worker_speed_multiplier'] as num?)?.toDouble() ?? 1.0,
-      migrationDiscount: (json['migration_discount'] as num?)?.toDouble() ?? 0.0,
-    );
+  static CelestialOmen getOmenForYear(int yearIndex) {
+    final animal = CelestialAnimal.values[yearIndex.abs() % CelestialAnimal.values.length];
+    switch (animal) {
+      case CelestialAnimal.rat:
+        return const CelestialOmen(
+          animal: CelestialAnimal.rat,
+          titleTr: 'Sıçan Yılı',
+          titleEn: 'Year of the Rat',
+          titleEs: 'Año de la Rata',
+          titleDe: 'Jahr der Ratte',
+          descriptionTr: 'Ambar stokları korunur, ekmek ve un verimi +%30 artar.',
+          descriptionEn: 'Storehouses thrive; grain and bread yield +30%.',
+          descriptionEs: 'Los almacenes prosperan; rendimiento de grano y pan +30%.',
+          descriptionDe: 'Lagerhäuser gedeihen; Getreide- und Brotertrag +30%.',
+          meatMultiplier: 1.4,
+          woodMultiplier: 1.2,
+        );
+      case CelestialAnimal.ox:
+        return const CelestialOmen(
+          animal: CelestialAnimal.ox,
+          titleTr: 'Sığır Yılı',
+          titleEn: 'Year of the Ox',
+          titleEs: 'Año del Buey',
+          titleDe: 'Jahr des Büffels',
+          descriptionTr: 'Toprak ağır ve dayanıklıdır; zud soğuğuna karşı direnç sağlar.',
+          descriptionEn: 'Soil is resilient and provides resistance to Zud frost.',
+          descriptionEs: 'El suelo es resistente y brinda protección contra el frío.',
+          descriptionDe: 'Der Boden ist widerstandsfähig gegen Zud-Frost.',
+          woodMultiplier: 1.3,
+          ironMultiplier: 1.3,
+        );
+      case CelestialAnimal.tiger:
+        return const CelestialOmen(
+          animal: CelestialAnimal.tiger,
+          titleTr: 'Pars Yılı',
+          titleEn: 'Year of the Tiger',
+          titleEs: 'Año del Tigre',
+          titleDe: 'Jahr des Tigers',
+          descriptionTr: 'Ormanlar coşar, kereste üretimi 2 katına çıkar.',
+          descriptionEn: 'Forests surge; lumber yield doubles (2.0x).',
+          descriptionEs: 'Los bosques prosperan; la producción de madera se duplica.',
+          descriptionDe: 'Wälder sprießen; Bauholzertrag verdoppelt sich.',
+          woodMultiplier: 2.0,
+        );
+      case CelestialAnimal.rabbit:
+        return const CelestialOmen(
+          animal: CelestialAnimal.rabbit,
+          titleTr: 'Tavşan Yılı',
+          titleEn: 'Year of the Rabbit',
+          titleEs: 'Año del Conejo',
+          titleDe: 'Jahr des Hasen',
+          descriptionTr: 'Hızlı yerleşim; büyük göç maliyetleri %25 düşer.',
+          descriptionEn: 'Swift settlement; migration costs reduced by 25%.',
+          descriptionEs: 'Asentamiento rápido; los costes de migración se reducen un 25%.',
+          descriptionDe: 'Schnelle Besiedlung; Migrationskosten um 25% reduziert.',
+          migrationDiscount: 0.25,
+          workerSpeedMultiplier: 1.2,
+        );
+      case CelestialAnimal.dragon:
+        return const CelestialOmen(
+          animal: CelestialAnimal.dragon,
+          titleTr: 'Ejder Yılı',
+          titleEn: 'Year of the Dragon',
+          titleEs: 'Año del Dragón',
+          titleDe: 'Jahr des Drachen',
+          descriptionTr: 'Madenler ve volkanik ocaklar zengin filiz döker.',
+          descriptionEn: 'Mines and volcanic forges yield rich ore deposits.',
+          descriptionEs: 'Las minas y forjas volcánicas rinden ricos yacimientos.',
+          descriptionDe: 'Minen und Vulkanschmieden liefern ergiebige Erze.',
+          ironMultiplier: 1.8,
+          goldMultiplier: 1.5,
+        );
+      case CelestialAnimal.snake:
+        return const CelestialOmen(
+          animal: CelestialAnimal.snake,
+          titleTr: 'Yılan Yılı',
+          titleEn: 'Year of the Snake',
+          titleEs: 'Año de la Serpiente',
+          titleDe: 'Jahr der Schlange',
+          descriptionTr: 'Şifacılar ve simyacılar kadim iksirler üretir.',
+          descriptionEn: 'Healers and alchemists brew ancient remedies.',
+          descriptionEs: 'Sanadores y alquimistas elaboran remedios antiguos.',
+          descriptionDe: 'Heiler und Alchemisten brauen alte Heilmittel.',
+          goldMultiplier: 1.6,
+        );
+      case CelestialAnimal.horse:
+        return const CelestialOmen(
+          animal: CelestialAnimal.horse,
+          titleTr: 'At Yılı',
+          titleEn: 'Year of the Horse',
+          titleEs: 'Año del Caballo',
+          titleDe: 'Jahr des Pferdes',
+          descriptionTr: 'Bozkır kervanları ve toplayıcılar %50 daha hızlı hareket eder.',
+          descriptionEn: 'Steppe caravans and foragers move 50% faster.',
+          descriptionEs: 'Caravanas y recolectores se mueven un 50% más rápido.',
+          descriptionDe: 'Steppenkarawanen und Sammler bewegen sich 50% schneller.',
+          workerSpeedMultiplier: 1.5,
+          meatMultiplier: 1.25,
+        );
+      case CelestialAnimal.sheep:
+        return const CelestialOmen(
+          animal: CelestialAnimal.sheep,
+          titleTr: 'Koyun Yılı',
+          titleEn: 'Year of the Sheep',
+          titleEs: 'Año de la Oveja',
+          titleDe: 'Jahr des Schafes',
+          descriptionTr: 'Çayırlar sakinleşir, yün ve süt bereketi artar.',
+          descriptionEn: 'Pastures settle; wool and dairy fertility surge.',
+          descriptionEs: 'Los pastos prosperan; aumentan la lana y lácteos.',
+          descriptionDe: 'Weiden gedeihen; Wolle- und Milchertrag steigen.',
+          meatMultiplier: 1.6,
+        );
+      case CelestialAnimal.monkey:
+        return const CelestialOmen(
+          animal: CelestialAnimal.monkey,
+          titleTr: 'Maymun Yılı',
+          titleEn: 'Year of the Monkey',
+          titleEs: 'Año del Mono',
+          titleDe: 'Jahr des Affen',
+          descriptionTr: 'Zanaatkarlar mobilya ve yapı malzemelerini hızla işler.',
+          descriptionEn: 'Craftsmen quickly process furniture and building materials.',
+          descriptionEs: 'Artesanos procesan rápidamente muebles y materiales.',
+          descriptionDe: 'Handwerker verarbeiten Möbel und Baumaterialien schnell.',
+          woodMultiplier: 1.5,
+          ironMultiplier: 1.4,
+        );
+      case CelestialAnimal.rooster:
+        return const CelestialOmen(
+          animal: CelestialAnimal.rooster,
+          titleTr: 'Tavuk Yılı',
+          titleEn: 'Year of the Rooster',
+          titleEs: 'Año del Gallo',
+          titleDe: 'Jahr des Hahns',
+          descriptionTr: 'Güneş erken doğar, altın ve ticaret verimi yükselir.',
+          descriptionEn: 'Sun rises early; gold and trade yields surge.',
+          descriptionEs: 'El sol sale temprano; aumentan los rendimientos comerciales.',
+          descriptionDe: 'Sonne geht früh auf; Gold- und Handelsertrag steigt.',
+          goldMultiplier: 1.7,
+        );
+      case CelestialAnimal.dog:
+        return const CelestialOmen(
+          animal: CelestialAnimal.dog,
+          titleTr: 'Köpek Yılı',
+          titleEn: 'Year of the Dog',
+          titleEs: 'Año del Perro',
+          titleDe: 'Jahr des Hundes',
+          descriptionTr: 'Oba koruma altındadır; işçiler yorulmadan çalışır.',
+          descriptionEn: 'Realm is protected; workers labor tirelessly.',
+          descriptionEs: 'El reino está protegido; los trabajadores laboran sin descanso.',
+          descriptionDe: 'Das Reich ist geschützt; Arbeiter arbeiten unermüdlich.',
+          workerSpeedMultiplier: 1.3,
+        );
+      case CelestialAnimal.pig:
+        return const CelestialOmen(
+          animal: CelestialAnimal.pig,
+          titleTr: 'Domuz Yılı',
+          titleEn: 'Year of the Boar',
+          titleEs: 'Año del Jabalí',
+          titleDe: 'Jahr des Wildschweins',
+          descriptionTr: 'Kara toprak cömerttir, tüm temel kaynaklar dengeli artar.',
+          descriptionEn: 'Dark soil is generous; all basic resources increase equally.',
+          descriptionEs: 'La tierra oscura es generosa; los recursos aumentan por igual.',
+          descriptionDe: 'Dunkle Erde ist großzügig; alle Grundressourcen steigen.',
+          woodMultiplier: 1.25,
+          meatMultiplier: 1.25,
+          goldMultiplier: 1.25,
+          ironMultiplier: 1.25,
+        );
+    }
   }
 
   @override

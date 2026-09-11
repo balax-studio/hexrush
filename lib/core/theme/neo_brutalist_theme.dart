@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 class NeoBrutalistThemeData {
   final String id;
   final String nameTr;
+  final String nameEn;
+  final String nameEs;
+  final String nameDe;
   final String titleTr;
   final Color bgDark;
   final Color surface;
@@ -19,6 +22,9 @@ class NeoBrutalistThemeData {
   const NeoBrutalistThemeData({
     required this.id,
     required this.nameTr,
+    this.nameEn = '',
+    this.nameEs = '',
+    this.nameDe = '',
     required this.titleTr,
     required this.bgDark,
     required this.surface,
@@ -31,6 +37,13 @@ class NeoBrutalistThemeData {
     required this.accentColor,
     required this.shadowColor,
   });
+
+  String getName(String lang) {
+    if (lang == 'tr') return nameTr;
+    if (lang == 'es') return nameEs.isNotEmpty ? nameEs : (nameEn.isNotEmpty ? nameEn : nameTr);
+    if (lang == 'de') return nameDe.isNotEmpty ? nameDe : (nameEn.isNotEmpty ? nameEn : nameTr);
+    return nameEn.isNotEmpty ? nameEn : nameTr;
+  }
 
   List<BoxShadow> hardShadow({double offset = 3.0}) => [
         BoxShadow(
@@ -55,6 +68,9 @@ class NeoBrutalistTheme {
   static const NeoBrutalistThemeData basaltTheme = NeoBrutalistThemeData(
     id: 'basalt',
     nameTr: 'KADİM BAZALT',
+    nameEn: 'ANCIENT BASALT',
+    nameEs: 'BASALTO ANCESTRAL',
+    nameDe: 'ALTER BASALT',
     titleTr: 'Bozkır Göçeri',
     bgDark: Color(0xFF060913),
     surface: Color(0xFF0F172A),
@@ -72,6 +88,9 @@ class NeoBrutalistTheme {
   static const NeoBrutalistThemeData kurganTheme = NeoBrutalistThemeData(
     id: 'kurgan',
     nameTr: 'KIZIL KURGAN',
+    nameEn: 'CRIMSON KURGAN',
+    nameEs: 'KURGAN CARMESÍ',
+    nameDe: 'ROTER KURGAN',
     titleTr: 'Bozkır Fatihi / Tarkan',
     bgDark: Color(0xFF0B0507),
     surface: Color(0xFF1A0B10),
@@ -89,6 +108,9 @@ class NeoBrutalistTheme {
   static const NeoBrutalistThemeData jadeTheme = NeoBrutalistThemeData(
     id: 'jade',
     nameTr: 'ALTAY YEŞİMİ',
+    nameEn: 'ALTAY JADE',
+    nameEs: 'JADE DE ALTAY',
+    nameDe: 'ALTAY-JADE',
     titleTr: 'Kervan Başı / Yabgu',
     bgDark: Color(0xFF040D0A),
     surface: Color(0xFF0B1F17),
@@ -106,6 +128,9 @@ class NeoBrutalistTheme {
   static const NeoBrutalistThemeData tengriTheme = NeoBrutalistThemeData(
     id: 'tengri',
     nameTr: 'GÖK TENGRİ',
+    nameEn: 'GÖK TENGRİ',
+    nameEs: 'GÖK TENGRİ',
+    nameDe: 'GÖK TENGRİ',
     titleTr: 'Zud Ustası / Şad',
     bgDark: Color(0xFF030712),
     surface: Color(0xFF0C1830),
@@ -123,6 +148,9 @@ class NeoBrutalistTheme {
   static const NeoBrutalistThemeData khaganTheme = NeoBrutalistThemeData(
     id: 'khagan',
     nameTr: 'ALTIN KAĞANLIK',
+    nameEn: 'GOLDEN KHAGANATE',
+    nameEs: 'KAGANATO DORADO',
+    nameDe: 'GOLDENES KHAGANAT',
     titleTr: 'Büyük Kağan',
     bgDark: Color(0xFF000000),
     surface: Color(0xFF171206),

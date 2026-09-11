@@ -21,6 +21,9 @@ class SettingsDialog extends ConsumerWidget {
     final notifier = ref.read(gameStateProvider.notifier);
     final lang = settings.language;
 
+    final onLabel = GameLocalization.get('on', lang: lang);
+    final offLabel = GameLocalization.get('off', lang: lang);
+
     return Dialog(
       backgroundColor: NeoBrutalistTheme.surface,
       shape: const RoundedRectangleBorder(
@@ -89,8 +92,8 @@ class SettingsDialog extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'SES EFEKTLERİ',
+                Text(
+                  GameLocalization.get('sfx_effects', lang: lang),
                   style: NeoBrutalistTheme.fontLabel,
                 ),
                 TactileNeoButton(
@@ -111,7 +114,7 @@ class SettingsDialog extends ConsumerWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        settings.sfxMuted ? 'KAPALI' : 'AÇIK',
+                        settings.sfxMuted ? offLabel : onLabel,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
@@ -148,8 +151,8 @@ class SettingsDialog extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'BOZKIR MÜZİĞİ',
+                Text(
+                  GameLocalization.get('music_steppe', lang: lang),
                   style: NeoBrutalistTheme.fontLabel,
                 ),
                 TactileNeoButton(
@@ -170,7 +173,7 @@ class SettingsDialog extends ConsumerWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        settings.musicMuted ? 'KAPALI' : 'AÇIK',
+                        settings.musicMuted ? offLabel : onLabel,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
@@ -204,8 +207,8 @@ class SettingsDialog extends ConsumerWidget {
             const SizedBox(height: 16),
 
             // Bildirim Tercihleri
-            const Text(
-              'BİLDİRİM TERCİHLERİ',
+            Text(
+              GameLocalization.get('notification_prefs', lang: lang),
               style: NeoBrutalistTheme.fontLabel,
             ),
             const SizedBox(height: 6),
@@ -219,22 +222,22 @@ class SettingsDialog extends ConsumerWidget {
               child: Column(
                 children: [
                   _buildNotificationToggle(
-                    'Ambar Dolum Uyarısı (%80)',
+                    GameLocalization.get('storage_full_alert', lang: lang),
                     settings.notifications.storageFullAlert,
                     (val) => notifier.updateNotificationSettings(storageFullAlert: val),
                   ),
                   _buildNotificationToggle(
-                    'Mevsim Değişimi Uyarısı',
+                    GameLocalization.get('season_change_alert', lang: lang),
                     settings.notifications.seasonChangeAlert,
                     (val) => notifier.updateNotificationSettings(seasonChangeAlert: val),
                   ),
                   _buildNotificationToggle(
-                    'Görev Tamamlanma Uyarısı',
+                    GameLocalization.get('quest_completed_alert', lang: lang),
                     settings.notifications.questCompletedAlert,
                     (val) => notifier.updateNotificationSettings(questCompletedAlert: val),
                   ),
                   _buildNotificationToggle(
-                    'Otağ Büyütme Hazır Uyarısı',
+                    GameLocalization.get('castle_upgrade_alert', lang: lang),
                     settings.notifications.castleUpgradeReadyAlert,
                     (val) => notifier.updateNotificationSettings(castleUpgradeReadyAlert: val),
                   ),
@@ -245,8 +248,8 @@ class SettingsDialog extends ConsumerWidget {
             const SizedBox(height: 16),
 
             // Dinamik Neo-Brutalist Tema Paleti
-            const Text(
-              'NEO-BRUTALİST TEMA PALETİ',
+            Text(
+              GameLocalization.get('theme_palette', lang: lang),
               style: NeoBrutalistTheme.fontLabel,
             ),
             const SizedBox(height: 8),
@@ -255,6 +258,8 @@ class SettingsDialog extends ConsumerWidget {
               runSpacing: 6,
               children: NeoBrutalistTheme.allPalettes.map((p) {
                 final bool isSelected = settings.activeThemePalette == p.id;
+                final paletteName = p.getName(lang);
+
                 return GestureDetector(
                   onTap: () => notifier.setThemePalette(p.id),
                   child: Container(
@@ -290,7 +295,7 @@ class SettingsDialog extends ConsumerWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          p.nameTr,
+                          paletteName,
                           style: TextStyle(
                             color: isSelected ? Colors.white : const Color(0xFF94A3B8),
                             fontSize: 9,
@@ -322,14 +327,14 @@ class SettingsDialog extends ConsumerWidget {
               height: 38,
               padding: EdgeInsets.zero,
               alignment: Alignment.center,
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.flight_takeoff, color: Color(0xFFFFD700), size: 16),
-                  SizedBox(width: 6),
+                  const Icon(Icons.flight_takeoff, color: Color(0xFFFFD700), size: 16),
+                  const SizedBox(width: 6),
                   Text(
-                    'BÜYÜK GÖÇ & SIFIRLAMA EKRANI',
-                    style: TextStyle(
+                    GameLocalization.get('great_migration_screen_btn', lang: lang),
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 11,
                       fontWeight: FontWeight.w900,
@@ -355,14 +360,14 @@ class SettingsDialog extends ConsumerWidget {
               height: 38,
               padding: EdgeInsets.zero,
               alignment: Alignment.center,
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.history_edu, color: Color(0xFFF59E0B), size: 16),
-                  SizedBox(width: 6),
+                  const Icon(Icons.history_edu, color: Color(0xFFF59E0B), size: 16),
+                  const SizedBox(width: 6),
                   Text(
-                    'BOZKIR DESTANI (GİRİŞ HİKAYESİ)',
-                    style: TextStyle(
+                    GameLocalization.get('steppe_story_btn', lang: lang),
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 11,
                       fontWeight: FontWeight.w900,
@@ -421,8 +426,8 @@ class SettingsDialog extends ConsumerWidget {
         ),
       ),
     ),
-  );
-}
+    );
+  }
 
   Widget _buildLangButton(BuildContext context, GameStateNotifier notifier, String code, String label, bool isSelected) {
     return TactileNeoButton(
@@ -439,7 +444,7 @@ class SettingsDialog extends ConsumerWidget {
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.black : Colors.white70,
+            color: isSelected ? Colors.black : Colors.white,
             fontSize: 12,
             fontWeight: FontWeight.w900,
           ),
@@ -461,30 +466,20 @@ class SettingsDialog extends ConsumerWidget {
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700),
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
-          GestureDetector(
-            onTap: () => onChanged(!value),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: value ? const Color(0xFF065F46) : const Color(0xFF1E293B),
-                borderRadius: NeoBrutalistTheme.sharpRadius,
-                border: Border.all(
-                  color: value ? const Color(0xFF10B981) : const Color(0xFF475569),
-                  width: 1.5,
-                ),
-              ),
-              child: Text(
-                value ? 'AÇIK' : 'KAPALI',
-                style: TextStyle(
-                  color: value ? Colors.white : Colors.white60,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ),
+          Switch(
+            value: value,
+            activeThumbColor: const Color(0xFFFFC700),
+            activeTrackColor: const Color(0xFF78350F),
+            inactiveThumbColor: const Color(0xFF94A3B8),
+            inactiveTrackColor: const Color(0xFF1E293B),
+            onChanged: onChanged,
           ),
         ],
       ),
@@ -493,13 +488,10 @@ class SettingsDialog extends ConsumerWidget {
 }
 
 class _NeoRectSliderThumbShape extends SliderComponentShape {
-  static const double width = 12.0;
-  static const double height = 16.0;
-
   const _NeoRectSliderThumbShape();
 
   @override
-  Size getPreferredSize(bool isEnabled, bool isDiscrete) => const Size(width, height);
+  Size getPreferredSize(bool isEnabled, bool isDiscrete) => const Size(12, 16);
 
   @override
   void paint(
@@ -517,8 +509,12 @@ class _NeoRectSliderThumbShape extends SliderComponentShape {
     required Size sizeWithOverflow,
   }) {
     final canvas = context.canvas;
-    final rect = Rect.fromCenter(center: center, width: width, height: height);
-    final fillPaint = Paint()..color = const Color(0xFFFFC700);
+    final rect = Rect.fromCenter(center: center, width: 12, height: 18);
+
+    final fillPaint = Paint()
+      ..color = sliderTheme.thumbColor ?? const Color(0xFFFFC700)
+      ..style = PaintingStyle.fill;
+
     final borderPaint = Paint()
       ..color = Colors.black
       ..style = PaintingStyle.stroke

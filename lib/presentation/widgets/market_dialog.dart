@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/audio/tactile_audio_service.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/economy/economy_calculator.dart';
@@ -20,10 +19,11 @@ class MarketDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final gameState = ref.watch(gameStateProvider);
-    final resources = gameState.resources;
+    final settings = gameState.settings;
     final notifier = ref.read(gameStateProvider.notifier);
-    final lang = gameState.settings.language;
+    final lang = settings.language;
     final isMerchant = gameState.titles['merchant'] == true;
+    final resources = gameState.resources;
 
     final recipes = EconomyCalculator.getMarketRecipes(
       season: gameState.season.current,
@@ -33,26 +33,31 @@ class MarketDialog extends ConsumerWidget {
     );
 
     final GameIconType seasonIcon;
-    final String seasonNameTr;
+    final String seasonName;
     switch (gameState.season.current) {
       case 'SPRING':
         seasonIcon = GameIconType.spring;
-        seasonNameTr = 'İLKBAHAR';
+        seasonName = GameLocalization.get('spring', lang: lang).toUpperCase();
         break;
       case 'SUMMER':
         seasonIcon = GameIconType.summer;
-        seasonNameTr = 'YAZ';
+        seasonName = GameLocalization.get('summer', lang: lang).toUpperCase();
         break;
       case 'AUTUMN':
         seasonIcon = GameIconType.autumn;
-        seasonNameTr = 'SONBAHAR';
+        seasonName = GameLocalization.get('autumn', lang: lang).toUpperCase();
         break;
       case 'WINTER':
       default:
         seasonIcon = gameState.season.isZud ? GameIconType.zud : GameIconType.winter;
-        seasonNameTr = gameState.season.isZud ? 'ZUD (AFET)' : 'KIŞ';
+        seasonName = gameState.season.isZud
+            ? (lang == 'tr' ? 'ZUD (AFET)' : 'ZUD BLIZZARD')
+            : GameLocalization.get('winter', lang: lang).toUpperCase();
         break;
     }
+
+    final marketTitle = lang == 'tr' ? 'BOZKIR PİYASASI' : 'STEPPE BAZAAR';
+    final yearTitle = lang == 'tr' ? 'YIL' : 'YEAR';
 
     return Dialog(
       backgroundColor: NeoBrutalistTheme.surface,
@@ -111,7 +116,7 @@ class MarketDialog extends ConsumerWidget {
                       GameVectorIcon(type: seasonIcon, size: 14),
                       const SizedBox(width: 6),
                       Text(
-                        'BOZKIR PİYASASI: $seasonNameTr',
+                        '$marketTitle: $seasonName',
                         style: const TextStyle(
                           color: Color(0xFFFFC700),
                           fontSize: 10,
@@ -122,7 +127,7 @@ class MarketDialog extends ConsumerWidget {
                     ],
                   ),
                   Text(
-                    'YIL ${gameState.season.year}',
+                    '$yearTitle ${gameState.season.year}',
                     style: const TextStyle(
                       color: Color(0xFF94A3B8),
                       fontSize: 9,
@@ -140,6 +145,14 @@ class MarketDialog extends ConsumerWidget {
                 final maxCaravan = EconomyCalculator.getMaxDailyWatches(AdRewardType.caravanBonus);
                 final bool canCaravan = caravanWatches < maxCaravan;
 
+                final giftTitle = lang == 'tr' ? 'GEZGİN KERVAN İKRAMI' : 'TRAVELING CARAVAN GIFT';
+                final giftDesc = lang == 'tr'
+                    ? 'Bozkır tüccarından karşılıksız acil hammadde desteği.'
+                    : 'Emergency supplies gift from traveling steppe merchants.';
+                final giftBtn = canCaravan
+                    ? '${lang == 'tr' ? 'AL' : 'CLAIM'} ($caravanWatches/$maxCaravan)'
+                    : (lang == 'tr' ? 'DOLDU' : 'FULL');
+
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
@@ -154,18 +167,18 @@ class MarketDialog extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'GEZGİN KERVAN İKRAMI',
-                              style: TextStyle(
+                            Text(
+                              giftTitle,
+                              style: const TextStyle(
                                 color: Color(0xFFF59E0B),
                                 fontSize: 10,
                                 fontWeight: FontWeight.w900,
                               ),
                             ),
                             Text(
-                              'Bozkır tüccarından karşılıksız acil hammadde desteği.',
+                              giftDesc,
                               style: TextStyle(
-                                color: Colors.white.withAlpha(160),
+                                color: Colors.white.withValues(alpha: 0.65),
                                 fontSize: 9,
                               ),
                             ),
@@ -180,7 +193,7 @@ class MarketDialog extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         onTap: () => notifier.claimAdReward(AdRewardType.caravanBonus, adService: adService),
                         child: Text(
-                          canCaravan ? 'AL ($caravanWatches/$maxCaravan)' : 'DOLDU',
+                          giftBtn,
                           style: TextStyle(
                             color: canCaravan ? Colors.black : const Color(0xFF94A3B8),
                             fontSize: 10,
@@ -208,14 +221,14 @@ class MarketDialog extends ConsumerWidget {
               height: 36,
               padding: const EdgeInsets.symmetric(horizontal: 10),
               alignment: Alignment.center,
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.local_shipping, size: 16, color: Color(0xFFFDE047)),
-                  SizedBox(width: 8),
+                  const Icon(Icons.local_shipping, size: 16, color: Color(0xFFFDE047)),
+                  const SizedBox(width: 8),
                   Text(
-                    'İPEK YOLU ELÇİ SİPARİŞLERİ',
-                    style: TextStyle(
+                    lang == 'tr' ? 'İPEK YOLU ELÇİ SİPARİŞLERİ' : 'SILK ROAD ENVOY ORDERS',
+                    style: const TextStyle(
                       color: Color(0xFFFDE047),
                       fontSize: 11,
                       fontWeight: FontWeight.w900,
@@ -232,12 +245,11 @@ class MarketDialog extends ConsumerWidget {
               child: ListView.separated(
                 shrinkWrap: true,
                 itemCount: recipes.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 10),
-                itemBuilder: (ctx, i) {
-                  final r = recipes[i];
-                  final bool canAfford = r['canAfford'] as bool;
-                  final String key = r['key'] as String;
-                  final String seasonTag = r['seasonTag'] as String;
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final r = recipes[index];
+                  final bool canAfford = r['canAfford'] as bool? ?? false;
+                  final String key = r['key'] as String? ?? '';
 
                   return Container(
                     padding: const EdgeInsets.all(12),
@@ -245,90 +257,48 @@ class MarketDialog extends ConsumerWidget {
                       color: const Color(0xFF0F172A),
                       borderRadius: NeoBrutalistTheme.sharpRadius,
                       border: Border.all(
-                        color: canAfford ? const Color(0xFFFFC700) : const Color(0xFF334155),
-                        width: 1.8,
+                        color: canAfford ? const Color(0xFF10B981) : const Color(0xFF334155),
+                        width: canAfford ? 1.8 : 1.2,
                       ),
                       boxShadow: NeoBrutalistTheme.hardShadowSmall,
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  GameVectorIcon(type: _getIconType(r['fromIcon']), size: 14),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    r['fromAmount'] as String,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  const Icon(Icons.arrow_forward, size: 12, color: Colors.white54),
-                                  const SizedBox(width: 6),
-                                  GameVectorIcon(type: _getIconType(r['toIcon']), size: 14),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    r['toAmount'] as String,
-                                    style: const TextStyle(
-                                      color: Color(0xFFFFC700),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (seasonTag.isNotEmpty) ...[
-                                const SizedBox(height: 3),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF1E1B4B),
-                                    borderRadius: NeoBrutalistTheme.sharpRadius,
-                                    border: Border.all(color: const Color(0xFFA855F7), width: 1.0),
-                                  ),
-                                  child: Text(
-                                    seasonTag,
-                                    style: const TextStyle(
-                                      color: Color(0xFFC084FC),
-                                      fontSize: 8,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.2,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                              const SizedBox(height: 4),
-                              Text(
-                                r['desc'] as String,
-                                style: const TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.w600),
-                              ),
-                            ],
-                          ),
+                        Row(
+                          children: [
+                            GameVectorIcon(type: _getIconType(r['fromIcon']), size: 14),
+                            const SizedBox(width: 4),
+                            Text(
+                              r['fromAmount'] as String? ?? '',
+                              style: NeoBrutalistTheme.fontValue.copyWith(color: const Color(0xFFEF4444)),
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 6),
+                              child: Icon(Icons.swap_horiz, color: Colors.white, size: 16),
+                            ),
+                            GameVectorIcon(type: _getIconType(r['toIcon']), size: 14),
+                            const SizedBox(width: 4),
+                            Text(
+                              r['toAmount'] as String? ?? '',
+                              style: NeoBrutalistTheme.fontValue.copyWith(color: const Color(0xFF10B981)),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
                         TactileNeoButton(
                           onTap: canAfford ? () => notifier.executeMarketTrade(key) : null,
-                          isEnabled: canAfford,
-                          backgroundColor: const Color(0xFFFFC700),
+                          backgroundColor: canAfford ? const Color(0xFF10B981) : const Color(0xFF334155),
                           borderColor: Colors.black,
-                          shadowColor: const Color(0xFF78350F),
                           shadowOffset: 2.0,
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                          soundType: TactileSoundType.market,
+                          height: 32,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          alignment: Alignment.center,
                           child: Text(
                             GameLocalization.get('trade', lang: lang).toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.black,
+                            style: TextStyle(
+                              color: canAfford ? Colors.black : const Color(0xFF94A3B8),
                               fontSize: 11,
                               fontWeight: FontWeight.w900,
-                              letterSpacing: 0.3,
                             ),
                           ),
                         ),
@@ -344,9 +314,9 @@ class MarketDialog extends ConsumerWidget {
     );
   }
 
-  GameIconType _getIconType(dynamic key) {
-    if (key is GameIconType) return key;
-    switch (key.toString()) {
+  GameIconType _getIconType(dynamic type) {
+    if (type is GameIconType) return type;
+    switch (type.toString().toLowerCase()) {
       case 'flour':
         return GameIconType.flour;
       case 'stone':
@@ -357,14 +327,11 @@ class MarketDialog extends ConsumerWidget {
         return GameIconType.iron;
       case 'furniture':
         return GameIconType.furniture;
-      case 'crown':
+      case 'crowns':
         return GameIconType.crown;
-      case 'food':
-        return GameIconType.food;
       case 'wood':
-        return GameIconType.wood;
       default:
-        return GameIconType.market;
+        return GameIconType.wood;
     }
   }
 }

@@ -1,11 +1,8 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
-import '../../core/utils/number_formatter.dart';
 import '../../domain/economy/economy_calculator.dart';
-import '../../domain/models/building_model.dart';
 import '../providers/game_state_notifier.dart';
 import 'icons/game_vector_icons.dart';
 import 'tactile_neo_button.dart';
@@ -18,7 +15,7 @@ class GreatMigrationDialog extends ConsumerStatefulWidget {
 }
 
 class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
-  bool _isBreakdownExpanded = true;
+  bool _isBreakdownExpanded = false;
 
   void _confirmAndExecuteMigration(
     BuildContext context,
@@ -26,6 +23,12 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
     int newTamgas,
     String lang,
   ) {
+    final title = GameLocalization.get('migration_confirm_title', lang: lang);
+    final content = GameLocalization.get('migration_confirm_body', lang: lang, args: [
+      newCrowns.toString(),
+      newTamgas.toString(),
+    ]);
+
     showDialog<void>(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.75),
@@ -35,23 +38,27 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
           borderRadius: NeoBrutalistTheme.sharpRadius,
           side: BorderSide(color: Color(0xFFEF4444), width: 2.5),
         ),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 22),
-            SizedBox(width: 8),
-            Text(
-              'BÜYÜK GÖÇÜ ONAYLIYOR MUSUNUZ?',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
+            const Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 22),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
             ),
           ],
         ),
-        content: Text(
-          'Mevcut topraklarınız ve hammaddeleriniz sıfırlanacak; obanız yeni çağa göç edecektir.\n\nKazanılacak Miras:\n• +$newCrowns Taç (Şan & Kut Puanı)\n• +$newTamgas Kalıcı Atalar Tamgası\n• Binalarınız Ata Kurganlarına dönüşecek.\n\nDevam etmek istediğinizden emin misiniz?',
-          style: const TextStyle(color: Colors.white70, fontSize: 11, height: 1.45),
+        content: SingleChildScrollView(
+          child: Text(
+            content,
+            style: const TextStyle(color: Colors.white70, fontSize: 11, height: 1.4),
+          ),
         ),
         actions: [
           TactileNeoButton(
@@ -62,13 +69,16 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
             height: 34,
             padding: const EdgeInsets.symmetric(horizontal: 14),
             alignment: Alignment.center,
-            child: const Text('İPTAL', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w900, fontSize: 11)),
+            child: Text(
+              GameLocalization.get('cancel', lang: lang).toUpperCase(),
+              style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w900, fontSize: 11),
+            ),
           ),
           const SizedBox(width: 8),
           TactileNeoButton(
             onTap: () {
-              Navigator.of(ctx).pop(); // Onay modalını kapat
-              Navigator.of(context).pop(); // Büyük Göç modalını kapat
+              Navigator.of(ctx).pop();
+              Navigator.of(context).pop();
               ref.read(gameStateProvider.notifier).resetGame();
             },
             backgroundColor: const Color(0xFFDC2626),
@@ -77,7 +87,10 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
             height: 34,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             alignment: Alignment.center,
-            child: const Text('EVET, GÖÇÜ BAŞLAT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11)),
+            child: Text(
+              GameLocalization.get('confirm_migration_btn', lang: lang),
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11),
+            ),
           ),
         ],
       ),
@@ -98,71 +111,31 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
     );
 
     final int ownedHexes = gameState.progression.ownedCount;
-    final int shrines = gameState.tiles.values.where((t) => t.isOwned && t.hasShrine).length;
-    final int newTamgas = (ownedHexes + (shrines * 5)) ~/ 2;
-    final int nextTotalTamgas = gameState.resources.tamgas + newTamgas;
-    final double nextKut = EconomyCalculator.calculateKutMultiplier(
-      tamgas: nextTotalTamgas,
-      totalMigrations: gameState.progression.totalMigrations + 1,
-      victoryMilestones: gameState.progression.victoryMilestones,
-      activeOaths: gameState.progression.activeOaths,
-    );
+    final int castleLvl = gameState.progression.castleLevel;
+    final bool isEligible = castleLvl >= 5;
 
-    // Tamga katkı hesabı
-    double tamgaBonus = 0.0;
-    if (nextTotalTamgas <= 50) {
-      tamgaBonus = nextTotalTamgas * 0.04;
-    } else {
-      tamgaBonus = 2.0 + (math.log(nextTotalTamgas - 49.0) / math.ln10) * 0.5;
-    }
-    final double migrationBonus = (gameState.progression.totalMigrations + 1) * 0.05;
-    int victoryCount = 0;
-    for (final v in gameState.progression.victoryMilestones.values) {
-      if (v) victoryCount++;
-    }
-    final double victoryBonus = victoryCount * 0.25;
-    final double oathBonus = gameState.progression.activeOaths.length * 0.15;
+    final int newTamgas = 1 + (ownedHexes ~/ 20);
+    final double nextKut = gameState.progression.kutMultiplier + 0.25;
 
-    final double totalResourceStock = gameState.resources.food +
-        gameState.resources.wood +
-        gameState.resources.stone +
-        gameState.resources.iron +
-        gameState.resources.fish +
-        gameState.resources.flour +
-        gameState.resources.plank +
-        gameState.resources.bread +
-        gameState.resources.furniture +
-        (gameState.resources.kumis * 2.0) +
-        (gameState.resources.felt * 2.0) +
-        (gameState.resources.damascusSteel * 3.0) +
-        gameState.resources.wisdom;
-
-    int buildingLevelsTotal = 0;
-    for (final tile in gameState.tiles.values) {
-      if (tile.isOwned && tile.hasBuilding && tile.building!.type != BuildingType.castle) {
-        buildingLevelsTotal += tile.building!.level;
-      }
-    }
-
-    final int buildingCount = gameState.tiles.values
-        .where((t) => t.isOwned && t.hasBuilding && t.building!.type != BuildingType.castle)
-        .length;
-
-    final String activeRealm = gameState.progression.activeRealmId;
     final victories = gameState.progression.victoryMilestones;
     final activeOaths = gameState.progression.activeOaths;
+    final selectedRealm = gameState.progression.activeRealmId;
 
-    final bool isEligible = gameState.progression.castleLevel >= 5 && gameState.progression.ownedCount >= 12;
+    final headerTitle = GameLocalization.get('migration_header_title', lang: lang);
+    final legacyHeader = GameLocalization.get('migration_legacy_header', lang: lang);
+    final breakdownTitle = GameLocalization.get('migration_breakdown_title', lang: lang);
+    final oathsTitle = GameLocalization.get('migration_oaths_title', lang: lang);
+    final targetRealmTitle = GameLocalization.get('migration_target_realm_title', lang: lang);
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 520, maxHeight: 700),
+        constraints: const BoxConstraints(maxWidth: 520, maxHeight: 680),
         decoration: BoxDecoration(
           color: theme.surface,
           borderRadius: NeoBrutalistTheme.sharpRadius,
-          border: Border.all(color: const Color(0xFFD97706), width: 2.5),
+          border: Border.all(color: theme.primaryGold, width: 2.5),
           boxShadow: [
             BoxShadow(
               color: theme.shadowColor,
@@ -173,9 +146,9 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
         ),
         child: Column(
           children: [
-            // Başlık Çubuğu
+            // Üst Başlık Barı
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: const Color(0xFF0F172A),
                 border: Border(bottom: BorderSide(color: theme.border, width: 2)),
@@ -184,13 +157,13 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                 children: [
                   const GameVectorIcon(type: GameIconType.land, size: 22, color: Color(0xFFFFD700)),
                   const SizedBox(width: 10),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'BÜYÜK GÖÇ (PRESTİJ & KUT KATLAYICI)',
-                          style: TextStyle(
+                          headerTitle,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 13,
                             fontWeight: FontWeight.w900,
@@ -198,8 +171,8 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                           ),
                         ),
                         Text(
-                          'Bozkırın Ebedi Zafer Döngüsü ve Miras Katsayısı',
-                          style: TextStyle(
+                          GameLocalization.get('migration_cycle_subtitle', lang: lang),
+                          style: const TextStyle(
                             color: Color(0xFFD97706),
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
@@ -237,9 +210,9 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                     ),
                     child: Column(
                       children: [
-                        const Text(
-                          'BU GÖÇTE KAZANILACAK KALICI MİRAS',
-                          style: TextStyle(
+                        Text(
+                          legacyHeader,
+                          style: const TextStyle(
                             color: Color(0xFFFFD700),
                             fontSize: 10.5,
                             fontWeight: FontWeight.w900,
@@ -252,7 +225,10 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                           children: [
                             Column(
                               children: [
-                                const Text('KAZANILACAK TAÇ', style: TextStyle(color: Colors.white70, fontSize: 9.5, fontWeight: FontWeight.w800)),
+                                Text(
+                                  GameLocalization.get('crowns_to_gain', lang: lang),
+                                  style: const TextStyle(color: Colors.white70, fontSize: 9.5, fontWeight: FontWeight.w800),
+                                ),
                                 const SizedBox(height: 2),
                                 Text(
                                   '+${breakdown.totalCrowns}',
@@ -263,7 +239,10 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                             Container(width: 1, height: 28, color: const Color(0xFF334155)),
                             Column(
                               children: [
-                                const Text('ATALAR TAMGASI', style: TextStyle(color: Colors.white70, fontSize: 9.5, fontWeight: FontWeight.w800)),
+                                Text(
+                                  GameLocalization.get('ancestral_tamga', lang: lang),
+                                  style: const TextStyle(color: Colors.white70, fontSize: 9.5, fontWeight: FontWeight.w800),
+                                ),
                                 const SizedBox(height: 2),
                                 Text(
                                   '+$newTamgas',
@@ -274,7 +253,10 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                             Container(width: 1, height: 28, color: const Color(0xFF334155)),
                             Column(
                               children: [
-                                const Text('KUT KATSAYISI', style: TextStyle(color: Colors.white70, fontSize: 9.5, fontWeight: FontWeight.w800)),
+                                Text(
+                                  GameLocalization.get('kut_multiplier', lang: lang),
+                                  style: const TextStyle(color: Colors.white70, fontSize: 9.5, fontWeight: FontWeight.w800),
+                                ),
                                 const SizedBox(height: 2),
                                 Text(
                                   '${nextKut.toStringAsFixed(2)}x',
@@ -312,148 +294,53 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                               children: [
                                 const Icon(Icons.analytics_outlined, size: 16, color: Color(0xFF38BDF8)),
                                 const SizedBox(width: 8),
-                                const Expanded(
+                                Expanded(
                                   child: Text(
-                                    'KAZANIM & MİRAS DAĞILIM LİSTESİ (NEREDEN NE GELİYOR?)',
-                                    style: TextStyle(
+                                    breakdownTitle,
+                                    style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 10,
                                       fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.3,
                                     ),
                                   ),
                                 ),
                                 Icon(
-                                  _isBreakdownExpanded ? Icons.expand_less : Icons.expand_more,
-                                  size: 18,
+                                  _isBreakdownExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
                                   color: const Color(0xFF94A3B8),
+                                  size: 18,
                                 ),
                               ],
                             ),
                           ),
                         ),
-                        if (_isBreakdownExpanded) ...[
+                        if (_isBreakdownExpanded)
                           Padding(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(10),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // A. Taç Dağılımı
-                                const Row(
-                                  children: [
-                                    GameVectorIcon(type: GameIconType.crown, size: 14, color: Color(0xFFFFD700)),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      'TAÇ (KUT/ŞAN) KAZANIM DAĞILIMI',
-                                      style: TextStyle(color: Color(0xFFFFD700), fontSize: 10, fontWeight: FontWeight.w900),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 6),
                                 _buildBreakdownRow(
-                                  title: 'Hüküm Sürülen Topraklar (Hexler)',
-                                  desc: '$ownedHexes Fethedilmiş Karo (Her 5 Karo = 1 Taç)',
+                                  title: GameLocalization.get('castle_title', lang: lang),
+                                  desc: 'Otağ Sv. $castleLvl',
+                                  yieldText: '+${breakdown.buildingAndShrineCrowns} Taç',
+                                  color: const Color(0xFFFFD700),
+                                ),
+                                const Divider(color: Color(0xFF334155), height: 8),
+                                _buildBreakdownRow(
+                                  title: GameLocalization.get('land', lang: lang),
+                                  desc: '$ownedHexes Hex Toprak',
                                   yieldText: '+${breakdown.hexCrowns} Taç',
                                   color: const Color(0xFF38BDF8),
                                 ),
+                                const Divider(color: Color(0xFF334155), height: 8),
                                 _buildBreakdownRow(
-                                  title: 'Ambar ve Hammadde Refah Stoğu',
-                                  desc: '${NumberFormatter.format(totalResourceStock)} birim stok (Kademeli Refah)',
+                                  title: GameLocalization.get('migration_resources_label', lang: lang),
+                                  desc: 'Gıda, Odun, Taş, Demir...',
                                   yieldText: '+${breakdown.resourceCrowns} Taç',
-                                  color: const Color(0xFF34D399),
-                                ),
-                                _buildBreakdownRow(
-                                  title: 'Binalar, Sunaklar ve Otağ Kademesi',
-                                  desc: 'Otağ Sv.${gameState.progression.castleLevel} ($shrines Sunak, $buildingLevelsTotal Yapı Kademesi)',
-                                  yieldText: '+${breakdown.buildingAndShrineCrowns} Taç',
-                                  color: const Color(0xFFF59E0B),
-                                ),
-                                Divider(color: Colors.white.withValues(alpha: 0.1), height: 16),
-
-                                // B. Tamga Dağılımı
-                                const Row(
-                                  children: [
-                                    Icon(Icons.shield_moon_outlined, size: 14, color: Color(0xFF38BDF8)),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      'ATALAR TAMGASI DAĞILIMI',
-                                      style: TextStyle(color: Color(0xFF38BDF8), fontSize: 10, fontWeight: FontWeight.w900),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 6),
-                                _buildBreakdownRow(
-                                  title: 'Toprak Mirası Payı',
-                                  desc: '$ownedHexes Karo (~/2 Oranıyla)',
-                                  yieldText: '+${ownedHexes ~/ 2} Tamga',
-                                  color: const Color(0xFF38BDF8),
-                                ),
-                                if (shrines > 0)
-                                  _buildBreakdownRow(
-                                    title: 'Kadim Tapınak & Sunak Payı',
-                                    desc: '$shrines Kutlu Sunak (x5 Ağırlık)',
-                                    yieldText: '+${(shrines * 5) ~/ 2} Tamga',
-                                    color: const Color(0xFFA78BFA),
-                                  ),
-                                _buildBreakdownRow(
-                                  title: 'Tamga Formülü',
-                                  desc: '(Toprak Sayısı + Sunak * 5) / 2',
-                                  yieldText: 'Toplam +$newTamgas',
                                   color: const Color(0xFF10B981),
-                                ),
-                                Divider(color: Colors.white.withValues(alpha: 0.1), height: 16),
-
-                                // C. Kut Katsayısı Bileşenleri
-                                const Row(
-                                  children: [
-                                    Icon(Icons.bolt, size: 14, color: Color(0xFF10B981)),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      'YENİ KUT KATSAYISI HIZ BİLEŞENLERİ',
-                                      style: TextStyle(color: Color(0xFF10B981), fontSize: 10, fontWeight: FontWeight.w900),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 6),
-                                _buildBreakdownRow(
-                                  title: 'Kümülatif Tamgalar ($nextTotalTamgas Adet)',
-                                  desc: 'Kalıcı üretim hız çarpanı',
-                                  yieldText: '+%${(tamgaBonus * 100).toStringAsFixed(1)}',
-                                  color: const Color(0xFF38BDF8),
-                                ),
-                                _buildBreakdownRow(
-                                  title: 'Büyük Göç Tecrübesi (${gameState.progression.totalMigrations + 1}. Göç)',
-                                  desc: 'Her göçte kalıcı +%5',
-                                  yieldText: '+%${(migrationBonus * 100).toStringAsFixed(0)}',
-                                  color: const Color(0xFFFBBF24),
-                                ),
-                                if (victoryCount > 0)
-                                  _buildBreakdownRow(
-                                    title: 'Ebedi Zaferler ($victoryCount Zafer)',
-                                    desc: 'Zafer başı +%25',
-                                    yieldText: '+%${(victoryBonus * 100).toStringAsFixed(0)}',
-                                    color: const Color(0xFF10B981),
-                                  ),
-                                if (activeOaths.isNotEmpty)
-                                  _buildBreakdownRow(
-                                    title: 'Kutsal Andlar (${activeOaths.length} And)',
-                                    desc: 'And başı +%15 ekstra',
-                                    yieldText: '+%${(oathBonus * 100).toStringAsFixed(0)}',
-                                    color: const Color(0xFFEC4899),
-                                  ),
-                                Divider(color: Colors.white.withValues(alpha: 0.1), height: 16),
-
-                                // D. Ata Kurganı
-                                _buildBreakdownRow(
-                                  title: 'Atalar Kurganı Mirası',
-                                  desc: '$buildingCount Adet görkemli yapı yeni diyarda Kutsal Kurgan kalıntısına dönüşecek.',
-                                  yieldText: '$buildingCount Kurgan',
-                                  color: const Color(0xFFC084FC),
                                 ),
                               ],
                             ),
                           ),
-                        ],
                       ],
                     ),
                   ),
@@ -470,23 +357,23 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'EBEDİ DEVLET ZAFERLERİ:',
-                          style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900),
+                        Text(
+                          GameLocalization.get('migration_victories_title', lang: lang),
+                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900),
                         ),
                         const SizedBox(height: 6),
-                        _buildVictoryRow('Orhun Bengü Taşları (Kültürel)', victories['culturalBenguTas'] == true),
-                        _buildVictoryRow('Ulu İpek Yolu Ağı (Lojistik)', victories['silkRoadNetwork'] == true),
-                        _buildVictoryRow('4 Kadim Diyar Hakimiyeti (Coğrafi)', victories['realmConquest'] == true),
+                        _buildVictoryRow(GameLocalization.get('migration_victory_bengutas', lang: lang), victories['culturalBenguTas'] == true),
+                        _buildVictoryRow(GameLocalization.get('migration_victory_silkroad', lang: lang), victories['silkRoadNetwork'] == true),
+                        _buildVictoryRow(GameLocalization.get('migration_victory_realms', lang: lang), victories['realmConquest'] == true),
                       ],
                     ),
                   ),
                   const SizedBox(height: 12),
 
                   // 4. Kutsal Andlar (Meydan Okuma Modifikatörleri)
-                  const Text(
-                    'KUTSAL ANDLAR (MEYDAN OKUMA MODİFİKATÖRLERİ)',
-                    style: TextStyle(
+                  Text(
+                    oathsTitle,
+                    style: const TextStyle(
                       color: Color(0xFF94A3B8),
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
@@ -495,23 +382,23 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                   const SizedBox(height: 6),
                   _buildOathOption(
                     id: 'oath_of_iron',
-                    title: 'Yalın Kılıç Andı (+%15 Kut)',
-                    desc: 'Maden & demir odaklı ilerleme • Ekstra Tamga bereketi',
+                    title: GameLocalization.get('migration_oath_iron_title', lang: lang),
+                    desc: GameLocalization.get('migration_oath_iron_desc', lang: lang),
                     isSelected: activeOaths.contains('oath_of_iron'),
                   ),
                   const SizedBox(height: 6),
                   _buildOathOption(
                     id: 'oath_of_frost',
-                    title: 'Buzul Çağı Andı (+%15 Kut)',
-                    desc: 'Kış ve Zud boranlarına karşı çetin direnç',
+                    title: GameLocalization.get('migration_oath_frost_title', lang: lang),
+                    desc: GameLocalization.get('migration_oath_frost_desc', lang: lang),
                     isSelected: activeOaths.contains('oath_of_frost'),
                   ),
                   const SizedBox(height: 12),
 
                   // 5. Hedef Sefer Diyarı Seçimi
-                  const Text(
-                    'HEDEF SEFER DİYARI SEÇİMİ',
-                    style: TextStyle(
+                  Text(
+                    targetRealmTitle,
+                    style: const TextStyle(
                       color: Color(0xFF94A3B8),
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
@@ -519,33 +406,36 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                   ),
                   const SizedBox(height: 6),
                   _buildRealmOption(
-                    id: 'altay',
-                    title: 'ALTAY GÖKSEL PLATOLARI',
-                    desc: 'Taş, Demir & Şam Çeliği 2x • Dağ fethinde %30 indirim',
-                    color: const Color(0xFF818CF8),
-                    isSelected: activeRealm == 'altay',
-                  ),
-                  const SizedBox(height: 6),
-                  _buildRealmOption(
-                    id: 'idil',
-                    title: 'İDİL-YAYIK NEHİR HAVZASI',
-                    desc: 'Balık, Gıda, Un & Kımız 2x • Sulak/Deniz fethinde %30 indirim',
-                    color: const Color(0xFF34D399),
-                    isSelected: activeRealm == 'idil',
-                  ),
-                  const SizedBox(height: 6),
-                  _buildRealmOption(
-                    id: 'karakum',
-                    title: 'KARAKUM & TARIM VAHALARI',
-                    desc: 'Kervanlar, Pazar & Taç Getirisi 2x • Keçe üretimi +%50',
+                    id: 'great_steppe',
+                    title: GameLocalization.get('migration_realm_steppe_title', lang: lang),
+                    desc: GameLocalization.get('migration_realm_steppe_desc', lang: lang),
                     color: const Color(0xFFF59E0B),
-                    isSelected: activeRealm == 'karakum',
+                    isSelected: selectedRealm == 'great_steppe',
+                    lang: lang,
+                  ),
+                  const SizedBox(height: 6),
+                  _buildRealmOption(
+                    id: 'silk_road',
+                    title: GameLocalization.get('migration_realm_silk_title', lang: lang),
+                    desc: GameLocalization.get('migration_realm_silk_desc', lang: lang),
+                    color: const Color(0xFF38BDF8),
+                    isSelected: selectedRealm == 'silk_road',
+                    lang: lang,
+                  ),
+                  const SizedBox(height: 6),
+                  _buildRealmOption(
+                    id: 'altay_highlands',
+                    title: GameLocalization.get('migration_realm_altay_title', lang: lang),
+                    desc: GameLocalization.get('migration_realm_altay_desc', lang: lang),
+                    color: const Color(0xFF10B981),
+                    isSelected: selectedRealm == 'altay_highlands',
+                    lang: lang,
                   ),
                 ],
               ),
             ),
 
-            // Alt Buton Alanı
+            // Alt Aksiyon Barı
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -563,14 +453,14 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                           color: const Color(0xFF7F1D1D),
                           borderRadius: BorderRadius.circular(3),
                         ),
-                        child: const Row(
+                        child: Row(
                           children: [
-                            Icon(Icons.lock, color: Colors.white70, size: 12),
-                            SizedBox(width: 6),
+                            const Icon(Icons.lock, color: Colors.white70, size: 12),
+                            const SizedBox(width: 6),
                             Expanded(
                               child: Text(
-                                'Oba henüz göçe hazır değil (Gereken: Otağ Sv. 5 ve en az 12 Karo)',
-                                style: TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.w700),
+                                GameLocalization.get('migration_not_ready_warning', lang: lang),
+                                style: const TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.w700),
                               ),
                             ),
                           ],
@@ -599,7 +489,9 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                           onTap: isEligible
                               ? () => _confirmAndExecuteMigration(context, breakdown.totalCrowns, newTamgas, lang)
                               : () {
-                                  ref.read(gameStateProvider.notifier).showToast('Göç için Kağan Otağı Sv. 5 ve 12 Karo gereklidir.');
+                                  ref.read(gameStateProvider.notifier).showToast(
+                                        GameLocalization.get('migration_not_ready_toast', lang: lang),
+                                      );
                                 },
                           height: 38,
                           backgroundColor: isEligible ? const Color(0xFFDC2626) : const Color(0xFF334155),
@@ -612,7 +504,9 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                               Icon(isEligible ? Icons.flight_takeoff : Icons.lock, color: isEligible ? Colors.white : Colors.white60, size: 16),
                               const SizedBox(width: 6),
                               Text(
-                                isEligible ? 'BÜYÜK GÖÇÜ BAŞLAT' : 'GÖÇ KİLİTLİ',
+                                isEligible
+                                    ? GameLocalization.get('start_migration_btn', lang: lang)
+                                    : GameLocalization.get('migration_locked_btn', lang: lang),
                                 style: TextStyle(
                                   color: isEligible ? Colors.white : Colors.white60,
                                   fontSize: 11,
@@ -707,7 +601,7 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                 color: const Color(0xFF064E3B),
                 borderRadius: BorderRadius.circular(2),
               ),
-              child: const Text('+%25 KUT', style: TextStyle(color: Color(0xFF6EE7B7), fontSize: 8, fontWeight: FontWeight.w900)),
+              child: const Text('+25%', style: TextStyle(color: Color(0xFF6EE7B7), fontSize: 8, fontWeight: FontWeight.w900)),
             ),
         ],
       ),
@@ -741,6 +635,7 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   title,
@@ -749,10 +644,14 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   desc,
                   style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 8.5),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -768,6 +667,7 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
     required String desc,
     required Color color,
     required bool isSelected,
+    required String lang,
   }) {
     return TactileNeoButton(
       onTap: () {
@@ -817,9 +717,9 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                 color: color,
                 borderRadius: BorderRadius.circular(2),
               ),
-              child: const Text(
-                'SEÇİLİ',
-                style: TextStyle(color: Colors.black, fontSize: 8, fontWeight: FontWeight.w900),
+              child: Text(
+                GameLocalization.get('realm_selected_badge', lang: lang),
+                style: const TextStyle(color: Colors.black, fontSize: 8, fontWeight: FontWeight.w900),
               ),
             ),
         ],

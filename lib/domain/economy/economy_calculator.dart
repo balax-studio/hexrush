@@ -142,6 +142,25 @@ class OfflineGainsResult {
     this.damascusSteel = 0.0,
   });
 
+  OfflineGainsResult multipliedBy(double factor) {
+    return OfflineGainsResult(
+      seconds: seconds,
+      food: food * factor,
+      wood: wood * factor,
+      flour: flour * factor,
+      plank: plank * factor,
+      bread: bread * factor,
+      furniture: furniture * factor,
+      stone: stone * factor,
+      iron: iron * factor,
+      fish: fish * factor,
+      wisdom: wisdom * factor,
+      kumis: kumis * factor,
+      felt: felt * factor,
+      damascusSteel: damascusSteel * factor,
+    );
+  }
+
   bool get hasGains =>
       food > 0 ||
       wood > 0 ||
@@ -1484,7 +1503,7 @@ class EconomyCalculator {
     );
   }
 
-  /// Anlık Saniyelik Net Üretim/Tüketim Debisi (HUD Rozetleri ve Analitik için)
+  /// Anlık Saniyelik Brüt Üretim Debisi (HUD Rozetleri ve Analitik için)
   static NetResourceRates calculateNetRates({
     required Iterable<HexTileModel> tiles,
     required double globalMultiplier,
@@ -1494,8 +1513,13 @@ class EconomyCalculator {
     String season = 'SPRING',
     bool isZud = false,
     Map<String, int> cumulativeBiomeCounts = const {},
+    List<DoctrineCardModel> activeDoctrines = const [],
+    List<CaravanRoute> caravanRoutes = const [],
+    CelestialOmen? celestialOmen,
+    List<AncestralKurgan> discoveredKurgans = const [],
+    Map<String, dynamic> titles = const {},
   }) {
-    final double totalMult = globalMultiplier * seasonMultiplier * shrineMultiplier;
+    final double totalMult = globalMultiplier * shrineMultiplier;
 
     double netFood = 0.0;
     double netWood = 0.0;
@@ -1513,9 +1537,39 @@ class EconomyCalculator {
 
     final map = tileMap ?? {for (final t in tiles) t.coord: t};
 
+    if (activeDoctrines.any((d) => d.effectType == DoctrineEffectType.meadowGrazeYield)) {
+      int emptyMeadows = 0;
+      for (final t in tiles) {
+        if (t.isOwned && t.biome == TileBiome.meadow && !t.hasBuilding) {
+          emptyMeadows++;
+        }
+      }
+      netFood += emptyMeadows * 0.5;
+    }
+
     for (final t in tiles) {
       if (!t.isOwned || !t.hasBuilding) continue;
       final b = t.building!;
+
+      if (b.type == BuildingType.castle ||
+          b.type == BuildingType.worker ||
+          b.type == BuildingType.watchtower ||
+          b.type == BuildingType.bridge ||
+          b.type == BuildingType.fishermanHut ||
+          b.type == BuildingType.granaryVault) {
+        continue;
+      }
+
+      double chainSynergy = 1.0;
+      for (final nCoord in t.coord.neighbors) {
+        final nTile = map[nCoord];
+        if (nTile != null && nTile.isOwned && nTile.building != null) {
+          if (b.type == BuildingType.windmill && nTile.building!.type == BuildingType.corn) chainSynergy = 2.0;
+          if (b.type == BuildingType.sawmill && nTile.building!.type == BuildingType.lumberjack) chainSynergy = 2.0;
+          if (b.type == BuildingType.bakery && nTile.building!.type == BuildingType.windmill) chainSynergy = 2.0;
+          if (b.type == BuildingType.furniture && nTile.building!.type == BuildingType.sawmill) chainSynergy = 2.0;
+        }
+      }
 
       final neighborTiles = t.coord.neighbors
           .map((nc) => map[nc])
@@ -1539,12 +1593,34 @@ class EconomyCalculator {
         buildingType: b.type,
       );
 
+      final double docMult = getDoctrineProductionMultiplier(
+        buildingType: b.type,
+        activeDoctrines: activeDoctrines,
+      );
+
+      final double soilMult = calculateSoilHealthMultiplier(t);
+      final double caravanMult = calculateCaravanRouteMultiplier(t.coord, caravanRoutes);
+      final double symbiosisMult = calculateSymbiosisMultiplier(t);
+      final double ancestralMult = calculateAncestralRelicMultiplier(discoveredKurgans);
+      final double omenMult = celestialOmen != null
+          ? calculateCelestialOmenMultiplier(
+              celestialOmen,
+              resourceType: b.type == BuildingType.lumberjack || b.type == BuildingType.sawmill
+                  ? 'wood'
+                  : b.type == BuildingType.mine || b.type == BuildingType.quarry
+                      ? 'iron'
+                      : 'food',
+            )
+          : 1.0;
+
       final double rate = calculateBuildingProduction(
         type: b.type,
         level: b.level,
         baseRate: b.baseProductionRate,
-        globalMultiplier: totalMult,
-        synergyMultiplier: biomeSynergy,
+        globalMultiplier: totalMult * docMult * caravanMult * symbiosisMult * ancestralMult * omenMult,
+        seasonMultiplier: seasonMultiplier * soilMult,
+        synergyMultiplier: chainSynergy * biomeSynergy,
+        shrineMultiplier: 1.0,
         biomeMasteryMultiplier: masteryMult,
         seasonalBoostMultiplier: seasonalBoost,
       );
@@ -2069,7 +2145,7 @@ class EconomyCalculator {
   static int getMaxDailyWatches(AdRewardType type) {
     switch (type) {
       case AdRewardType.offlineProgressBoost:
-        return 3;
+        return 999999;
       case AdRewardType.marketQuotaReset:
         return 2;
       case AdRewardType.caravanBonus:
@@ -2078,6 +2154,8 @@ class EconomyCalculator {
         return 2;
       case AdRewardType.migrationLegacy:
         return 1;
+      case AdRewardType.frenzyBoost:
+        return 999999;
     }
   }
 

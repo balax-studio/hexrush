@@ -1,3 +1,4 @@
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,7 +8,10 @@ import '../../core/theme/neo_brutalist_theme.dart';
 import '../../core/utils/number_formatter.dart';
 import '../../domain/economy/economy_calculator.dart';
 import '../../domain/models/game_state_model.dart';
+import '../../domain/models/ad_reward_model.dart';
+import '../../domain/services/ad_reward_service.dart';
 import '../providers/game_state_notifier.dart';
+import 'ad_reward_progress_dialog.dart';
 import 'celestial_omen_hud.dart';
 import 'crown_breakdown_dialog.dart';
 import 'great_migration_dialog.dart';
@@ -21,12 +25,14 @@ class TopBarHUD extends ConsumerStatefulWidget {
   final VoidCallback onOpenMarket;
   final VoidCallback onOpenTore;
   final VoidCallback onOpenSettings;
+  final IAdRewardService? adService;
 
   const TopBarHUD({
     super.key,
     required this.onOpenMarket,
     required this.onOpenTore,
     required this.onOpenSettings,
+    this.adService,
   });
 
   @override
@@ -153,38 +159,6 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   Divider(color: theme.border, thickness: 1.5, height: 1.5),
                   const SizedBox(height: 10),
 
-                  // Net Üretim Bilgisi (Varsa)
-                  if (netRate != null) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: theme.surfaceLight,
-                        borderRadius: NeoBrutalistTheme.sharpRadius,
-                        border: Border.all(color: theme.slateBorder, width: 1.5),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.speed, color: Color(0xFF38BDF8), size: 14),
-                          const SizedBox(width: 6),
-                          Text(
-                            '${GameLocalization.get('net_total_label', lang: lang)}:',
-                            style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700),
-                          ),
-                          const Spacer(),
-                          Text(
-                            netRate,
-                            style: TextStyle(
-                              color: netRate.startsWith('-') ? const Color(0xFFEF4444) : const Color(0xFF10B981),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-
                   // Açıklama Metni
                   Container(
                     padding: const EdgeInsets.all(10),
@@ -240,17 +214,17 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                                 decoration: BoxDecoration(
-                                  color: breakdown.netRate >= 0 ? const Color(0xFF064E3B) : const Color(0xFF450A0A),
+                                  color: const Color(0xFF064E3B),
                                   borderRadius: BorderRadius.circular(2),
                                   border: Border.all(
-                                    color: breakdown.netRate >= 0 ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                                    color: const Color(0xFF10B981),
                                     width: 1,
                                   ),
                                 ),
                                 child: Text(
-                                  '${breakdown.netRate >= 0 ? '+' : ''}${breakdown.netRate.toStringAsFixed(2)}${GameLocalization.get('per_sec', lang: lang)}',
-                                  style: TextStyle(
-                                    color: breakdown.netRate >= 0 ? const Color(0xFF6EE7B7) : const Color(0xFFFCA5A5),
+                                  '+${breakdown.totalProduction.toStringAsFixed(2)}${GameLocalization.get('per_sec', lang: lang)}',
+                                  style: const TextStyle(
+                                    color: Color(0xFF6EE7B7),
                                     fontSize: 9.5,
                                     fontWeight: FontWeight.w900,
                                   ),
@@ -473,18 +447,35 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
       kutMultiplier: gameState.progression.kutMultiplier,
     );
 
+    final activeDocIds = gameState.activeDoctrineSlots.values.whereType<String>().toList();
+    final activeDoctrines = gameState.doctrines.where((d) => activeDocIds.contains(d.id)).toList();
+
+    int totalBuildingLevels = 0;
+    int buildingCount = 0;
+    for (final t in gameState.tiles.values) {
+      if (t.isOwned && t.hasBuilding) {
+        buildingCount++;
+        totalBuildingLevels += t.building!.level * 100 + t.building!.type.index;
+      }
+    }
+
     final int ratesHash = Object.hash(
       gameState.tiles.length,
+      buildingCount,
+      totalBuildingLevels,
       gameState.progression.castleLevel,
       gameState.resources.crowns,
       gameState.toreTalents.length,
       gameState.titles.length,
+      Object.hashAll(activeDocIds),
+      gameState.caravanRoutes.length,
+      gameState.celestialOmen?.animal.name,
+      gameState.discoveredKurgans.length,
       gameState.progression.kutMultiplier,
       gameState.season.current,
       gameState.season.isZud,
       gameState.frenzyMultiplier,
       gameState.shrineMultiplier,
-      gameState.tiles.values.where((t) => t.hasBuilding).length,
     );
 
     if (_cachedNetRates == null || _lastRatesHash != ratesHash) {
@@ -500,11 +491,16 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
       _cachedNetRates = EconomyCalculator.calculateNetRates(
         tiles: gameState.tiles.values,
         globalMultiplier: globalMult,
-        seasonMultiplier: seasonMult * gameState.frenzyMultiplier,
+        seasonMultiplier: seasonMult * gameState.frenzyMultiplier.toDouble(),
         shrineMultiplier: gameState.shrineMultiplier,
         tileMap: gameState.tiles,
         season: gameState.season.current,
         isZud: gameState.season.isZud,
+        activeDoctrines: activeDoctrines,
+        caravanRoutes: gameState.caravanRoutes,
+        celestialOmen: gameState.celestialOmen,
+        discoveredKurgans: gameState.discoveredKurgans,
+        titles: gameState.titles,
       );
     }
 
@@ -608,8 +604,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   isInt: true,
                   theme: theme,
                   onTap: () {
-                    TactileAudioService.instance.play(TactileSoundType.tap);
-                    HapticFeedback.lightImpact();
+                    unawaited(TactileAudioService.instance.play(TactileSoundType.tap));
+                    unawaited(HapticFeedback.lightImpact());
                     showDialog<void>(
                       context: context,
                       builder: (ctx) => const CrownBreakdownDialog(),
@@ -694,8 +690,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                 _buildIconButton(
                   icon: const Icon(Icons.flight_takeoff, size: 15, color: Color(0xFFFFD700)),
                   onPressed: () {
-                    TactileAudioService.instance.play(TactileSoundType.tap);
-                    HapticFeedback.lightImpact();
+                    unawaited(TactileAudioService.instance.play(TactileSoundType.tap));
+                    unawaited(HapticFeedback.lightImpact());
                     showDialog<void>(
                       context: context,
                       builder: (ctx) => const GreatMigrationDialog(),
@@ -709,8 +705,20 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
 
                 // Kompakt Frenzy / Çılgınlık Butonu
                 TactileNeoButton(
-                  onTap: () {
-                    ref.read(gameStateProvider.notifier).activateFrenzy();
+                  onTap: () async {
+                    unawaited(TactileAudioService.instance.play(TactileSoundType.tap));
+                    unawaited(HapticFeedback.lightImpact());
+                    final completed = await showAdRewardProgressDialog(
+                      context,
+                      title: '10X TOY COŞKUSU',
+                      message: 'Ödül alınıyor lütfen bekleyiniz...',
+                    );
+                    if (completed && mounted) {
+                      await ref.read(gameStateProvider.notifier).claimAdReward(
+                            AdRewardType.frenzyBoost,
+                            adService: widget.adService,
+                          );
+                    }
                   },
                   backgroundColor: gameState.frenzyTimer > 0
                       ? const Color(0xFFEF4444)
@@ -1023,12 +1031,16 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
               GestureDetector(
                 onTap: () => _showResourceExplanation(
                   context,
-                  title: 'KAĞAN OTAĞI & KÜRESEL BONUS',
+                  title: lang == 'tr' ? 'KAĞAN OTAĞI & KÜRESEL BONUS' : 'KHAGAN YURT & GLOBAL BONUS',
                   iconType: GameIconType.crown,
                   iconColor: theme.primaryGold,
-                  currentStock: 'Kağan Otağı Seviye ${gameState.progression.castleLevel}',
-                  description: 'Kağanlığınızın ana yönetim merkezi. Otağı büyüttükçe tüm obanın küresel üretim hızı katlanır, yeni yapılar ve kurultay yuvaları açılır.',
-                  strategicHint: 'Otağı merkez karoya dokunarak gerekli erzak ve malzemelerle büyütebilirsiniz.',
+                  currentStock: lang == 'tr' ? 'Kağan Otağı Seviye ${gameState.progression.castleLevel}' : 'Khagan Yurt Level ${gameState.progression.castleLevel}',
+                  description: lang == 'tr'
+                      ? 'Kağanlığınızın ana yönetim merkezi. Otağı büyüttükçe tüm obanın küresel üretim hızı katlanır, yeni yapılar ve kurultay yuvaları açılır.'
+                      : 'The main administrative center of your realm. Upgrading expands production speed and unlocks council slots.',
+                  strategicHint: lang == 'tr'
+                      ? 'Otağı merkez karoya dokunarak gerekli erzak ve malzemelerle büyütebilirsiniz.'
+                      : 'Tap the center tile to upgrade with required provisions and materials.',
                   theme: theme,
                 ),
                 child: Stack(
@@ -1048,7 +1060,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
-                            'OTAĞ LV.${gameState.progression.castleLevel}',
+                            lang == 'tr' ? 'OTAĞ LV.${gameState.progression.castleLevel}' : 'YURT LV.${gameState.progression.castleLevel}',
                             style: TextStyle(
                               color: theme.primaryGold,
                               fontSize: 10,
@@ -1064,7 +1076,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                               borderRadius: BorderRadius.circular(2),
                             ),
                             child: Text(
-                              '+${((globalMult - 1.0) * 100).toInt()}% HIZ',
+                              '+${((globalMult - 1.0) * 100).toInt()}% ${lang == 'tr' ? 'HIZ' : 'SPEED'}',
                               style: const TextStyle(
                                 color: Color(0xFF10B981),
                                 fontSize: 9,

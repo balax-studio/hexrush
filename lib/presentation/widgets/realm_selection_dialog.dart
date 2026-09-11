@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../providers/game_state_notifier.dart';
 import 'icons/game_vector_icons.dart';
@@ -11,6 +12,7 @@ class RealmSelectionDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final palette = ref.watch(gameStateProvider.select((s) => s.settings.activeThemePalette));
+    final lang = ref.watch(gameStateProvider.select((s) => s.settings.language));
     final theme = NeoBrutalistTheme.getTheme(palette);
     final state = ref.watch(gameStateProvider);
     final currentRealm = state.progression.activeRealmId;
@@ -45,10 +47,10 @@ class RealmSelectionDialog extends ConsumerWidget {
                 children: [
                   const GameVectorIcon(type: GameIconType.land, size: 20, color: Color(0xFFFFD700)),
                   const SizedBox(width: 10),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'BÜYÜK GÖÇ SEFER DİYARLARI',
-                      style: TextStyle(
+                      GameLocalization.get('realm_selection_title', lang: lang),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 13,
                         fontWeight: FontWeight.w900,
@@ -79,10 +81,11 @@ class RealmSelectionDialog extends ConsumerWidget {
                     context: context,
                     ref: ref,
                     theme: theme,
+                    lang: lang,
                     id: 'altay',
-                    title: 'ALTAY GÖKSEL PLATOLARI',
-                    subtitle: 'Madenler, Taş Ocakları ve Şam Çeliği Bereketi',
-                    description: '• Taş, Demir ve Şam Çeliği üretimi 2 Katına çıkar.\n• Dağ ve Krater arazisi fetih maliyetinde %30 indirim.\n• Sert kışlar ve yüksek Kurgan mirası sinerjisi.',
+                    title: GameLocalization.get('realm_altay_name', lang: lang),
+                    subtitle: GameLocalization.get('realm_altay_sub', lang: lang),
+                    description: GameLocalization.get('realm_altay_desc', lang: lang),
                     accentColor: const Color(0xFF818CF8),
                     isSelected: currentRealm == 'altay',
                   ),
@@ -91,10 +94,11 @@ class RealmSelectionDialog extends ConsumerWidget {
                     context: context,
                     ref: ref,
                     theme: theme,
+                    lang: lang,
                     id: 'idil',
-                    title: 'İDİL-YAYIK NEHİR HAVZASI',
-                    subtitle: 'Balıkçılık, Sulak Alanlar ve Kımız Otağı Bereketi',
-                    description: '• Balık, Gıda, Un ve Kımız üretimi 2 Katına çıkar.\n• Deniz ve Sazlık arazisi fetih maliyetinde %30 indirim.\n• Nehir ve göl komşuluğunda +%50 bereket rezonansı.',
+                    title: GameLocalization.get('realm_idil_name', lang: lang),
+                    subtitle: GameLocalization.get('realm_idil_sub', lang: lang),
+                    description: GameLocalization.get('realm_idil_desc', lang: lang),
                     accentColor: const Color(0xFF34D399),
                     isSelected: currentRealm == 'idil',
                   ),
@@ -103,10 +107,11 @@ class RealmSelectionDialog extends ConsumerWidget {
                     context: context,
                     ref: ref,
                     theme: theme,
+                    lang: lang,
                     id: 'karakum',
-                    title: 'KARAKUM & TARIM VAHALARI',
-                    subtitle: 'İpek Yolu Kervanları, Pazar Takası ve Keçe Bereketi',
-                    description: '• Kervan hızı, Pazar takas karları ve Taç getirisi 2 Katına çıkar.\n• Keçe ve çadır üretimi %50 daha hızlıdır.\n• Çöl ve vaha arazisi fetih maliyetinde %25 indirim.',
+                    title: GameLocalization.get('realm_karakum_name', lang: lang),
+                    subtitle: GameLocalization.get('realm_karakum_sub', lang: lang),
+                    description: GameLocalization.get('realm_karakum_desc', lang: lang),
                     accentColor: const Color(0xFFF59E0B),
                     isSelected: currentRealm == 'karakum',
                   ),
@@ -123,6 +128,7 @@ class RealmSelectionDialog extends ConsumerWidget {
     required BuildContext context,
     required WidgetRef ref,
     required NeoBrutalistThemeData theme,
+    required String lang,
     required String id,
     required String title,
     required String subtitle,
@@ -165,7 +171,7 @@ class RealmSelectionDialog extends ConsumerWidget {
                     border: Border.all(color: accentColor, width: 1),
                   ),
                   child: Text(
-                    'AKTİF DİYAR',
+                    GameLocalization.get('realm_active', lang: lang),
                     style: TextStyle(
                       color: accentColor,
                       fontSize: 9,
@@ -215,9 +221,9 @@ class RealmSelectionDialog extends ConsumerWidget {
                     alignment: Alignment.center,
                     backgroundColor: accentColor,
                     borderColor: accentColor,
-                    child: const Text(
-                      'BU DİYARI SEÇ',
-                      style: TextStyle(
+                    child: Text(
+                      GameLocalization.get('select_realm_btn', lang: lang),
+                      style: const TextStyle(
                         color: Colors.black,
                         fontSize: 10,
                         fontWeight: FontWeight.w900,

@@ -15,6 +15,7 @@ class CaravanLinkSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(gameStateProvider);
+    final lang = state.settings.language;
     final startTile = state.tiles[startCoord];
 
     if (startTile == null) {
@@ -27,6 +28,19 @@ class CaravanLinkSheet extends ConsumerWidget {
       final int dist = startCoord.distanceTo(t.coord);
       return dist <= 8;
     }).toList();
+
+    final title = lang == 'tr' ? 'İPEK YOLU KERVAN HATTI KUR' : 'ESTABLISH SILK ROAD CARAVAN ROUTE';
+    final originText = lang == 'tr' ? 'Başlangıç' : 'Origin';
+    final costText = lang == 'tr'
+        ? 'Maliyet: 30 Kalas, 20 Ekmek | Bonus: +%25 Takas Rezonansı'
+        : 'Cost: 30 Planks, 20 Bread | Bonus: +25% Trade Resonance';
+    final emptyMsg = lang == 'tr'
+        ? '8 Hex menzilinde kervan bağlanabilecek başka bir fethedilmiş arazi bulunamadı.'
+        : 'No other conquered lands found within 8 hex range.';
+    final distanceText = lang == 'tr' ? 'Mesafe' : 'Distance';
+    final connectedText = lang == 'tr' ? 'BAĞLI' : 'CONNECTED';
+    final connectBtn = lang == 'tr' ? 'HAT ÇEK' : 'CONNECT';
+    final closeBtn = lang == 'tr' ? 'KAPAT' : 'CLOSE';
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -42,23 +56,25 @@ class CaravanLinkSheet extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.swap_calls, color: Color(0xFFF59E0B), size: 20),
-                SizedBox(width: 8),
-                Text(
-                  'İPEK YOLU KERVAN HATTI KUR',
-                  style: TextStyle(
-                    color: Color(0xFFF59E0B),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                const Icon(Icons.swap_calls, color: Color(0xFFF59E0B), size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      color: Color(0xFFF59E0B),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              'Başlangıç: ${startTile.biome.name.toUpperCase()} (${startCoord.q}, ${startCoord.r})\nMaliyet: 30 Kalas, 20 Ekmek | Bonus: +%25 Takas Rezonansı',
+              '$originText: ${startTile.biome.name.toUpperCase()} (${startCoord.q}, ${startCoord.r})\n$costText',
               style: const TextStyle(
                 color: Color(0xFF94A3B8),
                 fontSize: 11,
@@ -66,12 +82,12 @@ class CaravanLinkSheet extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             if (candidateTiles.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Text(
-                  '8 Hex menzilinde kervan bağlanabilecek başka bir fethedilmiş arazi bulunamadı.',
+                  emptyMsg,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Color(0xFFCBD5E1),
                     fontSize: 12,
                   ),
@@ -118,7 +134,7 @@ class CaravanLinkSheet extends ConsumerWidget {
                                   ),
                                 ),
                                 Text(
-                                  'Mesafe: $dist Hex ${target.hasBuilding ? "- ${target.building!.type.name.toUpperCase()}" : ""}',
+                                  '$distanceText: $dist Hex ${target.hasBuilding ? "- ${target.building!.type.name.toUpperCase()}" : ""}',
                                   style: const TextStyle(
                                     color: Color(0xFF94A3B8),
                                     fontSize: 10,
@@ -128,9 +144,9 @@ class CaravanLinkSheet extends ConsumerWidget {
                             ),
                           ),
                           if (alreadyConnected)
-                            const Text(
-                              'BAĞLI',
-                              style: TextStyle(
+                            Text(
+                              connectedText,
+                              style: const TextStyle(
                                 color: Color(0xFF10B981),
                                 fontWeight: FontWeight.bold,
                                 fontSize: 11,
@@ -151,9 +167,9 @@ class CaravanLinkSheet extends ConsumerWidget {
                               height: 30,
                               padding: const EdgeInsets.symmetric(horizontal: 10),
                               alignment: Alignment.center,
-                              child: const Text(
-                                'HAT ÇEK',
-                                style: TextStyle(
+                              child: Text(
+                                connectBtn,
+                                style: const TextStyle(
                                   color: Colors.black,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w900,
@@ -175,9 +191,9 @@ class CaravanLinkSheet extends ConsumerWidget {
               height: 36,
               padding: EdgeInsets.zero,
               alignment: Alignment.center,
-              child: const Text(
-                'KAPAT',
-                style: TextStyle(
+              child: Text(
+                closeBtn,
+                style: const TextStyle(
                   color: Color(0xFFCBD5E1),
                   fontSize: 12,
                   fontWeight: FontWeight.w900,

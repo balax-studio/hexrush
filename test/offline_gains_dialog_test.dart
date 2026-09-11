@@ -32,7 +32,7 @@ void main() {
   }
 
   group('OfflineGainsDialog Widget Tests', () {
-    testWidgets('renders offline gains and both standard and ad boost buttons', (tester) async {
+    testWidgets('renders offline gains and both standard and ad boost buttons (0/3)', (tester) async {
       const gains = OfflineGainsResult(
         seconds: 7200,
         food: 100.0,
@@ -47,7 +47,7 @@ void main() {
       expect(find.textContaining('100'), findsWidgets);
       expect(find.textContaining('50'), findsWidgets);
       expect(find.text('TOPLA'), findsOneWidget);
-      expect(find.textContaining('2X TOPLA'), findsOneWidget);
+      expect(find.textContaining('REKLAM İZLE (0/3)'), findsOneWidget);
     });
 
     testWidgets('clicking standard collect closes dialog and claims normal amount', (tester) async {
@@ -65,7 +65,7 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('clicking ad boost triggers ad service and claims 2.0x boosted gains', (tester) async {
+    testWidgets('clicking ad boost triggers ad service and updates to 1/3 and doubled display', (tester) async {
       final mockAdService = MockAdRewardService(shouldSucceed: true);
       const gains = OfflineGainsResult(
         seconds: 3600,
@@ -76,12 +76,20 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(gains, adService: mockAdService));
       await tester.pumpAndSettle();
 
-      final adButton = find.textContaining('2X TOPLA');
+      final adButton = find.textContaining('REKLAM İZLE (0/3)');
       await tester.tap(adButton);
+      await tester.pump();
+
+      expect(find.textContaining('Ödül alınıyor lütfen bekleyiniz'), findsOneWidget);
+
+      await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
 
       expect(mockAdService.adHistory.length, 1);
       expect(mockAdService.adHistory.first, AdRewardType.offlineProgressBoost);
+
+      expect(find.textContaining('REKLAM İZLE (1/3)'), findsOneWidget);
+      expect(find.textContaining('+160 Gıda (80 x 2)'), findsOneWidget);
     });
 
     testWidgets('renders welcome header and various advanced resource pills', (tester) async {

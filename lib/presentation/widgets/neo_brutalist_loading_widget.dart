@@ -1,19 +1,22 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 
 /// Arkeolojik Neo-Brutalist Çokgen ve Dikdörtgen Yükleme Animasyon Bileşeni
 class NeoBrutalistHexLoader extends StatefulWidget {
   final double size;
-  final String statusText;
-  final String subText;
+  final String? statusText;
+  final String? subText;
+  final String lang;
   final bool showProgressTrack;
 
   const NeoBrutalistHexLoader({
     super.key,
     this.size = 80.0,
-    this.statusText = 'KADİM BOZKIR MATRİSİ',
-    this.subText = 'İzometrik Voksel Motoru Aktif Ediliyor...',
+    this.statusText,
+    this.subText,
+    this.lang = 'tr',
     this.showProgressTrack = true,
   });
 
@@ -42,6 +45,10 @@ class _NeoBrutalistHexLoaderState extends State<NeoBrutalistHexLoader>
 
   @override
   Widget build(BuildContext context) {
+    final status = widget.statusText ?? GameLocalization.get('loading_title', lang: widget.lang);
+    final subtitle = widget.subText ?? GameLocalization.get('loading_subtitle', lang: widget.lang);
+    final badgeLabel = GameLocalization.get('loading_label', lang: widget.lang);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       decoration: BoxDecoration(
@@ -59,7 +66,7 @@ class _NeoBrutalistHexLoaderState extends State<NeoBrutalistHexLoader>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                widget.statusText.toUpperCase(),
+                status.toUpperCase(),
                 style: NeoBrutalistTheme.fontHeaderMonolith.copyWith(
                   color: const Color(0xFFF8FAFC),
                   fontSize: 13,
@@ -75,7 +82,7 @@ class _NeoBrutalistHexLoaderState extends State<NeoBrutalistHexLoader>
                   border: Border.all(color: Colors.black, width: 1.5),
                 ),
                 child: Text(
-                  'YÜKLENİYOR',
+                  badgeLabel,
                   style: NeoBrutalistTheme.fontBadge.copyWith(
                     color: const Color(0xFF020617),
                     fontWeight: FontWeight.w900,
@@ -123,7 +130,7 @@ class _NeoBrutalistHexLoaderState extends State<NeoBrutalistHexLoader>
               ),
               const SizedBox(width: 8),
               Text(
-                widget.subText,
+                subtitle,
                 style: NeoBrutalistTheme.fontTelemetry.copyWith(
                   color: const Color(0xFF94A3B8),
                   fontSize: 10,

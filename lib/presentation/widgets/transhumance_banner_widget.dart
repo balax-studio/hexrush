@@ -8,9 +8,34 @@ class TranshumanceBannerWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(gameStateProvider);
+    final lang = state.settings.language;
     final bool anyResting = state.tiles.values.any((t) => t.isOwned && t.isResting);
     final int combo = state.rhythmCombo;
     final double rhythmMult = state.rhythmMultiplier;
+
+    final rhythmText = lang == 'tr'
+        ? '${combo}x RİTİM (${rhythmMult.toStringAsFixed(1)}x)'
+        : (lang == 'es'
+            ? '${combo}x RITMO (${rhythmMult.toStringAsFixed(1)}x)'
+            : (lang == 'de'
+                ? '${combo}x RHYTHMUS (${rhythmMult.toStringAsFixed(1)}x)'
+                : '${combo}x RHYTHM (${rhythmMult.toStringAsFixed(1)}x)'));
+
+    final restingText = anyResting
+        ? (lang == 'tr'
+            ? 'YAYLAKTA DİNLENİYOR'
+            : (lang == 'es'
+                ? 'DESCANSANDO EN HIGHLANDS'
+                : (lang == 'de'
+                    ? 'SOMMERWEIDE RUHT'
+                    : 'RESTING IN HIGHLANDS')))
+        : (lang == 'tr'
+            ? 'KIŞLAKTA OTLUYOR'
+            : (lang == 'es'
+                ? 'PASTAN EN QUINTERÍAS'
+                : (lang == 'de'
+                    ? 'WINTERWEIDE GRASIERT'
+                    : 'GRAZING IN WINTER QUARTERS')));
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -49,7 +74,7 @@ class TranshumanceBannerWidget extends ConsumerWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '${combo}x RİTİM (${rhythmMult.toStringAsFixed(1)}x)',
+                  rhythmText,
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -90,7 +115,7 @@ class TranshumanceBannerWidget extends ConsumerWidget {
                 ),
                 const SizedBox(width: 5),
                 Text(
-                  anyResting ? 'YAYLAKTA DİNLENİYOR' : 'KIŞLAKTA OTLUYOR',
+                  restingText,
                   style: TextStyle(
                     color: anyResting ? const Color(0xFF10B981) : Colors.white,
                     fontWeight: FontWeight.bold,

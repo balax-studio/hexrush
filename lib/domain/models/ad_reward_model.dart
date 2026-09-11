@@ -7,6 +7,7 @@ enum AdRewardType {
   caravanBonus, // Gezgin kervandan ekstra hammadde ikramı
   celestialBlessing, // Gök kehanetine 10 dakikalık +%25 kut çarpanı
   migrationLegacy, // Büyük Göç ile +1 ekstra kalıcı Tamga
+  frenzyBoost, // 10x Üretim Çılgınlığı Reklam Ödülü
 }
 
 @immutable
@@ -23,6 +24,7 @@ class AdRewardTracking {
       AdRewardType.caravanBonus: 0,
       AdRewardType.celestialBlessing: 0,
       AdRewardType.migrationLegacy: 0,
+      AdRewardType.frenzyBoost: 0,
     },
     this.lastWatchTimes = const {},
     this.totalAdsWatched = 0,

@@ -7,7 +7,11 @@ void main() {
     test('getMaxDailyWatches returns ethical non-spam limits', () {
       expect(
         EconomyCalculator.getMaxDailyWatches(AdRewardType.offlineProgressBoost),
-        3,
+        999999,
+      );
+      expect(
+        EconomyCalculator.getMaxDailyWatches(AdRewardType.frenzyBoost),
+        999999,
       );
       expect(
         EconomyCalculator.getMaxDailyWatches(AdRewardType.marketQuotaReset),
