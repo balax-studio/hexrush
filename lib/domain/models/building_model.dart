@@ -364,7 +364,7 @@ class BuildingModel {
   double get baseCarryingCapacity {
     switch (type) {
       case BuildingType.worker:
-        return 1.68;
+        return 3.36;
       case BuildingType.fishermanHut:
         return 1.40;
       case BuildingType.granaryVault:

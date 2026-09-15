@@ -31,6 +31,14 @@ enum GameIconType {
   felt,
   damascusSteel,
   granary,
+  macroOverview,
+  loreTree,
+  tradeOrders,
+  steppeHorn,
+  realmMap,
+  dioramaCamera,
+  hexpedia,
+  steppeStory,
 }
 
 class GameVectorIcon extends StatelessWidget {
@@ -152,6 +160,30 @@ class _GameIconPainter extends CustomPainter {
         break;
       case GameIconType.granary:
         _drawGranary(canvas, s, h);
+        break;
+      case GameIconType.macroOverview:
+        _drawMacroOverview(canvas, s, h);
+        break;
+      case GameIconType.loreTree:
+        _drawLoreTree(canvas, s, h);
+        break;
+      case GameIconType.tradeOrders:
+        _drawTradeOrders(canvas, s, h);
+        break;
+      case GameIconType.steppeHorn:
+        _drawSteppeHorn(canvas, s, h);
+        break;
+      case GameIconType.realmMap:
+        _drawRealmMap(canvas, s, h);
+        break;
+      case GameIconType.dioramaCamera:
+        _drawDioramaCamera(canvas, s, h);
+        break;
+      case GameIconType.hexpedia:
+        _drawHexpedia(canvas, s, h);
+        break;
+      case GameIconType.steppeStory:
+        _drawSteppeStory(canvas, s, h);
         break;
     }
   }
@@ -803,6 +835,151 @@ class _GameIconPainter extends CustomPainter {
     final Rect base = Rect.fromLTWH(w * 0.22, h * 0.45, w * 0.56, h * 0.4);
     canvas.drawRect(base, fill);
     canvas.drawRect(base, stroke);
+  }
+
+  void _drawMacroOverview(Canvas canvas, double w, double h) {
+    final Paint fill = Paint()
+      ..color = customColor ?? Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8;
+    // Büyüteç / Kuşbakışı mercek
+    final double radius = w * 0.28;
+    final Offset center = Offset(w * 0.42, h * 0.42);
+    canvas.drawCircle(center, radius, fill);
+    // Sap
+    final Paint handle = Paint()
+      ..color = customColor ?? Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.4
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(w * 0.62, h * 0.62), Offset(w * 0.85, h * 0.85), handle);
+  }
+
+  void _drawLoreTree(Canvas canvas, double w, double h) {
+    final Paint stroke = Paint()
+      ..color = customColor ?? const Color(0xFF67E8F9)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6
+      ..strokeCap = StrokeCap.round;
+    // Açık kitap / Bilgelik rünü
+    final Path book = Path()
+      ..moveTo(w * 0.5, h * 0.25)
+      ..lineTo(w * 0.2, h * 0.35)
+      ..lineTo(w * 0.2, h * 0.8)
+      ..lineTo(w * 0.5, h * 0.7)
+      ..lineTo(w * 0.8, h * 0.8)
+      ..lineTo(w * 0.8, h * 0.35)
+      ..close();
+    canvas.drawPath(book, stroke);
+    canvas.drawLine(Offset(w * 0.5, h * 0.25), Offset(w * 0.5, h * 0.7), stroke);
+  }
+
+  void _drawTradeOrders(Canvas canvas, double w, double h) {
+    final Paint fill = Paint()..color = customColor ?? const Color(0xFFFDE047);
+    final Paint stroke = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    // Kervan sandığı / elçi arabası
+    final Rect wagon = Rect.fromLTWH(w * 0.2, h * 0.35, w * 0.6, h * 0.35);
+    canvas.drawRect(wagon, fill);
+    canvas.drawRect(wagon, stroke);
+    // Tekerlekler
+    final Paint wheel = Paint()..color = Colors.black;
+    canvas.drawCircle(Offset(w * 0.35, h * 0.75), w * 0.1, wheel);
+    canvas.drawCircle(Offset(w * 0.65, h * 0.75), w * 0.1, wheel);
+  }
+
+  void _drawSteppeHorn(Canvas canvas, double w, double h) {
+    final Paint stroke = Paint()
+      ..color = customColor ?? const Color(0xFFFDE047)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8
+      ..strokeCap = StrokeCap.round;
+    // Boru / Çağrı boynuzu
+    final Path horn = Path()
+      ..moveTo(w * 0.2, h * 0.55)
+      ..quadraticBezierTo(w * 0.45, h * 0.5, w * 0.75, h * 0.25)
+      ..lineTo(w * 0.8, h * 0.75)
+      ..quadraticBezierTo(w * 0.45, h * 0.6, w * 0.2, h * 0.55)
+      ..close();
+    canvas.drawPath(horn, stroke);
+  }
+
+  void _drawRealmMap(Canvas canvas, double w, double h) {
+    final Paint stroke = Paint()
+      ..color = customColor ?? const Color(0xFFA5B4FC)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    // Katlanmış sefer haritası (3 panel)
+    final Path mapPath = Path()
+      ..moveTo(w * 0.2, h * 0.3)
+      ..lineTo(w * 0.4, h * 0.2)
+      ..lineTo(w * 0.6, h * 0.3)
+      ..lineTo(w * 0.8, h * 0.2)
+      ..lineTo(w * 0.8, h * 0.75)
+      ..lineTo(w * 0.6, h * 0.85)
+      ..lineTo(w * 0.4, h * 0.75)
+      ..lineTo(w * 0.2, h * 0.85)
+      ..close();
+    canvas.drawPath(mapPath, stroke);
+    canvas.drawLine(Offset(w * 0.4, h * 0.2), Offset(w * 0.4, h * 0.75), stroke);
+    canvas.drawLine(Offset(w * 0.6, h * 0.3), Offset(w * 0.6, h * 0.85), stroke);
+  }
+
+  void _drawDioramaCamera(Canvas canvas, double w, double h) {
+    final Paint stroke = Paint()
+      ..color = customColor ?? Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6;
+    // Kamera gövdesi
+    final Rect body = Rect.fromLTWH(w * 0.2, h * 0.35, w * 0.6, h * 0.45);
+    canvas.drawRect(body, stroke);
+    // Lens
+    canvas.drawCircle(Offset(w * 0.5, h * 0.57), w * 0.15, stroke);
+    // Vizör / Tepe çıkıntısı
+    final Path top = Path()
+      ..moveTo(w * 0.35, h * 0.35)
+      ..lineTo(w * 0.42, h * 0.25)
+      ..lineTo(w * 0.58, h * 0.25)
+      ..lineTo(w * 0.65, h * 0.35);
+    canvas.drawPath(top, stroke);
+  }
+
+  void _drawHexpedia(Canvas canvas, double w, double h) {
+    final Paint stroke = Paint()
+      ..color = customColor ?? const Color(0xFF6EE7B7)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6;
+    // Bozkır Ansiklopedisi (Ciltli kitap)
+    final Rect book = Rect.fromLTWH(w * 0.25, h * 0.2, w * 0.5, h * 0.65);
+    canvas.drawRect(book, stroke);
+    // Çizgiler / Rünler
+    canvas.drawLine(Offset(w * 0.35, h * 0.38), Offset(w * 0.65, h * 0.38), stroke);
+    canvas.drawLine(Offset(w * 0.35, h * 0.52), Offset(w * 0.65, h * 0.52), stroke);
+    canvas.drawLine(Offset(w * 0.35, h * 0.66), Offset(w * 0.55, h * 0.66), stroke);
+  }
+
+  void _drawSteppeStory(Canvas canvas, double w, double h) {
+    final Paint stroke = Paint()
+      ..color = customColor ?? const Color(0xFFF59E0B)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6;
+    // Destan Parşömeni
+    final Path scroll = Path()
+      ..moveTo(w * 0.3, h * 0.2)
+      ..lineTo(w * 0.7, h * 0.2)
+      ..quadraticBezierTo(w * 0.8, h * 0.25, w * 0.7, h * 0.3)
+      ..lineTo(w * 0.3, h * 0.3)
+      ..lineTo(w * 0.3, h * 0.75)
+      ..lineTo(w * 0.7, h * 0.75)
+      ..quadraticBezierTo(w * 0.8, h * 0.8, w * 0.7, h * 0.85)
+      ..lineTo(w * 0.25, h * 0.85)
+      ..quadraticBezierTo(w * 0.2, h * 0.75, w * 0.3, h * 0.7)
+      ..close();
+    canvas.drawPath(scroll, stroke);
+    canvas.drawLine(Offset(w * 0.38, h * 0.45), Offset(w * 0.62, h * 0.45), stroke);
+    canvas.drawLine(Offset(w * 0.38, h * 0.58), Offset(w * 0.62, h * 0.58), stroke);
   }
 
   @override

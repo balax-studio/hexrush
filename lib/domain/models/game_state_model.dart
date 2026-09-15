@@ -422,12 +422,14 @@ class NotificationSettingsModel {
   final bool seasonChangeAlert;
   final bool questCompletedAlert;
   final bool castleUpgradeReadyAlert;
+  final bool questPanelHidden;
 
   const NotificationSettingsModel({
     this.storageFullAlert = false,
     this.seasonChangeAlert = false,
     this.questCompletedAlert = false,
     this.castleUpgradeReadyAlert = false,
+    this.questPanelHidden = false,
   });
 
   NotificationSettingsModel copyWith({
@@ -435,6 +437,7 @@ class NotificationSettingsModel {
     bool? seasonChangeAlert,
     bool? questCompletedAlert,
     bool? castleUpgradeReadyAlert,
+    bool? questPanelHidden,
   }) {
     return NotificationSettingsModel(
       storageFullAlert: storageFullAlert ?? this.storageFullAlert,
@@ -442,6 +445,7 @@ class NotificationSettingsModel {
       questCompletedAlert: questCompletedAlert ?? this.questCompletedAlert,
       castleUpgradeReadyAlert:
           castleUpgradeReadyAlert ?? this.castleUpgradeReadyAlert,
+      questPanelHidden: questPanelHidden ?? this.questPanelHidden,
     );
   }
 
@@ -450,6 +454,7 @@ class NotificationSettingsModel {
         'season_change_alert': seasonChangeAlert,
         'quest_completed_alert': questCompletedAlert,
         'castle_upgrade_ready_alert': castleUpgradeReadyAlert,
+        'quest_panel_hidden': questPanelHidden,
       };
 
   factory NotificationSettingsModel.fromJson(Map<String, dynamic> json) {
@@ -459,6 +464,7 @@ class NotificationSettingsModel {
       questCompletedAlert: json['quest_completed_alert'] as bool? ?? false,
       castleUpgradeReadyAlert:
           json['castle_upgrade_ready_alert'] as bool? ?? false,
+      questPanelHidden: json['quest_panel_hidden'] as bool? ?? false,
     );
   }
 }

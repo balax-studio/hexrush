@@ -39,6 +39,21 @@ class NetResourceRates {
   final double felt;
   final double damascusSteel;
 
+  // Lojistik yetersizliği sebebiyle taşınamayan üretim hızları (-x/sn)
+  final double untransportedFood;
+  final double untransportedWood;
+  final double untransportedStone;
+  final double untransportedIron;
+  final double untransportedFlour;
+  final double untransportedPlank;
+  final double untransportedBread;
+  final double untransportedFurniture;
+  final double untransportedFish;
+  final double untransportedWisdom;
+  final double untransportedKumis;
+  final double untransportedFelt;
+  final double untransportedDamascusSteel;
+
   const NetResourceRates({
     this.food = 0.0,
     this.wood = 0.0,
@@ -53,6 +68,19 @@ class NetResourceRates {
     this.kumis = 0.0,
     this.felt = 0.0,
     this.damascusSteel = 0.0,
+    this.untransportedFood = 0.0,
+    this.untransportedWood = 0.0,
+    this.untransportedStone = 0.0,
+    this.untransportedIron = 0.0,
+    this.untransportedFlour = 0.0,
+    this.untransportedPlank = 0.0,
+    this.untransportedBread = 0.0,
+    this.untransportedFurniture = 0.0,
+    this.untransportedFish = 0.0,
+    this.untransportedWisdom = 0.0,
+    this.untransportedKumis = 0.0,
+    this.untransportedFelt = 0.0,
+    this.untransportedDamascusSteel = 0.0,
   });
 }
 
@@ -71,7 +99,7 @@ class WorkerLogisticsStats {
     required this.coveredBuildingsCount,
   });
 
-  bool get isOverloaded => demandInCoverage > totalCapacity && totalCapacity > 0;
+  bool get isOverloaded => utilizationRatio >= 0.999 && totalCapacity > 0;
   double get idleCapacity => math.max(0.0, totalCapacity - utilizedCapacity);
 }
 
@@ -82,6 +110,7 @@ class ResourceContributor {
   final double rate;
   final bool isProducer;
   final String? customLabel;
+  final double untransportedRate;
 
   const ResourceContributor({
     required this.buildingType,
@@ -90,6 +119,7 @@ class ResourceContributor {
     required this.rate,
     required this.isProducer,
     this.customLabel,
+    this.untransportedRate = 0.0,
   });
 }
 
@@ -98,12 +128,14 @@ class ResourceBreakdownStats {
   final List<ResourceContributor> consumers;
   final double totalProduction;
   final double totalConsumption;
+  final double totalUntransported;
 
   const ResourceBreakdownStats({
     required this.producers,
     required this.consumers,
     required this.totalProduction,
     required this.totalConsumption,
+    this.totalUntransported = 0.0,
   });
 
   double get netRate => totalProduction - totalConsumption;
@@ -397,6 +429,136 @@ class EconomyCalculator {
     return 1.0 + speedLvl * 0.10 + roadLvl * 0.08;
   }
 
+  /// Haritadaki tüm işçi kulübeleri ve üretim binaları arasında dinamik greedy lojistik yük dağıtımı yapar.
+  /// Çakışan menzillerde binaların yükünü en yakın kulübeye aktarır; kapasite yetmezse menzildeki diğer kulübeye devreder.
+  static Map<HexAxial, WorkerLogisticsStats> calculateAllWorkerLogisticsStats({
+    required Map<HexAxial, HexTileModel> tiles,
+    double workerTransferMult = 1.0,
+    double globalMultiplier = 1.0,
+    double seasonMultiplier = 1.0,
+    double shrineMultiplier = 1.0,
+    String season = 'SPRING',
+    bool isZud = false,
+    Map<String, int> cumulativeBiomeCounts = const {},
+    List<CaravanRoute> caravanRoutes = const [],
+    List<DoctrineCardModel> activeDoctrines = const [],
+    List<AncestralKurgan> discoveredKurgans = const [],
+  }) {
+    final Map<HexAxial, WorkerLogisticsStats> result = {};
+
+    // 1. İşçi kulübelerini topla
+    final List<HexTileModel> workerTiles = [];
+    final Map<HexAxial, double> totalCapacities = {};
+    final Map<HexAxial, double> remainingCapacities = {};
+    final Map<HexAxial, double> assignedTransports = {};
+    final Map<HexAxial, double> demandInCoverage = {};
+    final Map<HexAxial, int> coveredCounts = {};
+
+    for (final t in tiles.values) {
+      if (!t.isOwned || t.building == null) continue;
+      if (t.building!.type == BuildingType.worker) {
+        workerTiles.add(t);
+        final double cap = t.building!.currentCarryingCapacity * workerTransferMult;
+        totalCapacities[t.coord] = cap;
+        remainingCapacities[t.coord] = cap;
+        assignedTransports[t.coord] = 0.0;
+        demandInCoverage[t.coord] = 0.0;
+        coveredCounts[t.coord] = 0;
+      }
+    }
+
+    if (workerTiles.isEmpty) return result;
+
+    // 2. Üretim binalarını ve brüt taleplerini belirle
+    final Map<HexAxial, double> remainingProductionToTransport = {};
+    final List<HexTileModel> producerTiles = [];
+
+    for (final tile in tiles.values) {
+      if (!tile.isOwned || tile.building == null) continue;
+      final b = tile.building!;
+      if (b.type == BuildingType.castle ||
+          b.type == BuildingType.worker ||
+          b.type == BuildingType.watchtower ||
+          b.type == BuildingType.bridge ||
+          b.type == BuildingType.fishermanHut ||
+          b.type == BuildingType.granaryVault) {
+        continue;
+      }
+
+      final double sMult = getSeasonProductionMultiplier(
+        season: season,
+        isZud: isZud,
+        isTileWarmed: tile.isWarmed,
+      );
+
+      final double realRate = calculateTileEffectiveProductionRate(
+        tile: tile,
+        tileMap: tiles,
+        globalMultiplier: globalMultiplier,
+        seasonMultiplier: seasonMultiplier * sMult,
+        shrineMultiplier: shrineMultiplier,
+        season: season,
+        isZud: isZud,
+        cumulativeBiomeCounts: cumulativeBiomeCounts,
+        activeDoctrines: activeDoctrines,
+        caravanRoutes: caravanRoutes,
+        discoveredKurgans: discoveredKurgans,
+      );
+
+      remainingProductionToTransport[tile.coord] = realRate;
+      producerTiles.add(tile);
+
+      // Kapsayan işçi kulübelerini tespit edip sayaçlara ekle
+      for (final wt in workerTiles) {
+        if (tile.coord.distanceTo(wt.coord) <= 4) {
+          demandInCoverage[wt.coord] = (demandInCoverage[wt.coord] ?? 0.0) + realRate;
+          coveredCounts[wt.coord] = (coveredCounts[wt.coord] ?? 0) + 1;
+        }
+      }
+    }
+
+    // 3. Greedy Dağıtım: Her üretim binası için menzildeki kulübeleri en yakından uzağa sıralayarak yükü paylaştır
+    for (final pt in producerTiles) {
+      double needed = remainingProductionToTransport[pt.coord] ?? 0.0;
+      if (needed <= 0.0) continue;
+
+      final inRangeWorkers = workerTiles
+          .where((wt) => pt.coord.distanceTo(wt.coord) <= 4)
+          .toList()
+        ..sort((a, b) => pt.coord.distanceTo(a.coord).compareTo(pt.coord.distanceTo(b.coord)));
+
+      for (final wt in inRangeWorkers) {
+        if (needed <= 0.0) break;
+        final double remCap = remainingCapacities[wt.coord] ?? 0.0;
+        if (remCap > 0.0) {
+          final double alloc = math.min(remCap, needed);
+          remainingCapacities[wt.coord] = remCap - alloc;
+          assignedTransports[wt.coord] = (assignedTransports[wt.coord] ?? 0.0) + alloc;
+          needed -= alloc;
+        }
+      }
+      remainingProductionToTransport[pt.coord] = needed;
+    }
+
+    // 4. Sonuçları oluştur
+    for (final wt in workerTiles) {
+      final double totalCap = totalCapacities[wt.coord] ?? 0.0;
+      final double assigned = assignedTransports[wt.coord] ?? 0.0;
+      final double rawRatio = totalCap > 0.0 ? (assigned / totalCap).clamp(0.0, 1.0) : 0.0;
+      final double utilRatio = (rawRatio - 1.0).abs() < 0.0001 ? 1.0 : rawRatio;
+
+      result[wt.coord] = WorkerLogisticsStats(
+        totalCapacity: totalCap,
+        utilizedCapacity: assigned,
+        utilizationRatio: utilRatio,
+        demandInCoverage: demandInCoverage[wt.coord] ?? 0.0,
+        coveredBuildingsCount: coveredCounts[wt.coord] ?? 0,
+      );
+    }
+
+    return result;
+  }
+
   static WorkerLogisticsStats calculateWorkerLogisticsStats({
     required HexTileModel workerTile,
     required Map<HexAxial, HexTileModel> tiles,
@@ -421,96 +583,28 @@ class EconomyCalculator {
       );
     }
 
-    final double totalCapacity =
-        workerTile.building!.currentCarryingCapacity * workerTransferMult;
-    double totalDemand = 0.0;
-    int count = 0;
-
-    for (final tile in tiles.values) {
-      if (!tile.isOwned || tile.building == null) continue;
-      if (tile.coord == workerTile.coord) continue;
-
-      final b = tile.building!;
-      // Yalnızca fiziksel kaynak üreten ve lojistik taşıma gerektiren binalar
-      if (b.type == BuildingType.castle ||
-          b.type == BuildingType.worker ||
-          b.type == BuildingType.watchtower ||
-          b.type == BuildingType.bridge ||
-          b.type == BuildingType.fishermanHut ||
-          b.type == BuildingType.granaryVault) {
-        continue;
-      }
-
-      if (tile.coord.distanceTo(workerTile.coord) <= 4) {
-        double chainSynergy = 1.0;
-        for (final nCoord in tile.coord.neighbors) {
-          final nTile = tiles[nCoord];
-          if (nTile != null && nTile.isOwned && nTile.building != null) {
-            if (b.type == BuildingType.windmill && nTile.building!.type == BuildingType.corn) chainSynergy = 2.0;
-            if (b.type == BuildingType.sawmill && nTile.building!.type == BuildingType.lumberjack) chainSynergy = 2.0;
-            if (b.type == BuildingType.bakery && nTile.building!.type == BuildingType.windmill) chainSynergy = 2.0;
-            if (b.type == BuildingType.furniture && nTile.building!.type == BuildingType.sawmill) chainSynergy = 2.0;
-          }
-        }
-
-        final neighborTiles = tile.coord.neighbors.map((nc) => tiles[nc]).whereType<HexTileModel>().toList();
-        final double biomeSynergy = calculateAdjacencySynergy(
-          targetTile: tile,
-          neighborTiles: neighborTiles,
-          season: season,
-          isZud: isZud,
-        );
-
-        final double seasonMult = getSeasonProductionMultiplier(
-          season: season,
-          isZud: isZud,
-          isTileWarmed: tile.isWarmed,
-        );
-
-        final double seasonalBoost = getSeasonalProductionBoost(
-          season: season,
-          buildingType: b.type,
-        );
-
-        final double docMult = getDoctrineProductionMultiplier(
-          buildingType: b.type,
-          activeDoctrines: activeDoctrines,
-        );
-
-        final double soilMult = calculateSoilHealthMultiplier(tile);
-        final double caravanMult = calculateCaravanRouteMultiplier(tile.coord, caravanRoutes);
-        final double symbiosisMult = calculateSymbiosisMultiplier(tile);
-        final double ancestralMult = calculateAncestralRelicMultiplier(discoveredKurgans);
-
-        final double realRate = calculateBuildingProduction(
-          type: b.type,
-          level: b.level,
-          baseRate: b.baseProductionRate,
-          globalMultiplier: globalMultiplier * docMult * caravanMult * symbiosisMult * ancestralMult,
-          seasonMultiplier: seasonMult * soilMult,
-          synergyMultiplier: chainSynergy * biomeSynergy,
-          workerMultiplier: 1.0,
-          shrineMultiplier: shrineMultiplier,
-          seasonalBoostMultiplier: seasonalBoost,
-        );
-
-        totalDemand += realRate;
-        count++;
-      }
-    }
-
-    final double utilizedCapacity = math.min(totalDemand, totalCapacity);
-    final double utilizationRatio = totalCapacity > 0.0
-        ? (utilizedCapacity / totalCapacity).clamp(0.0, 1.0)
-        : 0.0;
-
-    return WorkerLogisticsStats(
-      totalCapacity: totalCapacity,
-      utilizedCapacity: utilizedCapacity,
-      utilizationRatio: utilizationRatio,
-      demandInCoverage: totalDemand,
-      coveredBuildingsCount: count,
+    final allStats = calculateAllWorkerLogisticsStats(
+      tiles: tiles,
+      workerTransferMult: workerTransferMult,
+      globalMultiplier: globalMultiplier,
+      seasonMultiplier: seasonMultiplier,
+      shrineMultiplier: shrineMultiplier,
+      season: season,
+      isZud: isZud,
+      cumulativeBiomeCounts: cumulativeBiomeCounts,
+      caravanRoutes: caravanRoutes,
+      activeDoctrines: activeDoctrines,
+      discoveredKurgans: discoveredKurgans,
     );
+
+    return allStats[workerTile.coord] ??
+        WorkerLogisticsStats(
+          totalCapacity: workerTile.building!.currentCarryingCapacity * workerTransferMult,
+          utilizedCapacity: 0.0,
+          utilizationRatio: 0.0,
+          demandInCoverage: 0.0,
+          coveredBuildingsCount: 0,
+        );
   }
 
   static ResourceBreakdownStats calculateResourceBreakdown({
@@ -529,6 +623,9 @@ class EconomyCalculator {
     List<AncestralKurgan> discoveredKurgans = const [],
     double shrineMultiplier = 1.0,
     List<String> unlockedLoreIds = const [],
+    Map<String, int> cumulativeBiomeCounts = const {},
+    int frenzyMultiplier = 1,
+    double seasonMultiplier = 1.0,
   }) {
     final String rKey = resourceKey.toLowerCase().replaceAll('_', '');
     final List<ResourceContributor> producers = [];
@@ -576,62 +673,21 @@ class EconomyCalculator {
         continue;
       }
 
-      // Sinerji & Çarpanlar
-      double chainSynergy = 1.0;
-      for (final nCoord in tile.coord.neighbors) {
-        final nTile = tiles[nCoord];
-        if (nTile != null && nTile.isOwned && nTile.building != null) {
-          if (b.type == BuildingType.windmill && nTile.building!.type == BuildingType.corn) chainSynergy = 2.0;
-          if (b.type == BuildingType.sawmill && nTile.building!.type == BuildingType.lumberjack) chainSynergy = 2.0;
-          if (b.type == BuildingType.bakery && nTile.building!.type == BuildingType.windmill) chainSynergy = 2.0;
-          if (b.type == BuildingType.furniture && nTile.building!.type == BuildingType.sawmill) chainSynergy = 2.0;
-        }
-      }
-
-      final neighborTiles = tile.coord.neighbors.map((nc) => tiles[nc]).whereType<HexTileModel>().toList();
-      final double biomeSynergy = calculateAdjacencySynergy(
-        targetTile: tile,
-        neighborTiles: neighborTiles,
-        season: season,
-        isZud: isZud,
-      );
-
-      final double seasonMult = getSeasonProductionMultiplier(
-        season: season,
-        isZud: isZud,
-        isTileWarmed: tile.isWarmed,
-        titles: titles,
-      );
-
-      final double docMult = getDoctrineProductionMultiplier(
-        buildingType: b.type,
-        activeDoctrines: activeDoctrines,
-      );
-
-      final double soilMult = calculateSoilHealthMultiplier(tile);
-      final double caravanMult = calculateCaravanRouteMultiplier(tile.coord, caravanRoutes);
-      final double symbiosisMult = calculateSymbiosisMultiplier(tile);
-      final double ancestralMult = calculateAncestralRelicMultiplier(discoveredKurgans);
-      final double omenMult = celestialOmen != null
-          ? calculateCelestialOmenMultiplier(
-              celestialOmen,
-              resourceType: b.type == BuildingType.lumberjack || b.type == BuildingType.sawmill
-                  ? 'wood'
-                  : b.type == BuildingType.mine || b.type == BuildingType.quarry
-                      ? 'iron'
-                      : 'food',
-            )
-          : 1.0;
-
-      final double rate = calculateBuildingProduction(
-        type: b.type,
-        level: b.level,
-        baseRate: b.baseProductionRate,
-        globalMultiplier: globalMult * docMult * caravanMult * symbiosisMult * ancestralMult * omenMult,
-        seasonMultiplier: seasonMult * soilMult,
-        synergyMultiplier: chainSynergy * biomeSynergy,
-        workerMultiplier: 1.0,
+      final double rate = calculateTileEffectiveProductionRate(
+        tile: tile,
+        tileMap: tiles,
+        globalMultiplier: globalMult,
+        seasonMultiplier: seasonMultiplier,
         shrineMultiplier: shrineMultiplier,
+        season: season,
+        isZud: isZud,
+        cumulativeBiomeCounts: cumulativeBiomeCounts,
+        activeDoctrines: activeDoctrines,
+        caravanRoutes: caravanRoutes,
+        celestialOmen: celestialOmen,
+        discoveredKurgans: discoveredKurgans,
+        frenzyMultiplier: frenzyMultiplier,
+        titles: titles,
       );
 
       // Üretici Eşleşmeleri
@@ -874,18 +930,48 @@ class EconomyCalculator {
       }
     }
 
+    // Lojistik Taşıma Kapasitesi Dağıtımı (allocateGreedyLogistics ile Tek Doğruluk Kaynağı)
+    final double workerTransferMult = getWorkerTransferMultiplier(
+      toreTalents: toreTalents,
+    );
+
+    final Map<HexAxial, double> producerDemands = {for (final p in producers) p.coord: p.rate};
+    final Map<HexAxial, double> untransportedByCoord = allocateGreedyLogistics(
+      tiles: tiles,
+      producerDemands: producerDemands,
+      workerTransferMult: workerTransferMult,
+    );
+
+    final List<ResourceContributor> finalProducers = [];
+    double totalUntransported = 0.0;
+
+    for (final prod in producers) {
+      final double untransported = untransportedByCoord[prod.coord] ?? 0.0;
+      totalUntransported += untransported;
+      finalProducers.add(ResourceContributor(
+        buildingType: prod.buildingType,
+        level: prod.level,
+        coord: prod.coord,
+        rate: prod.rate,
+        isProducer: prod.isProducer,
+        customLabel: prod.customLabel,
+        untransportedRate: untransported,
+      ));
+    }
+
     // Sıralama (En yüksek katkı en başta)
-    producers.sort((a, b) => b.rate.compareTo(a.rate));
+    finalProducers.sort((a, b) => b.rate.compareTo(a.rate));
     consumers.sort((a, b) => b.rate.compareTo(a.rate));
 
-    final double totalProd = producers.fold(0.0, (sum, p) => sum + p.rate);
+    final double totalProd = finalProducers.fold(0.0, (sum, p) => sum + p.rate);
     final double totalCons = consumers.fold(0.0, (sum, c) => sum + c.rate);
 
     return ResourceBreakdownStats(
-      producers: producers,
+      producers: finalProducers,
       consumers: consumers,
       totalProduction: totalProd,
       totalConsumption: totalCons,
+      totalUntransported: totalUntransported,
     );
   }
 
@@ -982,15 +1068,128 @@ class EconomyCalculator {
   }
 
   static Map<String, double> getCastleUpgradeCost(int nextLevel) {
-    final double foodCost = 50.0 * math.pow(1.5, nextLevel - 2);
-    // 2. seviyeden sonra odun istemeye başlar (nextLevel >= 3)
-    final double woodCost =
-        nextLevel <= 2 ? 0.0 : 25.0 * math.pow(1.5, nextLevel - 3);
+    final Map<String, double> costs = {};
 
-    return {
-      'food': foodCost,
-      'wood': woodCost,
-    };
+    // 1. Gıda (Food): Başlangıçtan itibaren her seviyede katlanarak artar
+    final double foodCost = 50.0 * math.pow(1.5, math.max(0, nextLevel - 2));
+    costs['food'] = foodCost;
+
+    // 2. Odun (Wood): Şato 2. seviyeye ulaştıktan sonraki seviyelerde (nextLevel >= 3)
+    if (nextLevel >= 3) {
+      costs['wood'] = 25.0 * math.pow(1.5, nextLevel - 3);
+    }
+
+    // 3. Taş, Un, Kalas, Bilgelik: Şato 5. seviyeye ulaştıktan sonraki seviyelerde (nextLevel >= 6)
+    if (nextLevel >= 6) {
+      costs['stone'] = 20.0 * math.pow(1.5, nextLevel - 6);
+      costs['flour'] = 15.0 * math.pow(1.5, nextLevel - 6);
+      costs['plank'] = 15.0 * math.pow(1.5, nextLevel - 6);
+      costs['wisdom'] = 10.0 * math.pow(1.5, nextLevel - 6);
+    }
+
+    // 4. Demir, Ekmek, Balık: Şato 15. seviyeye ulaştıktan sonraki seviyelerde (nextLevel >= 16)
+    if (nextLevel >= 16) {
+      costs['iron'] = 15.0 * math.pow(1.5, nextLevel - 16);
+      costs['bread'] = 15.0 * math.pow(1.5, nextLevel - 16);
+      costs['fish'] = 20.0 * math.pow(1.5, nextLevel - 16);
+    }
+
+    // 5. Mobilya, Keçe: Şato 20. seviyeye ulaştıktan sonraki seviyelerde (nextLevel >= 21)
+    if (nextLevel >= 21) {
+      costs['furniture'] = 10.0 * math.pow(1.5, nextLevel - 21);
+      costs['felt'] = 10.0 * math.pow(1.5, nextLevel - 21);
+    }
+
+    // 6. Kımız: Şato 30. seviyeye ulaştıktan sonraki seviyelerde (nextLevel >= 31)
+    if (nextLevel >= 31) {
+      costs['kumis'] = 10.0 * math.pow(1.5, nextLevel - 31);
+    }
+
+    // 7. Obsidiyen, Şam Çeliği: Şato 40. seviyeye ulaştıktan sonraki seviyelerde (nextLevel >= 41)
+    if (nextLevel >= 41) {
+      costs['obsidian'] = 5.0 * math.pow(1.5, nextLevel - 41);
+      costs['damascusSteel'] = 5.0 * math.pow(1.5, nextLevel - 41);
+    }
+
+    // 8. Mithril: Şato 45. seviyeye ulaştıktan sonraki seviyelerde (nextLevel >= 46)
+    if (nextLevel >= 46) {
+      costs['mithril'] = 5.0 * math.pow(1.5, nextLevel - 46);
+    }
+
+    return costs;
+  }
+
+  /// Şato yükseltmesi için gerekli tüm kaynakların mevcut olup olmadığını kontrol eder
+  static bool canAffordCastleUpgrade(ResourcesModel resources, int nextLevel) {
+    final costs = getCastleUpgradeCost(nextLevel);
+    for (final entry in costs.entries) {
+      final key = entry.key;
+      final requiredAmount = entry.value;
+      if (requiredAmount <= 0) continue;
+      final double available = getResourceAmount(resources, key);
+      if (available < requiredAmount) return false;
+    }
+    return true;
+  }
+
+  /// Kaynak modelinden dinamik anahtara göre miktarı çeker
+  static double getResourceAmount(ResourcesModel resources, String key) {
+    switch (key) {
+      case 'food':
+        return resources.food;
+      case 'wood':
+        return resources.wood;
+      case 'stone':
+        return resources.stone;
+      case 'iron':
+        return resources.iron;
+      case 'flour':
+        return resources.flour;
+      case 'plank':
+        return resources.plank;
+      case 'bread':
+        return resources.bread;
+      case 'furniture':
+        return resources.furniture;
+      case 'fish':
+        return resources.fish;
+      case 'wisdom':
+        return resources.wisdom;
+      case 'kumis':
+        return resources.kumis;
+      case 'felt':
+        return resources.felt;
+      case 'obsidian':
+        return resources.obsidian;
+      case 'damascusSteel':
+        return resources.damascusSteel;
+      case 'mithril':
+        return resources.mithril;
+      default:
+        return 0.0;
+    }
+  }
+
+  /// Şato geliştirme maliyetlerini kaynak modelinden düşer
+  static ResourcesModel deductCastleUpgradeCost(ResourcesModel resources, int nextLevel) {
+    final costs = getCastleUpgradeCost(nextLevel);
+    return resources.copyWith(
+      food: math.max(0.0, resources.food - (costs['food'] ?? 0.0)),
+      wood: math.max(0.0, resources.wood - (costs['wood'] ?? 0.0)),
+      stone: math.max(0.0, resources.stone - (costs['stone'] ?? 0.0)),
+      iron: math.max(0.0, resources.iron - (costs['iron'] ?? 0.0)),
+      flour: math.max(0.0, resources.flour - (costs['flour'] ?? 0.0)),
+      plank: math.max(0.0, resources.plank - (costs['plank'] ?? 0.0)),
+      bread: math.max(0.0, resources.bread - (costs['bread'] ?? 0.0)),
+      furniture: math.max(0.0, resources.furniture - (costs['furniture'] ?? 0.0)),
+      fish: math.max(0.0, resources.fish - (costs['fish'] ?? 0.0)),
+      wisdom: math.max(0.0, resources.wisdom - (costs['wisdom'] ?? 0.0)),
+      kumis: math.max(0.0, resources.kumis - (costs['kumis'] ?? 0.0)),
+      felt: math.max(0.0, resources.felt - (costs['felt'] ?? 0.0)),
+      obsidian: math.max(0.0, resources.obsidian - (costs['obsidian'] ?? 0.0)),
+      damascusSteel: math.max(0.0, resources.damascusSteel - (costs['damascusSteel'] ?? 0.0)),
+      mithril: math.max(0.0, resources.mithril - (costs['mithril'] ?? 0.0)),
+    );
   }
 
   static double getBiomeMasteryMultiplier({
@@ -1071,6 +1270,162 @@ class EconomyCalculator {
            shrineMultiplier *
            biomeMasteryMultiplier *
            seasonalBoostMultiplier;
+  }
+
+  /// Tek bir karodaki binanın tüm küresel, mevsimsel, sinerji, töre, doktrin ve kervan çarpanlarıyla net debisini hesaplar.
+  /// (Tüm alt hesaplayıcılar ve UI panelleri için Tek Doğruluk Kaynağı - Single Source of Truth)
+  static double calculateTileEffectiveProductionRate({
+    required HexTileModel tile,
+    required Map<HexAxial, HexTileModel> tileMap,
+    required double globalMultiplier,
+    double seasonMultiplier = 1.0,
+    double shrineMultiplier = 1.0,
+    String season = 'SPRING',
+    bool isZud = false,
+    Map<String, int> cumulativeBiomeCounts = const {},
+    List<DoctrineCardModel> activeDoctrines = const [],
+    List<CaravanRoute> caravanRoutes = const [],
+    CelestialOmen? celestialOmen,
+    List<AncestralKurgan> discoveredKurgans = const [],
+    int frenzyMultiplier = 1,
+    Map<String, dynamic> titles = const {},
+  }) {
+    if (!tile.isOwned || !tile.hasBuilding) return 0.0;
+    final b = tile.building!;
+
+    if (b.type == BuildingType.castle ||
+        b.type == BuildingType.worker ||
+        b.type == BuildingType.watchtower ||
+        b.type == BuildingType.bridge ||
+        b.type == BuildingType.fishermanHut ||
+        b.type == BuildingType.granaryVault) {
+      return 0.0;
+    }
+
+    double chainSynergy = 1.0;
+    for (final nCoord in tile.coord.neighbors) {
+      final nTile = tileMap[nCoord];
+      if (nTile != null && nTile.isOwned && nTile.building != null) {
+        if (b.type == BuildingType.windmill && nTile.building!.type == BuildingType.corn) chainSynergy = 2.0;
+        if (b.type == BuildingType.sawmill && nTile.building!.type == BuildingType.lumberjack) chainSynergy = 2.0;
+        if (b.type == BuildingType.bakery && nTile.building!.type == BuildingType.windmill) chainSynergy = 2.0;
+        if (b.type == BuildingType.furniture && nTile.building!.type == BuildingType.sawmill) chainSynergy = 2.0;
+      }
+    }
+
+    final neighborTiles = tile.coord.neighbors
+        .map((nc) => tileMap[nc])
+        .whereType<HexTileModel>()
+        .toList();
+
+    final double biomeSynergy = calculateAdjacencySynergy(
+      targetTile: tile,
+      neighborTiles: neighborTiles,
+      season: season,
+      isZud: isZud,
+    );
+
+    final double masteryMult = getBiomeMasteryMultiplier(
+      biome: tile.biome,
+      cumulativeBiomeCounts: cumulativeBiomeCounts,
+    );
+
+    final double seasonalBoost = getSeasonalProductionBoost(
+      season: season,
+      buildingType: b.type,
+    );
+
+    final double docMult = getDoctrineProductionMultiplier(
+      buildingType: b.type,
+      activeDoctrines: activeDoctrines,
+    );
+
+    final double soilMult = calculateSoilHealthMultiplier(tile);
+    final double caravanMult = calculateCaravanRouteMultiplier(tile.coord, caravanRoutes);
+    final double symbiosisMult = calculateSymbiosisMultiplier(tile);
+    final double ancestralMult = calculateAncestralRelicMultiplier(discoveredKurgans);
+    final double omenMult = celestialOmen != null
+        ? calculateCelestialOmenMultiplier(
+            celestialOmen,
+            resourceType: b.type == BuildingType.lumberjack || b.type == BuildingType.sawmill
+                ? 'wood'
+                : b.type == BuildingType.mine || b.type == BuildingType.quarry
+                    ? 'iron'
+                    : 'food',
+          )
+        : 1.0;
+
+    final double warmedMultiplier = tile.isWarmed ? 1.50 : 1.0;
+    final double effectiveSeasonMultiplier = seasonMultiplier * soilMult * (tile.isWarmed ? 1.50 : 1.0);
+
+    return calculateBuildingProduction(
+      type: b.type,
+      level: b.level,
+      baseRate: b.baseProductionRate,
+      globalMultiplier: globalMultiplier * docMult * caravanMult * symbiosisMult * ancestralMult * omenMult,
+      seasonMultiplier: effectiveSeasonMultiplier,
+      synergyMultiplier: chainSynergy * biomeSynergy,
+      workerMultiplier: 1.0,
+      shrineMultiplier: shrineMultiplier,
+      biomeMasteryMultiplier: masteryMult,
+      seasonalBoostMultiplier: seasonalBoost,
+    );
+  }
+
+  /// Haritadaki üretim binaları ile işçi/şato depoları arasında en yakın menzilli greedy yük tahsisi yapar.
+  /// Binaların taşınan ve taşınamayan (`untransported`) debilerini hesaplar.
+  static Map<HexAxial, double> allocateGreedyLogistics({
+    required Map<HexAxial, HexTileModel> tiles,
+    required Map<HexAxial, double> producerDemands,
+    double workerTransferMult = 1.0,
+  }) {
+    final Map<HexAxial, double> remainingDemand = Map.from(producerDemands);
+    final List<HexAxial> workerSourceCoords = [];
+    final List<double> workerSourceCapacities = [];
+
+    for (final t in tiles.values) {
+      if (!t.isOwned || t.building == null) continue;
+      if (t.building!.type == BuildingType.castle) {
+        workerSourceCoords.add(t.coord);
+        workerSourceCapacities.add(1.0 * workerTransferMult);
+      } else if (t.building!.type == BuildingType.worker ||
+          t.building!.type == BuildingType.fishermanHut ||
+          t.building!.type == BuildingType.granaryVault) {
+        workerSourceCoords.add(t.coord);
+        workerSourceCapacities.add(t.building!.currentCarryingCapacity * workerTransferMult);
+      }
+    }
+
+    if (workerSourceCoords.isEmpty) {
+      return remainingDemand;
+    }
+
+    for (final entry in producerDemands.entries) {
+      final HexAxial pCoord = entry.key;
+      double needed = entry.value;
+      if (needed <= 0.0) continue;
+
+      final inRangeIndices = <int>[];
+      for (int i = 0; i < workerSourceCoords.length; i++) {
+        if (pCoord.distanceTo(workerSourceCoords[i]) <= 4 && workerSourceCapacities[i] > 0.0) {
+          inRangeIndices.add(i);
+        }
+      }
+      inRangeIndices.sort((a, b) =>
+          pCoord.distanceTo(workerSourceCoords[a]).compareTo(pCoord.distanceTo(workerSourceCoords[b])));
+
+      for (final idx in inRangeIndices) {
+        if (needed <= 0.0) break;
+        if (workerSourceCapacities[idx] > 0.0) {
+          final double take = math.min(needed, workerSourceCapacities[idx]);
+          workerSourceCapacities[idx] -= take;
+          needed -= take;
+        }
+      }
+      remainingDemand[pCoord] = math.max(0.0, needed);
+    }
+
+    return remainingDemand;
   }
 
   static double getTamgaMultiplier(int tamga) {
@@ -1289,6 +1644,7 @@ class EconomyCalculator {
     required List<HexTileModel> tiles,
     required double elapsedSeconds,
     required double globalMultiplier,
+    double minThresholdSeconds = 3.0,
   }) {
     const double maxOfflineSeconds = 8 * 3600.0;
     final double rawSeconds = math.max(0.0, elapsedSeconds);
@@ -1303,7 +1659,7 @@ class EconomyCalculator {
       effectiveSeconds = 7200.0 + (excess * 0.60);
     }
     final double cappedSeconds = effectiveSeconds;
-    if (cappedSeconds < 15.0) {
+    if (cappedSeconds < minThresholdSeconds) {
       return OfflineGainsResult(seconds: cappedSeconds.toInt());
     }
 
@@ -1518,6 +1874,8 @@ class EconomyCalculator {
     CelestialOmen? celestialOmen,
     List<AncestralKurgan> discoveredKurgans = const [],
     Map<String, dynamic> titles = const {},
+    Map<String, dynamic> toreTalents = const {},
+    Map<String, dynamic> talents = const {},
   }) {
     final double totalMult = globalMultiplier * shrineMultiplier;
 
@@ -1535,7 +1893,42 @@ class EconomyCalculator {
     double netFelt = 0.0;
     double netDamascusSteel = 0.0;
 
+    double untransportedFood = 0.0;
+    double untransportedWood = 0.0;
+    double untransportedStone = 0.0;
+    double untransportedIron = 0.0;
+    double untransportedFlour = 0.0;
+    double untransportedPlank = 0.0;
+    double untransportedBread = 0.0;
+    double untransportedFurniture = 0.0;
+    double untransportedFish = 0.0;
+    double untransportedWisdom = 0.0;
+    double untransportedKumis = 0.0;
+    double untransportedFelt = 0.0;
+    double untransportedDamascusSteel = 0.0;
+
     final map = tileMap ?? {for (final t in tiles) t.coord: t};
+
+    // İşçi ve Şato Taşıma Kaynakları (4 Hex Menzil)
+    final double workerTransferMult = getWorkerTransferMultiplier(
+      talents: talents,
+      toreTalents: toreTalents,
+    );
+    final List<HexAxial> workerSourceCoords = [];
+    final List<double> workerSourceCapacities = [];
+
+    for (final t in tiles) {
+      if (!t.isOwned || t.building == null) continue;
+      if (t.building!.type == BuildingType.castle) {
+        workerSourceCoords.add(t.coord);
+        workerSourceCapacities.add(1.0 * workerTransferMult);
+      } else if (t.building!.type == BuildingType.worker ||
+          t.building!.type == BuildingType.fishermanHut ||
+          t.building!.type == BuildingType.granaryVault) {
+        workerSourceCoords.add(t.coord);
+        workerSourceCapacities.add(t.building!.currentCarryingCapacity * workerTransferMult);
+      }
+    }
 
     if (activeDoctrines.any((d) => d.effectType == DoctrineEffectType.meadowGrazeYield)) {
       int emptyMeadows = 0;
@@ -1547,83 +1940,42 @@ class EconomyCalculator {
       netFood += emptyMeadows * 0.5;
     }
 
+    // 1. Tüm binaların üretim debilerini hesapla (Tek Doğruluk Kaynağı)
+    final Map<HexAxial, double> buildingRates = {};
+    for (final t in tiles) {
+      if (!t.isOwned || !t.hasBuilding) continue;
+      final double r = calculateTileEffectiveProductionRate(
+        tile: t,
+        tileMap: map,
+        globalMultiplier: globalMultiplier,
+        seasonMultiplier: seasonMultiplier,
+        shrineMultiplier: shrineMultiplier,
+        season: season,
+        isZud: isZud,
+        cumulativeBiomeCounts: cumulativeBiomeCounts,
+        activeDoctrines: activeDoctrines,
+        caravanRoutes: caravanRoutes,
+        celestialOmen: celestialOmen,
+        discoveredKurgans: discoveredKurgans,
+        titles: titles,
+      );
+      if (r > 0.0) {
+        buildingRates[t.coord] = r;
+      }
+    }
+
+    // 2. Greedy Lojistik Tahsisi (En Yakın Depoya / İşçiye Dağıtım)
+    final Map<HexAxial, double> untransportedByCoord = allocateGreedyLogistics(
+      tiles: map,
+      producerDemands: buildingRates,
+      workerTransferMult: workerTransferMult,
+    );
+
     for (final t in tiles) {
       if (!t.isOwned || !t.hasBuilding) continue;
       final b = t.building!;
-
-      if (b.type == BuildingType.castle ||
-          b.type == BuildingType.worker ||
-          b.type == BuildingType.watchtower ||
-          b.type == BuildingType.bridge ||
-          b.type == BuildingType.fishermanHut ||
-          b.type == BuildingType.granaryVault) {
-        continue;
-      }
-
-      double chainSynergy = 1.0;
-      for (final nCoord in t.coord.neighbors) {
-        final nTile = map[nCoord];
-        if (nTile != null && nTile.isOwned && nTile.building != null) {
-          if (b.type == BuildingType.windmill && nTile.building!.type == BuildingType.corn) chainSynergy = 2.0;
-          if (b.type == BuildingType.sawmill && nTile.building!.type == BuildingType.lumberjack) chainSynergy = 2.0;
-          if (b.type == BuildingType.bakery && nTile.building!.type == BuildingType.windmill) chainSynergy = 2.0;
-          if (b.type == BuildingType.furniture && nTile.building!.type == BuildingType.sawmill) chainSynergy = 2.0;
-        }
-      }
-
-      final neighborTiles = t.coord.neighbors
-          .map((nc) => map[nc])
-          .whereType<HexTileModel>()
-          .toList();
-
-      final double biomeSynergy = calculateAdjacencySynergy(
-        targetTile: t,
-        neighborTiles: neighborTiles,
-        season: season,
-        isZud: isZud,
-      );
-
-      final double masteryMult = getBiomeMasteryMultiplier(
-        biome: t.biome,
-        cumulativeBiomeCounts: cumulativeBiomeCounts,
-      );
-
-      final double seasonalBoost = getSeasonalProductionBoost(
-        season: season,
-        buildingType: b.type,
-      );
-
-      final double docMult = getDoctrineProductionMultiplier(
-        buildingType: b.type,
-        activeDoctrines: activeDoctrines,
-      );
-
-      final double soilMult = calculateSoilHealthMultiplier(t);
-      final double caravanMult = calculateCaravanRouteMultiplier(t.coord, caravanRoutes);
-      final double symbiosisMult = calculateSymbiosisMultiplier(t);
-      final double ancestralMult = calculateAncestralRelicMultiplier(discoveredKurgans);
-      final double omenMult = celestialOmen != null
-          ? calculateCelestialOmenMultiplier(
-              celestialOmen,
-              resourceType: b.type == BuildingType.lumberjack || b.type == BuildingType.sawmill
-                  ? 'wood'
-                  : b.type == BuildingType.mine || b.type == BuildingType.quarry
-                      ? 'iron'
-                      : 'food',
-            )
-          : 1.0;
-
-      final double rate = calculateBuildingProduction(
-        type: b.type,
-        level: b.level,
-        baseRate: b.baseProductionRate,
-        globalMultiplier: totalMult * docMult * caravanMult * symbiosisMult * ancestralMult * omenMult,
-        seasonMultiplier: seasonMultiplier * soilMult,
-        synergyMultiplier: chainSynergy * biomeSynergy,
-        shrineMultiplier: 1.0,
-        biomeMasteryMultiplier: masteryMult,
-        seasonalBoostMultiplier: seasonalBoost,
-      );
+      final double rate = buildingRates[t.coord] ?? 0.0;
+      final double untransportedRate = untransportedByCoord[t.coord] ?? 0.0;
 
       switch (b.type) {
         case BuildingType.corn:
@@ -1631,57 +1983,76 @@ class EconomyCalculator {
         case BuildingType.pasture:
         case BuildingType.orchard:
           netFood += rate;
+          untransportedFood += untransportedRate;
           break;
         case BuildingType.lumberjack:
         case BuildingType.resinCamp:
           netWood += rate;
+          untransportedWood += untransportedRate;
           break;
         case BuildingType.quarry:
           netStone += rate;
+          untransportedStone += untransportedRate;
           break;
         case BuildingType.windmill:
           netFlour += rate;
+          untransportedFlour += untransportedRate;
           break;
         case BuildingType.sawmill:
           netPlank += rate;
+          untransportedPlank += untransportedRate;
           break;
         case BuildingType.bakery:
           netBread += rate;
+          untransportedBread += untransportedRate;
           break;
         case BuildingType.furniture:
           netFurniture += rate;
+          untransportedFurniture += untransportedRate;
           break;
         case BuildingType.mine:
           netStone += rate;
           netIron += rate * 0.3;
+          untransportedStone += untransportedRate;
+          untransportedIron += untransportedRate * 0.3;
           break;
         case BuildingType.fisherman:
           netFish += rate;
+          untransportedFish += untransportedRate;
           break;
         case BuildingType.oasisCistern:
         case BuildingType.reindeerSanctuary:
         case BuildingType.herbalistYurt:
           netFood += rate;
+          untransportedFood += untransportedRate;
           break;
         case BuildingType.caravanserai:
           netBread += rate;
           netFood += rate * 0.5;
+          untransportedBread += untransportedRate;
+          untransportedFood += untransportedRate * 0.5;
           break;
         case BuildingType.scribeWorkshop:
           netPlank += rate;
+          untransportedPlank += untransportedRate;
           break;
         case BuildingType.geothermalBath:
         case BuildingType.steamVent:
           netStone += rate;
+          untransportedStone += untransportedRate;
           break;
         case BuildingType.obsidianForge:
         case BuildingType.permafrostDig:
           netStone += rate * 0.5;
           netIron += rate * 0.5;
+          untransportedStone += untransportedRate * 0.5;
+          untransportedIron += untransportedRate * 0.5;
           break;
         case BuildingType.celestialAnvil:
           netStone += rate * 0.5;
           netIron += rate * 0.5;
+          untransportedStone += untransportedRate * 0.5;
+          untransportedIron += untransportedRate * 0.5;
           break;
         case BuildingType.astrolabe:
         case BuildingType.ancestralTotem:
@@ -1689,18 +2060,25 @@ class EconomyCalculator {
           netFood += rate * 0.4;
           netWood += rate * 0.4;
           netStone += rate * 0.4;
+          untransportedFood += untransportedRate * 0.4;
+          untransportedWood += untransportedRate * 0.4;
+          untransportedStone += untransportedRate * 0.4;
           break;
         case BuildingType.kumisYurt:
           netKumis += rate;
+          untransportedKumis += untransportedRate;
           break;
         case BuildingType.feltTentWorkshop:
           netFelt += rate;
+          untransportedFelt += untransportedRate;
           break;
         case BuildingType.damascusForge:
           netDamascusSteel += rate;
+          untransportedDamascusSteel += untransportedRate;
           break;
         case BuildingType.runicStele:
           netWisdom += rate;
+          untransportedWisdom += untransportedRate;
           break;
         case BuildingType.granaryVault:
         case BuildingType.castle:
@@ -1726,6 +2104,19 @@ class EconomyCalculator {
       kumis: netKumis,
       felt: netFelt,
       damascusSteel: netDamascusSteel,
+      untransportedFood: untransportedFood,
+      untransportedWood: untransportedWood,
+      untransportedStone: untransportedStone,
+      untransportedIron: untransportedIron,
+      untransportedFlour: untransportedFlour,
+      untransportedPlank: untransportedPlank,
+      untransportedBread: untransportedBread,
+      untransportedFurniture: untransportedFurniture,
+      untransportedFish: untransportedFish,
+      untransportedWisdom: untransportedWisdom,
+      untransportedKumis: untransportedKumis,
+      untransportedFelt: untransportedFelt,
+      untransportedDamascusSteel: untransportedDamascusSteel,
     );
   }
 

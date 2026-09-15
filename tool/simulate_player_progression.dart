@@ -142,12 +142,14 @@ class PlaytestAgent {
 
       // C) Şato Seviye Kontrolü & Milestone Kaydı
       final nextCastleCost = EconomyCalculator.getCastleUpgradeCost(castleLevel + 1);
-      final double reqFood = nextCastleCost['food']!;
-      final double reqWood = nextCastleCost['wood']!;
+      final double reqFood = nextCastleCost['food'] ?? 0.0;
+      final double reqWood = nextCastleCost['wood'] ?? 0.0;
+      final double reqStone = nextCastleCost['stone'] ?? 0.0;
 
-      if (food >= reqFood && wood >= reqWood && castleLevel < 50) {
+      if (food >= reqFood && wood >= reqWood && stone >= reqStone && castleLevel < 50) {
         food -= reqFood;
         wood -= reqWood;
+        stone -= reqStone;
         castleLevel++;
 
         if (!milestoneTimes.containsKey('castle_$castleLevel')) {

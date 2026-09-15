@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -67,6 +67,13 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
       final activeDocIds = gameState.activeDoctrineSlots.values.whereType<String>().toSet();
       final activeDoctrines = gameState.doctrines.where((d) => activeDocIds.contains(d.id)).toList();
 
+      final double seasonMult = EconomyCalculator.getSeasonProductionMultiplier(
+        season: gameState.season.current,
+        isZud: gameState.season.isZud,
+        isTileWarmed: false,
+        titles: gameState.titles,
+      );
+
       breakdown = EconomyCalculator.calculateResourceBreakdown(
         resourceKey: resourceKey,
         tiles: gameState.tiles,
@@ -82,6 +89,9 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
         celestialOmen: gameState.celestialOmen,
         discoveredKurgans: gameState.discoveredKurgans,
         shrineMultiplier: gameState.shrineMultiplier,
+        cumulativeBiomeCounts: gameState.progression.cumulativeBiomeCounts,
+        frenzyMultiplier: gameState.frenzyMultiplier,
+        seasonMultiplier: seasonMult * gameState.frenzyMultiplier.toDouble(),
       );
     }
 
@@ -291,25 +301,53 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                           const SizedBox(height: 6),
                           Divider(color: theme.slateBorder, height: 1, thickness: 1),
                           const SizedBox(height: 4),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          Column(
                             children: [
-                              Text(
-                                '${GameLocalization.get('total_production', lang: lang)}: +${breakdown.totalProduction.toStringAsFixed(2)}/sn',
-                                style: const TextStyle(
-                                  color: Color(0xFF34D399),
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w800,
-                                ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '${GameLocalization.get('total_production', lang: lang)}: +${breakdown.totalProduction.toStringAsFixed(2)}/sn',
+                                    style: const TextStyle(
+                                      color: Color(0xFF34D399),
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${GameLocalization.get('total_consumption', lang: lang)}: -${breakdown.totalConsumption.toStringAsFixed(2)}/sn',
+                                    style: const TextStyle(
+                                      color: Color(0xFFF87171),
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                '${GameLocalization.get('total_consumption', lang: lang)}: -${breakdown.totalConsumption.toStringAsFixed(2)}/sn',
-                                style: const TextStyle(
-                                  color: Color(0xFFF87171),
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w800,
+                              if (breakdown.totalUntransported >= 0.01) ...[
+                                const SizedBox(height: 2),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Taşınamayan (Lojistik Darboğazı):',
+                                      style: TextStyle(
+                                        color: Color(0xFFEF4444),
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    Text(
+                                      '-${breakdown.totalUntransported.toStringAsFixed(2)}/sn',
+                                      style: const TextStyle(
+                                        color: Color(0xFFEF4444),
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ],
@@ -381,6 +419,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
   ) {
     final String buildingName = item.customLabel ??
         '${GameLocalization.get('${item.buildingType.name}_name', lang: lang)} (Sv.${item.level})';
+    final bool hasUntransported = isProducer && item.untransportedRate >= 0.01;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 3),
@@ -412,20 +451,37 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-            decoration: BoxDecoration(
-              color: isProducer ? const Color(0xFF064E3B) : const Color(0xFF450A0A),
-              borderRadius: BorderRadius.circular(2),
-            ),
-            child: Text(
-              '${isProducer ? '+' : '-'}${item.rate.toStringAsFixed(2)}${GameLocalization.get('per_sec', lang: lang)}',
-              style: TextStyle(
-                color: isProducer ? const Color(0xFF6EE7B7) : const Color(0xFFFCA5A5),
-                fontSize: 9.5,
-                fontWeight: FontWeight.w900,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                decoration: BoxDecoration(
+                  color: isProducer ? const Color(0xFF064E3B) : const Color(0xFF450A0A),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+                child: Text(
+                  '${isProducer ? '+' : '-'}${item.rate.toStringAsFixed(2)}${GameLocalization.get('per_sec', lang: lang)}',
+                  style: TextStyle(
+                    color: isProducer ? const Color(0xFF6EE7B7) : const Color(0xFFFCA5A5),
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
               ),
-            ),
+              if (hasUntransported) ...[
+                const SizedBox(height: 1),
+                Text(
+                  '-${item.untransportedRate.toStringAsFixed(2)}/sn (Taşınamayan)',
+                  style: const TextStyle(
+                    color: Color(0xFFEF4444),
+                    fontSize: 8,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ],
           ),
         ],
       ),
@@ -501,15 +557,14 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
         celestialOmen: gameState.celestialOmen,
         discoveredKurgans: gameState.discoveredKurgans,
         titles: gameState.titles,
+        toreTalents: gameState.toreTalents,
       );
     }
 
     final netRates = _cachedNetRates!;
 
     final int nextCastleLvl = gameState.progression.castleLevel + 1;
-    final castleCosts = EconomyCalculator.getCastleUpgradeCost(nextCastleLvl);
-    final bool canUpgradeCastle = resources.food >= (castleCosts['food'] ?? double.infinity) &&
-        resources.wood >= (castleCosts['wood'] ?? 0);
+    final bool canUpgradeCastle = EconomyCalculator.canAffordCastleUpgrade(resources, nextCastleLvl);
 
     return RepaintBoundary(
       child: Container(
@@ -540,6 +595,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   value: resources.food,
                   color: const Color(0xFFFBBF24),
                   rate: netRates.food,
+                  untransportedRate: netRates.untransportedFood,
                   theme: theme,
                   onTap: () => _showResourceExplanation(
                     context,
@@ -560,6 +616,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   value: resources.wood,
                   color: const Color(0xFFD97706),
                   rate: netRates.wood,
+                  untransportedRate: netRates.untransportedWood,
                   theme: theme,
                   onTap: () => _showResourceExplanation(
                     context,
@@ -581,6 +638,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     value: resources.stone,
                     color: const Color(0xFF94A3B8),
                     rate: netRates.stone,
+                    untransportedRate: netRates.untransportedStone,
                     theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
@@ -796,6 +854,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     value: resources.flour,
                     color: const Color(0xFFFEF08A),
                     rate: netRates.flour,
+                    untransportedRate: netRates.untransportedFlour,
                     theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
@@ -815,6 +874,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     value: resources.plank,
                     color: const Color(0xFFD97706),
                     rate: netRates.plank,
+                    untransportedRate: netRates.untransportedPlank,
                     theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
@@ -834,6 +894,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     value: resources.bread,
                     color: const Color(0xFFF59E0B),
                     rate: netRates.bread,
+                    untransportedRate: netRates.untransportedBread,
                     theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
@@ -853,6 +914,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     value: resources.furniture,
                     color: const Color(0xFFB45309),
                     rate: netRates.furniture,
+                    untransportedRate: netRates.untransportedFurniture,
                     theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
@@ -872,6 +934,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     value: resources.iron,
                     color: const Color(0xFFCBD5E1),
                     rate: netRates.iron,
+                    untransportedRate: netRates.untransportedIron,
                     theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
@@ -891,6 +954,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     value: resources.wisdom,
                     color: const Color(0xFF06B6D4),
                     rate: netRates.wisdom,
+                    untransportedRate: netRates.untransportedWisdom,
                     theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
@@ -910,6 +974,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     value: resources.kumis,
                     color: const Color(0xFF10B981),
                     rate: netRates.kumis,
+                    untransportedRate: netRates.untransportedKumis,
                     theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
@@ -929,6 +994,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     value: resources.felt,
                     color: const Color(0xFFF59E0B),
                     rate: netRates.felt,
+                    untransportedRate: netRates.untransportedFelt,
                     theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
@@ -948,6 +1014,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     value: resources.damascusSteel,
                     color: const Color(0xFF818CF8),
                     rate: netRates.damascusSteel,
+                    untransportedRate: netRates.untransportedDamascusSteel,
                     theme: theme,
                     onTap: () => _showResourceExplanation(
                       context,
@@ -1264,6 +1331,7 @@ class ResourcePulseChip extends StatefulWidget {
   final Color color;
   final bool isInt;
   final double? rate;
+  final double? untransportedRate;
   final VoidCallback? onTap;
   final NeoBrutalistThemeData? theme;
 
@@ -1274,6 +1342,7 @@ class ResourcePulseChip extends StatefulWidget {
     required this.color,
     this.isInt = false,
     this.rate,
+    this.untransportedRate,
     this.onTap,
     this.theme,
   });
@@ -1328,6 +1397,7 @@ class _ResourcePulseChipState extends State<ResourcePulseChip> with SingleTicker
   Widget build(BuildContext context) {
     final bool hasRate = widget.rate != null && widget.rate!.abs() >= 0.01;
     final bool isPositive = widget.rate != null && widget.rate! > 0;
+    final bool hasUntransported = widget.untransportedRate != null && widget.untransportedRate! >= 0.01;
     final theme = widget.theme ?? NeoBrutalistTheme.basaltTheme;
 
     return RepaintBoundary(
@@ -1338,7 +1408,7 @@ class _ResourcePulseChipState extends State<ResourcePulseChip> with SingleTicker
           builder: (context, child) {
             return Container(
               height: 30,
-              padding: const EdgeInsets.symmetric(horizontal: 7),
+              padding: const EdgeInsets.symmetric(horizontal: 6),
               decoration: BoxDecoration(
                 color: _controller.isAnimating ? (_colorAnimation.value ?? theme.surfaceLight) : theme.surfaceLight,
                 borderRadius: NeoBrutalistTheme.sharpRadius,
@@ -1350,40 +1420,61 @@ class _ResourcePulseChipState extends State<ResourcePulseChip> with SingleTicker
                 ),
                 boxShadow: theme.hardShadowSmall,
               ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                GameVectorIcon(type: widget.type, size: 14),
-                const SizedBox(width: 5),
-                Text(
-                  widget.isInt
-                      ? NumberFormatter.format(widget.value.toInt())
-                      : NumberFormatter.format(widget.value, decimals: 1),
-                  style: TextStyle(
-                    color: widget.color,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-                if (hasRate) ...[
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  GameVectorIcon(type: widget.type, size: 13),
                   const SizedBox(width: 4),
                   Text(
-                    NumberFormatter.formatRate(widget.rate!, decimals: 1, unitSuffix: '/s'),
+                    widget.isInt
+                        ? NumberFormatter.format(widget.value.toInt())
+                        : NumberFormatter.format(widget.value, decimals: 1),
                     style: TextStyle(
-                      color: isPositive ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                      fontSize: 9,
-                      fontWeight: FontWeight.w800,
+                      color: widget.color,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.2,
                     ),
                   ),
+                  if (hasRate || hasUntransported) ...[
+                    const SizedBox(width: 3.5),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (hasRate)
+                          Text(
+                            NumberFormatter.formatRate(widget.rate!, decimals: 1, unitSuffix: '/s'),
+                            style: TextStyle(
+                              color: isPositive ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                              fontSize: hasUntransported ? 8.0 : 8.5,
+                              fontWeight: FontWeight.w900,
+                              height: 1.0,
+                            ),
+                          ),
+                        if (hasUntransported) ...[
+                          if (hasRate) const SizedBox(height: 1.0),
+                          Text(
+                            '-${widget.untransportedRate!.toStringAsFixed(1)}/s',
+                            style: const TextStyle(
+                              color: Color(0xFFEF4444),
+                              fontSize: 7.5,
+                              fontWeight: FontWeight.w900,
+                              height: 1.0,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
                 ],
-              ],
-            ),
-          );
-        },
+              ),
+            );
+          },
+        ),
       ),
-    ),
     );
   }
 }

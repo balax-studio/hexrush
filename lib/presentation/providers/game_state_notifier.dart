@@ -43,6 +43,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
   static List<QuestModel> _generateInitialQuests() {
     return const [
+      // ─── BÖLÜM 1: İlk Yerleşim (Şato Sv1 açılımları) ────────────────────
       QuestModel(
         id: 'q_corn_1',
         titleTr: 'Bozkırın Ekmeği',
@@ -79,11 +80,95 @@ class GameStateNotifier extends StateNotifier<GameState> {
         rewardAmount: 60,
       ),
       QuestModel(
+        id: 'q_worker_1',
+        titleTr: 'İlk Çadır',
+        titleEn: 'First Camp',
+        descriptionTr: 'Otomatik hasat için 1 adet İşçi Çadırı inşa et.',
+        descriptionEn: 'Build 1 Worker Camp to enable auto-harvesting.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.worker,
+        targetAmount: 1,
+        rewardType: QuestRewardType.stone,
+        rewardAmount: 40,
+      ),
+
+      // ─── BÖLÜM 2: Otağı Büyüt — Şato Sv2 ────────────────────────────────
+      QuestModel(
+        id: 'q_castle_2',
+        titleTr: 'Han Otağı Yükselişi — Sv2',
+        titleEn: 'Seat of the Khan — Lv2',
+        descriptionTr:
+            'Kağan Otağını Seviye 2\'ye yükselt. Bu seviyeyle Arpa Tarlası ve Tahıl Deposu açılır.',
+        descriptionEn:
+            'Upgrade your Khan\'s Yurt to Level 2. This unlocks Barley Field and Granary Vault.',
+        type: QuestType.upgradeCastle,
+        targetAmount: 2,
+        rewardType: QuestRewardType.crowns,
+        rewardAmount: 2,
+      ),
+      QuestModel(
+        id: 'q_granary_1',
+        titleTr: 'Depo Kuşatması',
+        titleEn: 'Storeroom Secured',
+        descriptionTr:
+            'Sv2 Şato teknolojisi: Kaynakları depolamak için 1 Tahıl Deposu inşa et.',
+        descriptionEn:
+            'Lv2 castle tech: Build 1 Granary Vault to store resources.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.granaryVault,
+        targetAmount: 1,
+        rewardType: QuestRewardType.food,
+        rewardAmount: 80,
+      ),
+      QuestModel(
+        id: 'q_barley_1',
+        titleTr: 'Arpanın Bereketi',
+        titleEn: 'Barley Harvest',
+        descriptionTr:
+            'Sv2 Şato teknolojisi: Çeşitli gıda için 1 Arpa Tarlası inşa et.',
+        descriptionEn: 'Lv2 castle tech: Build 1 Barley Field for varied food.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.barley,
+        targetAmount: 1,
+        rewardType: QuestRewardType.food,
+        rewardAmount: 80,
+      ),
+      QuestModel(
+        id: 'q_pasture_1',
+        titleTr: 'Sürü ve Çayır',
+        titleEn: 'Herds and Pastures',
+        descriptionTr:
+            'Sv2 Şato teknolojisi: Hayvancılık için 1 Otlak kur.',
+        descriptionEn: 'Lv2 castle tech: Build 1 Pasture for livestock.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.pasture,
+        targetAmount: 1,
+        rewardType: QuestRewardType.food,
+        rewardAmount: 100,
+      ),
+
+      // ─── BÖLÜM 3: Güce Ulaş — Şato Sv5 (ANA ÖĞRENME NOKTASI) ────────────
+      QuestModel(
+        id: 'q_castle_5',
+        titleTr: 'Han Otağı Yükselişi — Sv5',
+        titleEn: 'Seat of the Khan — Lv5',
+        descriptionTr:
+            'Kağan Otağını Seviye 5\'e yükselt. Bu seviyeyle Değirmen, Kereste Fabrikası, Rünik Taş, Gözetleme Kulesi ve Taş Ocağı açılır!',
+        descriptionEn:
+            'Upgrade to Level 5. Unlocks Windmill, Sawmill, Runic Stele, Watchtower, and Quarry!',
+        type: QuestType.upgradeCastle,
+        targetAmount: 5,
+        rewardType: QuestRewardType.crowns,
+        rewardAmount: 5,
+      ),
+      QuestModel(
         id: 'q_windmill_1',
-        titleTr: 'Değirmen Çarkı',
-        titleEn: 'Mill Wheel',
-        descriptionTr: 'Buğdayı una dönüştürmek için 1 Değirmen inşa et.',
-        descriptionEn: 'Build 1 Windmill to process grain into flour.',
+        titleTr: 'Tahılın Öğütülmesi',
+        titleEn: 'Grinding the Grain',
+        descriptionTr:
+            'Sv5 Şato teknolojisi: Buğdayı una dönüştürmek için 1 Değirmen inşa et.',
+        descriptionEn:
+            'Lv5 castle tech: Build 1 Windmill to process grain into flour.',
         type: QuestType.buildStructure,
         targetBuilding: BuildingType.windmill,
         targetAmount: 1,
@@ -91,28 +176,63 @@ class GameStateNotifier extends StateNotifier<GameState> {
         rewardAmount: 80,
       ),
       QuestModel(
-        id: 'q_castle_2',
-        titleTr: 'Han Otağı Yükselişi',
-        titleEn: 'Seat of the Khan',
-        descriptionTr: 'Kağan Otağını Seviye 2\'ye yükselt.',
-        descriptionEn: 'Upgrade your Khan\'s Yurt to Level 2.',
-        type: QuestType.upgradeCastle,
-        targetAmount: 2,
-        rewardType: QuestRewardType.crowns,
-        rewardAmount: 2,
+        id: 'q_sawmill_1',
+        titleTr: 'Kereste Fabrikası',
+        titleEn: 'Sawmill Operations',
+        descriptionTr:
+            'Sv5 Şato teknolojisi: Odunu işlenmiş kerestiye çevirmek için 1 Kereste Fabrikası kur.',
+        descriptionEn:
+            'Lv5 castle tech: Build 1 Sawmill to process timber into planks.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.sawmill,
+        targetAmount: 1,
+        rewardType: QuestRewardType.food,
+        rewardAmount: 120,
       ),
       QuestModel(
-        id: 'q_bakery_1',
-        titleTr: 'Sıcak Tandır',
-        titleEn: 'Warm Bakery',
-        descriptionTr: 'Unu ekmeğe dönüştürmek için 1 Fırın inşa et.',
-        descriptionEn: 'Build 1 Bakery to bake bread from flour.',
+        id: 'q_runic_1',
+        titleTr: 'Orhun Bitig Yazıtları',
+        titleEn: 'Orkhon Inscriptions',
+        descriptionTr:
+            'Sv5 Şato teknolojisi: Bilgelik ve Meclis puanı üretmek için 1 Rünik Yazıt Taşı dik.',
+        descriptionEn:
+            'Lv5 castle tech: Erect 1 Runic Stele to generate Wisdom.',
         type: QuestType.buildStructure,
-        targetBuilding: BuildingType.bakery,
+        targetBuilding: BuildingType.runicStele,
         targetAmount: 1,
-        rewardType: QuestRewardType.wood,
+        rewardType: QuestRewardType.crowns,
+        rewardAmount: 5,
+      ),
+      QuestModel(
+        id: 'q_watchtower_1',
+        titleTr: 'Gözetleme Kulesi',
+        titleEn: 'Watchtower Erected',
+        descriptionTr:
+            'Sv5 Şato teknolojisi: Savunma ve keşif yarıçapını artırmak için 1 Gözetleme Kulesi inşa et.',
+        descriptionEn:
+            'Lv5 castle tech: Build 1 Watchtower for defense and scouting range.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.watchtower,
+        targetAmount: 1,
+        rewardType: QuestRewardType.stone,
         rewardAmount: 100,
       ),
+      QuestModel(
+        id: 'q_quarry_1',
+        titleTr: 'Taş Ocağı',
+        titleEn: 'Stone Quarry',
+        descriptionTr:
+            'Sv5 Şato teknolojisi: Taş ve kaya üretimi için 1 Taş Ocağı kur.',
+        descriptionEn:
+            'Lv5 castle tech: Build 1 Quarry to produce stone and rock.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.quarry,
+        targetAmount: 1,
+        rewardType: QuestRewardType.stone,
+        rewardAmount: 120,
+      ),
+
+      // ─── BÖLÜM 4: Keşif ve Meclis — Sv10'a hazırlık ─────────────────────
       QuestModel(
         id: 'q_shrine_1',
         titleTr: 'Kadim Rünlerin Gücü',
@@ -125,46 +245,11 @@ class GameStateNotifier extends StateNotifier<GameState> {
         rewardAmount: 3,
       ),
       QuestModel(
-        id: 'q_mine_1',
-        titleTr: 'Dağın Damarları',
-        titleEn: 'Mountain Veins',
-        descriptionTr: 'Dağ veya taşlık arazide 1 adet Maden ocağı kur.',
-        descriptionEn: 'Build 1 Mine on a mountain or rocky tile.',
-        type: QuestType.buildStructure,
-        targetBuilding: BuildingType.mine,
-        targetAmount: 1,
-        rewardType: QuestRewardType.stone,
-        rewardAmount: 100,
-      ),
-      QuestModel(
-        id: 'q_worker_1',
-        titleTr: 'Bozkır Atlıları & Lojistik',
-        titleEn: 'Steppe Riders & Logistics',
-        descriptionTr: 'Otomatik hasat için 1 adet İşçi Çadırı inşa et.',
-        descriptionEn: 'Build 1 Worker Camp to enable auto-harvesting.',
-        type: QuestType.buildStructure,
-        targetBuilding: BuildingType.worker,
-        targetAmount: 1,
-        rewardType: QuestRewardType.food,
-        rewardAmount: 120,
-      ),
-      QuestModel(
-        id: 'q_runic_1',
-        titleTr: 'Orhun Bitig Yazıtları',
-        titleEn: 'Orkhon Inscriptions',
-        descriptionTr: 'Bilgelik üretmek için 1 adet Rünik Yazıt Taşı dik.',
-        descriptionEn: 'Erect 1 Runic Stele to generate Wisdom lore.',
-        type: QuestType.buildStructure,
-        targetBuilding: BuildingType.runicStele,
-        targetAmount: 1,
-        rewardType: QuestRewardType.crowns,
-        rewardAmount: 5,
-      ),
-      QuestModel(
         id: 'q_caravan_1',
         titleTr: 'İpek Yolu Bağlantısı',
         titleEn: 'Silk Road Connection',
-        descriptionTr: 'İki fethedilmiş karo arasında 1 İpek Yolu Kervan Hattı kur.',
+        descriptionTr:
+            'İki fethedilmiş karo arasında 1 İpek Yolu Kervan Hattı kur.',
         descriptionEn: 'Establish 1 Caravan Route between two owned tiles.',
         type: QuestType.establishCaravan,
         targetAmount: 1,
@@ -175,19 +260,108 @@ class GameStateNotifier extends StateNotifier<GameState> {
         id: 'q_lore_1',
         titleTr: 'Ulu Töre Kanunu',
         titleEn: 'Sacred Steppe Lore',
-        descriptionTr: 'Bitig Bilgeliği ile Mecliste en az 2 Töre Kanunu kabul et.',
+        descriptionTr:
+            'Bitig Bilgeliği ile Mecliste en az 2 Töre Kanunu kabul et.',
         descriptionEn: 'Unlock at least 2 Steppe Lore doctrines.',
         type: QuestType.unlockLore,
         targetAmount: 2,
         rewardType: QuestRewardType.crowns,
         rewardAmount: 8,
       ),
+
+      // ─── BÖLÜM 5: Ağır Sanayi — Şato Sv10 ───────────────────────────────
+      QuestModel(
+        id: 'q_castle_10',
+        titleTr: 'Han Otağı Yükselişi — Sv10',
+        titleEn: 'Seat of the Khan — Lv10',
+        descriptionTr:
+            'Kağan Otağını Seviye 10\'a yükselt. Bu seviyeyle Meyve Bahçesi, Reçine Kampı ve Bitkisel Yurt açılır!',
+        descriptionEn:
+            'Upgrade to Level 10. Unlocks Orchard, Resin Camp, and Herbalist Yurt!',
+        type: QuestType.upgradeCastle,
+        targetAmount: 10,
+        rewardType: QuestRewardType.crowns,
+        rewardAmount: 8,
+      ),
+      QuestModel(
+        id: 'q_orchard_1',
+        titleTr: 'Bahçenin Meyvesi',
+        titleEn: 'Fruits of the Orchard',
+        descriptionTr:
+            'Sv10 Şato teknolojisi: Çeşitli gıda üretimi için 1 Meyve Bahçesi kur.',
+        descriptionEn:
+            'Lv10 castle tech: Build 1 Orchard for diverse food production.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.orchard,
+        targetAmount: 1,
+        rewardType: QuestRewardType.food,
+        rewardAmount: 150,
+      ),
+
+      // ─── BÖLÜM 6: Maden Çağı — Şato Sv15 ────────────────────────────────
+      QuestModel(
+        id: 'q_castle_15',
+        titleTr: 'Han Otağı Yükselişi — Sv15',
+        titleEn: 'Seat of the Khan — Lv15',
+        descriptionTr:
+            'Kağan Otağını Seviye 15\'e yükselt. Bu seviyeyle Maden Ocağı, Fırın ve Balıkçı açılır!',
+        descriptionEn:
+            'Upgrade to Level 15. Unlocks Mine, Bakery, and Fisherman!',
+        type: QuestType.upgradeCastle,
+        targetAmount: 15,
+        rewardType: QuestRewardType.crowns,
+        rewardAmount: 10,
+      ),
+      QuestModel(
+        id: 'q_mine_1',
+        titleTr: 'Dağın Damarları',
+        titleEn: 'Mountain Veins',
+        descriptionTr:
+            'Sv15 Şato teknolojisi: Demir ve taş madeni için 1 Maden Ocağı kur.',
+        descriptionEn:
+            'Lv15 castle tech: Build 1 Mine on a mountain or rocky tile.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.mine,
+        targetAmount: 1,
+        rewardType: QuestRewardType.stone,
+        rewardAmount: 100,
+      ),
+      QuestModel(
+        id: 'q_bakery_1',
+        titleTr: 'Sıcak Tandır',
+        titleEn: 'Warm Bakery',
+        descriptionTr:
+            'Sv15 Şato teknolojisi: Unu ekmeğe dönüştürmek için 1 Fırın inşa et.',
+        descriptionEn:
+            'Lv15 castle tech: Build 1 Bakery to bake bread from flour.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.bakery,
+        targetAmount: 1,
+        rewardType: QuestRewardType.wood,
+        rewardAmount: 100,
+      ),
+
+      // ─── BÖLÜM 7: Ticaret Çağı — Şato Sv20 ──────────────────────────────
+      QuestModel(
+        id: 'q_castle_20',
+        titleTr: 'Han Otağı Yükselişi — Sv20',
+        titleEn: 'Seat of the Khan — Lv20',
+        descriptionTr:
+            'Kağan Otağını Seviye 20\'ye yükselt. Bu seviyeyle Mobilya Atölyesi, Köprü ve Keçe Çadır Atölyesi açılır!',
+        descriptionEn:
+            'Upgrade to Level 20. Unlocks Furniture Workshop, Bridge, and Felt Tent Workshop!',
+        type: QuestType.upgradeCastle,
+        targetAmount: 20,
+        rewardType: QuestRewardType.tamgas,
+        rewardAmount: 1,
+      ),
       QuestModel(
         id: 'q_kumis_1',
         titleTr: 'Bozkır İksiri Kımız',
         titleEn: 'Steppe Elixir Kumis',
-        descriptionTr: 'Kutsal içecek için 1 adet Kımız Çadırı inşa et.',
-        descriptionEn: 'Build 1 Kumis Yurt to craft sacred elixir.',
+        descriptionTr:
+            'Sv30 Şato teknolojisi: Kutsal içecek için 1 adet Kımız Çadırı inşa et.',
+        descriptionEn: 'Lv30 castle tech: Build 1 Kumis Yurt.',
         type: QuestType.buildStructure,
         targetBuilding: BuildingType.kumisYurt,
         targetAmount: 1,
@@ -198,8 +372,10 @@ class GameStateNotifier extends StateNotifier<GameState> {
         id: 'q_damascus_1',
         titleTr: 'Efsanevi Şam Çeliği',
         titleEn: 'Legendary Damascus Steel',
-        descriptionTr: 'Bozkır silahları için 1 Şam Çeliği Dökümhanesi kur.',
-        descriptionEn: 'Build 1 Damascus Forge to smelt legendary steel.',
+        descriptionTr:
+            'Sv40 Şato teknolojisi: Bozkır silahları için 1 Şam Çeliği Dökümhanesi kur.',
+        descriptionEn:
+            'Lv40 castle tech: Build 1 Damascus Forge to smelt legendary steel.',
         type: QuestType.buildStructure,
         targetBuilding: BuildingType.damascusForge,
         targetAmount: 1,
@@ -510,6 +686,31 @@ class GameStateNotifier extends StateNotifier<GameState> {
     _startAutoSave();
   }
 
+  int? _backgroundPauseTimestamp;
+
+  /// Uygulama arka plana veya minimize durumuna geçtiğinde çağrılır.
+  /// Tick timer'ını durdurur, zaman damgasını kaydeder ve state'i diske yazar.
+  void pauseGameLoop() {
+    _backgroundPauseTimestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    _gameLoopTimer?.cancel();
+    _gameLoopTimer = null;
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = null;
+    saveGame();
+  }
+
+  /// Uygulama arka plandan ön plana (resumed) döndüğünde çağrılır.
+  /// Arka planda geçen süreyi hesaplar (>3 sn ise AFK gelir işletilir) ve timer'ı senkronize başlatır.
+  void resumeGameLoop() {
+    final pauseTs = _backgroundPauseTimestamp;
+    _backgroundPauseTimestamp = null;
+    if (pauseTs != null) {
+      processResumeOfflineGains(pauseTs);
+    }
+    _startGameLoop();
+    _startAutoSave();
+  }
+
   void _startGameLoop() {
     _gameLoopTimer?.cancel();
     _gameLoopTimer = Timer.periodic(const Duration(milliseconds: 1000), (_) {
@@ -701,6 +902,18 @@ class GameStateNotifier extends StateNotifier<GameState> {
         if (warmTimer <= 0.0) isWarmed = false;
       }
 
+      // Otomatik Isıtma (Auto-Heat) ve Rezerv Kontrolü (Fail-Safe)
+      if ((newSeason == 'WINTER' || newIsZud) && tile.isAutoHeatEnabled && !isWarmed) {
+        final double warmWoodCost = EconomyCalculator.getWinterWarmWoodCost(activeDoctrines);
+        final double safeWoodReserve = warmWoodCost * 2; // Rezerv emniyet eşiği (en az 2x maliyet rezervi)
+        if (currentWood >= safeWoodReserve + warmWoodCost) {
+          currentWood -= warmWoodCost;
+          addedWood -= warmWoodCost;
+          isWarmed = true;
+          warmTimer = 180.0;
+        }
+      }
+
       final double seasonMult =
           EconomyCalculator.getSeasonProductionMultiplier(
         season: newSeason,
@@ -802,11 +1015,21 @@ class GameStateNotifier extends StateNotifier<GameState> {
         double carriedAmount = 0.0;
         double neededAmount = rate + b.accumulatedResource;
 
+        // Menzildeki işçi kaynaklarını mesafeye göre (en yakından en uzağa) greedy olarak tara
+        final List<int> inRangeIndices = [];
         for (int i = 0; i < workerSourceCoords.length; i++) {
-          if (neededAmount <= 0.0) break;
           if (tile.coord.distanceTo(workerSourceCoords[i]) <= 4 && workerSourceCapacities[i] > 0.0) {
-            final double take = math.min(neededAmount, workerSourceCapacities[i]);
-            workerSourceCapacities[i] -= take;
+            inRangeIndices.add(i);
+          }
+        }
+        inRangeIndices.sort((a, b) =>
+            tile.coord.distanceTo(workerSourceCoords[a]).compareTo(tile.coord.distanceTo(workerSourceCoords[b])));
+
+        for (final idx in inRangeIndices) {
+          if (neededAmount <= 0.0) break;
+          if (workerSourceCapacities[idx] > 0.0) {
+            final double take = math.min(neededAmount, workerSourceCapacities[idx]);
+            workerSourceCapacities[idx] -= take;
             carriedAmount += take;
             neededAmount -= take;
           }
@@ -915,11 +1138,20 @@ class GameStateNotifier extends StateNotifier<GameState> {
         double carriedAmount = 0.0;
         if (b.accumulatedResource > 0.0) {
           double neededAmount = b.accumulatedResource;
+          final List<int> inRangeIndices = [];
           for (int i = 0; i < workerSourceCoords.length; i++) {
-            if (neededAmount <= 0.0) break;
             if (tile.coord.distanceTo(workerSourceCoords[i]) <= 4 && workerSourceCapacities[i] > 0.0) {
-              final double take = math.min(neededAmount, workerSourceCapacities[i]);
-              workerSourceCapacities[i] -= take;
+              inRangeIndices.add(i);
+            }
+          }
+          inRangeIndices.sort((a, b) =>
+              tile.coord.distanceTo(workerSourceCoords[a]).compareTo(tile.coord.distanceTo(workerSourceCoords[b])));
+
+          for (final idx in inRangeIndices) {
+            if (neededAmount <= 0.0) break;
+            if (workerSourceCapacities[idx] > 0.0) {
+              final double take = math.min(neededAmount, workerSourceCapacities[idx]);
+              workerSourceCapacities[idx] -= take;
               carriedAmount += take;
               neededAmount -= take;
             }
@@ -1372,6 +1604,11 @@ class GameStateNotifier extends StateNotifier<GameState> {
     final tile = state.tiles[coord];
     if (tile == null || !tile.isOwned || tile.hasBuilding) return false;
 
+    if (tile.hasShrine) {
+      showToast('Kutlu Tapınak: Kutsal tapınak arazisine bina inşa edilemez.');
+      return false;
+    }
+
     final int castleLvl = state.progression.castleLevel;
     if (castleLvl < type.requiredCastleLevel) {
       showToast('Kilitli Yapı: Bu yapı için Kağan Otağı Seviye ${type.requiredCastleLevel} gereklidir.');
@@ -1632,6 +1869,25 @@ class GameStateNotifier extends StateNotifier<GameState> {
     return true;
   }
 
+  bool toggleAutoHeat(HexAxial coord) {
+    final tile = state.tiles[coord];
+    if (tile == null || !tile.isOwned) return false;
+
+    final bool newAutoHeat = !tile.isAutoHeatEnabled;
+    final updatedTiles = Map<HexAxial, HexTileModel>.from(state.tiles);
+    updatedTiles[coord] = tile.copyWith(isAutoHeatEnabled: newAutoHeat);
+
+    state = state.copyWith(
+      tiles: updatedTiles,
+      activeToast: newAutoHeat
+          ? 'Otomatik Isıtma (Auto-Heat) AÇILDI.'
+          : 'Otomatik Isıtma KAPATILDI.',
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.tap);
+    return true;
+  }
+
   bool executeMarketTrade(String recipeKey) {
     final resMap = {
       'food': state.resources.food,
@@ -1819,14 +2075,16 @@ class GameStateNotifier extends StateNotifier<GameState> {
   bool upgradeCastle() {
     final int nextLvl = state.progression.castleLevel + 1;
     final costs = EconomyCalculator.getCastleUpgradeCost(nextLvl);
-    final double foodCost = costs['food']!;
-    final double woodCost = costs['wood']!;
 
-    if (state.resources.food < foodCost || state.resources.wood < woodCost) {
-      String costMsg = 'Otağ yükseltmesi için ${foodCost.toInt()} Gıda';
-      if (woodCost > 0) costMsg += ' ve ${woodCost.toInt()} Odun';
-      costMsg += ' gereklidir.';
-      showToast(costMsg);
+    if (!EconomyCalculator.canAffordCastleUpgrade(state.resources, nextLvl)) {
+      final List<String> requiredParts = [];
+      for (final entry in costs.entries) {
+        if (entry.value > 0) {
+          final String resName = _getResourceDisplayName(entry.key);
+          requiredParts.add('${entry.value.toInt()} $resName');
+        }
+      }
+      showToast('Otağ yükseltmesi için ${requiredParts.join(', ')} gereklidir.');
       return false;
     }
 
@@ -1839,12 +2097,11 @@ class GameStateNotifier extends StateNotifier<GameState> {
       }
     }
 
+    final updatedResources = EconomyCalculator.deductCastleUpgradeCost(state.resources, nextLvl);
+
     state = state.copyWith(
       tiles: updatedTiles,
-      resources: state.resources.copyWith(
-        food: state.resources.food - foodCost,
-        wood: state.resources.wood - woodCost,
-      ),
+      resources: updatedResources,
       progression: state.progression.copyWith(castleLevel: nextLvl),
       activeToast: 'Kağan Otağı Seviye $nextLvl oldu (Küresel Hız: +%25).',
     );
@@ -1853,6 +2110,43 @@ class GameStateNotifier extends StateNotifier<GameState> {
     _syncQuestProgress();
     saveGame();
     return true;
+  }
+
+  String _getResourceDisplayName(String key) {
+    switch (key) {
+      case 'food':
+        return 'Gıda';
+      case 'wood':
+        return 'Odun';
+      case 'stone':
+        return 'Taş';
+      case 'iron':
+        return 'Demir';
+      case 'flour':
+        return 'Un';
+      case 'plank':
+        return 'Kalas';
+      case 'bread':
+        return 'Ekmek';
+      case 'furniture':
+        return 'Mobilya';
+      case 'fish':
+        return 'Balık';
+      case 'wisdom':
+        return 'Bilgelik';
+      case 'kumis':
+        return 'Kımız';
+      case 'felt':
+        return 'Keçe';
+      case 'obsidian':
+        return 'Obsidiyen';
+      case 'damascusSteel':
+        return 'Şam Çeliği';
+      case 'mithril':
+        return 'Mithril';
+      default:
+        return key.toUpperCase();
+    }
   }
 
   void _syncQuestProgress() {
@@ -2007,6 +2301,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     bool? seasonChangeAlert,
     bool? questCompletedAlert,
     bool? castleUpgradeReadyAlert,
+    bool? questPanelHidden,
   }) {
     final current = state.settings.notifications;
     final updated = current.copyWith(
@@ -2014,6 +2309,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       seasonChangeAlert: seasonChangeAlert,
       questCompletedAlert: questCompletedAlert,
       castleUpgradeReadyAlert: castleUpgradeReadyAlert,
+      questPanelHidden: questPanelHidden,
     );
     state = state.copyWith(
       settings: state.settings.copyWith(notifications: updated),
@@ -2142,7 +2438,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
   void processResumeOfflineGains(int pauseTimestamp) {
     final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final double elapsed = (now - pauseTimestamp).toDouble();
-    if (elapsed < 15.0) return;
+    if (elapsed < 3.0) return;
 
     final double globalMult = EconomyCalculator.getGlobalMultiplier(
       castleLevel: state.progression.castleLevel,
@@ -2155,6 +2451,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       tiles: state.tiles.values.toList(),
       elapsedSeconds: elapsed,
       globalMultiplier: globalMult,
+      minThresholdSeconds: 3.0,
     );
 
     if (offline.hasGains && mounted) {
@@ -2558,6 +2855,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
         kutMultiplier: calculatedKut,
       ),
       discoveredKurgans: accumulatedKurgans,
+      quests: _generateInitialQuests(),
       activeToast: 'Büyük Göç Tamamlandı. +$newCrowns Taç & +$newTamgas Tamga (Kut: ${calculatedKut.toStringAsFixed(2)}x) Miras Kaldı!',
     );
 
@@ -3069,7 +3367,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       activeToast: 'BOZKIR BORUSU ÇALINDI: Seviye ${state.combatState.currentWaveTier} Akını (${waveEnemies.length} Düşman) Başladı!',
     );
 
-    TactileAudioService.instance.play(TactileSoundType.horn);
+    TactileAudioService.instance.play(TactileSoundType.tap);
     saveGame();
     return true;
   }

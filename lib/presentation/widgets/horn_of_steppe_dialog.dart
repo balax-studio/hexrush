@@ -310,7 +310,7 @@ class HornOfSteppeDialog extends ConsumerWidget {
                 shadowOffset: 3.0,
                 height: 42,
                 alignment: Alignment.center,
-                soundType: TactileSoundType.horn,
+                soundType: TactileSoundType.tap,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

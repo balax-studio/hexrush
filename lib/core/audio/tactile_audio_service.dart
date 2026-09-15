@@ -227,7 +227,7 @@ class TactileAudioService {
       case TactileSoundType.upgrade:
         return 'audio/upgrade.wav';
       case TactileSoundType.horn:
-        return 'audio/horn.wav';
+        return 'audio/tap.wav';
       case TactileSoundType.market:
         return 'audio/market.wav';
       case TactileSoundType.frenzy:

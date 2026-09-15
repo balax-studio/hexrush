@@ -48,6 +48,11 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
 
   @override
   Widget build(BuildContext context) {
+    final questPanelHidden = ref.watch(
+      gameStateProvider.select((s) => s.settings.notifications.questPanelHidden),
+    );
+    if (questPanelHidden) return const SizedBox.shrink();
+
     final quests = ref.watch(gameStateProvider.select((s) => s.quests));
     final lang = ref.watch(gameStateProvider.select((s) => s.settings.language));
     final notifier = ref.read(gameStateProvider.notifier);

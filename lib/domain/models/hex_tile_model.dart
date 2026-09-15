@@ -92,6 +92,7 @@ class HexTileModel {
   final AncestralKurgan? ancestralKurgan; // Ancient relic tomb from previous migration
   final bool isDamaged; // Düşman akınında tahrip edilmiş karo
   final CombatWallModel? wall; // Karodaki sur yapısı
+  final bool isAutoHeatEnabled; // Kış soğuğunda otomatik ısıtma devresi (Auto-Heat)
 
   const HexTileModel({
     required this.coord,
@@ -108,6 +109,7 @@ class HexTileModel {
     this.ancestralKurgan,
     this.isDamaged = false,
     this.wall,
+    this.isAutoHeatEnabled = false,
   });
 
   bool get hasBuilding => building != null;
@@ -138,6 +140,7 @@ class HexTileModel {
     bool? isDamaged,
     CombatWallModel? wall,
     bool? clearWall,
+    bool? isAutoHeatEnabled,
   }) {
     return HexTileModel(
       coord: coord ?? this.coord,
@@ -154,6 +157,7 @@ class HexTileModel {
       ancestralKurgan: clearKurgan == true ? null : (ancestralKurgan ?? this.ancestralKurgan),
       isDamaged: isDamaged ?? this.isDamaged,
       wall: clearWall == true ? null : (wall ?? this.wall),
+      isAutoHeatEnabled: isAutoHeatEnabled ?? this.isAutoHeatEnabled,
     );
   }
 
@@ -174,6 +178,7 @@ class HexTileModel {
       'ancestral_kurgan': ancestralKurgan?.toJson(),
       'is_damaged': isDamaged,
       'wall': wall?.toJson(),
+      'is_auto_heat_enabled': isAutoHeatEnabled,
     };
   }
 
@@ -221,6 +226,7 @@ class HexTileModel {
       ancestralKurgan: kurgan,
       isDamaged: json['is_damaged'] as bool? ?? false,
       wall: wall,
+      isAutoHeatEnabled: json['is_auto_heat_enabled'] as bool? ?? false,
     );
   }
 }

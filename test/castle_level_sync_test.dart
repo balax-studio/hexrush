@@ -58,7 +58,14 @@ void main() {
       final notifier = GameStateNotifier();
 
       notifier.state = notifier.state.copyWith(
-        resources: notifier.state.resources.copyWith(food: 100000.0, wood: 100000.0),
+        resources: notifier.state.resources.copyWith(
+          food: 100000.0,
+          wood: 100000.0,
+          stone: 100000.0,
+          flour: 100000.0,
+          plank: 100000.0,
+          wisdom: 100000.0,
+        ),
       );
 
       final castleCoord = notifier.state.tiles.entries

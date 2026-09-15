@@ -21,18 +21,28 @@ void main() {
       expect(multKhagan, closeTo(1.15, 0.0001));
     });
 
-    test('getCastleUpgradeCost requires wood after level 2', () {
+    test('getCastleUpgradeCost scales dynamically across unlock tiers', () {
       final costLvl2 = EconomyCalculator.getCastleUpgradeCost(2);
       expect(costLvl2['food'], equals(50.0));
-      expect(costLvl2['wood'], equals(0.0));
+      expect(costLvl2.containsKey('wood'), isFalse);
 
       final costLvl3 = EconomyCalculator.getCastleUpgradeCost(3);
       expect(costLvl3['food'], equals(75.0));
       expect(costLvl3['wood'], equals(25.0));
+      expect(costLvl3.containsKey('stone'), isFalse);
 
-      final costLvl4 = EconomyCalculator.getCastleUpgradeCost(4);
-      expect(costLvl4['food'], closeTo(112.5, 0.01));
-      expect(costLvl4['wood'], closeTo(37.5, 0.01));
+      final costLvl6 = EconomyCalculator.getCastleUpgradeCost(6);
+      expect(costLvl6['food'], closeTo(50.0 * 1.5 * 1.5 * 1.5 * 1.5, 0.01));
+      expect(costLvl6['wood'], closeTo(25.0 * 1.5 * 1.5 * 1.5, 0.01));
+      expect(costLvl6['stone'], equals(20.0));
+      expect(costLvl6['flour'], equals(15.0));
+      expect(costLvl6['plank'], equals(15.0));
+      expect(costLvl6['wisdom'], equals(10.0));
+
+      final costLvl16 = EconomyCalculator.getCastleUpgradeCost(16);
+      expect(costLvl16['iron'], equals(15.0));
+      expect(costLvl16['bread'], equals(15.0));
+      expect(costLvl16['fish'], equals(20.0));
     });
 
     test('getSeasonProductionMultiplier returns expected multipliers', () {

@@ -169,19 +169,23 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: tile.building?.type == BuildingType.castle
-                                  ? const Color(0xFF8B5CF6)
-                                  : (tile.isOwned ? const Color(0xFF10B981) : const Color(0xFF64748B)),
+                              color: tile.hasShrine
+                                  ? const Color(0xFFD97706)
+                                  : (tile.building?.type == BuildingType.castle
+                                      ? const Color(0xFF8B5CF6)
+                                      : (tile.isOwned ? const Color(0xFF10B981) : const Color(0xFF64748B))),
                               borderRadius: NeoBrutalistTheme.sharpRadius,
                               border: Border.all(color: theme.border, width: 1.5),
                               boxShadow: theme.hardShadowSmall,
                             ),
                             child: Text(
-                              tile.building?.type == BuildingType.castle
-                                  ? 'BAŞKENT'
-                                  : (tile.isOwned
-                                      ? GameLocalization.get('owned', lang: lang).toUpperCase()
-                                      : GameLocalization.get('wild', lang: lang).toUpperCase()),
+                              tile.hasShrine
+                                  ? 'KUTSAL ALAN'
+                                  : (tile.building?.type == BuildingType.castle
+                                      ? 'BAŞKENT'
+                                      : (tile.isOwned
+                                          ? GameLocalization.get('owned', lang: lang).toUpperCase()
+                                          : GameLocalization.get('wild', lang: lang).toUpperCase())),
                               style: NeoBrutalistTheme.fontBadge,
                             ),
                           ),
@@ -223,6 +227,29 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                               ),
                             ),
                           ],
+                          if (tile.isAutoHeatEnabled) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF15803D),
+                                borderRadius: NeoBrutalistTheme.sharpRadius,
+                                border: Border.all(color: const Color(0xFF22C55E), width: 1.5),
+                                boxShadow: theme.hardShadowSmall,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const GameVectorIcon(type: GameIconType.frenzy, size: 10, color: Colors.white),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'OTO-ISIT',
+                                    style: NeoBrutalistTheme.fontBadge.copyWith(color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -242,8 +269,8 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 ),
                 const SizedBox(height: 10),
 
-                // Kutlu Tapınak Özellik ve Yüzde Bilgi Rozeti
-                if (tile.hasShrine) ...[
+                // Kutlu Tapınak Özellik ve Yüzde Bilgi Rozeti (Sadece Fethedilmemişken Üst Bilgi)
+                if (tile.hasShrine && !tile.isOwned) ...[
                   Container(
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -411,6 +438,14 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                   if (tile.isDamaged)
                     _buildDamageAndRepairBanner(context, ref, tile, gameState, theme),
                   _buildCastleSection(context, ref, tile, gameState, lang, theme),
+                  _buildWallManagementRow(context, ref, tile, gameState, theme),
+                ]
+                // Durum 2.5: Kutlu Tapınak Seçili (Kutsal Alan - Bina İnşa Edilemez, Buff Aktif)
+                else if (tile.hasShrine) ...[
+                  if (tile.isDamaged)
+                    _buildDamageAndRepairBanner(context, ref, tile, gameState, theme),
+                  _buildShrineDetailSection(context, ref, tile, gameState, lang, theme),
+                  const SizedBox(height: 10),
                   _buildWallManagementRow(context, ref, tile, gameState, theme),
                 ]
                 // Durum 3: Üretim/İşleme Binası Seçili (Detay & Seviye Atlama)
@@ -920,17 +955,45 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
     );
   }
 
+  GameIconType _getResourceIconType(String resKey) {
+    switch (resKey.toLowerCase()) {
+      case 'wood':
+        return GameIconType.wood;
+      case 'stone':
+        return GameIconType.stone;
+      case 'iron':
+        return GameIconType.iron;
+      case 'flour':
+        return GameIconType.flour;
+      case 'plank':
+        return GameIconType.plank;
+      case 'bread':
+        return GameIconType.bread;
+      case 'furniture':
+        return GameIconType.furniture;
+      case 'fish':
+        return GameIconType.food;
+      case 'food':
+      default:
+        return GameIconType.food;
+    }
+  }
+
+  String _getResourceName(String key, String lang) {
+    return GameLocalization.get(key, lang: lang);
+  }
+
   Widget _buildCastleSection(BuildContext context, WidgetRef ref,
       HexTileModel tile, GameState gameState, String lang, NeoBrutalistThemeData theme) {
     final notifier = ref.read(gameStateProvider.notifier);
     final int lvl = gameState.progression.castleLevel;
     final int nextLvl = lvl + 1;
     final costs = EconomyCalculator.getCastleUpgradeCost(nextLvl);
-    final double nextFood = costs['food']!;
-    final double nextWood = costs['wood']!;
+    final bool canAfford = EconomyCalculator.canAffordCastleUpgrade(gameState.resources, nextLvl);
 
-    final bool canAfford = gameState.resources.food >= nextFood &&
-        gameState.resources.wood >= nextWood;
+    final List<MapEntry<String, double>> activeCosts = costs.entries
+        .where((e) => e.value > 0)
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1003,6 +1066,89 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
             ],
           ),
         ),
+        if (activeCosts.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F172A),
+              borderRadius: NeoBrutalistTheme.sharpRadius,
+              border: Border.all(
+                color: canAfford ? const Color(0xFF334155) : const Color(0xFF7F1D1D),
+                width: 1.2,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'GELİŞTİRME GEREKSİNİMLERİ (SEVİYE $nextLvl)',
+                      style: const TextStyle(
+                        color: Color(0xFF94A3B8),
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    if (!canAfford)
+                      const Text(
+                        'KAYNAK YETERSİZ',
+                        style: TextStyle(
+                          color: Color(0xFFEF4444),
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: activeCosts.map((entry) {
+                    final resKey = entry.key;
+                    final requiredAmount = entry.value;
+                    final double available = EconomyCalculator.getResourceAmount(gameState.resources, resKey);
+                    final bool hasEnough = available >= requiredAmount;
+                    final String name = _getResourceName(resKey, lang).toUpperCase();
+                    final GameIconType iconType = _getResourceIconType(resKey);
+
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B),
+                        borderRadius: BorderRadius.circular(3),
+                        border: Border.all(
+                          color: hasEnough ? const Color(0xFF059669) : const Color(0xFFDC2626),
+                          width: 1.2,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          GameVectorIcon(type: iconType, size: 12),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${NumberFormatter.format(available)} / ${NumberFormatter.format(requiredAmount)} $name',
+                            style: TextStyle(
+                              color: hasEnough ? const Color(0xFF6EE7B7) : const Color(0xFFFCA5A5),
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 10),
         Row(
           children: [
@@ -1016,21 +1162,26 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 shadowColor: theme.shadowColor,
                 shadowOffset: 3.0,
                 height: 40,
-                padding: EdgeInsets.zero,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
                 alignment: Alignment.center,
                 soundType: TactileSoundType.upgrade,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    GameVectorIcon(type: GameIconType.crown, size: 14, color: theme.primaryGold),
+                    GameVectorIcon(type: GameIconType.crown, size: 15, color: theme.primaryGold),
                     const SizedBox(width: 6),
-                    Text(
-                      '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} (${NumberFormatter.format(nextFood)} GIDA${nextWood > 0 ? ' + ${NumberFormatter.format(nextWood)} ODUN' : ''})',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 11,
-                        letterSpacing: 0.2,
+                    Flexible(
+                      child: Text(
+                        '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} (LV.$nextLvl)',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 11.5,
+                          letterSpacing: 0.2,
+                        ),
                       ),
                     ),
                   ],
@@ -1047,21 +1198,26 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 shadowColor: theme.shadowColor,
                 shadowOffset: 3.0,
                 height: 40,
-                padding: EdgeInsets.zero,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
                 alignment: Alignment.center,
                 soundType: TactileSoundType.tap,
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     GameVectorIcon(type: GameIconType.food, size: 14, color: Colors.black),
                     SizedBox(width: 4),
-                    Text(
-                      'İAŞE (+1)',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 11,
-                        letterSpacing: 0.2,
+                    Flexible(
+                      child: Text(
+                        'İAŞE (+1)',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 11,
+                          letterSpacing: 0.2,
+                        ),
                       ),
                     ),
                   ],
@@ -1069,6 +1225,168 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
               ),
             ),
           ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildShrineDetailSection(BuildContext context, WidgetRef ref,
+      HexTileModel tile, GameState gameState, String lang, NeoBrutalistThemeData theme) {
+    final bool isTr = lang == 'tr';
+    final shrine = tile.shrine;
+    final color = shrine == ShrineType.foodBoost
+        ? const Color(0xFF10B981)
+        : (shrine == ShrineType.woodBoost
+            ? const Color(0xFFF59E0B)
+            : const Color(0xFF38BDF8));
+    final lightColor = shrine == ShrineType.foodBoost
+        ? const Color(0xFF34D399)
+        : (shrine == ShrineType.woodBoost
+            ? const Color(0xFFFBBF24)
+            : const Color(0xFF7DD3FC));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Kutsal Tapınak Bilgi ve Kut Buff Kartı
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F172A),
+            borderRadius: NeoBrutalistTheme.sharpRadius,
+            border: Border.all(color: color, width: 2.0),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.15),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+              const BoxShadow(
+                color: Color(0xFF020617),
+                offset: Offset(3, 3),
+                blurRadius: 0,
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: color, width: 1.5),
+                    ),
+                    child: GameVectorIcon(
+                      type: shrine == ShrineType.foodBoost
+                          ? GameIconType.food
+                          : (shrine == ShrineType.woodBoost
+                              ? GameIconType.wood
+                              : GameIconType.frenzy),
+                      size: 20,
+                      color: lightColor,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isTr
+                              ? 'KUTLU TAPINAK: ${shrine.titleTr.toUpperCase()}'
+                              : 'SACRED SHRINE: ${shrine.titleEn.toUpperCase()}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF064E3B),
+                                borderRadius: BorderRadius.circular(2),
+                                border: Border.all(color: const Color(0xFF10B981), width: 1),
+                              ),
+                              child: Text(
+                                isTr ? 'KUT BUFF AKTİF' : 'BUFF ACTIVE',
+                                style: const TextStyle(
+                                  color: Color(0xFF6EE7B7),
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              isTr ? shrine.formattedBonusTr : shrine.formattedBonusEn,
+                              style: TextStyle(
+                                color: lightColor,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              const Divider(color: Color(0xFF334155), height: 1),
+              const SizedBox(height: 10),
+              Text(
+                isTr
+                    ? 'Bu kadim adak alanı Kağanlığın kut gücünü artırır. Tüm imparatorluk genelinde +%${shrine.boostPercentage.toInt()} üretim bereketi ve Büyük Göçte +5 Taç kazandırır.'
+                    : 'This ancient shrine channels sacred blessings. Grants +${shrine.boostPercentage.toInt()}% global production and +5 Crowns upon Great Migration.',
+                style: const TextStyle(
+                  color: Color(0xFFCBD5E1),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  height: 1.35,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        // İnşaat Yasağı / Kutsal Koruma Bildirimi
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E293B),
+            borderRadius: NeoBrutalistTheme.sharpRadius,
+            border: Border.all(color: const Color(0xFF475569), width: 1.2),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.shield_outlined, size: 16, color: Color(0xFF94A3B8)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isTr
+                      ? 'KUTSAL ARAZİ: Bu alana bina inşa edilemez. Bereket doğrudan tüm topraklara yayılır.'
+                      : 'SACRED TILE: No buildings can be placed here. Blessings emanate realm-wide.',
+                  style: const TextStyle(
+                    color: Color(0xFF94A3B8),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    height: 1.25,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -1707,26 +2025,65 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 ),
               ),
             ),
-            if (isWinter && !tile.isWarmed) ...[
+            if (isWinter) ...[
+              if (!tile.isWarmed) ...[
+                const SizedBox(width: 8),
+                TactileNeoButton(
+                  onTap: canWarm ? () => notifier.warmTile(tile.coord) : null,
+                  isEnabled: canWarm,
+                  backgroundColor: const Color(0xFFF97316),
+                  borderColor: theme.border,
+                  shadowColor: theme.shadowColor,
+                  shadowOffset: 2.5,
+                  height: 38,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  alignment: Alignment.center,
+                  soundType: TactileSoundType.tap,
+                  child: Text(
+                    'ISIT (${NumberFormatter.format(warmWoodCost)} ODUN)',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(width: 8),
               TactileNeoButton(
-                onTap: canWarm ? () => notifier.warmTile(tile.coord) : null,
-                isEnabled: canWarm,
-                backgroundColor: const Color(0xFFF97316),
-                borderColor: theme.border,
+                onTap: () => notifier.toggleAutoHeat(tile.coord),
+                backgroundColor: tile.isAutoHeatEnabled
+                    ? const Color(0xFF15803D)
+                    : const Color(0xFF1E293B),
+                borderColor: tile.isAutoHeatEnabled
+                    ? const Color(0xFF22C55E)
+                    : theme.border,
                 shadowColor: theme.shadowColor,
                 shadowOffset: 2.5,
                 height: 38,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
                 alignment: Alignment.center,
                 soundType: TactileSoundType.tap,
-                child: Text(
-                  'ISIT (${NumberFormatter.format(warmWoodCost)} ODUN)',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      tile.isAutoHeatEnabled
+                          ? Icons.local_fire_department
+                          : Icons.local_fire_department_outlined,
+                      size: 14,
+                      color: tile.isAutoHeatEnabled ? Colors.white : const Color(0xFF94A3B8),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      tile.isAutoHeatEnabled ? 'OTO-ISIT: AÇIK' : 'OTO-ISIT: KAPALI',
+                      style: TextStyle(
+                        color: tile.isAutoHeatEnabled ? Colors.white : const Color(0xFF94A3B8),
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

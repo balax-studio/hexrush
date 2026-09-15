@@ -194,7 +194,7 @@ class HornOfSteppeHUD extends ConsumerWidget {
             height: 30,
             padding: const EdgeInsets.symmetric(horizontal: 10),
             alignment: Alignment.center,
-            soundType: TactileSoundType.horn,
+            soundType: TactileSoundType.tap,
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [

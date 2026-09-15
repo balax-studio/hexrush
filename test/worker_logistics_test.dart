@@ -25,13 +25,13 @@ void main() {
         tiles: tiles,
       );
 
-      expect(stats.totalCapacity, equals(1.68));
+      expect(stats.totalCapacity, equals(3.36));
       expect(stats.utilizedCapacity, equals(0.0));
       expect(stats.utilizationRatio, equals(0.0));
       expect(stats.demandInCoverage, equals(0.0));
       expect(stats.coveredBuildingsCount, equals(0));
       expect(stats.isOverloaded, isFalse);
-      expect(stats.idleCapacity, equals(1.68));
+      expect(stats.idleCapacity, equals(3.36));
     });
 
     test('Worker with nearby corn field within 4 hexes calculates correct utilization', () {
@@ -44,7 +44,7 @@ void main() {
         state: TileState.owned,
         building: BuildingModel(
           type: BuildingType.worker,
-          level: 1, // capacity = 1.68
+          level: 1, // capacity = 3.36
         ),
       );
 
@@ -68,10 +68,10 @@ void main() {
         tiles: tiles,
       );
 
-      expect(stats.totalCapacity, equals(1.68));
+      expect(stats.totalCapacity, equals(3.36));
       expect(stats.demandInCoverage, closeTo(0.7245, 0.001));
       expect(stats.utilizedCapacity, closeTo(0.7245, 0.001));
-      expect(stats.utilizationRatio, closeTo(0.7245 / 1.68, 0.001));
+      expect(stats.utilizationRatio, closeTo(0.7245 / 3.36, 0.001));
       expect(stats.coveredBuildingsCount, equals(1));
       expect(stats.isOverloaded, isFalse);
     });
@@ -84,7 +84,7 @@ void main() {
         state: TileState.owned,
         building: BuildingModel(
           type: BuildingType.worker,
-          level: 1, // capacity = 1.68
+          level: 1, // capacity = 3.36
         ),
       );
 
@@ -92,7 +92,7 @@ void main() {
         workerCoord: workerTile,
       };
 
-      // 5 adet buğday tarlası ekle: 4 tanesi menzilde
+      // 5 adet buğday tarlası (level 2) ekle: 4 tanesi menzilde
       for (int i = 1; i <= 5; i++) {
         final c = HexAxial(i, 0);
         if (workerCoord.distanceTo(c) <= 4) {
@@ -102,7 +102,7 @@ void main() {
             state: TileState.owned,
             building: const BuildingModel(
               type: BuildingType.corn,
-              level: 1,
+              level: 2,
             ),
           );
         }
@@ -113,9 +113,9 @@ void main() {
         tiles: tiles,
       );
 
-      expect(stats.totalCapacity, equals(1.68));
-      expect(stats.demandInCoverage, greaterThan(1.68));
-      expect(stats.utilizedCapacity, closeTo(1.68, 0.01));
+      expect(stats.totalCapacity, equals(3.36));
+      expect(stats.demandInCoverage, greaterThan(3.36));
+      expect(stats.utilizedCapacity, closeTo(3.36, 0.01));
       expect(stats.utilizationRatio, equals(1.0));
       expect(stats.isOverloaded, isTrue);
       expect(stats.coveredBuildingsCount, equals(4)); // 5. tarla menzil dışı
@@ -129,7 +129,7 @@ void main() {
         state: TileState.owned,
         building: BuildingModel(
           type: BuildingType.worker,
-          level: 2, // 1.68 * 2 = 3.36
+          level: 2, // 3.36 * 2 = 6.72
         ),
       );
 
@@ -141,7 +141,7 @@ void main() {
         workerTransferMult: 1.5, // %50 hız bonusu
       );
 
-      expect(stats.totalCapacity, closeTo(3.36 * 1.5, 0.001));
+      expect(stats.totalCapacity, closeTo(6.72 * 1.5, 0.001));
     });
   });
 }

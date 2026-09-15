@@ -241,6 +241,11 @@ class SettingsDialog extends ConsumerWidget {
                     settings.notifications.castleUpgradeReadyAlert,
                     (val) => notifier.updateNotificationSettings(castleUpgradeReadyAlert: val),
                   ),
+                  _buildNotificationToggle(
+                    lang == 'tr' ? 'Görev Panelini Gizle' : 'Hide Quest Panel',
+                    settings.notifications.questPanelHidden,
+                    (val) => notifier.updateNotificationSettings(questPanelHidden: val),
+                  ),
                 ],
               ),
             ),
