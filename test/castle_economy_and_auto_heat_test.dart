@@ -1,9 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hex_rush/core/hex/hex_coordinates.dart';
 import 'package:hex_rush/domain/economy/economy_calculator.dart';
-import 'package:hex_rush/domain/models/building_model.dart';
 import 'package:hex_rush/domain/models/game_state_model.dart';
-import 'package:hex_rush/domain/models/hex_tile_model.dart';
 
 void main() {
   group('Castle Dynamic Multi-Resource Economy Tests', () {
@@ -13,10 +10,10 @@ void main() {
       expect(costs.containsKey('wood'), isFalse);
       expect(costs.containsKey('stone'), isFalse);
 
-      final resInsufficient = const ResourcesModel(food: 40.0);
+      const resInsufficient = ResourcesModel(food: 40.0);
       expect(EconomyCalculator.canAffordCastleUpgrade(resInsufficient, 2), isFalse);
 
-      final resSufficient = const ResourcesModel(food: 50.0);
+      const resSufficient = ResourcesModel(food: 50.0);
       expect(EconomyCalculator.canAffordCastleUpgrade(resSufficient, 2), isTrue);
 
       final deducted = EconomyCalculator.deductCastleUpgradeCost(resSufficient, 2);
@@ -29,10 +26,10 @@ void main() {
       expect(costs['wood'], equals(25.0));
       expect(costs.containsKey('stone'), isFalse);
 
-      final resNoWood = const ResourcesModel(food: 100.0, wood: 10.0);
+      const resNoWood = ResourcesModel(food: 100.0, wood: 10.0);
       expect(EconomyCalculator.canAffordCastleUpgrade(resNoWood, 3), isFalse);
 
-      final resWithWood = const ResourcesModel(food: 75.0, wood: 25.0);
+      const resWithWood = ResourcesModel(food: 75.0, wood: 25.0);
       expect(EconomyCalculator.canAffordCastleUpgrade(resWithWood, 3), isTrue);
 
       final deducted = EconomyCalculator.deductCastleUpgradeCost(resWithWood, 3);

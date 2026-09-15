@@ -105,7 +105,6 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final selectedCoord = ref.watch(gameStateProvider.select((s) => s.selectedCoord));
     final activePalette = ref.watch(gameStateProvider.select((s) => s.settings.activeThemePalette));
     final isDioramaMode = ref.watch(gameStateProvider.select((s) => s.isDioramaMode));
-    final isMacroOverview = ref.watch(gameStateProvider.select((s) => s.isMacroOverview));
     final isRaidActive = ref.watch(gameStateProvider.select((s) => s.combatState.isActiveWave));
     final theme = NeoBrutalistTheme.getTheme(activePalette);
 
@@ -119,19 +118,25 @@ class _GameScreenState extends ConsumerState<GameScreen>
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // 1. Flame Engine 2.5D İzometrik Harita (Impeller Hızlandırmalı)
+            // 1. Flame Engine 2.5D İzometrik Harita (Impeller Hızlandırmalı & RepaintBoundary İzolasyonu)
             const Positioned.fill(
-              child: FlameInteractiveMap(),
+              child: RepaintBoundary(
+                child: FlameInteractiveMap(),
+              ),
             ),
 
             // 2. Sinematik Minyatür Tilt-Shift Lens & Vinyet
             const Positioned.fill(
-              child: DioramaLensOverlay(),
+              child: RepaintBoundary(
+                child: DioramaLensOverlay(),
+              ),
             ),
 
             // 2.5. Gece Akını Karartması & Savaş Atmosferi (Sadece Savaşta Aktif)
             const Positioned.fill(
-              child: NightRaidAtmosphereOverlay(),
+              child: RepaintBoundary(
+                child: NightRaidAtmosphereOverlay(),
+              ),
             ),
 
             // DIORAMA MODU AKTİFSE HUD GİZLENİR
@@ -142,7 +147,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 left: 12,
                 right: 12,
                 child: SafeArea(
-                  child: ActiveRaidCombatHUD(),
+                  child: RepaintBoundary(
+                    child: ActiveRaidCombatHUD(),
+                  ),
                 ),
               ),
 
@@ -153,7 +160,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 top: isRaidActive ? 116 : 60,
                 right: 12,
                 child: const SafeArea(
-                  child: QuestTrackerHUD(),
+                  child: RepaintBoundary(
+                    child: QuestTrackerHUD(),
+                  ),
                 ),
               ),
 
@@ -164,7 +173,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 top: isRaidActive ? 116 : 60,
                 left: 12,
                 child: const SafeArea(
-                  child: MigrationWaypointBanner(),
+                  child: RepaintBoundary(
+                    child: MigrationWaypointBanner(),
+                  ),
                 ),
               ),
 
@@ -175,25 +186,27 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 right: 0,
                 child: SafeArea(
                   bottom: false,
-                  child: TopBarHUD(
-                    onOpenSettings: () {
-                      showNeoTactileDialog<void>(
-                        context: context,
-                        builder: (_) => const SettingsDialog(),
-                      );
-                    },
-                    onOpenMarket: () {
-                      showNeoTactileDialog<void>(
-                        context: context,
-                        builder: (_) => const MarketDialog(),
-                      );
-                    },
-                    onOpenTore: () {
-                      showNeoTactileDialog<void>(
-                        context: context,
-                        builder: (_) => const ToreDialog(),
-                      );
-                    },
+                  child: RepaintBoundary(
+                    child: TopBarHUD(
+                      onOpenSettings: () {
+                        showNeoTactileDialog<void>(
+                          context: context,
+                          builder: (_) => const SettingsDialog(),
+                        );
+                      },
+                      onOpenMarket: () {
+                        showNeoTactileDialog<void>(
+                          context: context,
+                          builder: (_) => const MarketDialog(),
+                        );
+                      },
+                      onOpenTore: () {
+                        showNeoTactileDialog<void>(
+                          context: context,
+                          builder: (_) => const ToreDialog(),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -216,7 +229,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 right: 0,
                 child: SafeArea(
                   top: false,
-                  child: TileActionSheet(),
+                  child: RepaintBoundary(
+                    child: TileActionSheet(),
+                  ),
                 ),
               ),
 
@@ -231,7 +246,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
                     child: Center(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 480),
-                        child: const TactileContextHint(),
+                        child: const RepaintBoundary(
+                          child: TactileContextHint(),
+                        ),
                       ),
                     ),
                   ),
@@ -244,10 +261,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 left: 12,
                 top: isRaidActive ? 220 : 160,
                 child: SafeArea(
-                  child: LeftBar(
-                    onOpenStory: () {
-                      setState(() => _isManualStoryOpen = true);
-                    },
+                  child: RepaintBoundary(
+                    child: LeftBar(
+                      onOpenStory: () {
+                        setState(() => _isManualStoryOpen = true);
+                      },
+                    ),
                   ),
                 ),
               ),

@@ -525,7 +525,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
       gameState.titles.length,
       Object.hashAll(activeDocIds),
       gameState.caravanRoutes.length,
-      gameState.celestialOmen?.animal.name,
+      gameState.celestialOmen.animal.name,
       gameState.discoveredKurgans.length,
       gameState.progression.kutMultiplier,
       gameState.season.current,

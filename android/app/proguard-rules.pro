@@ -7,9 +7,19 @@
 -keep class io.flutter.plugins.** { *; }
 -dontwarn io.flutter.embedding.**
 
-# Preserve annotations and generic signatures
+# Google Mobile Ads
+-keep class com.google.android.gms.ads.** { *; }
+-keep class com.google.ads.mediation.** { *; }
+-dontwarn com.google.android.gms.ads.**
+
+# Audio & Media
+-dontwarn com.google.android.exoplayer2.**
+-dontwarn androidx.media3.**
+
+# Preserve annotations, generic signatures and line numbers for stack traces
 -keepattributes *Annotation*
 -keepattributes Signature
 -keepattributes InnerClasses
 -keepattributes EnclosingMethod
 -keepattributes SourceFile,LineNumberTable
+

@@ -1356,7 +1356,7 @@ class EconomyCalculator {
         : 1.0;
 
     final double warmedMultiplier = tile.isWarmed ? 1.50 : 1.0;
-    final double effectiveSeasonMultiplier = seasonMultiplier * soilMult * (tile.isWarmed ? 1.50 : 1.0);
+    final double effectiveSeasonMultiplier = seasonMultiplier * soilMult * warmedMultiplier;
 
     return calculateBuildingProduction(
       type: b.type,
@@ -1877,8 +1877,6 @@ class EconomyCalculator {
     Map<String, dynamic> toreTalents = const {},
     Map<String, dynamic> talents = const {},
   }) {
-    final double totalMult = globalMultiplier * shrineMultiplier;
-
     double netFood = 0.0;
     double netWood = 0.0;
     double netStone = 0.0;
