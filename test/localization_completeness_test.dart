@@ -40,6 +40,7 @@ void main() {
       }
     }
 
+    // ignore_for_file: avoid_print
     print('=== EXACT TR COPIES IN EN (${exactCopiesEn.length}) ===');
     exactCopiesEn.forEach((k, v) => print('  EN "$k": "$v"'));
 

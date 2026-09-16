@@ -205,7 +205,7 @@ void main() {
     test('Auto-Heat warms tile in Winter when wood reserve is sufficient', () {
       final notifier = GameStateNotifier();
       const coord = HexAxial(1, 0);
-      final tile = const HexTileModel(
+      const tile = HexTileModel(
         coord: coord,
         biome: TileBiome.forest,
         state: TileState.owned,
@@ -231,7 +231,7 @@ void main() {
     test('Auto-Heat fail-safe does NOT trigger when wood reserve is too low', () {
       final notifier = GameStateNotifier();
       const coord = HexAxial(1, 0);
-      final tile = const HexTileModel(
+      const tile = HexTileModel(
         coord: coord,
         biome: TileBiome.forest,
         state: TileState.owned,
