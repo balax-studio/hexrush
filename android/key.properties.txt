@@ -1,0 +1,4 @@
+keyAlias: upload
+storePassword: hexrushpassword123
+keyPassword: hexrushpassword123
+storeFile: upload-keystore.jks
