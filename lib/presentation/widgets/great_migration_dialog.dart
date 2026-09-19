@@ -16,6 +16,7 @@ class GreatMigrationDialog extends ConsumerStatefulWidget {
 
 class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
   bool _isBreakdownExpanded = false;
+  bool _isGuideExpanded = true;
 
   void _confirmAndExecuteMigration(
     BuildContext context,
@@ -114,15 +115,39 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
     final int castleLvl = gameState.progression.castleLevel;
     final bool isEligible = castleLvl >= 5;
 
-    final int newTamgas = 1 + (ownedHexes ~/ 20);
-    final double nextKut = gameState.progression.kutMultiplier + 0.25;
+    final int shrines = gameState.tiles.values.where((t) => t.isOwned && t.hasShrine).length;
+    final int newTamgas = EconomyCalculator.calculateMigrationTamgas(
+      ownedCount: ownedHexes,
+      ownedShrinesCount: shrines,
+    );
+    final int currentTamgas = gameState.resources.tamgas;
+    final int totalTamgasAfter = currentTamgas + newTamgas;
+
+    final int currentMigrations = gameState.progression.totalMigrations;
+    final int nextMigrations = currentMigrations + 1;
 
     final victories = gameState.progression.victoryMilestones;
     final activeOaths = gameState.progression.activeOaths;
     final selectedRealm = gameState.progression.activeRealmId;
 
+    final double currentKut = gameState.progression.kutMultiplier;
+    final double nextKut = EconomyCalculator.calculateKutMultiplier(
+      tamgas: totalTamgasAfter,
+      totalMigrations: nextMigrations,
+      victoryMilestones: victories,
+      activeOaths: activeOaths,
+    );
+
+    final int currentProdBonusPercent = ((currentKut - 1.0) * 100).round();
+    final int nextProdBonusPercent = ((nextKut - 1.0) * 100).round();
+    final int prodGainPercent = nextProdBonusPercent - currentProdBonusPercent;
+
+    final int currentLogisticsPercent = currentMigrations * 35;
+    final int nextLogisticsPercent = nextMigrations * 35;
+
     final headerTitle = GameLocalization.get('migration_header_title', lang: lang);
     final legacyHeader = GameLocalization.get('migration_legacy_header', lang: lang);
+    final summaryHeader = GameLocalization.get('migration_summary_header', lang: lang);
     final breakdownTitle = GameLocalization.get('migration_breakdown_title', lang: lang);
     final oathsTitle = GameLocalization.get('migration_oaths_title', lang: lang);
     final targetRealmTitle = GameLocalization.get('migration_target_realm_title', lang: lang);
@@ -221,48 +246,81 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                         ),
                         const SizedBox(height: 10),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            Column(
-                              children: [
-                                Text(
-                                  GameLocalization.get('crowns_to_gain', lang: lang),
-                                  style: const TextStyle(color: Colors.white70, fontSize: 9.5, fontWeight: FontWeight.w800),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '+${breakdown.totalCrowns}',
-                                  style: const TextStyle(color: Color(0xFFFFD700), fontSize: 18, fontWeight: FontWeight.w900),
-                                ),
-                              ],
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  Text(
+                                    GameLocalization.get('crowns_to_gain', lang: lang),
+                                    style: const TextStyle(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w800),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '+${breakdown.totalCrowns}',
+                                    style: const TextStyle(color: Color(0xFFFFD700), fontSize: 15, fontWeight: FontWeight.w900),
+                                  ),
+                                ],
+                              ),
                             ),
-                            Container(width: 1, height: 28, color: const Color(0xFF334155)),
-                            Column(
-                              children: [
-                                Text(
-                                  GameLocalization.get('ancestral_tamga', lang: lang),
-                                  style: const TextStyle(color: Colors.white70, fontSize: 9.5, fontWeight: FontWeight.w800),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '+$newTamgas',
-                                  style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 18, fontWeight: FontWeight.w900),
-                                ),
-                              ],
+                            Container(width: 1, height: 24, color: const Color(0xFF334155)),
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  Text(
+                                    GameLocalization.get('ancestral_tamga', lang: lang),
+                                    style: const TextStyle(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w800),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '+$newTamgas',
+                                    style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 15, fontWeight: FontWeight.w900),
+                                  ),
+                                ],
+                              ),
                             ),
-                            Container(width: 1, height: 28, color: const Color(0xFF334155)),
-                            Column(
-                              children: [
-                                Text(
-                                  GameLocalization.get('kut_multiplier', lang: lang),
-                                  style: const TextStyle(color: Colors.white70, fontSize: 9.5, fontWeight: FontWeight.w800),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '${nextKut.toStringAsFixed(2)}x',
-                                  style: const TextStyle(color: Color(0xFF10B981), fontSize: 18, fontWeight: FontWeight.w900),
-                                ),
-                              ],
+                            Container(width: 1, height: 24, color: const Color(0xFF334155)),
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  Text(
+                                    GameLocalization.get('kut_multiplier', lang: lang),
+                                    style: const TextStyle(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w800),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${nextKut.toStringAsFixed(2)}x',
+                                    style: const TextStyle(color: Color(0xFF10B981), fontSize: 15, fontWeight: FontWeight.w900),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(width: 1, height: 24, color: const Color(0xFF334155)),
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  const Text(
+                                    'TAŞIMA',
+                                    style: TextStyle(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w800),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '+$nextLogisticsPercent%',
+                                    style: const TextStyle(color: Color(0xFFF59E0B), fontSize: 15, fontWeight: FontWeight.w900),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -271,7 +329,169 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                   ),
                   const SizedBox(height: 12),
 
-                  // 2. DETAYLI KAZANIM & KAYNAK DAĞILIM DÖKÜMÜ (BREAKDOWN)
+                  // 2. GÖÇ SONRASI KAZANIM VE YÜZDESEL ARTIŞ ÖZETİ (Karşılaştırma Paneli)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F172A),
+                      borderRadius: NeoBrutalistTheme.sharpRadius,
+                      border: Border.all(color: const Color(0xFF10B981), width: 1.5),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.trending_up, size: 16, color: Color(0xFF10B981)),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                summaryHeader,
+                                style: const TextStyle(
+                                  color: Color(0xFF10B981),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.4,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        _buildGainComparisonRow(
+                          icon: Icons.auto_awesome,
+                          iconColor: const Color(0xFF10B981),
+                          label: GameLocalization.get('migration_production_mult_summary', lang: lang),
+                          beforeText: '${currentKut.toStringAsFixed(2)}x (+%$currentProdBonusPercent)',
+                          afterText: '${nextKut.toStringAsFixed(2)}x (+%$nextProdBonusPercent)',
+                          badgeText: '+$prodGainPercent% HIZ',
+                          badgeColor: const Color(0xFF10B981),
+                        ),
+                        const Divider(color: Color(0xFF334155), height: 12),
+                        _buildGainComparisonRow(
+                          icon: Icons.local_shipping_outlined,
+                          iconColor: const Color(0xFFF59E0B),
+                          label: GameLocalization.get('migration_logistics_mult_summary', lang: lang),
+                          beforeText: '+$currentLogisticsPercent%',
+                          afterText: '+$nextLogisticsPercent%',
+                          badgeText: '+35% KAPASİTE',
+                          badgeColor: const Color(0xFFF59E0B),
+                        ),
+                        const Divider(color: Color(0xFF334155), height: 12),
+                        _buildGainComparisonRow(
+                          icon: Icons.shield_outlined,
+                          iconColor: const Color(0xFF38BDF8),
+                          label: GameLocalization.get('migration_tamga_summary', lang: lang),
+                          beforeText: '$currentTamgas Tamga',
+                          afterText: '$totalTamgasAfter Tamga',
+                          badgeText: '+$newTamgas TAMGA',
+                          badgeColor: const Color(0xFF38BDF8),
+                        ),
+                        const Divider(color: Color(0xFF334155), height: 12),
+                        _buildGainComparisonRow(
+                          icon: Icons.workspace_premium_outlined,
+                          iconColor: const Color(0xFFFFD700),
+                          label: GameLocalization.get('migration_crowns_summary', lang: lang),
+                          beforeText: '${gameState.resources.crowns} Taç',
+                          afterText: '${gameState.resources.crowns + breakdown.totalCrowns} Taç',
+                          badgeText: '+${breakdown.totalCrowns} TAÇ',
+                          badgeColor: const Color(0xFFFFD700),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // 2. GÖÇ KATSAYILARI VE KAZANIM REHBERİ (Açılır / Kapanır Bilgilendirme Paneli)
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F172A),
+                      borderRadius: NeoBrutalistTheme.sharpRadius,
+                      border: Border.all(color: const Color(0xFFF59E0B), width: 1.5),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              _isGuideExpanded = !_isGuideExpanded;
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            color: const Color(0xFF1E293B),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.menu_book_rounded, size: 16, color: Color(0xFFF59E0B)),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    GameLocalization.get('migration_guide_title', lang: lang),
+                                    style: const TextStyle(
+                                      color: Color(0xFFF59E0B),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ),
+                                Icon(
+                                  _isGuideExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                                  color: const Color(0xFF94A3B8),
+                                  size: 18,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (_isGuideExpanded)
+                          Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildGuideSection(
+                                  icon: Icons.local_shipping_outlined,
+                                  iconColor: const Color(0xFFF59E0B),
+                                  title: GameLocalization.get('migration_logistics_boost_title', lang: lang),
+                                  desc: GameLocalization.get('migration_logistics_boost_desc', lang: lang),
+                                ),
+                                const SizedBox(height: 8),
+                                const Divider(color: Color(0xFF334155), height: 1),
+                                const SizedBox(height: 8),
+                                _buildGuideSection(
+                                  icon: Icons.auto_awesome,
+                                  iconColor: const Color(0xFF10B981),
+                                  title: GameLocalization.get('migration_kut_boost_title', lang: lang),
+                                  desc: GameLocalization.get('migration_kut_boost_desc', lang: lang),
+                                ),
+                                const SizedBox(height: 8),
+                                const Divider(color: Color(0xFF334155), height: 1),
+                                const SizedBox(height: 8),
+                                Text(
+                                  GameLocalization.get('migration_how_to_earn_title', lang: lang).toUpperCase(),
+                                  style: const TextStyle(
+                                    color: Color(0xFF38BDF8),
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                _buildGuideBullet(GameLocalization.get('migration_criteria_castle', lang: lang)),
+                                _buildGuideBullet(GameLocalization.get('migration_criteria_land', lang: lang)),
+                                _buildGuideBullet(GameLocalization.get('migration_criteria_buildings', lang: lang)),
+                                _buildGuideBullet(GameLocalization.get('migration_criteria_shrines', lang: lang)),
+                                _buildGuideBullet(GameLocalization.get('migration_criteria_stocks', lang: lang)),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // 3. DETAYLI KAZANIM & KAYNAK DAĞILIM DÖKÜMÜ (BREAKDOWN)
                   Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFF0F172A),
@@ -724,6 +944,160 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
             ),
         ],
       ),
+    );
+  }
+
+  Widget _buildGuideSection({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String desc,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 16, color: iconColor),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  color: iconColor,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                desc,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 8.5,
+                  height: 1.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGuideBullet(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 4, right: 6),
+            width: 4,
+            height: 4,
+            decoration: const BoxDecoration(
+              color: Color(0xFF38BDF8),
+              shape: BoxShape.circle,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 8.5,
+                height: 1.25,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGainComparisonRow({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required String beforeText,
+    required String afterText,
+    required String badgeText,
+    required Color badgeColor,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(5),
+          decoration: BoxDecoration(
+            color: iconColor.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(3),
+            border: Border.all(color: iconColor.withValues(alpha: 0.5), width: 1),
+          ),
+          child: Icon(icon, size: 14, color: iconColor),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w900,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 1),
+              Row(
+                children: [
+                  Text(
+                    beforeText,
+                    style: const TextStyle(
+                      color: Color(0xFF94A3B8),
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 4),
+                    child: Icon(Icons.arrow_forward, size: 10, color: Color(0xFF64748B)),
+                  ),
+                  Text(
+                    afterText,
+                    style: TextStyle(
+                      color: iconColor,
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+          decoration: BoxDecoration(
+            color: badgeColor.withValues(alpha: 0.18),
+            borderRadius: BorderRadius.circular(3),
+            border: Border.all(color: badgeColor, width: 1),
+          ),
+          child: Text(
+            badgeText,
+            style: TextStyle(
+              color: badgeColor,
+              fontSize: 8,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

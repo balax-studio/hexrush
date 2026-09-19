@@ -852,7 +852,13 @@ class HexTileComponent extends PositionComponent {
 
       switch (b.type) {
         case BuildingType.castle:
-          VoxelIsometricRenderer.drawVoxelCastle(canvas, center, b.level, isNight: isNight);
+          VoxelIsometricRenderer.drawVoxelCastle(
+            canvas,
+            center,
+            b.level,
+            isNight: isNight,
+            animTime: tTime,
+          );
           VoxelIsometricRenderer.drawVoxelSmokePlume(
             canvas,
             Offset(center.dx + 12, center.dy - 26),
@@ -943,7 +949,13 @@ class HexTileComponent extends PositionComponent {
           VoxelIsometricRenderer.drawVoxelMine(canvas, center, animTime: tTime, isNight: isNight, variant: bVar, level: bLvl, isWinter: isWinter);
           break;
         case BuildingType.bridge:
-          VoxelIsometricRenderer.drawVoxelBridge(canvas, center);
+          VoxelIsometricRenderer.drawVoxelBridge(
+            canvas,
+            center,
+            level: bLvl,
+            animTime: tTime,
+            isNight: isNight,
+          );
           break;
         case BuildingType.fisherman:
           VoxelIsometricRenderer.drawVoxelFishermanBoat(
@@ -979,6 +991,7 @@ class HexTileComponent extends PositionComponent {
             center,
             level: bLvl,
             animTime: tTime,
+            isNight: isNight,
           );
           break;
         case BuildingType.astrolabe:
@@ -1107,6 +1120,7 @@ class HexTileComponent extends PositionComponent {
             center,
             level: bLvl,
             animTime: tTime,
+            isNight: isNight,
           );
           break;
         case BuildingType.kumisYurt:

@@ -13,33 +13,33 @@ void main() {
   });
 
   group('Initial Shrine Placement Tests', () {
-    test('r=1 ve r=2 halkalarında tapınak bulunmaz, r=3 halkasında (0, 3) karosunda 1 garantili Kutlu Tapınak yer alır', () {
+    test('r=1, r=2 ve r=3 halkalarında tapınak bulunmaz, dist=4 halkasında 1 garantili speedBoost Kadim Sunak yer alır', () {
       final notifier = GameStateNotifier();
       final state = notifier.state;
 
-      // 1. r=1 ve r=2 halkalarında tapınak olmadığını doğrula
+      // 1. r=1, r=2 ve r=3 halkalarında tapınak olmadığını doğrula
       const center = HexAxial(0, 0);
       state.tiles.forEach((coord, tile) {
         final dist = HexMath.hexDistance(center, coord);
-        if (dist == 1 || dist == 2) {
+        if (dist >= 1 && dist <= 3) {
           expect(tile.hasShrine, isFalse,
               reason: 'r=$dist halkasındaki $coord karosunda tapınak bulunmamalıdır');
         }
       });
 
-      // 2. (0, 3) koordinatındaki r=3 garantili tapınak kontrolü
-      const initialShrineCoord = HexAxial(0, 3);
-      final initialTile = state.tiles[initialShrineCoord];
+      // 2. dist=4 halkasındaki garantili speedBoost tapınak kontrolü
+      final dist4Shrines = state.tiles.values.where((t) {
+        final dist = HexMath.hexDistance(center, t.coord);
+        return dist == 4 && t.hasShrine;
+      }).toList();
 
-      expect(initialTile, isNotNull);
-      expect(initialTile!.state, equals(TileState.discovered),
-          reason: 'Başlangıçta r=3 tapınak karosu görünür (discovered) olmalıdır');
-      expect(initialTile.hasShrine, isTrue,
-          reason: 'Başlangıçta (0, 3) karosunda kutlu tapınak bulunmalıdır');
-      expect(initialTile.shrine, equals(ShrineType.foodBoost),
-          reason: 'Gelişimi hızlandırmak için ilk tapınak Gıda Bereketi olmalıdır');
-      expect(initialTile.biome, equals(TileBiome.meadow),
-          reason: 'İlk tapınak Çayır biyomunda olmalıdır');
+      expect(dist4Shrines, isNotEmpty,
+          reason: 'Şatoya 4 hex mesafede en az 1 garantili Kadim Sunak bulunmalıdır');
+      final firstShrine = dist4Shrines.first;
+      expect(firstShrine.shrine, equals(ShrineType.speedBoost),
+          reason: 'Şatoya 4 hex uzaktaki ilk garantili sunak Lojistik & Taşıma Bonusu (speedBoost) olmalıdır');
+      expect(firstShrine.state, equals(TileState.discovered),
+          reason: '4-hex menzilindeki başlangıç tapınağı görünür (discovered) olmalıdır');
 
       // 3. Haritada toplam 11 adet Kutlu Tapınak olduğunu doğrula
       final totalShrines = state.tiles.values.where((t) => t.hasShrine).length;
@@ -47,28 +47,42 @@ void main() {
           reason: 'Harita genelinde toplam 11 adet kutlu tapınak dengesi korunmalıdır');
     });
 
-    test('r=3 tapınağına ulaşıp fethedildiğinde bereket çarpanı devreye girer', () {
+    test('dist=4 speedBoost tapınağı fethedildiğinde mesafe orantılı bonus devreye girer', () {
       final notifier = GameStateNotifier();
-      const initialShrineCoord = HexAxial(0, 3);
+      const center = HexAxial(0, 0);
+
+      final dist4Shrine = notifier.state.tiles.values.firstWhere(
+        (t) => HexMath.hexDistance(center, t.coord) == 4 && t.hasShrine,
+      );
 
       final initialMultiplier = notifier.state.shrineMultiplier;
       expect(initialMultiplier, equals(1.0));
 
-      // (0,1) ve (0,2) fethi ile (0,3)'e hat aç
+      // Tapınağın bir komşusunu sahip olunan yaparak sınır komşuluk şartını sağla
+      final neighbor = dist4Shrine.coord.neighbors.first;
       notifier.state = notifier.state.copyWith(
-        resources: notifier.state.resources.copyWith(food: 5000.0),
-        progression: notifier.state.progression.copyWith(castleLevel: 5),
+        tiles: {
+          ...notifier.state.tiles,
+          neighbor: (notifier.state.tiles[neighbor] ??
+                  HexTileModel(
+                    coord: neighbor,
+                    biome: TileBiome.meadow,
+                    state: TileState.discovered,
+                  ))
+              .copyWith(state: TileState.owned),
+        },
+        resources: notifier.state.resources.copyWith(food: 50000.0),
+        progression: notifier.state.progression.copyWith(castleLevel: 10),
       );
 
-      expect(notifier.conquerTile(const HexAxial(0, 1)), isTrue);
-      expect(notifier.conquerTile(const HexAxial(0, 2)), isTrue);
-      expect(notifier.conquerTile(initialShrineCoord), isTrue);
+      final conquerSuccess = notifier.conquerTile(dist4Shrine.coord);
+      expect(conquerSuccess, isTrue);
 
-      final updatedTile = notifier.state.tiles[initialShrineCoord];
+      final updatedTile = notifier.state.tiles[dist4Shrine.coord];
       expect(updatedTile!.isOwned, isTrue);
       expect(notifier.state.shrineMultiplier, greaterThan(1.0));
-      expect(notifier.state.shrineMultiplier, closeTo(1.30, 0.001),
-          reason: 'Gıda bereketi tapınağı fethiyle çarpan +%30 (1.30) olmalıdır');
+      expect(notifier.state.shrineMultiplier, closeTo(1.0 + dist4Shrine.shrineBoostMultiplier, 0.001),
+          reason: 'Lojistik hızı tapınağı fethiyle çarpan mesafe bazlı artmalıdır');
     });
   });
 }

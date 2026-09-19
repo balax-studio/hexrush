@@ -360,7 +360,7 @@ class BuildingModel {
     }
   }
 
-  /// Temel taşıma kapasitesi (İşçiler için)
+  /// Temel taşıma kapasitesi (İşçiler ve Ambarlar için)
   double get baseCarryingCapacity {
     switch (type) {
       case BuildingType.worker:
@@ -368,7 +368,7 @@ class BuildingModel {
       case BuildingType.fishermanHut:
         return 1.40;
       case BuildingType.granaryVault:
-        return 2.50; // Kurgan Mahzeni yüksek lojistik taşıma kapasitesi sunar
+        return 33.6; // Tahıl Deposu & Ambarı saf gıda lojistiği için 10 kat (10x) transfer kapasitesi sunar
       default:
         return 0.0;
     }

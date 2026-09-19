@@ -11,7 +11,7 @@ import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('Kutlu Tapınak Dağılımı ve Mesafe Testleri (11 Tapınak, Min Mesafe >= 6)', () {
+  group('Kutlu Tapınak Dağılımı ve Mesafe Testleri (11 Tapınak, Min Mesafe >= 7)', () {
     test('Harita başlangıcında tam 11 adet Kutlu Tapınak üretilmelidir', () {
       final container = ProviderContainer();
       addTearDown(container.dispose);
@@ -23,7 +23,7 @@ void main() {
           reason: 'Haritada tam olarak 11 adet Kutlu Tapınak bulunmalıdır.');
     });
 
-    test('Her iki Kutlu Tapınak arasındaki mesafe en az 6 karo olmalıdır', () {
+    test('Her iki Kutlu Tapınak arasındaki mesafe en az 7 karo olmalıdır', () {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -38,9 +38,9 @@ void main() {
           final tileB = shrineTiles[j];
           final distance = HexMath.hexDistance(tileA.coord, tileB.coord);
 
-          expect(distance >= 6, isTrue,
+          expect(distance >= 7, isTrue,
               reason:
-                  'Tapınak ${tileA.coord} ile ${tileB.coord} arasındaki mesafe $distance, asgari 6 olmalıdır.');
+                  'Tapınak ${tileA.coord} ile ${tileB.coord} arasındaki mesafe $distance, asgari 7 olmalıdır.');
         }
       }
     });
@@ -60,37 +60,41 @@ void main() {
       }
     });
 
-    test('Kutlu Tapınak türleri dengeli dağıtılmalıdır', () {
+    test('Şatoya 4 hex uzaktaki ilk tapınak speedBoost olmalı, diğer tapınaklar geçerli tür havuzunda olmalıdır', () {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
       final state = container.read(gameStateProvider);
+      final center = const HexAxial(0, 0);
+
+      final dist4Shrine = state.tiles.values.firstWhere(
+        (t) => HexMath.hexDistance(center, t.coord) == 4 && t.hasShrine,
+      );
+      expect(dist4Shrine.shrine, equals(ShrineType.speedBoost),
+          reason: 'Şatoya 4 hex uzaktaki ilk tapınak Lojistik & Taşıma Bonusu (speedBoost) olmalıdır.');
+
       final shrineTiles = state.tiles.values.where((t) => t.hasShrine).toList();
-
-      final foodCount = shrineTiles.where((t) => t.shrine == ShrineType.foodBoost).length;
-      final woodCount = shrineTiles.where((t) => t.shrine == ShrineType.woodBoost).length;
-      final speedCount = shrineTiles.where((t) => t.shrine == ShrineType.speedBoost).length;
-
-      expect(foodCount + woodCount + speedCount, equals(11));
-      expect(foodCount, equals(4));
-      expect(woodCount, equals(4));
-      expect(speedCount, equals(3));
+      final validShrines = shrineTiles.where((t) => t.shrine != ShrineType.none).length;
+      expect(validShrines, equals(11));
     });
   });
 
   group('Kutlu Tapınak Özellik ve Yüzde Bonusları Testleri', () {
-    test('ShrineTypeExtension başlık ve yüzde değerlerini doğru döner', () {
+    test('ShrineTypeExtension başlık ve yüzde değerlerini doğru döner ve merkezden uzaklaştıkça artar', () {
       expect(ShrineType.foodBoost.titleTr, equals('Gıda Bereketi'));
       expect(ShrineType.foodBoost.boostPercentage, equals(30.0));
-      expect(ShrineType.foodBoost.formattedBonusTr, equals('+%30 Gıda Bereketi'));
+      expect(ShrineType.foodBoost.calculateBoostPercentage(4), equals(30.0));
+      expect(ShrineType.foodBoost.calculateBoostPercentage(6), equals(38.0)); // 30 + (2 * 4)
 
       expect(ShrineType.woodBoost.titleTr, equals('Odun Bereketi'));
       expect(ShrineType.woodBoost.boostPercentage, equals(25.0));
-      expect(ShrineType.woodBoost.formattedBonusTr, equals('+%25 Odun Bereketi'));
+      expect(ShrineType.woodBoost.calculateBoostPercentage(4), equals(25.0));
+      expect(ShrineType.woodBoost.calculateBoostPercentage(7), equals(37.0)); // 25 + (3 * 4)
 
       expect(ShrineType.speedBoost.titleTr, equals('Lojistik Hızı'));
       expect(ShrineType.speedBoost.boostPercentage, equals(20.0));
-      expect(ShrineType.speedBoost.formattedBonusTr, equals('+%20 Lojistik Hızı'));
+      expect(ShrineType.speedBoost.calculateBoostPercentage(4), equals(20.0));
+      expect(ShrineType.speedBoost.calculateBoostPercentage(8), equals(36.0)); // 20 + (4 * 4)
     });
 
     test('BuildingType enum içinde shrine bulunmamalıdır (Kadim Sunak kaldırıldı)', () {

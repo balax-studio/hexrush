@@ -85,7 +85,7 @@ void main() {
       expect(gains.seconds, equals(4));
     });
 
-    test('pauseGameLoop and resumeGameLoop correctly triggers offline gains after > 3s', () async {
+    test('pauseGameLoop and resumeGameLoop correctly triggers offline gains after >= 60s', () async {
       final notifier = GameStateNotifier();
       final tiles = <HexAxial, HexTileModel>{
         const HexAxial(0, 0): const HexTileModel(
@@ -104,13 +104,13 @@ void main() {
 
       notifier.state = notifier.state.copyWith(tiles: tiles);
 
-      // Simüle edilen pause zamanı: 10 saniye önce
-      final int pastTimestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000) - 10;
+      // Simüle edilen pause zamanı: 70 saniye önce
+      final int pastTimestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000) - 70;
       notifier.processResumeOfflineGains(pastTimestamp);
 
       expect(notifier.state.pendingOfflineGains, isNotNull);
       expect(notifier.state.pendingOfflineGains!.hasGains, isTrue);
-      expect(notifier.state.pendingOfflineGains!.seconds, greaterThanOrEqualTo(9));
+      expect(notifier.state.pendingOfflineGains!.seconds, greaterThanOrEqualTo(69));
     });
   });
 

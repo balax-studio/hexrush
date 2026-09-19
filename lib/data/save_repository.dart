@@ -262,7 +262,23 @@ class SaveRepository {
   /// Kayıt dosyasını siler
   static Future<bool> deleteSave() async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_lastActiveKey);
     return prefs.remove(_saveKey);
+  }
+
+  static const String _lastActiveKey = 'hex_last_active_timestamp_ms';
+
+  /// Son aktiflik zaman damgasını milisaniye cinsinden yerel depolamaya kaydeder.
+  static Future<void> saveLastActiveTimestamp([int? timestampMs]) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int now = timestampMs ?? DateTime.now().millisecondsSinceEpoch;
+    await prefs.setInt(_lastActiveKey, now);
+  }
+
+  /// Kayıtlı son aktiflik zaman damgasını milisaniye cinsinden çeker.
+  static Future<int?> getLastActiveTimestamp() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_lastActiveKey);
   }
 }
 

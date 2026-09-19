@@ -54,7 +54,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
         targetBuilding: BuildingType.corn,
         targetAmount: 1,
         rewardType: QuestRewardType.wood,
-        rewardAmount: 30,
+        rewardAmount: 40,
       ),
       QuestModel(
         id: 'q_conquer_3',
@@ -65,31 +65,31 @@ class GameStateNotifier extends StateNotifier<GameState> {
         type: QuestType.conquerTiles,
         targetAmount: 3,
         rewardType: QuestRewardType.food,
-        rewardAmount: 50,
+        rewardAmount: 60,
       ),
       QuestModel(
         id: 'q_lumberjack_1',
-        titleTr: 'Kereste Tedariği',
+        titleTr: 'Odun Tedariği',
         titleEn: 'Timber Supply',
-        descriptionTr: 'Ormana 1 adet Oduncu Kulübesi kur.',
-        descriptionEn: 'Build 1 Lumberjack Lodge in the forest.',
+        descriptionTr: 'Ormana 1 adet Oduncu Kampı kur.',
+        descriptionEn: 'Build 1 Lumberjack Camp in the forest.',
         type: QuestType.buildStructure,
         targetBuilding: BuildingType.lumberjack,
         targetAmount: 1,
         rewardType: QuestRewardType.food,
-        rewardAmount: 60,
+        rewardAmount: 75,
       ),
       QuestModel(
         id: 'q_worker_1',
         titleTr: 'İlk Çadır',
         titleEn: 'First Camp',
-        descriptionTr: 'Otomatik hasat için 1 adet İşçi Çadırı inşa et.',
-        descriptionEn: 'Build 1 Worker Camp to enable auto-harvesting.',
+        descriptionTr: 'Otomatik hasat için 1 adet İşçi Kulübesi inşa et.',
+        descriptionEn: 'Build 1 Worker Hut to enable auto-harvesting.',
         type: QuestType.buildStructure,
         targetBuilding: BuildingType.worker,
         targetAmount: 1,
         rewardType: QuestRewardType.stone,
-        rewardAmount: 40,
+        rewardAmount: 50,
       ),
 
       // ─── BÖLÜM 2: Otağı Büyüt — Şato Sv2 ────────────────────────────────
@@ -98,27 +98,27 @@ class GameStateNotifier extends StateNotifier<GameState> {
         titleTr: 'Han Otağı Yükselişi — Sv2',
         titleEn: 'Seat of the Khan — Lv2',
         descriptionTr:
-            'Kağan Otağını Seviye 2\'ye yükselt. Bu seviyeyle Arpa Tarlası ve Tahıl Deposu açılır.',
+            'Kağan Otağını Seviye 2\'ye yükselt. Bu seviyeyle Arpa Tarlası, Otlak ve 10x Taşıma Hacimli Tahıl Deposu açılır.',
         descriptionEn:
-            'Upgrade your Khan\'s Yurt to Level 2. This unlocks Barley Field and Granary Vault.',
+            'Upgrade your Khan\'s Yurt to Level 2. Unlocks Barley Field, Pasture, and 10x Granary Vault.',
         type: QuestType.upgradeCastle,
         targetAmount: 2,
         rewardType: QuestRewardType.crowns,
-        rewardAmount: 2,
+        rewardAmount: 3,
       ),
       QuestModel(
         id: 'q_granary_1',
-        titleTr: 'Depo Kuşatması',
-        titleEn: 'Storeroom Secured',
+        titleTr: 'Tahıl Ambarı Güvencesi',
+        titleEn: 'Granary Vault Secured',
         descriptionTr:
-            'Sv2 Şato teknolojisi: Kaynakları depolamak için 1 Tahıl Deposu inşa et.',
+            'Sv2 Şato teknolojisi: Gıda transferini 10 katına (10x) çıkarmak için 1 Tahıl Deposu & Ambarı inşa et.',
         descriptionEn:
-            'Lv2 castle tech: Build 1 Granary Vault to store resources.',
+            'Lv2 castle tech: Build 1 Granary Vault providing 10x transport volume for food.',
         type: QuestType.buildStructure,
         targetBuilding: BuildingType.granaryVault,
         targetAmount: 1,
         rewardType: QuestRewardType.food,
-        rewardAmount: 80,
+        rewardAmount: 120,
       ),
       QuestModel(
         id: 'q_barley_1',
@@ -131,130 +131,200 @@ class GameStateNotifier extends StateNotifier<GameState> {
         targetBuilding: BuildingType.barley,
         targetAmount: 1,
         rewardType: QuestRewardType.food,
-        rewardAmount: 80,
+        rewardAmount: 100,
       ),
       QuestModel(
         id: 'q_pasture_1',
         titleTr: 'Sürü ve Çayır',
         titleEn: 'Herds and Pastures',
         descriptionTr:
-            'Sv2 Şato teknolojisi: Hayvancılık için 1 Otlak kur.',
-        descriptionEn: 'Lv2 castle tech: Build 1 Pasture for livestock.',
+            'Sv2 Şato teknolojisi: Hayvancılık için 1 Bozkır Otlağı kur.',
+        descriptionEn: 'Lv2 castle tech: Build 1 Steppe Pasture for livestock.',
         type: QuestType.buildStructure,
         targetBuilding: BuildingType.pasture,
         targetAmount: 1,
         rewardType: QuestRewardType.food,
-        rewardAmount: 100,
+        rewardAmount: 140,
       ),
 
-      // ─── BÖLÜM 3: Güce Ulaş — Şato Sv5 (ANA ÖĞRENME NOKTASI) ────────────
+      // ─── BÖLÜM 3: Güce Ulaş — Şato Sv5 (İŞLEME VE ZANAAT) ───────────────
       QuestModel(
         id: 'q_castle_5',
         titleTr: 'Han Otağı Yükselişi — Sv5',
         titleEn: 'Seat of the Khan — Lv5',
         descriptionTr:
-            'Kağan Otağını Seviye 5\'e yükselt. Bu seviyeyle Değirmen, Kereste Fabrikası, Rünik Taş, Gözetleme Kulesi ve Taş Ocağı açılır!',
+            'Kağan Otağını Seviye 5\'e yükselt. Bu seviyeyle Değirmen, Hızar Otağı, Rünik Taş, Gözcü Kulesi ve Taş Ocağı açılır!',
         descriptionEn:
-            'Upgrade to Level 5. Unlocks Windmill, Sawmill, Runic Stele, Watchtower, and Quarry!',
+            'Upgrade to Level 5. Unlocks Windmill, Sawmill Works, Runic Stele, Watchtower, and Quarry!',
         type: QuestType.upgradeCastle,
         targetAmount: 5,
         rewardType: QuestRewardType.crowns,
-        rewardAmount: 5,
+        rewardAmount: 6,
       ),
       QuestModel(
         id: 'q_windmill_1',
         titleTr: 'Tahılın Öğütülmesi',
         titleEn: 'Grinding the Grain',
         descriptionTr:
-            'Sv5 Şato teknolojisi: Buğdayı una dönüştürmek için 1 Değirmen inşa et.',
+            'Sv5 Şato teknolojisi: Buğdayı una dönüştürmek için 1 Yel Değirmeni inşa et.',
         descriptionEn:
             'Lv5 castle tech: Build 1 Windmill to process grain into flour.',
         type: QuestType.buildStructure,
         targetBuilding: BuildingType.windmill,
         targetAmount: 1,
         rewardType: QuestRewardType.wood,
-        rewardAmount: 80,
+        rewardAmount: 120,
       ),
       QuestModel(
         id: 'q_sawmill_1',
-        titleTr: 'Kereste Fabrikası',
-        titleEn: 'Sawmill Operations',
+        titleTr: 'Hızar Otağı Kurulumu',
+        titleEn: 'Sawmill Works Operations',
         descriptionTr:
-            'Sv5 Şato teknolojisi: Odunu işlenmiş kerestiye çevirmek için 1 Kereste Fabrikası kur.',
+            'Sv5 Şato teknolojisi: Odunu işlenmiş kalasa çevirmek için 1 Hızar Otağı kur.',
         descriptionEn:
-            'Lv5 castle tech: Build 1 Sawmill to process timber into planks.',
+            'Lv5 castle tech: Build 1 Sawmill Works to process timber into planks.',
         type: QuestType.buildStructure,
         targetBuilding: BuildingType.sawmill,
         targetAmount: 1,
         rewardType: QuestRewardType.food,
-        rewardAmount: 120,
+        rewardAmount: 150,
       ),
       QuestModel(
         id: 'q_runic_1',
         titleTr: 'Orhun Bitig Yazıtları',
         titleEn: 'Orkhon Inscriptions',
         descriptionTr:
-            'Sv5 Şato teknolojisi: Bilgelik ve Meclis puanı üretmek için 1 Rünik Yazıt Taşı dik.',
+            'Sv5 Şato teknolojisi: Bilgelik ve Meclis puanı üretmek için 1 Orhun Bitig Taşı dik.',
         descriptionEn:
             'Lv5 castle tech: Erect 1 Runic Stele to generate Wisdom.',
         type: QuestType.buildStructure,
         targetBuilding: BuildingType.runicStele,
         targetAmount: 1,
         rewardType: QuestRewardType.crowns,
-        rewardAmount: 5,
+        rewardAmount: 8,
       ),
       QuestModel(
         id: 'q_watchtower_1',
-        titleTr: 'Gözetleme Kulesi',
+        titleTr: 'Savunma & Gözcü Kulesi',
         titleEn: 'Watchtower Erected',
         descriptionTr:
-            'Sv5 Şato teknolojisi: Savunma ve keşif yarıçapını artırmak için 1 Gözetleme Kulesi inşa et.',
+            'Sv5 Şato teknolojisi: Savunma ve keşif yarıçapını artırmak için 1 Gözcü Kulesi inşa et.',
         descriptionEn:
             'Lv5 castle tech: Build 1 Watchtower for defense and scouting range.',
         type: QuestType.buildStructure,
         targetBuilding: BuildingType.watchtower,
         targetAmount: 1,
         rewardType: QuestRewardType.stone,
-        rewardAmount: 100,
+        rewardAmount: 150,
       ),
       QuestModel(
         id: 'q_quarry_1',
-        titleTr: 'Taş Ocağı',
+        titleTr: 'Taş Yonma Ocağı',
         titleEn: 'Stone Quarry',
         descriptionTr:
-            'Sv5 Şato teknolojisi: Taş ve kaya üretimi için 1 Taş Ocağı kur.',
+            'Sv5 Şato teknolojisi: Taş ve kaya üretimi için 1 Taş Yonma Ocağı kur.',
         descriptionEn:
             'Lv5 castle tech: Build 1 Quarry to produce stone and rock.',
         type: QuestType.buildStructure,
         targetBuilding: BuildingType.quarry,
         targetAmount: 1,
         rewardType: QuestRewardType.stone,
-        rewardAmount: 120,
+        rewardAmount: 160,
       ),
 
-      // ─── BÖLÜM 4: Keşif ve Meclis — Sv10'a hazırlık ─────────────────────
+      // ─── BÖLÜM 4: Keşif ve Tapınak — Şato Sv10 ───────────────────────────
+      QuestModel(
+        id: 'q_castle_10',
+        titleTr: 'Han Otağı Yükselişi — Sv10',
+        titleEn: 'Seat of the Khan — Lv10',
+        descriptionTr:
+            'Kağan Otağını Seviye 10\'a yükselt. Bu seviyeyle Meyve Bahçesi, Katran Kampı ve Şifacı Otağı açılır!',
+        descriptionEn:
+            'Upgrade to Level 10. Unlocks Orchard, Resin Camp, and Herbalist Yurt!',
+        type: QuestType.upgradeCastle,
+        targetAmount: 10,
+        rewardType: QuestRewardType.crowns,
+        rewardAmount: 10,
+      ),
+      QuestModel(
+        id: 'q_orchard_1',
+        titleTr: 'Yemişlik Bahçesi',
+        titleEn: 'Fruits of the Orchard',
+        descriptionTr:
+            'Sv10 Şato teknolojisi: Çeşitli gıda üretimi için 1 Yemişlik Bahçesi kur.',
+        descriptionEn:
+            'Lv10 castle tech: Build 1 Orchard for diverse food production.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.orchard,
+        targetAmount: 1,
+        rewardType: QuestRewardType.food,
+        rewardAmount: 200,
+      ),
       QuestModel(
         id: 'q_shrine_1',
-        titleTr: 'Kadim Rünlerin Gücü',
-        titleEn: 'Ancient Rune Power',
-        descriptionTr: 'Bozkırda 1 adet Kutlu Tapınak keşfet ve fethet.',
-        descriptionEn: 'Discover and conquer 1 Sacred Shrine.',
+        titleTr: 'Kutlu Tapınak Fethi',
+        titleEn: 'Sacred Shrine Conquered',
+        descriptionTr: 'Bozkırda 1 adet Kutlu Tapınak fethet; tapınak ve 6 komşu karosu +%50 taşıma sinerjisi kazanır.',
+        descriptionEn: 'Conquer 1 Sacred Shrine; provides +50% transport synergy to shrine and adjacent hexes.',
         type: QuestType.discoverShrine,
         targetAmount: 1,
         rewardType: QuestRewardType.crowns,
-        rewardAmount: 3,
+        rewardAmount: 10,
+      ),
+
+      // ─── BÖLÜM 5: Ağır Sanayi, Fırın ve İpek Yolu — Şato Sv15 ────────────
+      QuestModel(
+        id: 'q_castle_15',
+        titleTr: 'Han Otağı Yükselişi — Sv15',
+        titleEn: 'Seat of the Khan — Lv15',
+        descriptionTr:
+            'Kağan Otağını Seviye 15\'e yükselt. Bu seviyeyle Maden Ocağı, Taş Köz Fırını ve Balıkçı açılır!',
+        descriptionEn:
+            'Upgrade to Level 15. Unlocks Mine, Bakery, and Fisherman!',
+        type: QuestType.upgradeCastle,
+        targetAmount: 15,
+        rewardType: QuestRewardType.crowns,
+        rewardAmount: 15,
+      ),
+      QuestModel(
+        id: 'q_mine_1',
+        titleTr: 'Dağın Maden Damarları',
+        titleEn: 'Mountain Veins',
+        descriptionTr:
+            'Sv15 Şato teknolojisi: Demir ve taş madeni için 1 Maden Ocağı kur.',
+        descriptionEn:
+            'Lv15 castle tech: Build 1 Mine on a mountain or rocky tile.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.mine,
+        targetAmount: 1,
+        rewardType: QuestRewardType.stone,
+        rewardAmount: 250,
+      ),
+      QuestModel(
+        id: 'q_bakery_1',
+        titleTr: 'Taş Köz Fırını',
+        titleEn: 'Stone Hearth Bakery',
+        descriptionTr:
+            'Sv15 Şato teknolojisi: Unu ekmeğe dönüştürmek için 1 Taş Köz Fırını inşa et.',
+        descriptionEn:
+            'Lv15 castle tech: Build 1 Bakery to bake bread from flour.',
+        type: QuestType.buildStructure,
+        targetBuilding: BuildingType.bakery,
+        targetAmount: 1,
+        rewardType: QuestRewardType.wood,
+        rewardAmount: 200,
       ),
       QuestModel(
         id: 'q_caravan_1',
-        titleTr: 'İpek Yolu Bağlantısı',
-        titleEn: 'Silk Road Connection',
+        titleTr: 'İpek Yolu Kervan Hattı',
+        titleEn: 'Silk Road Caravan Route',
         descriptionTr:
-            'İki fethedilmiş karo arasında 1 İpek Yolu Kervan Hattı kur.',
-        descriptionEn: 'Establish 1 Caravan Route between two owned tiles.',
+            'Fırından üretilen ekmek ve kalaslarla iki fethedilmiş karo arasında 1 İpek Yolu Kervan Hattı kur.',
+        descriptionEn: 'Establish 1 Caravan Route between two owned tiles using bread and planks.',
         type: QuestType.establishCaravan,
         targetAmount: 1,
         rewardType: QuestRewardType.crowns,
-        rewardAmount: 6,
+        rewardAmount: 15,
       ),
       QuestModel(
         id: 'q_lore_1',
@@ -266,107 +336,85 @@ class GameStateNotifier extends StateNotifier<GameState> {
         type: QuestType.unlockLore,
         targetAmount: 2,
         rewardType: QuestRewardType.crowns,
-        rewardAmount: 8,
+        rewardAmount: 12,
       ),
 
-      // ─── BÖLÜM 5: Ağır Sanayi — Şato Sv10 ───────────────────────────────
+      // ─── BÖLÜM 6: Seviye 10 Zanaat ve İleri Geliştirme ───────────────────
       QuestModel(
-        id: 'q_castle_10',
-        titleTr: 'Han Otağı Yükselişi — Sv10',
-        titleEn: 'Seat of the Khan — Lv10',
-        descriptionTr:
-            'Kağan Otağını Seviye 10\'a yükselt. Bu seviyeyle Meyve Bahçesi, Reçine Kampı ve Bitkisel Yurt açılır!',
-        descriptionEn:
-            'Upgrade to Level 10. Unlocks Orchard, Resin Camp, and Herbalist Yurt!',
-        type: QuestType.upgradeCastle,
+        id: 'q_upgrade_windmill_10',
+        titleTr: 'Bozkır Değirmeni — Sv10',
+        titleEn: 'Steppe Windmill — Lv10',
+        descriptionTr: 'Yel Değirmenini Seviye 10\'a yükselterek un üretimini katla.',
+        descriptionEn: 'Upgrade Windmill to Level 10.',
+        type: QuestType.upgradeBuilding,
+        targetBuilding: BuildingType.windmill,
         targetAmount: 10,
         rewardType: QuestRewardType.crowns,
-        rewardAmount: 8,
+        rewardAmount: 15,
       ),
       QuestModel(
-        id: 'q_orchard_1',
-        titleTr: 'Bahçenin Meyvesi',
-        titleEn: 'Fruits of the Orchard',
-        descriptionTr:
-            'Sv10 Şato teknolojisi: Çeşitli gıda üretimi için 1 Meyve Bahçesi kur.',
-        descriptionEn:
-            'Lv10 castle tech: Build 1 Orchard for diverse food production.',
-        type: QuestType.buildStructure,
-        targetBuilding: BuildingType.orchard,
-        targetAmount: 1,
-        rewardType: QuestRewardType.food,
-        rewardAmount: 150,
-      ),
-
-      // ─── BÖLÜM 6: Maden Çağı — Şato Sv15 ────────────────────────────────
-      QuestModel(
-        id: 'q_castle_15',
-        titleTr: 'Han Otağı Yükselişi — Sv15',
-        titleEn: 'Seat of the Khan — Lv15',
-        descriptionTr:
-            'Kağan Otağını Seviye 15\'e yükselt. Bu seviyeyle Maden Ocağı, Fırın ve Balıkçı açılır!',
-        descriptionEn:
-            'Upgrade to Level 15. Unlocks Mine, Bakery, and Fisherman!',
-        type: QuestType.upgradeCastle,
-        targetAmount: 15,
+        id: 'q_upgrade_sawmill_10',
+        titleTr: 'Usta Hızar Otağı — Sv10',
+        titleEn: 'Master Sawmill — Lv10',
+        descriptionTr: 'Hızar Otağını Seviye 10\'a yükselterek kalas çıktısını zirveye taşı.',
+        descriptionEn: 'Upgrade Sawmill Works to Level 10.',
+        type: QuestType.upgradeBuilding,
+        targetBuilding: BuildingType.sawmill,
+        targetAmount: 10,
         rewardType: QuestRewardType.crowns,
-        rewardAmount: 10,
+        rewardAmount: 15,
       ),
       QuestModel(
-        id: 'q_mine_1',
-        titleTr: 'Dağın Damarları',
-        titleEn: 'Mountain Veins',
-        descriptionTr:
-            'Sv15 Şato teknolojisi: Demir ve taş madeni için 1 Maden Ocağı kur.',
-        descriptionEn:
-            'Lv15 castle tech: Build 1 Mine on a mountain or rocky tile.',
-        type: QuestType.buildStructure,
-        targetBuilding: BuildingType.mine,
-        targetAmount: 1,
-        rewardType: QuestRewardType.stone,
-        rewardAmount: 100,
-      ),
-      QuestModel(
-        id: 'q_bakery_1',
-        titleTr: 'Sıcak Tandır',
-        titleEn: 'Warm Bakery',
-        descriptionTr:
-            'Sv15 Şato teknolojisi: Unu ekmeğe dönüştürmek için 1 Fırın inşa et.',
-        descriptionEn:
-            'Lv15 castle tech: Build 1 Bakery to bake bread from flour.',
-        type: QuestType.buildStructure,
+        id: 'q_upgrade_bakery_10',
+        titleTr: 'Köz Tandır Ocağı — Sv10',
+        titleEn: 'Master Bakery — Lv10',
+        descriptionTr: 'Taş Köz Fırınını Seviye 10\'a yükselt.',
+        descriptionEn: 'Upgrade Bakery to Level 10.',
+        type: QuestType.upgradeBuilding,
         targetBuilding: BuildingType.bakery,
-        targetAmount: 1,
-        rewardType: QuestRewardType.wood,
-        rewardAmount: 100,
+        targetAmount: 10,
+        rewardType: QuestRewardType.crowns,
+        rewardAmount: 20,
+      ),
+      QuestModel(
+        id: 'q_upgrade_mine_10',
+        titleTr: 'Derin Maden Ocağı — Sv10',
+        titleEn: 'Deep Mine Quarry — Lv10',
+        descriptionTr: 'Maden Ocağını Seviye 10\'a yükselterek demir damarlarını genişlet.',
+        descriptionEn: 'Upgrade Mine Quarry to Level 10.',
+        type: QuestType.upgradeBuilding,
+        targetBuilding: BuildingType.mine,
+        targetAmount: 10,
+        rewardType: QuestRewardType.crowns,
+        rewardAmount: 20,
       ),
 
-      // ─── BÖLÜM 7: Ticaret Çağı — Şato Sv20 ──────────────────────────────
+      // ─── BÖLÜM 7: Ticaret Çağı ve Efsanevi Binalar — Şato Sv20+ ──────────
       QuestModel(
         id: 'q_castle_20',
         titleTr: 'Han Otağı Yükselişi — Sv20',
         titleEn: 'Seat of the Khan — Lv20',
         descriptionTr:
-            'Kağan Otağını Seviye 20\'ye yükselt. Bu seviyeyle Mobilya Atölyesi, Köprü ve Keçe Çadır Atölyesi açılır!',
+            'Kağan Otağını Seviye 20\'ye yükselt. Bu seviyeyle Marangoz Otağı, Köprü ve Keçe Çadırhanesi açılır!',
         descriptionEn:
-            'Upgrade to Level 20. Unlocks Furniture Workshop, Bridge, and Felt Tent Workshop!',
+            'Upgrade to Level 20. Unlocks Carpenter Lodge, Bridge, and Felt Tent Workshop!',
         type: QuestType.upgradeCastle,
         targetAmount: 20,
         rewardType: QuestRewardType.tamgas,
-        rewardAmount: 1,
+        rewardAmount: 2,
       ),
       QuestModel(
         id: 'q_kumis_1',
         titleTr: 'Bozkır İksiri Kımız',
         titleEn: 'Steppe Elixir Kumis',
         descriptionTr:
-            'Sv30 Şato teknolojisi: Kutsal içecek için 1 adet Kımız Çadırı inşa et.',
+            'Sv30 Şato teknolojisi: Kutsal içecek için 1 adet Kımızın Otağı inşa et.',
         descriptionEn: 'Lv30 castle tech: Build 1 Kumis Yurt.',
         type: QuestType.buildStructure,
         targetBuilding: BuildingType.kumisYurt,
         targetAmount: 1,
         rewardType: QuestRewardType.crowns,
-        rewardAmount: 10,
+        rewardAmount: 25,
       ),
       QuestModel(
         id: 'q_damascus_1',
@@ -380,7 +428,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
         targetBuilding: BuildingType.damascusForge,
         targetAmount: 1,
         rewardType: QuestRewardType.tamgas,
-        rewardAmount: 2,
+        rewardAmount: 5,
       ),
     ];
   }
@@ -518,16 +566,36 @@ class GameStateNotifier extends StateNotifier<GameState> {
       building: const BuildingModel(type: BuildingType.castle, level: 1),
     );
 
-    // 2. KUTLU TAPINAK YERLEŞİMİ (Tam 11 Adet, r=3 Halkasında 1 Garantili Tapınak)
-    // r=1 ve r=2 halkalarında tapınak olamaz; ilk tapınak r=3 (0, 3) Çayır karosuna yerleştirilir.
-    const initialGuaranteedShrineCoord = HexAxial(0, 3);
+    // 2. KADİM SUNAK (SHRINE) YERLEŞİMİ
+    // Kural 1: Şatoya (0,0) tam 4 hex uzaktaki herhangi bir kara karosuna garantili Kadim Sunak yerleştirilir ve türü kesinlikle Lojistik & Taşıma Bonusu (ShrineType.speedBoost) olur.
+    // Kural 2: Diğer sunaklar birbirleri arasında en az 7 hex mesafe olacak şekilde haritaya rastgele dağıtılır ve türleri rastgeledir.
     final List<HexAxial> placedShrineCoords = [];
 
-    final List<HexAxial> landCandidates = map.keys.where((c) {
+    final List<HexAxial> dist4LandCandidates = map.keys.where((c) {
+      final int dist = HexMath.hexDistance(const HexAxial(0, 0), c);
+      if (dist != 4) return false;
+      final t = map[c]!;
+      if (t.biome == TileBiome.sea || t.biome == TileBiome.mountain) return false;
+      if (t.biome == TileBiome.celestialCrater ||
+          t.biome == TileBiome.kurganValley ||
+          t.biome == TileBiome.crystalChasm) {
+        return false;
+      }
+      return true;
+    }).toList();
+
+    dist4LandCandidates.shuffle(random);
+    final HexAxial guaranteedSpeedShrineCoord = dist4LandCandidates.isNotEmpty
+        ? dist4LandCandidates.first
+        : const HexAxial(0, 4);
+
+    placedShrineCoords.add(guaranteedSpeedShrineCoord);
+
+    final List<HexAxial> otherLandCandidates = map.keys.where((c) {
       if (c.q == 0 && c.r == 0) return false;
       final int dist = HexMath.hexDistance(const HexAxial(0, 0), c);
-      if (dist <= 2) return false;
-      if (c == initialGuaranteedShrineCoord) return false;
+      if (dist <= 3) return false;
+      if (c == guaranteedSpeedShrineCoord) return false;
       final t = map[c]!;
       if (t.biome == TileBiome.sea || t.biome == TileBiome.mountain) return false;
       if (t.biome == TileBiome.celestialCrater ||
@@ -539,15 +607,14 @@ class GameStateNotifier extends StateNotifier<GameState> {
     }).toList();
 
     const int targetShrineCount = 11;
-    const int minDistance = 6;
+    const int minDistance = 7; // Sunaklar arasında en az 7 hex mesafe
 
-    for (int attempt = 0; attempt < 25 && placedShrineCoords.length < targetShrineCount; attempt++) {
+    for (int attempt = 0; attempt < 50 && placedShrineCoords.length < targetShrineCount; attempt++) {
       placedShrineCoords.clear();
-      // Garantili başlangıç tapınağını ekle
-      placedShrineCoords.add(initialGuaranteedShrineCoord);
-      landCandidates.shuffle(random);
+      placedShrineCoords.add(guaranteedSpeedShrineCoord);
+      otherLandCandidates.shuffle(random);
 
-      for (final candidate in landCandidates) {
+      for (final candidate in otherLandCandidates) {
         if (placedShrineCoords.length >= targetShrineCount) break;
 
         bool isValid = true;
@@ -564,30 +631,20 @@ class GameStateNotifier extends StateNotifier<GameState> {
       }
     }
 
-    // 11 Kutlu Tapınak tür dağılımı: 4 Gıda, 4 Odun, 3 Hız
-    // İlk tapınağın türü oyuncunun erken safhada gelişimini doğrudan hızlandıracak Gıda Bereketi (+%30) olarak atanır.
-    final List<ShrineType> otherShrineTypes = [
+    // İlk tapınak (şatoya 4 hex uzaktaki) kesinlikle speedBoost (Lojistik/Taşıma Bonusu)
+    map[guaranteedSpeedShrineCoord] = map[guaranteedSpeedShrineCoord]!.copyWith(shrine: ShrineType.speedBoost);
+
+    // Diğer sunaklar için rastgele tür havuzu
+    final List<ShrineType> randomShrinePool = [
       ShrineType.foodBoost,
-      ShrineType.foodBoost,
-      ShrineType.foodBoost,
-      ShrineType.woodBoost,
-      ShrineType.woodBoost,
-      ShrineType.woodBoost,
       ShrineType.woodBoost,
       ShrineType.speedBoost,
-      ShrineType.speedBoost,
-      ShrineType.speedBoost,
-    ];
-    otherShrineTypes.shuffle(random);
-    final List<ShrineType> shrineTypes = [
-      ShrineType.foodBoost, // İlk garantili tapınak için Gıda Bereketi
-      ...otherShrineTypes,
     ];
 
-    for (int i = 0; i < placedShrineCoords.length; i++) {
+    for (int i = 1; i < placedShrineCoords.length; i++) {
       final c = placedShrineCoords[i];
-      final sType = i < shrineTypes.length ? shrineTypes[i] : ShrineType.foodBoost;
-      map[c] = map[c]!.copyWith(shrine: sType);
+      final randomType = randomShrinePool[random.nextInt(randomShrinePool.length)];
+      map[c] = map[c]!.copyWith(shrine: randomType);
     }
 
     return GameState(
@@ -656,26 +713,35 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
         _syncQuestProgress();
 
-        // Offline gelir hesapla
-        final double globalMult = EconomyCalculator.getGlobalMultiplier(
-          castleLevel: save.progression.castleLevel,
-          crowns: save.resources.crowns,
-          toreTalents: save.toreTalents,
-          titles: save.titles,
-        );
-        final double elapsed =
-            (DateTime.now().millisecondsSinceEpoch ~/ 1000 - save.timestamp)
-                .toDouble();
-        final offline = EconomyCalculator.calculateOfflineGains(
-          tiles: save.tiles,
-          elapsedSeconds: elapsed,
-          globalMultiplier: globalMult,
-        );
+        // Offline gelir hesapla (Soğuk Başlatma / Cold Boot)
+        final int nowMs = DateTime.now().millisecondsSinceEpoch;
+        final int? storedLastActiveMs = await SaveRepository.getLastActiveTimestamp();
+        final int lastActiveMs = storedLastActiveMs ?? (save.timestamp * 1000);
 
-        if (offline.hasGains && mounted) {
-          state = state.copyWith(
-            pendingOfflineGains: offline,
+        // Çift talep engeli (Double-claim prevention): Zaman damgasını hemen güncelle
+        await SaveRepository.saveLastActiveTimestamp(nowMs);
+
+        final int elapsedSeconds = (nowMs - lastActiveMs) ~/ 1000;
+        if (elapsedSeconds >= minAfkSeconds) {
+          final int effectiveSeconds = elapsedSeconds.clamp(0, maxAfkSeconds);
+          final double globalMult = EconomyCalculator.getGlobalMultiplier(
+            castleLevel: save.progression.castleLevel,
+            crowns: save.resources.crowns,
+            toreTalents: save.toreTalents,
+            titles: save.titles,
           );
+          final offline = EconomyCalculator.calculateOfflineGains(
+            tiles: save.tiles,
+            elapsedSeconds: effectiveSeconds.toDouble(),
+            globalMultiplier: globalMult,
+            minThresholdSeconds: minAfkSeconds.toDouble(),
+          );
+
+          if (offline.hasGains && mounted) {
+            state = state.copyWith(
+              pendingOfflineGains: offline,
+            );
+          }
         }
       }
     } catch (_) {
@@ -686,27 +752,60 @@ class GameStateNotifier extends StateNotifier<GameState> {
     _startAutoSave();
   }
 
-  int? _backgroundPauseTimestamp;
+  static const int minAfkSeconds = 60;
+  static const int maxAfkSeconds = 8 * 3600; // 8 hours max (28800)
+  int? _backgroundPauseTimestampMs;
 
   /// Uygulama arka plana veya minimize durumuna geçtiğinde çağrılır.
-  /// Tick timer'ını durdurur, zaman damgasını kaydeder ve state'i diske yazar.
+  /// Tick timer'ını durdurur, zaman damgasını yerel depolamaya ve belleğe kaydeder ve state'i diske yazar.
   void pauseGameLoop() {
-    _backgroundPauseTimestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final int nowMs = DateTime.now().millisecondsSinceEpoch;
+    _backgroundPauseTimestampMs = nowMs;
     _gameLoopTimer?.cancel();
     _gameLoopTimer = null;
     _autoSaveTimer?.cancel();
     _autoSaveTimer = null;
+    SaveRepository.saveLastActiveTimestamp(nowMs);
     saveGame();
   }
 
   /// Uygulama arka plandan ön plana (resumed) döndüğünde çağrılır.
-  /// Arka planda geçen süreyi hesaplar (>3 sn ise AFK gelir işletilir) ve timer'ı senkronize başlatır.
-  void resumeGameLoop() {
-    final pauseTs = _backgroundPauseTimestamp;
-    _backgroundPauseTimestamp = null;
-    if (pauseTs != null) {
-      processResumeOfflineGains(pauseTs);
+  /// Arka planda geçen süreyi hesaplar (>=60 sn ise AFK gelir işletilir), çift talep engelini uygular ve timer'ı başlatır.
+  Future<void> resumeGameLoop() async {
+    final int nowMs = DateTime.now().millisecondsSinceEpoch;
+    final int? inMemoryPauseMs = _backgroundPauseTimestampMs;
+    _backgroundPauseTimestampMs = null;
+
+    final int? storedLastActiveMs = await SaveRepository.getLastActiveTimestamp();
+    final int? lastActiveMs = inMemoryPauseMs ?? storedLastActiveMs;
+
+    // Çift talep engeli: Zaman damgasını hemen güncelle
+    await SaveRepository.saveLastActiveTimestamp(nowMs);
+
+    if (lastActiveMs != null) {
+      final int elapsedSeconds = (nowMs - lastActiveMs) ~/ 1000;
+      if (elapsedSeconds >= minAfkSeconds) {
+        final int effectiveSeconds = elapsedSeconds.clamp(0, maxAfkSeconds);
+        final double globalMult = EconomyCalculator.getGlobalMultiplier(
+          castleLevel: state.progression.castleLevel,
+          crowns: state.resources.crowns,
+          toreTalents: state.toreTalents,
+          titles: state.titles,
+        );
+
+        final offline = EconomyCalculator.calculateOfflineGains(
+          tiles: state.tiles.values.toList(),
+          elapsedSeconds: effectiveSeconds.toDouble(),
+          globalMultiplier: globalMult,
+          minThresholdSeconds: minAfkSeconds.toDouble(),
+        );
+
+        if (offline.hasGains && mounted) {
+          state = state.copyWith(pendingOfflineGains: offline);
+        }
+      }
     }
+
     _startGameLoop();
     _startAutoSave();
   }
@@ -745,10 +844,11 @@ class GameStateNotifier extends StateNotifier<GameState> {
         ) *
         state.frenzyMultiplier;
 
-    // İşçi transfer hız çarpanı
+    // İşçi transfer hız çarpanı (Her göçte kalıcı +%35 x Göç Sayısı)
     final double workerTransferMult =
         EconomyCalculator.getWorkerTransferMultiplier(
       toreTalents: state.toreTalents,
+      totalMigrations: state.progression.totalMigrations,
     );
 
     // Sezon güncellemesi (300 saniyede bir sezon değişir - 5 Dakika)
@@ -794,7 +894,13 @@ class GameStateNotifier extends StateNotifier<GameState> {
     final List<double> workerSourceCapacities = [];
 
     for (final t in state.tiles.values) {
-      if (!t.isOwned || t.building == null) continue;
+      if (!t.isOwned) continue;
+      if (t.hasShrine) {
+        // Fethedilmiş Kutlu Tapınak etrafına +%50 lojistik & taşıma aurası yayar
+        workerSourceCoords.add(t.coord);
+        workerSourceCapacities.add(5.0 * workerTransferMult);
+      }
+      if (t.building == null) continue;
       if (t.building!.type == BuildingType.castle) {
         // Şatodan gelen 1.0 taban taşıma kapasitesi (4 hex menzil)
         workerSourceCoords.add(t.coord);
@@ -1446,8 +1552,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
     double newShrineMult = state.shrineMultiplier;
     if (tile.hasShrine) {
-      newShrineMult += tile.shrine.boostMultiplier;
-      showToast('Kutlu Tapınak Fethedildi: ${tile.shrine.formattedBonusTr}.');
+      newShrineMult += tile.shrineBoostMultiplier;
+      showToast('Kutlu Tapınak Fethedildi: ${tile.formattedShrineBonusTr}.');
     }
 
     int mCount = state.progression.purchasedMeadowCount;
@@ -2187,6 +2293,14 @@ class GameStateNotifier extends StateNotifier<GameState> {
                 .length;
           }
           break;
+        case QuestType.upgradeBuilding:
+          if (q.targetBuilding != null) {
+            final matchingBuildings = state.tiles.values
+                .where((t) => t.isOwned && t.building?.type == q.targetBuilding)
+                .map((t) => t.building!.level);
+            current = matchingBuildings.isNotEmpty ? matchingBuildings.reduce(math.max) : 0;
+          }
+          break;
         case QuestType.gatherResource:
           break;
       }
@@ -2436,10 +2550,12 @@ class GameStateNotifier extends StateNotifier<GameState> {
   }
 
   void processResumeOfflineGains(int pauseTimestamp) {
-    final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final double elapsed = (now - pauseTimestamp).toDouble();
-    if (elapsed < 3.0) return;
+    final int nowMs = DateTime.now().millisecondsSinceEpoch;
+    final int pauseMs = pauseTimestamp < 10000000000 ? pauseTimestamp * 1000 : pauseTimestamp;
+    final int elapsedSeconds = (nowMs - pauseMs) ~/ 1000;
+    if (elapsedSeconds < minAfkSeconds) return;
 
+    final int effectiveSeconds = elapsedSeconds.clamp(0, maxAfkSeconds);
     final double globalMult = EconomyCalculator.getGlobalMultiplier(
       castleLevel: state.progression.castleLevel,
       crowns: state.resources.crowns,
@@ -2449,9 +2565,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
     final offline = EconomyCalculator.calculateOfflineGains(
       tiles: state.tiles.values.toList(),
-      elapsedSeconds: elapsed,
+      elapsedSeconds: effectiveSeconds.toDouble(),
       globalMultiplier: globalMult,
-      minThresholdSeconds: 3.0,
+      minThresholdSeconds: minAfkSeconds.toDouble(),
     );
 
     if (offline.hasGains && mounted) {
@@ -2768,10 +2884,13 @@ class GameStateNotifier extends StateNotifier<GameState> {
     }
     final List<AncestralKurgan> accumulatedKurgans = kurganMap.values.toList();
 
-    // Prestige (Tamga) Hesaplama: (Hex Sayısı + Sunak Sayısı) / 2
+    // Prestige (Tamga) Hesaplama: (Hex Sayısı + Sunak Sayısı * 5) / 2
     final int ownedHexes = state.progression.ownedCount;
     final int shrines = state.tiles.values.where((t) => t.isOwned && t.hasShrine).length;
-    final int newTamgas = (ownedHexes + (shrines * 5)) ~/ 2;
+    final int newTamgas = EconomyCalculator.calculateMigrationTamgas(
+      ownedCount: ownedHexes,
+      ownedShrinesCount: shrines,
+    );
 
     // Reset Taç (Crowns) Hesaplama: Hexler + Envanterdeki Hammaddeler + Binalar/Sunaklar
     final crownsBreakdown = EconomyCalculator.calculateResetCrownsBreakdown(
@@ -3572,6 +3691,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
   void debugModifyState(GameState Function(GameState) modifier) {
     state = modifier(state);
+    _syncQuestProgress();
     saveGame();
   }
 

@@ -1,4 +1,5 @@
 import '../../core/hex/hex_coordinates.dart';
+import '../../core/hex/hex_math.dart';
 import '../services/symbiosis_engine.dart';
 import 'ancestral_kurgan_model.dart';
 import 'building_model.dart';
@@ -58,6 +59,7 @@ extension ShrineTypeExtension on ShrineType {
     }
   }
 
+  /// Temel bonus yüzdesi (Mesafe = 4 için baz oran)
   double get boostPercentage {
     switch (this) {
       case ShrineType.foodBoost:
@@ -71,10 +73,26 @@ extension ShrineTypeExtension on ShrineType {
     }
   }
 
+  /// Şato merkezinden (0,0) uzaklaştıkça artan bonus yüzdesi
+  /// Temel oran (dist=4): food %30, wood %25, speed %20.
+  /// Merkezden her 1 hex uzaklaşma için: +%4 ek bonus.
+  double calculateBoostPercentage(int distance) {
+    if (this == ShrineType.none) return 0.0;
+    final int extraDistance = distance > 4 ? distance - 4 : 0;
+    return boostPercentage + (extraDistance * 4.0);
+  }
+
+  double getBoostMultiplier(int distance) => calculateBoostPercentage(distance) / 100.0;
+
   double get boostMultiplier => boostPercentage / 100.0;
 
   String get formattedBonusTr => '+%${boostPercentage.toInt()} $titleTr';
   String get formattedBonusEn => '+${boostPercentage.toInt()}% $titleEn';
+
+  String getFormattedBonusTr(int distance) =>
+      '+%${calculateBoostPercentage(distance).toInt()} $titleTr (Menzil: $distance)';
+  String getFormattedBonusEn(int distance) =>
+      '+${calculateBoostPercentage(distance).toInt()}% $titleEn (Dist: $distance)';
 }
 
 class HexTileModel {
@@ -121,6 +139,12 @@ class HexTileModel {
   bool get isSymbiotic => symbiosis != SymbiosisType.none;
   bool get hasActiveWall => wall != null && !wall!.isBreached;
   bool get needsRepair => isDamaged || (wall != null && wall!.needsRepair);
+
+  int get distanceFromCenter => HexMath.hexDistance(const HexAxial(0, 0), coord);
+  double get shrineBonusPercentage => shrine.calculateBoostPercentage(distanceFromCenter);
+  double get shrineBoostMultiplier => shrineBonusPercentage / 100.0;
+  String get formattedShrineBonusTr => shrine.getFormattedBonusTr(distanceFromCenter);
+  String get formattedShrineBonusEn => shrine.getFormattedBonusEn(distanceFromCenter);
 
   HexTileModel copyWith({
     HexAxial? coord,

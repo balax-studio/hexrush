@@ -9,6 +9,7 @@ enum QuestType {
   establishCaravan,
   unlockLore,
   surviveZud,
+  upgradeBuilding,
 }
 
 enum QuestRewardType {
