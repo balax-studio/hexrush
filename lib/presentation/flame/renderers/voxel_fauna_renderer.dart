@@ -721,21 +721,43 @@ class VoxelFaunaRenderer {
     bool flipX = false,
   }) {
     final double bob = (math.sin(walkCycle * math.pi * 4).abs()) * 1.5;
-    final double legSwing = math.sin(walkCycle * math.pi * 4) * 2.0;
+    final double legSwing = math.sin(walkCycle * math.pi * 4) * 2.2;
+    final double neckBob = math.sin(walkCycle * math.pi * 4 + 0.5) * 0.8;
 
     _clear();
 
-    _addVoxel(lx: -3.0 - legSwing, ly: -2.5, lz: 0.0, w: 1.8, d: 1.8, h: 5.8, topColor: const Color(0xFF92400E), leftColor: const Color(0xFF78350F), rightColor: const Color(0xFF78350F), origin: center, scale: 1.0, flipX: flipX);
-    _addVoxel(lx: 3.0 + legSwing, ly: -2.5, lz: 0.0, w: 1.8, d: 1.8, h: 5.8, topColor: const Color(0xFF92400E), leftColor: const Color(0xFF78350F), rightColor: const Color(0xFF78350F), origin: center, scale: 1.0, flipX: flipX);
+    // 1. Arka Bacaklar
+    _addVoxel(lx: -3.5 - legSwing, ly: -2.8, lz: 0.0, w: 2.0, d: 2.0, h: 6.2, topColor: const Color(0xFF92400E), leftColor: const Color(0xFF78350F), rightColor: const Color(0xFF451A03), origin: center, scale: 1.0, flipX: flipX);
+    _addVoxel(lx: -3.5 + legSwing, ly: 2.8, lz: 0.0, w: 2.0, d: 2.0, h: 6.2, topColor: const Color(0xFFB45309), leftColor: const Color(0xFF92400E), rightColor: const Color(0xFF78350F), origin: center, scale: 1.0, flipX: flipX);
 
-    _addVoxel(lx: 0.0, ly: 0.0, lz: 5.5 + bob, w: 8.5, d: 5.5, h: 5.5, topColor: const Color(0xFFD97706), leftColor: const Color(0xFFB45309), rightColor: const Color(0xFF92400E), origin: center, scale: 1.0, drawShadow: true, shadowOpacity: 0.32, flipX: flipX);
-    _addVoxel(lx: 0.0, ly: 0.0, lz: 9.5 + bob, w: 5.0, d: 7.0, h: 3.2, topColor: const Color(0xFF991B1B), leftColor: const Color(0xFF7F1D1D), rightColor: const Color(0xFF450A0A), origin: center, scale: 1.0, flipX: flipX);
+    // 2. Ön Bacaklar
+    _addVoxel(lx: 3.5 + legSwing, ly: -2.8, lz: 0.0, w: 2.0, d: 2.0, h: 6.2, topColor: const Color(0xFF92400E), leftColor: const Color(0xFF78350F), rightColor: const Color(0xFF451A03), origin: center, scale: 1.0, flipX: flipX);
+    _addVoxel(lx: 3.5 - legSwing, ly: 2.8, lz: 0.0, w: 2.0, d: 2.0, h: 6.2, topColor: const Color(0xFFB45309), leftColor: const Color(0xFF92400E), rightColor: const Color(0xFF78350F), origin: center, scale: 1.0, flipX: flipX);
 
-    _addVoxel(lx: -3.0 + legSwing, ly: 2.5, lz: 0.0, w: 1.8, d: 1.8, h: 5.8, topColor: const Color(0xFFB45309), leftColor: const Color(0xFF92400E), rightColor: const Color(0xFF78350F), origin: center, scale: 1.0, flipX: flipX);
-    _addVoxel(lx: 3.0 - legSwing, ly: 2.5, lz: 0.0, w: 1.8, d: 1.8, h: 5.8, topColor: const Color(0xFFB45309), leftColor: const Color(0xFF92400E), rightColor: const Color(0xFF78350F), origin: center, scale: 1.0, flipX: flipX);
+    // 3. Masif Gövde
+    _addVoxel(lx: 0.0, ly: 0.0, lz: 5.8 + bob, w: 10.0, d: 6.2, h: 6.0, topColor: const Color(0xFFD97706), leftColor: const Color(0xFFB45309), rightColor: const Color(0xFF92400E), origin: center, scale: 1.0, drawShadow: true, shadowOpacity: 0.35, flipX: flipX);
 
-    _addVoxel(lx: 4.5, ly: 0.0, lz: 9.0 + bob, w: 2.6, d: 2.6, h: 5.5, topColor: const Color(0xFFD97706), leftColor: const Color(0xFFB45309), rightColor: const Color(0xFF92400E), origin: center, scale: 1.0, flipX: flipX);
-    _addVoxel(lx: 6.2, ly: 0.0, lz: 13.0 + bob, w: 3.0, d: 2.4, h: 2.2, topColor: const Color(0xFFF59E0B), leftColor: const Color(0xFFD97706), rightColor: const Color(0xFF92400E), origin: center, scale: 1.0, flipX: flipX);
+    // 4. Çift Hörgüç (Bactrian Dual Humps)
+    // Arka Hörgüç
+    _addVoxel(lx: -2.8, ly: 0.0, lz: 11.2 + bob, w: 3.2, d: 4.2, h: 3.8, topColor: const Color(0xFFB45309), leftColor: const Color(0xFF92400E), rightColor: const Color(0xFF78350F), origin: center, scale: 1.0, flipX: flipX);
+    // Ön Hörgüç
+    _addVoxel(lx: 2.2, ly: 0.0, lz: 11.2 + bob, w: 3.2, d: 4.2, h: 3.8, topColor: const Color(0xFFB45309), leftColor: const Color(0xFF92400E), rightColor: const Color(0xFF78350F), origin: center, scale: 1.0, flipX: flipX);
+
+    // 5. Hörgüçler Arası Nakışlı Semer Kilimi (Woven Saddle Rug)
+    _addVoxel(lx: -0.3, ly: 0.0, lz: 10.5 + bob, w: 7.2, d: 7.5, h: 2.2, topColor: const Color(0xFFDC2626), leftColor: const Color(0xFFB91C1C), rightColor: const Color(0xFF991B1B), origin: center, scale: 1.0, flipX: flipX);
+    // Kilim Altın Bordürü
+    _addVoxel(lx: -0.3, ly: 0.0, lz: 12.0 + bob, w: 3.5, d: 6.0, h: 1.2, topColor: const Color(0xFFFBBF24), leftColor: const Color(0xFFF59E0B), rightColor: const Color(0xFFD97706), origin: center, scale: 1.0, flipX: flipX);
+
+    // 6. Yan Deri Kervan Heybeleri (Saddlebags)
+    _addVoxel(lx: -0.3, ly: -3.8, lz: 6.5 + bob, w: 5.5, d: 2.2, h: 4.5, topColor: const Color(0xFF92400E), leftColor: const Color(0xFF78350F), rightColor: const Color(0xFF451A03), origin: center, scale: 1.0, flipX: flipX);
+    _addVoxel(lx: -0.3, ly: 3.8, lz: 6.5 + bob, w: 5.5, d: 2.2, h: 4.5, topColor: const Color(0xFFB45309), leftColor: const Color(0xFF92400E), rightColor: const Color(0xFF78350F), origin: center, scale: 1.0, flipX: flipX);
+
+    // 7. Boyun ve Kafa
+    _addVoxel(lx: 5.2, ly: 0.0, lz: 9.5 + bob + neckBob, w: 2.8, d: 2.8, h: 6.5, topColor: const Color(0xFFD97706), leftColor: const Color(0xFFB45309), rightColor: const Color(0xFF92400E), origin: center, scale: 1.0, flipX: flipX);
+    _addVoxel(lx: 7.2, ly: 0.0, lz: 14.5 + bob + neckBob, w: 3.5, d: 2.6, h: 2.6, topColor: const Color(0xFFF59E0B), leftColor: const Color(0xFFD97706), rightColor: const Color(0xFFB45309), origin: center, scale: 1.0, flipX: flipX);
+    
+    // Boyun Kervan Püskülü / Çıngırak
+    _addVoxel(lx: 5.8, ly: 0.0, lz: 8.5 + bob + neckBob, w: 1.5, d: 1.5, h: 2.0, topColor: const Color(0xFFFBBF24), leftColor: const Color(0xFFDC2626), rightColor: const Color(0xFF991B1B), origin: center, scale: 1.0, flipX: flipX);
 
     _flush(canvas);
   }

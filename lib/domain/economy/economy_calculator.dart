@@ -347,6 +347,14 @@ class EconomyCalculator {
     return ownedCount >= 20 && (meadow >= 4 && forest >= 4 && mountain >= 4);
   }
 
+  /// Büyük Göç (Sıfırlama) anında kazanılacak Tamga miktarını hesaplar: (Fethedilen Karo + (Fethedilen Sunak * 5)) ~/ 2
+  static int calculateMigrationTamgas({
+    required int ownedCount,
+    required int ownedShrinesCount,
+  }) {
+    return (ownedCount + (ownedShrinesCount * 5)) ~/ 2;
+  }
+
   /// Büyük Göç (Sıfırlama) anında kazanılacak Taç miktarını ve detaylı dökümünü hesaplar (Dengeli Pacing Modeli)
   static ResetCrownsBreakdown calculateResetCrownsBreakdown({
     required Iterable<HexTileModel> tiles,
@@ -419,6 +427,7 @@ class EconomyCalculator {
   static double getWorkerTransferMultiplier({
     Map<String, dynamic> talents = const {},
     Map<String, dynamic> toreTalents = const {},
+    int totalMigrations = 0,
   }) {
     final int speedLvl = (talents['workerSpeed'] as num? ?? 0).toInt();
     int roadLvl = 0;
@@ -426,7 +435,9 @@ class EconomyCalculator {
       final tonyukuk = toreTalents['tonyukuk'] as Map<String, dynamic>;
       roadLvl = (tonyukuk['pavedRoads'] as num? ?? 0).toInt();
     }
-    return 1.0 + speedLvl * 0.10 + roadLvl * 0.08;
+    final double baseMultiplier = 1.0 + speedLvl * 0.10 + roadLvl * 0.08;
+    final double migrationScaling = 1.0 + (totalMigrations * 0.35);
+    return baseMultiplier * migrationScaling;
   }
 
   /// Haritadaki tüm işçi kulübeleri ve üretim binaları arasında dinamik greedy lojistik yük dağıtımı yapar.
@@ -626,6 +637,7 @@ class EconomyCalculator {
     Map<String, int> cumulativeBiomeCounts = const {},
     int frenzyMultiplier = 1,
     double seasonMultiplier = 1.0,
+    int totalMigrations = 0,
   }) {
     final String rKey = resourceKey.toLowerCase().replaceAll('_', '');
     final List<ResourceContributor> producers = [];
@@ -933,6 +945,7 @@ class EconomyCalculator {
     // Lojistik Taşıma Kapasitesi Dağıtımı (allocateGreedyLogistics ile Tek Doğruluk Kaynağı)
     final double workerTransferMult = getWorkerTransferMultiplier(
       toreTalents: toreTalents,
+      totalMigrations: totalMigrations,
     );
 
     final Map<HexAxial, double> producerDemands = {for (final p in producers) p.coord: p.rate};
@@ -1640,28 +1653,32 @@ class EconomyCalculator {
     return const MarketTradeResult(success: false);
   }
 
+  static const int minAfkSeconds = 60;
+  static const int maxAfkSeconds = 8 * 3600; // 8 hours max (28800)
+
   static OfflineGainsResult calculateOfflineGains({
     required List<HexTileModel> tiles,
     required double elapsedSeconds,
     required double globalMultiplier,
-    double minThresholdSeconds = 3.0,
+    double minThresholdSeconds = 60.0,
   }) {
     const double maxOfflineSeconds = 8 * 3600.0;
     final double rawSeconds = math.max(0.0, elapsedSeconds);
+    if (rawSeconds < minThresholdSeconds) {
+      return const OfflineGainsResult(seconds: 0);
+    }
+    final double clampedSeconds = rawSeconds.clamp(0.0, maxOfflineSeconds);
     // 1-2 Saatlik Altın Pencere (Golden Retention Window):
     // İlk 2 saat (7200s) %100 üretim verimi ile ambar dolar.
     // 2-8 saat arasında kademeli mahzen tamponu (silo kapasitesi) devreye girer.
     double effectiveSeconds;
-    if (rawSeconds <= 7200.0) {
-      effectiveSeconds = rawSeconds;
+    if (clampedSeconds <= 7200.0) {
+      effectiveSeconds = clampedSeconds;
     } else {
-      final double excess = math.min(maxOfflineSeconds - 7200.0, rawSeconds - 7200.0);
+      final double excess = clampedSeconds - 7200.0;
       effectiveSeconds = 7200.0 + (excess * 0.60);
     }
     final double cappedSeconds = effectiveSeconds;
-    if (cappedSeconds < minThresholdSeconds) {
-      return OfflineGainsResult(seconds: cappedSeconds.toInt());
-    }
 
     final workerCoords = tiles
         .where((t) =>
@@ -1876,6 +1893,7 @@ class EconomyCalculator {
     Map<String, dynamic> titles = const {},
     Map<String, dynamic> toreTalents = const {},
     Map<String, dynamic> talents = const {},
+    int totalMigrations = 0,
   }) {
     double netFood = 0.0;
     double netWood = 0.0;
@@ -1911,6 +1929,7 @@ class EconomyCalculator {
     final double workerTransferMult = getWorkerTransferMultiplier(
       talents: talents,
       toreTalents: toreTalents,
+      totalMigrations: totalMigrations,
     );
     final List<HexAxial> workerSourceCoords = [];
     final List<double> workerSourceCapacities = [];
@@ -2249,6 +2268,10 @@ class EconomyCalculator {
           break;
       }
 
+      // Komşuda fethedilmiş Kutlu Tapınak (Shrine) varsa +%50 taşıma ve bereket sinerjisi ver
+      if (neighbor.hasShrine && neighbor.isOwned) {
+        synergy += 0.50;
+      }
       // Komşuda Vaha Sarnıcı varsa bereket ver
       if (neighbor.building?.type == BuildingType.oasisCistern) {
         synergy += 0.40;
@@ -2311,6 +2334,10 @@ class EconomyCalculator {
 
     for (final neighbor in neighborTiles) {
       if (neighbor.isFog) continue;
+
+      if (neighbor.hasShrine && neighbor.isOwned) {
+        labels.add('+50% Kutlu Tapınak Aurası & Taşıma Bonusu');
+      }
 
       switch (neighbor.biome) {
         case TileBiome.celestialCrater:
@@ -2779,6 +2806,16 @@ class EconomyCalculator {
       decimals: decimals,
       explicitSign: explicitSign,
     );
+  }
+
+  /// 19. Görev İlerleme ve Ödül Ölçekleme Çarpanı
+  static int calculateQuestScaledReward({
+    required int baseReward,
+    required int questIndex,
+    int castleLevel = 1,
+  }) {
+    final double scalingFactor = 1.0 + (questIndex * 0.15) + (math.max(0, castleLevel - 1) * 0.10);
+    return (baseReward * scalingFactor).round();
   }
 }
 
