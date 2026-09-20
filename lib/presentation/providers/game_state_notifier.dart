@@ -760,12 +760,12 @@ class GameStateNotifier extends StateNotifier<GameState> {
   /// Tick timer'ını durdurur, zaman damgasını yerel depolamaya ve belleğe kaydeder ve state'i diske yazar.
   void pauseGameLoop() {
     final int nowMs = DateTime.now().millisecondsSinceEpoch;
-    _backgroundPauseTimestampMs = nowMs;
+    _backgroundPauseTimestampMs ??= nowMs;
     _gameLoopTimer?.cancel();
     _gameLoopTimer = null;
     _autoSaveTimer?.cancel();
     _autoSaveTimer = null;
-    SaveRepository.saveLastActiveTimestamp(nowMs);
+    SaveRepository.saveLastActiveTimestamp(_backgroundPauseTimestampMs ?? nowMs);
     saveGame();
   }
 

@@ -69,7 +69,11 @@ class _GameScreenState extends ConsumerState<GameScreen>
       ref.read(gameStateProvider.notifier).pauseGameLoop();
     } else if (state == AppLifecycleState.resumed) {
       TactileAudioService.instance.resumeBackgroundMusic();
-      ref.read(gameStateProvider.notifier).resumeGameLoop();
+      ref.read(gameStateProvider.notifier).resumeGameLoop().then((_) {
+        if (mounted) {
+          _checkPendingOfflineGains();
+        }
+      });
     }
   }
 
@@ -82,13 +86,19 @@ class _GameScreenState extends ConsumerState<GameScreen>
   }
 
   Future<void> _showOfflineGainsDialog(OfflineGainsResult gains) async {
+    if (_isOfflineDialogShowing || !mounted) return;
     _isOfflineDialogShowing = true;
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => OfflineGainsDialog(gains: gains),
-    );
-    _isOfflineDialogShowing = false;
+    try {
+      await showNeoTactileDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => OfflineGainsDialog(gains: gains),
+      );
+    } finally {
+      if (mounted) {
+        _isOfflineDialogShowing = false;
+      }
+    }
   }
 
   @override

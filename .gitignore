@@ -25,6 +25,7 @@ Thumbs.db
 *.log
 *.tmp
 scratch/
+brag-output/
 
 # Android Keystore & Secrets
 android/key.properties
