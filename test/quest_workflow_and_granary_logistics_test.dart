@@ -61,11 +61,11 @@ void main() {
       const testCoord = HexAxial(1, 0);
       notifier.debugModifyState((s) {
         final updatedTiles = Map<HexAxial, HexTileModel>.from(s.tiles);
-        updatedTiles[testCoord] = HexTileModel(
+        updatedTiles[testCoord] = const HexTileModel(
           coord: testCoord,
           biome: TileBiome.meadow,
           state: TileState.owned,
-          building: const BuildingModel(type: BuildingType.windmill, level: 10),
+          building: BuildingModel(type: BuildingType.windmill, level: 10),
         );
         return s.copyWith(tiles: updatedTiles);
       });
@@ -80,18 +80,18 @@ void main() {
       const shrineCoord = HexAxial(0, 3);
       const neighborCoord = HexAxial(0, 2);
 
-      final shrineTile = HexTileModel(
+      const shrineTile = HexTileModel(
         coord: shrineCoord,
         biome: TileBiome.meadow,
         state: TileState.owned,
         shrine: ShrineType.foodBoost,
       );
 
-      final neighborTile = HexTileModel(
+      const neighborTile = HexTileModel(
         coord: neighborCoord,
         biome: TileBiome.meadow,
         state: TileState.owned,
-        building: const BuildingModel(type: BuildingType.corn, level: 1),
+        building: BuildingModel(type: BuildingType.corn, level: 1),
       );
 
       final synergyWithShrine = EconomyCalculator.calculateAdjacencySynergy(

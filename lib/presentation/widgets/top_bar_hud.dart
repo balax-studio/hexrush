@@ -1039,62 +1039,68 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  _buildSeasonBadge(
-                    gameState.season,
-                    lang,
-                    theme,
-                    onTap: () {
-                      showNeoTactileDialog<void>(
-                        context: context,
-                        builder: (ctx) => Dialog(
-                          backgroundColor: Colors.transparent,
-                          insetPadding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: SeasonCalendarWidget(
-                            season: gameState.season,
-                            language: lang,
-                            onClose: () => Navigator.of(ctx).pop(),
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildSeasonBadge(
+                        gameState.season,
+                        lang,
+                        theme,
+                        onTap: () {
+                          showNeoTactileDialog<void>(
+                            context: context,
+                            builder: (ctx) => Dialog(
+                              backgroundColor: Colors.transparent,
+                              insetPadding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: SeasonCalendarWidget(
+                                season: gameState.season,
+                                language: lang,
+                                onClose: () => Navigator.of(ctx).pop(),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 6),
+                      const CelestialOmenHud(),
+                      const SizedBox(width: 6),
+                      const TranshumanceBannerWidget(),
+                      if (gameState.season.isZud) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          height: 26,
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444),
+                            borderRadius: NeoBrutalistTheme.sharpRadius,
+                            border: Border.all(color: theme.border, width: 1.5),
+                            boxShadow: theme.hardShadowSmall,
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              GameVectorIcon(type: GameIconType.zud, size: 12, color: Colors.white),
+                              SizedBox(width: 4),
+                              Text(
+                                'ZUD AFETİ',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      );
-                    },
+                      ],
+                    ],
                   ),
-                  const SizedBox(width: 6),
-                  const CelestialOmenHud(),
-                  const SizedBox(width: 6),
-                  const TranshumanceBannerWidget(),
-                  if (gameState.season.isZud) ...[
-                    const SizedBox(width: 6),
-                    Container(
-                      height: 26,
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEF4444),
-                        borderRadius: NeoBrutalistTheme.sharpRadius,
-                        border: Border.all(color: theme.border, width: 1.5),
-                        boxShadow: theme.hardShadowSmall,
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          GameVectorIcon(type: GameIconType.zud, size: 12, color: Colors.white),
-                          SizedBox(width: 4),
-                          Text(
-                            'ZUD AFETİ',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
+                ),
               ),
+              const SizedBox(width: 6),
               GestureDetector(
                 onTap: () => _showResourceExplanation(
                   context,

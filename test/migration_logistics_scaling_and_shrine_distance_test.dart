@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hex_rush/core/hex/hex_coordinates.dart';
 import 'package:hex_rush/core/hex/hex_math.dart';
 import 'package:hex_rush/domain/economy/economy_calculator.dart';
-import 'package:hex_rush/domain/models/game_state_model.dart';
 import 'package:hex_rush/domain/models/hex_tile_model.dart';
 import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
 import 'package:hex_rush/presentation/widgets/great_migration_dialog.dart';
