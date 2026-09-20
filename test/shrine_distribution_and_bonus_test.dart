@@ -65,7 +65,7 @@ void main() {
       addTearDown(container.dispose);
 
       final state = container.read(gameStateProvider);
-      final center = const HexAxial(0, 0);
+      const center = HexAxial(0, 0);
 
       final dist4Shrine = state.tiles.values.firstWhere(
         (t) => HexMath.hexDistance(center, t.coord) == 4 && t.hasShrine,

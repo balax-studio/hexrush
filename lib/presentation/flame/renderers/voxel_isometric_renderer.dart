@@ -3641,7 +3641,6 @@ class VoxelIsometricRenderer {
     bool isWinter = false,
   }) {
     final int safeLevel = math.max(1, level);
-    final int v = variant % 3;
     final bool isTier3 = safeLevel >= 15;
     final bool isTier2 = safeLevel >= 4 && !isTier3;
 
@@ -5607,14 +5606,16 @@ class VoxelIsometricRenderer {
     // 5. Gece Kulübe & İskele Feneri
     if (isNight) {
       final double flicker = 0.75 + 0.25 * math.sin(animTime * 5.5);
+      final Color glowTop = Color.lerp(const Color(0xFFFACC15), const Color(0xFFFEF08A), flicker)!;
+      final Color glowSide = Color.lerp(const Color(0xFFEAB308), const Color(0xFFFACC15), flicker)!;
       drawIsoCube(
         canvas,
         Offset(hutBase.dx + 5.0 * cosIso, hutBase.dy - 8.0),
         w: 3.2,
         d: 2.0,
         h: 3.2,
-        topColor: const Color(0xFFFEF08A),
-        leftColor: const Color(0xFFFACC15),
+        topColor: glowTop,
+        leftColor: glowSide,
         rightColor: const Color(0xFFEAB308),
       );
     }
