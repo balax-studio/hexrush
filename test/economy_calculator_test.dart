@@ -72,14 +72,14 @@ void main() {
       );
       expect(gainsNoWorker.food, closeTo(0.42 * 30.0, 0.01));
 
-      // Test with worker (uncapped for elapsed seconds up to 8h)
+      // Test with food storehouse (uncapped for elapsed seconds up to 8h)
       final tilesWithWorker = [
         ...tiles,
         const HexTileModel(
           coord: HexAxial(1, 0),
           biome: TileBiome.meadow,
           state: TileState.owned,
-          building: BuildingModel(type: BuildingType.worker),
+          building: BuildingModel(type: BuildingType.granaryVault),
         ),
       ];
 

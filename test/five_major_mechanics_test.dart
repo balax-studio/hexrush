@@ -54,18 +54,25 @@ void main() {
       expect(allNodes.length, equals(12));
 
       final rootNode = allNodes.firstWhere((n) => n.id == 'lore_logistics_1');
-      expect(rootNode.costWisdom, equals(30.0));
+      expect(rootNode.costWisdom, equals(30000.0));
 
       final notifier = GameStateNotifier();
       // Set wisdom to unlock
       notifier.state = notifier.state.copyWith(
-        resources: notifier.state.resources.copyWith(wisdom: 200.0),
+        resources: notifier.state.resources.copyWith(wisdom: 100000.0),
       );
 
       final bool unlockSuccess = notifier.unlockSteppeLore(rootNode.id);
       expect(unlockSuccess, isTrue);
       expect(notifier.state.progression.unlockedLoreIds.contains(rootNode.id), isTrue);
-      expect(notifier.state.resources.wisdom, equals(170.0));
+      expect(notifier.state.resources.wisdom, equals(70000.0));
+
+      // 2. kanun açıldığında Ulu Töre Kanunu (q_lore_1) görevi otomatik senkronize olmalı
+      final rootNode2 = allNodes.firstWhere((n) => n.id == 'lore_weather_1');
+      notifier.unlockSteppeLore(rootNode2.id);
+      final loreQuest = notifier.state.quests.firstWhere((q) => q.id == 'q_lore_1');
+      expect(loreQuest.currentAmount, equals(2));
+      expect(loreQuest.isCompleted, isTrue);
     });
 
     test('3. Lojistik Kurgan Mahzenleri (Granary Vault) radius 3 buffer bonus', () {

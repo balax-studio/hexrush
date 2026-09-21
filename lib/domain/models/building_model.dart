@@ -123,6 +123,25 @@ extension BuildingTypeExtension on BuildingType {
         return 50;
     }
   }
+
+  /// Gıda üreten veya gıda kategorisinde üretim yapan binalar
+  bool get isFoodProducer {
+    switch (this) {
+      case BuildingType.corn:
+      case BuildingType.barley:
+      case BuildingType.pasture:
+      case BuildingType.orchard:
+      case BuildingType.bakery:
+      case BuildingType.fisherman:
+      case BuildingType.oasisCistern:
+      case BuildingType.reindeerSanctuary:
+      case BuildingType.herbalistYurt:
+      case BuildingType.kumisYurt:
+        return true;
+      default:
+        return false;
+    }
+  }
 }
 
 class BuildingModel {
@@ -368,7 +387,7 @@ class BuildingModel {
       case BuildingType.fishermanHut:
         return 1.40;
       case BuildingType.granaryVault:
-        return 33.6; // Tahıl Deposu & Ambarı saf gıda lojistiği için 10 kat (10x) transfer kapasitesi sunar
+        return 33.6; // Gıda Ambarı saf gıda lojistiği için 10 kat (10x) transfer kapasitesi sunar
       default:
         return 0.0;
     }

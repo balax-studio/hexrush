@@ -29,12 +29,12 @@ void main() {
     });
 
     test('calculateOfflineGains respects 4-hex worker coverage distance', () {
-      // Corn at (0, 0)
-      const cornTile = HexTileModel(
+      // Lumberjack at (0, 0)
+      const lumberjackTile = HexTileModel(
         coord: HexAxial(0, 0),
-        biome: TileBiome.meadow,
+        biome: TileBiome.forest,
         state: TileState.owned,
-        building: BuildingModel(type: BuildingType.corn, level: 1),
+        building: BuildingModel(type: BuildingType.lumberjack, level: 1),
       );
 
       // 1. Worker at distance 2 (inside 4-hex range) -> unconstrained gathering
@@ -46,11 +46,11 @@ void main() {
       );
 
       final gainsNear = EconomyCalculator.calculateOfflineGains(
-        tiles: [cornTile, workerNear],
+        tiles: [lumberjackTile, workerNear],
         elapsedSeconds: 100.0,
         globalMultiplier: 1.0,
       );
-      expect(gainsNear.food, closeTo(0.42 * 100.0, 0.01));
+      expect(gainsNear.wood, closeTo(0.35 * 100.0, 0.01));
 
       // 2. Worker at distance 5 (outside 4-hex range) -> capped at 30 seconds
       const workerFar = HexTileModel(
@@ -61,11 +61,11 @@ void main() {
       );
 
       final gainsFar = EconomyCalculator.calculateOfflineGains(
-        tiles: [cornTile, workerFar],
+        tiles: [lumberjackTile, workerFar],
         elapsedSeconds: 3600.0,
         globalMultiplier: 1.0,
       );
-      expect(gainsFar.food, closeTo(0.42 * 30.0, 0.01));
+      expect(gainsFar.wood, closeTo(0.35 * 30.0, 0.01));
     });
 
     test('GameStateNotifier game loop: in-range building auto-harvests, far building accumulates', () {

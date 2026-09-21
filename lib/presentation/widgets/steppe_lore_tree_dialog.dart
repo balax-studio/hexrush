@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
+import '../../core/utils/number_formatter.dart';
 import '../../domain/models/steppe_lore_tree_model.dart';
 import '../providers/game_state_notifier.dart';
 import 'icons/game_vector_icons.dart';
@@ -217,7 +218,7 @@ class _SteppeLoreTreeDialogState extends ConsumerState<SteppeLoreTreeDialog> {
                             backgroundColor: canAfford ? const Color(0xFF06B6D4) : theme.surfaceLight,
                             borderColor: canAfford ? const Color(0xFF0891B2) : theme.slateBorder,
                             child: Text(
-                              '${node.costWisdom.toInt()} ${GameLocalization.get('bitig_label', lang: lang)}',
+                              '${NumberFormatter.format(node.costWisdom)} ${GameLocalization.get('bitig_label', lang: lang)}',
                               style: TextStyle(
                                 color: canAfford ? Colors.black : Colors.grey.shade500,
                                 fontSize: 9,

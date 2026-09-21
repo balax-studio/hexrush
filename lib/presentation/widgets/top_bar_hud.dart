@@ -558,6 +558,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
         discoveredKurgans: gameState.discoveredKurgans,
         titles: gameState.titles,
         toreTalents: gameState.toreTalents,
+        totalMigrations: gameState.progression.totalMigrations,
+        kutMultiplier: gameState.progression.kutMultiplier,
       );
     }
 

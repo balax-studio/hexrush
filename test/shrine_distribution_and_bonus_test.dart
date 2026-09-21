@@ -80,21 +80,19 @@ void main() {
   });
 
   group('Kutlu Tapınak Özellik ve Yüzde Bonusları Testleri', () {
-    test('ShrineTypeExtension başlık ve yüzde değerlerini doğru döner ve merkezden uzaklaştıkça artar', () {
+    test('ShrineTypeExtension başlık ve x2/x3 kat formatlarını doğru döner', () {
       expect(ShrineType.foodBoost.titleTr, equals('Gıda Bereketi'));
-      expect(ShrineType.foodBoost.boostPercentage, equals(30.0));
-      expect(ShrineType.foodBoost.calculateBoostPercentage(4), equals(30.0));
-      expect(ShrineType.foodBoost.calculateBoostPercentage(6), equals(38.0)); // 30 + (2 * 4)
+      expect(ShrineType.foodBoost.getFormattedBonusTr(4, 2.0), equals('x2 (2 Kat) Gıda Bereketi (+%200)'));
+      expect(ShrineType.foodBoost.getFormattedBonusTr(4, 3.0), equals('x3 (3 Kat) Gıda Bereketi (+%300)'));
 
       expect(ShrineType.woodBoost.titleTr, equals('Odun Bereketi'));
-      expect(ShrineType.woodBoost.boostPercentage, equals(25.0));
-      expect(ShrineType.woodBoost.calculateBoostPercentage(4), equals(25.0));
-      expect(ShrineType.woodBoost.calculateBoostPercentage(7), equals(37.0)); // 25 + (3 * 4)
+      expect(ShrineType.woodBoost.getFormattedBonusTr(4, 2.0), equals('x2 (2 Kat) Odun Bereketi (+%200)'));
+
+      expect(ShrineType.stoneBoost.titleTr, equals('Taş Bereketi'));
+      expect(ShrineType.stoneBoost.getFormattedBonusTr(4, 3.0), equals('x3 (3 Kat) Taş Bereketi (+%300)'));
 
       expect(ShrineType.speedBoost.titleTr, equals('Lojistik Hızı'));
-      expect(ShrineType.speedBoost.boostPercentage, equals(20.0));
-      expect(ShrineType.speedBoost.calculateBoostPercentage(4), equals(20.0));
-      expect(ShrineType.speedBoost.calculateBoostPercentage(8), equals(36.0)); // 20 + (4 * 4)
+      expect(ShrineType.speedBoost.getFormattedBonusTr(4, 2.0), equals('x2 (2 Kat) Lojistik Hızı (+%200)'));
     });
 
     test('BuildingType enum içinde shrine bulunmamalıdır (Kadim Sunak kaldırıldı)', () {
@@ -133,6 +131,81 @@ void main() {
 
       // 2 adet sahip olunan Kutlu Tapınak = 2 Taç bina/tapınak kategorisinde
       expect(breakdown.buildingAndShrineCrowns, greaterThanOrEqualTo(2));
+    });
+
+    test('Lojistik/Taşıma Tapınakları sadece taşıma kapasitesini x2 veya x3 katlar, üretimi etkilemez', () {
+      final baseMap = <HexAxial, HexTileModel>{
+        const HexAxial(0, 0): const HexTileModel(
+          coord: HexAxial(0, 0),
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.worker, level: 1),
+        ),
+        const HexAxial(1, 0): const HexTileModel(
+          coord: HexAxial(1, 0),
+          biome: TileBiome.forest,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.lumberjack, level: 1),
+        ),
+      };
+
+      final baseWorkerMult = EconomyCalculator.getWorkerTransferMultiplier(tiles: baseMap);
+      expect(baseWorkerMult, equals(1.0));
+
+      // Lojistik tapınağı x3 (3 Kat) taşıma kapasitesi ile eklensin (komşu aura çakışması olmaması için (5,0) konumuna konur)
+      final mapWithTransportShrine = <HexAxial, HexTileModel>{
+        ...baseMap,
+        const HexAxial(5, 0): const HexTileModel(
+          coord: HexAxial(5, 0),
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          shrine: ShrineType.speedBoost,
+          shrineMultiplierValue: 3.0,
+        ),
+      };
+
+      final boostedWorkerMult = EconomyCalculator.getWorkerTransferMultiplier(tiles: mapWithTransportShrine);
+      expect(boostedWorkerMult, equals(3.0),
+          reason: 'Lojistik tapınağı aktifken taşıma katsayısı tam olarak x3 olmalıdır.');
+
+      // Üretim debisi kontrolü: Taşıma tapınağı oduncu üretim hızını artırmamalıdır.
+      final lumberRateNoShrine = EconomyCalculator.calculateTileEffectiveProductionRate(
+        tile: baseMap[const HexAxial(1, 0)]!,
+        tileMap: baseMap,
+        globalMultiplier: 1.0,
+      );
+      final lumberRateWithShrine = EconomyCalculator.calculateTileEffectiveProductionRate(
+        tile: mapWithTransportShrine[const HexAxial(1, 0)]!,
+        tileMap: mapWithTransportShrine,
+        globalMultiplier: 1.0,
+      );
+
+      expect(lumberRateWithShrine, equals(lumberRateNoShrine),
+          reason: 'Lojistik tapınağı hammadde üretim debisini değiştirmemeli, sadece taşıma kapasitesini artırmalıdır.');
+    });
+
+    test('Taş Bereketi tapınağı taş üretimi yapan binaları x2/x3 katlar', () {
+      final mapWithStoneShrine = <HexAxial, HexTileModel>{
+        const HexAxial(0, 0): const HexTileModel(
+          coord: HexAxial(0, 0),
+          biome: TileBiome.mountain,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.quarry, level: 1),
+        ),
+        const HexAxial(1, 0): const HexTileModel(
+          coord: HexAxial(1, 0),
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          shrine: ShrineType.stoneBoost,
+          shrineMultiplierValue: 2.0,
+        ),
+      };
+
+      final mult = EconomyCalculator.calculateResourceShrineMultiplier(
+        tiles: mapWithStoneShrine,
+        resourceType: 'stone',
+      );
+      expect(mult, equals(2.0), reason: 'Taş bereketi tapınağı taş çarpanını x2 yapmalıdır.');
     });
   });
 }

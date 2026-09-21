@@ -281,7 +281,9 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                             ? const Color(0xFF10B981)
                             : (tile.shrine == ShrineType.woodBoost
                                 ? const Color(0xFFF59E0B)
-                                : const Color(0xFF38BDF8)),
+                                : (tile.shrine == ShrineType.stoneBoost
+                                    ? const Color(0xFFA855F7)
+                                    : const Color(0xFF38BDF8))),
                         width: 1.8,
                       ),
                       borderRadius: NeoBrutalistTheme.sharpRadius,
@@ -294,13 +296,17 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                               ? GameIconType.food
                               : (tile.shrine == ShrineType.woodBoost
                                   ? GameIconType.wood
-                                  : GameIconType.frenzy),
+                                  : (tile.shrine == ShrineType.stoneBoost
+                                      ? GameIconType.stone
+                                      : GameIconType.frenzy)),
                           size: 18,
                           color: tile.shrine == ShrineType.foodBoost
                               ? const Color(0xFF34D399)
                               : (tile.shrine == ShrineType.woodBoost
                                   ? const Color(0xFFFBBF24)
-                                  : const Color(0xFF38BDF8)),
+                                  : (tile.shrine == ShrineType.stoneBoost
+                                      ? const Color(0xFFC084FC)
+                                      : const Color(0xFF38BDF8))),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -318,13 +324,15 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                '${tile.shrine.formattedBonusTr} (Büyük Göçte +5 Taç)',
+                                '${tile.formattedShrineBonusTr} (Büyük Göçte +5 Taç)',
                                 style: TextStyle(
                                   color: tile.shrine == ShrineType.foodBoost
                                       ? const Color(0xFF34D399)
                                       : (tile.shrine == ShrineType.woodBoost
                                           ? const Color(0xFFFBBF24)
-                                          : const Color(0xFF38BDF8)),
+                                          : (tile.shrine == ShrineType.stoneBoost
+                                              ? const Color(0xFFC084FC)
+                                              : const Color(0xFF38BDF8))),
                                   fontWeight: FontWeight.w800,
                                   fontSize: 10,
                                 ),
@@ -340,7 +348,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                             border: Border.all(color: theme.slateBorder, width: 1.0),
                           ),
                           child: Text(
-                            '+%${tile.shrine.boostPercentage.toInt()}',
+                            'x${tile.shrineMultiplierValue.toInt()}',
                             style: const TextStyle(
                               color: Color(0xFFFFD700),
                               fontWeight: FontWeight.w900,
@@ -1238,12 +1246,16 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
         ? const Color(0xFF10B981)
         : (shrine == ShrineType.woodBoost
             ? const Color(0xFFF59E0B)
-            : const Color(0xFF38BDF8));
+            : (shrine == ShrineType.stoneBoost
+                ? const Color(0xFFA855F7)
+                : const Color(0xFF38BDF8)));
     final lightColor = shrine == ShrineType.foodBoost
         ? const Color(0xFF34D399)
         : (shrine == ShrineType.woodBoost
             ? const Color(0xFFFBBF24)
-            : const Color(0xFF7DD3FC));
+            : (shrine == ShrineType.stoneBoost
+                ? const Color(0xFFC084FC)
+                : const Color(0xFF7DD3FC)));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1285,7 +1297,9 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                           ? GameIconType.food
                           : (shrine == ShrineType.woodBoost
                               ? GameIconType.wood
-                              : GameIconType.frenzy),
+                              : (shrine == ShrineType.stoneBoost
+                                  ? GameIconType.stone
+                                  : GameIconType.frenzy)),
                       size: 20,
                       color: lightColor,
                     ),
@@ -1327,7 +1341,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              isTr ? shrine.formattedBonusTr : shrine.formattedBonusEn,
+                              isTr ? tile.formattedShrineBonusTr : tile.formattedShrineBonusEn,
                               style: TextStyle(
                                 color: lightColor,
                                 fontSize: 11,
@@ -1346,8 +1360,8 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
               const SizedBox(height: 10),
               Text(
                 isTr
-                    ? 'Bu kadim adak alanı Kağanlığın kut gücünü artırır. Tüm imparatorluk genelinde +%${shrine.boostPercentage.toInt()} üretim bereketi ve Büyük Göçte +5 Taç kazandırır.'
-                    : 'This ancient shrine channels sacred blessings. Grants +${shrine.boostPercentage.toInt()}% global production and +5 Crowns upon Great Migration.',
+                    ? 'Bu kadim adak alanı Kağanlığın kut gücünü artırır. Tüm imparatorluk genelinde x${tile.shrineMultiplierValue.toInt()} (+%${(tile.shrineMultiplierValue * 100).toInt()}) ${tile.shrine.titleTr.toLowerCase()} sağlar ve Büyük Göçte +5 Taç kazandırır.'
+                    : 'This ancient shrine channels sacred blessings. Grants x${tile.shrineMultiplierValue.toInt()} (+${(tile.shrineMultiplierValue * 100).toInt()}%) ${tile.shrine.titleEn.toLowerCase()} globally and +5 Crowns upon Great Migration.',
                 style: const TextStyle(
                   color: Color(0xFFCBD5E1),
                   fontSize: 11,
@@ -1465,6 +1479,8 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
 
     final workerTransferMult = EconomyCalculator.getWorkerTransferMultiplier(
       toreTalents: gameState.toreTalents,
+      totalMigrations: gameState.progression.totalMigrations,
+      kutMultiplier: gameState.progression.kutMultiplier,
     );
     final isLogisticsBuilding = b.currentCarryingCapacity > 0 && b.baseProductionRate == 0.0;
 
@@ -1491,33 +1507,28 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
           )
         : null;
 
-    final double effectiveProductionRate = EconomyCalculator.calculateBuildingProduction(
-      type: b.type,
-      level: b.level,
-      baseRate: b.baseProductionRate,
-      globalMultiplier: globalMult *
-          EconomyCalculator.getDoctrineProductionMultiplier(
-            buildingType: b.type,
-            activeDoctrines: notifier.getActiveDoctrines(),
-          ) *
-          caravanMult *
-          symbiosisMult *
-          EconomyCalculator.calculateAncestralRelicMultiplier(gameState.discoveredKurgans) *
-          frenzyMult,
-      seasonMultiplier: EconomyCalculator.getSeasonProductionMultiplier(
-            season: gameState.season.current,
-            isZud: gameState.season.isZud,
-            isTileWarmed: tile.isWarmed,
-            titles: gameState.titles,
-          ) *
-          EconomyCalculator.calculateSoilHealthMultiplier(tile),
-      synergyMultiplier: chainSynergy * biomeSynergy,
-      workerMultiplier: 1.0,
+    final double seasonMult = EconomyCalculator.getSeasonProductionMultiplier(
+      season: gameState.season.current,
+      isZud: gameState.season.isZud,
+      isTileWarmed: tile.isWarmed,
+      titles: gameState.titles,
+    );
+
+    final double effectiveProductionRate = EconomyCalculator.calculateTileEffectiveProductionRate(
+      tile: tile,
+      tileMap: gameState.tiles,
+      globalMultiplier: globalMult,
+      seasonMultiplier: seasonMult,
       shrineMultiplier: gameState.shrineMultiplier,
-      seasonalBoostMultiplier: EconomyCalculator.getSeasonalProductionBoost(
-        season: gameState.season.current,
-        buildingType: b.type,
-      ),
+      season: gameState.season.current,
+      isZud: gameState.season.isZud,
+      cumulativeBiomeCounts: gameState.progression.cumulativeBiomeCounts,
+      activeDoctrines: notifier.getActiveDoctrines(),
+      caravanRoutes: gameState.caravanRoutes,
+      celestialOmen: gameState.celestialOmen,
+      discoveredKurgans: gameState.discoveredKurgans,
+      frenzyMultiplier: gameState.frenzyMultiplier,
+      titles: gameState.titles,
     );
 
     return Column(

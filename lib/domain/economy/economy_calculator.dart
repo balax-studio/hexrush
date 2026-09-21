@@ -424,10 +424,36 @@ class EconomyCalculator {
     );
   }
 
+  /// Fethedilmiş aktif tapınaklardan belirli bir kaynak/kategori için (food, wood, stone, transport) toplam çarpanı hesaplar
+  static double calculateResourceShrineMultiplier({
+    required Map<HexAxial, HexTileModel> tiles,
+    required String resourceType,
+  }) {
+    double mult = 1.0;
+    for (final tile in tiles.values) {
+      if (!tile.isOwned || !tile.hasShrine) continue;
+      if (resourceType == 'transport' && tile.shrine == ShrineType.speedBoost) {
+        mult *= tile.shrineMultiplierValue;
+      } else if (resourceType == 'food' && tile.shrine == ShrineType.foodBoost) {
+        mult *= tile.shrineMultiplierValue;
+      } else if (resourceType == 'wood' && tile.shrine == ShrineType.woodBoost) {
+        mult *= tile.shrineMultiplierValue;
+      } else if (resourceType == 'stone' && tile.shrine == ShrineType.stoneBoost) {
+        mult *= tile.shrineMultiplierValue;
+      }
+    }
+    return mult;
+  }
+
   static double getWorkerTransferMultiplier({
     Map<String, dynamic> talents = const {},
     Map<String, dynamic> toreTalents = const {},
     int totalMigrations = 0,
+    int tamgas = 0,
+    Map<String, bool> victoryMilestones = const {},
+    List<String> activeOaths = const [],
+    double? kutMultiplier,
+    Map<HexAxial, HexTileModel>? tiles,
   }) {
     final int speedLvl = (talents['workerSpeed'] as num? ?? 0).toInt();
     int roadLvl = 0;
@@ -436,8 +462,18 @@ class EconomyCalculator {
       roadLvl = (tonyukuk['pavedRoads'] as num? ?? 0).toInt();
     }
     final double baseMultiplier = 1.0 + speedLvl * 0.10 + roadLvl * 0.08;
-    final double migrationScaling = 1.0 + (totalMigrations * 0.35);
-    return baseMultiplier * migrationScaling;
+    final double effectiveKut = kutMultiplier ??
+        calculateKutMultiplier(
+          tamgas: tamgas,
+          totalMigrations: totalMigrations,
+          victoryMilestones: victoryMilestones,
+          activeOaths: activeOaths,
+        );
+    final double transportShrineMult = tiles != null
+        ? calculateResourceShrineMultiplier(tiles: tiles, resourceType: 'transport')
+        : 1.0;
+
+    return baseMultiplier * math.max(1.0, effectiveKut) * transportShrineMult;
   }
 
   /// Haritadaki tüm işçi kulübeleri ve üretim binaları arasında dinamik greedy lojistik yük dağıtımı yapar.
@@ -467,7 +503,17 @@ class EconomyCalculator {
 
     for (final t in tiles.values) {
       if (!t.isOwned || t.building == null) continue;
-      if (t.building!.type == BuildingType.worker) {
+      if (t.building!.type == BuildingType.castle) {
+        workerTiles.add(t);
+        final double cap = 1.0 * workerTransferMult;
+        totalCapacities[t.coord] = cap;
+        remainingCapacities[t.coord] = cap;
+        assignedTransports[t.coord] = 0.0;
+        demandInCoverage[t.coord] = 0.0;
+        coveredCounts[t.coord] = 0;
+      } else if (t.building!.type == BuildingType.worker ||
+          t.building!.type == BuildingType.fishermanHut ||
+          t.building!.type == BuildingType.granaryVault) {
         workerTiles.add(t);
         final double cap = t.building!.currentCarryingCapacity * workerTransferMult;
         totalCapacities[t.coord] = cap;
@@ -521,6 +567,9 @@ class EconomyCalculator {
 
       // Kapsayan işçi kulübelerini tespit edip sayaçlara ekle
       for (final wt in workerTiles) {
+        if (tile.building!.type.isFoodProducer && wt.building?.type == BuildingType.worker) {
+          continue; // İşçi kulübesi gıda depolayamaz / taşıyamaz
+        }
         if (tile.coord.distanceTo(wt.coord) <= 4) {
           demandInCoverage[wt.coord] = (demandInCoverage[wt.coord] ?? 0.0) + realRate;
           coveredCounts[wt.coord] = (coveredCounts[wt.coord] ?? 0) + 1;
@@ -533,8 +582,14 @@ class EconomyCalculator {
       double needed = remainingProductionToTransport[pt.coord] ?? 0.0;
       if (needed <= 0.0) continue;
 
+      final bool isFood = pt.building!.type.isFoodProducer;
       final inRangeWorkers = workerTiles
-          .where((wt) => pt.coord.distanceTo(wt.coord) <= 4)
+          .where((wt) {
+            if (isFood && wt.building?.type == BuildingType.worker) {
+              return false; // İşçi kulübesi gıda depolayamaz
+            }
+            return pt.coord.distanceTo(wt.coord) <= 4;
+          })
           .toList()
         ..sort((a, b) => pt.coord.distanceTo(a.coord).compareTo(pt.coord.distanceTo(b.coord)));
 
@@ -946,6 +1001,8 @@ class EconomyCalculator {
     final double workerTransferMult = getWorkerTransferMultiplier(
       toreTalents: toreTalents,
       totalMigrations: totalMigrations,
+      kutMultiplier: kutMultiplier,
+      tiles: tiles,
     );
 
     final Map<HexAxial, double> producerDemands = {for (final p in producers) p.coord: p.rate};
@@ -1368,18 +1425,36 @@ class EconomyCalculator {
           )
         : 1.0;
 
+    final String resType = (b.type == BuildingType.lumberjack ||
+            b.type == BuildingType.sawmill ||
+            b.type == BuildingType.furniture ||
+            b.type == BuildingType.resinCamp)
+        ? 'wood'
+        : (b.type == BuildingType.mine ||
+                b.type == BuildingType.quarry ||
+                b.type == BuildingType.obsidianForge ||
+                b.type == BuildingType.permafrostDig)
+            ? 'stone'
+            : 'food';
+
+    final double resShrineMult = calculateResourceShrineMultiplier(
+      tiles: tileMap,
+      resourceType: resType,
+    );
+
     final double warmedMultiplier = tile.isWarmed ? 1.50 : 1.0;
     final double effectiveSeasonMultiplier = seasonMultiplier * soilMult * warmedMultiplier;
+    final double damagePenalty = tile.isDamaged ? 0.5 : 1.0;
 
     return calculateBuildingProduction(
       type: b.type,
       level: b.level,
       baseRate: b.baseProductionRate,
-      globalMultiplier: globalMultiplier * docMult * caravanMult * symbiosisMult * ancestralMult * omenMult,
+      globalMultiplier: globalMultiplier * docMult * caravanMult * symbiosisMult * ancestralMult * omenMult * damagePenalty * frenzyMultiplier,
       seasonMultiplier: effectiveSeasonMultiplier,
       synergyMultiplier: chainSynergy * biomeSynergy,
       workerMultiplier: 1.0,
-      shrineMultiplier: shrineMultiplier,
+      shrineMultiplier: shrineMultiplier * resShrineMult,
       biomeMasteryMultiplier: masteryMult,
       seasonalBoostMultiplier: seasonalBoost,
     );
@@ -1395,17 +1470,20 @@ class EconomyCalculator {
     final Map<HexAxial, double> remainingDemand = Map.from(producerDemands);
     final List<HexAxial> workerSourceCoords = [];
     final List<double> workerSourceCapacities = [];
+    final List<BuildingType?> workerSourceTypes = [];
 
     for (final t in tiles.values) {
       if (!t.isOwned || t.building == null) continue;
       if (t.building!.type == BuildingType.castle) {
         workerSourceCoords.add(t.coord);
         workerSourceCapacities.add(1.0 * workerTransferMult);
+        workerSourceTypes.add(BuildingType.castle);
       } else if (t.building!.type == BuildingType.worker ||
           t.building!.type == BuildingType.fishermanHut ||
           t.building!.type == BuildingType.granaryVault) {
         workerSourceCoords.add(t.coord);
         workerSourceCapacities.add(t.building!.currentCarryingCapacity * workerTransferMult);
+        workerSourceTypes.add(t.building!.type);
       }
     }
 
@@ -1418,8 +1496,14 @@ class EconomyCalculator {
       double needed = entry.value;
       if (needed <= 0.0) continue;
 
+      final HexTileModel? pTile = tiles[pCoord];
+      final bool isFood = pTile?.building != null && pTile!.building!.type.isFoodProducer;
+
       final inRangeIndices = <int>[];
       for (int i = 0; i < workerSourceCoords.length; i++) {
+        if (isFood && workerSourceTypes[i] == BuildingType.worker) {
+          continue; // İşçi kulübesi gıda depolayamaz / taşıyamaz
+        }
         if (pCoord.distanceTo(workerSourceCoords[i]) <= 4 && workerSourceCapacities[i] > 0.0) {
           inRangeIndices.add(i);
         }
@@ -1680,11 +1764,22 @@ class EconomyCalculator {
     }
     final double cappedSeconds = effectiveSeconds;
 
-    final workerCoords = tiles
+    final foodStorageCoords = tiles
+        .where((t) =>
+            t.isOwned &&
+            t.building != null &&
+            (t.building!.type == BuildingType.granaryVault ||
+                t.building!.type == BuildingType.castle ||
+                t.building!.type == BuildingType.fishermanHut))
+        .map((t) => t.coord)
+        .toList();
+
+    final generalWorkerCoords = tiles
         .where((t) =>
             t.isOwned &&
             t.building != null &&
             (t.building!.type == BuildingType.worker ||
+                t.building!.type == BuildingType.granaryVault ||
                 t.building!.type == BuildingType.castle ||
                 t.building!.type == BuildingType.fishermanHut))
         .map((t) => t.coord)
@@ -1708,8 +1803,10 @@ class EconomyCalculator {
       final b = t.building;
       if (b == null) continue;
 
-      final bool hasWorkers =
-          workerCoords.any((wc) => t.coord.distanceTo(wc) <= 4);
+      final bool isFood = b.type.isFoodProducer;
+      final bool hasWorkers = isFood
+          ? foodStorageCoords.any((wc) => t.coord.distanceTo(wc) <= 4)
+          : generalWorkerCoords.any((wc) => t.coord.distanceTo(wc) <= 4);
 
       final double rate = calculateBuildingProduction(
         type: b.type,
@@ -1894,6 +1991,7 @@ class EconomyCalculator {
     Map<String, dynamic> toreTalents = const {},
     Map<String, dynamic> talents = const {},
     int totalMigrations = 0,
+    double kutMultiplier = 1.0,
   }) {
     double netFood = 0.0;
     double netWood = 0.0;
@@ -1930,6 +2028,8 @@ class EconomyCalculator {
       talents: talents,
       toreTalents: toreTalents,
       totalMigrations: totalMigrations,
+      kutMultiplier: kutMultiplier,
+      tiles: map,
     );
     final List<HexAxial> workerSourceCoords = [];
     final List<double> workerSourceCapacities = [];
