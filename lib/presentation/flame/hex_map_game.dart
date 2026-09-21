@@ -787,24 +787,37 @@ class HexMapGame extends FlameGame {
         // Hedef Pozisyonu Belirleme:
         // - Taşıma/Depolama binaları doğrudan Kağan Otağı'na (Şato) taşır.
         // - Üretim binaları varsa en yakın Taşıma/Depolama binasına, yoksa doğrudan Şato'ya taşır.
+        // - İşçi Kulübeleri gıda depolayamadığı için gıda üreticileri sadece Gıda Ambarı veya Şato'yu hedefler.
         Vector2 targetVec;
         if (isStorageHub) {
           targetVec = castleVec;
-        } else if (storageCoords.isNotEmpty) {
-          // En yakın depo binasını eksenel mesafeye göre bul
-          HexAxial nearestStorage = storageCoords.first;
-          int minDistance = entry.key.distanceTo(nearestStorage);
-          for (final sCoord in storageCoords) {
-            final dist = entry.key.distanceTo(sCoord);
-            if (dist < minDistance) {
-              minDistance = dist;
-              nearestStorage = sCoord;
-            }
-          }
-          final sPos = HexMath.hexToPixel(nearestStorage, hexSize: HexTileComponent.hexRadius);
-          targetVec = Vector2(sPos.dx, sPos.dy);
         } else {
-          targetVec = castleVec;
+          final bool isFood = bType.isFoodProducer;
+          final validStorage = storageCoords.where((sCoord) {
+            if (isFood) {
+              final sBuilding = state.tiles[sCoord]?.building;
+              if (sBuilding != null && sBuilding.type == BuildingType.worker) {
+                return false; // İşçi kulübesi gıda depolayamaz
+              }
+            }
+            return true;
+          }).toList();
+
+          if (validStorage.isNotEmpty) {
+            HexAxial nearestStorage = validStorage.first;
+            int minDistance = entry.key.distanceTo(nearestStorage);
+            for (final sCoord in validStorage) {
+              final dist = entry.key.distanceTo(sCoord);
+              if (dist < minDistance) {
+                minDistance = dist;
+                nearestStorage = sCoord;
+              }
+            }
+            final sPos = HexMath.hexToPixel(nearestStorage, hexSize: HexTileComponent.hexRadius);
+            targetVec = Vector2(sPos.dx, sPos.dy);
+          } else {
+            targetVec = castleVec;
+          }
         }
 
         // Kargo rengini belirle

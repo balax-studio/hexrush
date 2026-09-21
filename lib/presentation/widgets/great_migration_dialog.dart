@@ -142,8 +142,8 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
     final int nextProdBonusPercent = ((nextKut - 1.0) * 100).round();
     final int prodGainPercent = nextProdBonusPercent - currentProdBonusPercent;
 
-    final int currentLogisticsPercent = currentMigrations * 35;
-    final int nextLogisticsPercent = nextMigrations * 35;
+    final int currentLogisticsPercent = currentProdBonusPercent;
+    final int nextLogisticsPercent = nextProdBonusPercent;
 
     final headerTitle = GameLocalization.get('migration_header_title', lang: lang);
     final legacyHeader = GameLocalization.get('migration_legacy_header', lang: lang);
@@ -372,9 +372,9 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                           icon: Icons.local_shipping_outlined,
                           iconColor: const Color(0xFFF59E0B),
                           label: GameLocalization.get('migration_logistics_mult_summary', lang: lang),
-                          beforeText: '+$currentLogisticsPercent%',
-                          afterText: '+$nextLogisticsPercent%',
-                          badgeText: '+35% KAPASİTE',
+                          beforeText: '${currentKut.toStringAsFixed(2)}x (+%$currentLogisticsPercent)',
+                          afterText: '${nextKut.toStringAsFixed(2)}x (+%$nextLogisticsPercent)',
+                          badgeText: '+$prodGainPercent% KAPASİTE',
                           badgeColor: const Color(0xFFF59E0B),
                         ),
                         const Divider(color: Color(0xFF334155), height: 12),

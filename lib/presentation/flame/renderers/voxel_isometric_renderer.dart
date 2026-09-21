@@ -3125,8 +3125,8 @@ class VoxelIsometricRenderer {
     }
   }
 
-  /// 3D Voxel Şato / Kağan Otağı (Görsel Evrim Kademeleri: 5, 15, 30, 50 & Gece Işıkları)
-  /// 3D Voxel Kağan Otağı & İmparatorluk Şatosu (Nomad Khaganate Fortress - 5 Kademeli Evrim)
+  /// 3D Voxel Kağan Otağı & Eski Türk Kutlu Kağanlık Sarayı (Authentic Nomadic Khaganate Yurt Citadel)
+  /// Görsel Evrim Kademeleri: 0 (Lv 1-4), 1 (Lv 5-14), 2 (Lv 15-29), 3 (Lv 30-49), 4 (Lv 50+)
   static void drawVoxelCastle(
     Canvas canvas,
     Offset baseCenter,
@@ -3138,230 +3138,312 @@ class VoxelIsometricRenderer {
     // Görsel Kademe: 0 (Lv 1-4), 1 (Lv 5-14), 2 (Lv 15-29), 3 (Lv 30-49), 4 (Lv 50+)
     final int tier = safeLevel >= 50 ? 4 : (safeLevel >= 30 ? 3 : (safeLevel >= 15 ? 2 : (safeLevel >= 5 ? 1 : 0)));
 
-    final double extraH = tier * 4.0;
-    final double mainHeight = 18.0 + extraH;
-    final double towerHeight = 24.0 + extraH * 1.35;
+    final double extraH = tier * 3.5;
+    final double mainHeight = 16.0 + extraH;
+    final double towerHeight = 20.0 + extraH * 1.2;
     final double windSway = math.sin(animTime * 2.2) * 1.2;
 
-    // 1. Ana Saray / Taş Monolit Kaide & Mazgallı Taban
-    final Color wallTop = tier >= 3
-        ? const Color(0xFFFFFFFF)
-        : (tier >= 2 ? const Color(0xFFF1F5F9) : (tier >= 1 ? const Color(0xFFE2E8F0) : const Color(0xFFCBD5E1)));
-    final Color wallLeft = tier >= 3
-        ? const Color(0xFFCBD5E1)
-        : (tier >= 2 ? const Color(0xFF94A3B8) : (tier >= 1 ? const Color(0xFF94A3B8) : const Color(0xFF64748B)));
-    final Color wallRight = tier >= 3
+    // 1. Taş-Ahşap Kurgan Platform Kaidesi (Terraced Steppe Platform Base)
+    final Color platTop = tier >= 3
+        ? const Color(0xFFF1F5F9)
+        : (tier >= 1 ? const Color(0xFFE2E8F0) : const Color(0xFFCBD5E1));
+    final Color platLeft = tier >= 3
+        ? const Color(0xFF94A3B8)
+        : (tier >= 1 ? const Color(0xFF64748B) : const Color(0xFF475569));
+    final Color platRight = tier >= 3
         ? const Color(0xFF64748B)
-        : (tier >= 2 ? const Color(0xFF475569) : (tier >= 1 ? const Color(0xFF475569) : const Color(0xFF1E293B)));
+        : (tier >= 1 ? const Color(0xFF334155) : const Color(0xFF1E293B));
 
+    final double baseDim = 38.0 + (tier >= 3 ? 6.0 : (tier >= 1 ? 2.0 : 0.0));
     drawIsoCube(
       canvas,
       baseCenter,
-      w: 36.0 + (tier >= 3 ? 6.0 : (tier >= 1 ? 2.0 : 0.0)),
-      d: 36.0 + (tier >= 3 ? 6.0 : (tier >= 1 ? 2.0 : 0.0)),
-      h: mainHeight,
-      topColor: wallTop,
-      leftColor: wallLeft,
-      rightColor: wallRight,
+      w: baseDim,
+      d: baseDim,
+      h: 6.0,
+      topColor: platTop,
+      leftColor: platLeft,
+      rightColor: platRight,
       drawShadow: true,
       shadowOpacity: 0.45,
     );
 
-    // Ana Gövde Üst Mazgal Dişleri (Crenelated Castle Battlements)
+    // Üst Ahşap / Keçe Sundurma Platformu
+    drawIsoCube(
+      canvas,
+      Offset(baseCenter.dx, baseCenter.dy - 6.0),
+      w: baseDim - 4.0,
+      d: baseDim - 4.0,
+      h: 4.0,
+      topColor: tier >= 3 ? const Color(0xFFFDE047) : const Color(0xFFD97706),
+      leftColor: tier >= 3 ? const Color(0xFFEAB308) : const Color(0xFFB45309),
+      rightColor: tier >= 3 ? const Color(0xFFCA8A04) : const Color(0xFF78350F),
+    );
+
+    // 2. Dört Köşe Çadır Kuleleri / Ahşap Burçlar (4 Corner Yurt Watchtowers - Tier >= 1)
     if (tier >= 1) {
-      final double bWidth = 36.0 + (tier >= 3 ? 6.0 : (tier >= 1 ? 2.0 : 0.0));
-      drawIsoCube(
-        canvas,
-        Offset(baseCenter.dx, baseCenter.dy - mainHeight),
-        w: bWidth + 2.0,
-        d: bWidth + 2.0,
-        h: 2.2,
-        topColor: tier >= 3 ? const Color(0xFFFDE047) : wallTop,
-        leftColor: tier >= 3 ? const Color(0xFFEAB308) : wallLeft,
-        rightColor: tier >= 3 ? const Color(0xFFCA8A04) : wallRight,
-      );
+      final Color towerFeltTop = tier >= 4
+          ? const Color(0xFFFFFFFF)
+          : (tier >= 3 ? const Color(0xFFF8FAFC) : const Color(0xFFE2E8F0));
+      final Color towerFeltLeft = tier >= 4
+          ? const Color(0xFFCBD5E1)
+          : (tier >= 3 ? const Color(0xFF94A3B8) : const Color(0xFF64748B));
+      final Color towerFeltRight = tier >= 4
+          ? const Color(0xFF64748B)
+          : (tier >= 3 ? const Color(0xFF475569) : const Color(0xFF1E293B));
+
+      final Color roofTop = tier >= 4
+          ? const Color(0xFFFDE047)
+          : (tier >= 3 ? const Color(0xFF38BDF8) : (tier >= 2 ? const Color(0xFF60A5FA) : const Color(0xFFEF4444)));
+      final Color roofLeft = tier >= 4
+          ? const Color(0xFFF59E0B)
+          : (tier >= 3 ? const Color(0xFF0284C7) : (tier >= 2 ? const Color(0xFF3B82F6) : const Color(0xFFDC2626)));
+      final Color roofRight = tier >= 4
+          ? const Color(0xFFD97706)
+          : (tier >= 3 ? const Color(0xFF0369A1) : (tier >= 2 ? const Color(0xFF1D4ED8) : const Color(0xFF991B1B)));
+
+      for (final xSign in [-1.0, 1.0]) {
+        for (final ySign in [-1.0, 1.0]) {
+          final double tx = baseCenter.dx + xSign * 16.0 * cosIso;
+          final double ty = baseCenter.dy - 10.0 + ySign * 16.0 * sinIso;
+
+          // Çadır Kule Keçe Gövdesi (Kerge Kafesli Çadır)
+          drawIsoCube(
+            canvas,
+            Offset(tx, ty),
+            w: 11.0,
+            d: 11.0,
+            h: towerHeight,
+            topColor: towerFeltTop,
+            leftColor: towerFeltLeft,
+            rightColor: towerFeltRight,
+          );
+
+          // Kule Kırmızı / Altın Kemer Şeridi
+          drawIsoCube(
+            canvas,
+            Offset(tx, ty - towerHeight * 0.5),
+            w: 11.8,
+            d: 11.8,
+            h: 1.8,
+            topColor: const Color(0xFFDC2626),
+            leftColor: const Color(0xFFB91C1C),
+            rightColor: const Color(0xFF991B1B),
+          );
+
+          // Kule Konik Keçe Çatısı
+          drawIsoCube(
+            canvas,
+            Offset(tx, ty - towerHeight),
+            w: 13.0,
+            d: 13.0,
+            h: 6.5 + (tier >= 2 ? 2.5 : 0.0),
+            topColor: roofTop,
+            leftColor: roofLeft,
+            rightColor: roofRight,
+          );
+
+          // Kule Şangırak / Altın Taç Halkası
+          drawIsoCube(
+            canvas,
+            Offset(tx, ty - towerHeight - (6.5 + (tier >= 2 ? 2.5 : 0.0))),
+            w: 4.5,
+            d: 4.5,
+            h: 2.2,
+            topColor: const Color(0xFFFDE047),
+            leftColor: const Color(0xFFEAB308),
+            rightColor: const Color(0xFFCA8A04),
+          );
+
+          // Dokuz Kuyruklu Kağanlık Tuğları / Sancakları
+          drawIsoCube(
+            canvas,
+            Offset(tx, ty - towerHeight - 8.0),
+            w: 1.8,
+            d: 1.8,
+            h: 10.0 + (tier >= 3 ? 3.0 : 0.0),
+            topColor: const Color(0xFFF59E0B),
+            leftColor: const Color(0xFFD97706),
+            rightColor: const Color(0xFFB45309),
+          );
+          drawIsoCube(
+            canvas,
+            Offset(tx + 2.5 * cosIso + windSway, ty - towerHeight - 14.0),
+            w: 5.0 + (tier >= 3 ? 2.0 : 0.0),
+            d: 1.2,
+            h: 3.8,
+            topColor: tier >= 3 ? const Color(0xFF38BDF8) : const Color(0xFFEF4444),
+            leftColor: tier >= 3 ? const Color(0xFF0284C7) : const Color(0xFFDC2626),
+            rightColor: tier >= 3 ? const Color(0xFF0369A1) : const Color(0xFFB91C1C),
+          );
+
+          // Gece Çadır Kulesi Işığı
+          if (isNight) {
+            drawIsoCube(
+              canvas,
+              Offset(tx, ty - towerHeight * 0.3),
+              w: 3.5,
+              d: 3.5,
+              h: 3.5,
+              topColor: const Color(0xFFFEF08A),
+              leftColor: const Color(0xFFFBBF24),
+              rightColor: const Color(0xFFF59E0B),
+            );
+          }
+        }
+      }
     }
 
-    // 2. Anıtsal Taçkapı & Portal
-    final bool hasGoldPortal = tier >= 1;
-    final Offset portalPos = Offset(baseCenter.dx, baseCenter.dy + 8.5);
+    // 3. Merkez Büyük Kağanlık Ak-Otağı (Grand Imperial White Yurt)
+    final Offset otagPos = Offset(baseCenter.dx, baseCenter.dy - 10.0);
+
+    // Otağ Keçe Taban Gövdesi (Lattice Kerge / Felt Wall)
+    final double otagW = 24.0 + (tier >= 3 ? 4.0 : 0.0);
+    final Color otagTop = tier >= 4
+        ? const Color(0xFFFFFFFF)
+        : (tier >= 2 ? const Color(0xFFF8FAFC) : const Color(0xFFE2E8F0));
+    final Color otagLeft = tier >= 4
+        ? const Color(0xFFE2E8F0)
+        : (tier >= 2 ? const Color(0xFFCBD5E1) : const Color(0xFF94A3B8));
+    final Color otagRight = tier >= 4
+        ? const Color(0xFF94A3B8)
+        : (tier >= 2 ? const Color(0xFF64748B) : const Color(0xFF475569));
+
+    drawIsoCube(
+      canvas,
+      otagPos,
+      w: otagW,
+      d: otagW,
+      h: mainHeight,
+      topColor: otagTop,
+      leftColor: otagLeft,
+      rightColor: otagRight,
+    );
+
+    // Otağ Kırmızı & Altın Nakışlı Çadır Kuşağı (Embroidered Felt Band)
+    drawIsoCube(
+      canvas,
+      Offset(otagPos.dx, otagPos.dy - mainHeight * 0.45),
+      w: otagW + 1.2,
+      d: otagW + 1.2,
+      h: 2.5,
+      topColor: const Color(0xFFEF4444),
+      leftColor: const Color(0xFFDC2626),
+      rightColor: const Color(0xFFB91C1C),
+    );
+
+    // Otağ Konik Çadır Kubbesi (Dome / Conical Roof)
+    final Color otagRoofTop = tier >= 4
+        ? const Color(0xFFFDE047)
+        : (tier >= 3 ? const Color(0xFF38BDF8) : (tier >= 1 ? const Color(0xFFF59E0B) : const Color(0xFFF8FAFC)));
+    final Color otagRoofLeft = tier >= 4
+        ? const Color(0xFFF59E0B)
+        : (tier >= 3 ? const Color(0xFF0284C7) : (tier >= 1 ? const Color(0xFFD97706) : const Color(0xFFCBD5E1)));
+    final Color otagRoofRight = tier >= 4
+        ? const Color(0xFFD97706)
+        : (tier >= 3 ? const Color(0xFF0369A1) : (tier >= 1 ? const Color(0xFFB45309) : const Color(0xFF94A3B8)));
+
+    drawIsoCube(
+      canvas,
+      Offset(otagPos.dx, otagPos.dy - mainHeight),
+      w: otagW + 2.0,
+      d: otagW + 2.0,
+      h: 7.0 + (tier >= 2 ? 3.0 : 0.0),
+      topColor: otagRoofTop,
+      leftColor: otagRoofLeft,
+      rightColor: otagRoofRight,
+    );
+
+    // 4. Anıtsal Oyma Ahşap Taçkapı (Carved Entrance Portal & Felt Flap)
+    final Offset portalPos = Offset(baseCenter.dx, baseCenter.dy + 4.0);
     drawIsoCube(
       canvas,
       portalPos,
-      w: 11.0 + (tier >= 3 ? 3.0 : 0.0),
-      d: 5.0,
-      h: 10.0 + tier * 2.5,
-      topColor: hasGoldPortal ? const Color(0xFFF59E0B) : const Color(0xFF1E293B),
-      leftColor: hasGoldPortal ? const Color(0xFFD97706) : const Color(0xFF0F172A),
-      rightColor: hasGoldPortal ? const Color(0xFFB45309) : const Color(0xFF020617),
+      w: 11.0 + (tier >= 3 ? 2.0 : 0.0),
+      d: 4.5,
+      h: 9.0 + tier * 2.0,
+      topColor: const Color(0xFFD97706),
+      leftColor: const Color(0xFFB45309),
+      rightColor: const Color(0xFF78350F),
       drawShadow: true,
     );
 
-    // Portal İçi Kemer ve Demir Kapı
+    // Kapı İç Perdesi (Leather/Felt Curtain)
     drawIsoCube(
       canvas,
-      Offset(portalPos.dx, portalPos.dy + 2.0),
-      w: 5.5,
-      d: 2.0,
-      h: 7.0 + tier * 1.5,
-      topColor: const Color(0xFF451A03),
-      leftColor: const Color(0xFF334155),
-      rightColor: const Color(0xFF1E293B),
+      Offset(portalPos.dx, portalPos.dy + 1.8),
+      w: 6.0,
+      d: 1.8,
+      h: 6.5 + tier * 1.2,
+      topColor: const Color(0xFF7F1D1D),
+      leftColor: const Color(0xFF991B1B),
+      rightColor: const Color(0xFF451A03),
     );
 
-    // 3. Kule Çatı Renkleri:
-    final Color roofTop = tier >= 4
-        ? const Color(0xFFFDE047)
-        : (tier >= 3
-            ? const Color(0xFF38BDF8)
-            : (tier >= 2
-                ? const Color(0xFF60A5FA)
-                : (tier >= 1 ? const Color(0xFFFBBF24) : const Color(0xFFEF4444))));
-    final Color roofLeft = tier >= 4
-        ? const Color(0xFFF59E0B)
-        : (tier >= 3
-            ? const Color(0xFF0284C7)
-            : (tier >= 2
-                ? const Color(0xFF3B82F6)
-                : (tier >= 1 ? const Color(0xFFF59E0B) : const Color(0xFFDC2626))));
-    final Color roofRight = tier >= 4
-        ? const Color(0xFFD97706)
-        : (tier >= 3
-            ? const Color(0xFF0369A1)
-            : (tier >= 2
-                ? const Color(0xFF1D4ED8)
-                : (tier >= 1 ? const Color(0xFFD97706) : const Color(0xFF991B1B))));
-
-    // 4. Yan Savunma Kuleleri (4 Köşe Kulesi)
-    for (final xSign in [-1.0, 1.0]) {
-      final double tx = baseCenter.dx + xSign * 16.5 * cosIso;
-      final double ty = baseCenter.dy - mainHeight + xSign * 16.5 * sinIso;
-
-      // Kule Gövdesi
-      drawIsoCube(
-        canvas,
-        Offset(tx, ty + 12.0),
-        w: 12.5,
-        d: 12.5,
-        h: towerHeight,
-        topColor: wallTop,
-        leftColor: wallLeft,
-        rightColor: wallRight,
-      );
-
-      // Gece Kule Penceresi Işığı
-      if (isNight) {
-        drawIsoCube(
-          canvas,
-          Offset(tx, ty + 2.0),
-          w: 4.5,
-          d: 4.5,
-          h: 4.5,
-          topColor: const Color(0xFFFEF08A),
-          leftColor: const Color(0xFFFBBF24),
-          rightColor: const Color(0xFFF59E0B),
-        );
-      }
-
-      // Kule Kademeli Çatısı
-      drawIsoCube(
-        canvas,
-        Offset(tx, ty - (towerHeight - 12.0)),
-        w: 14.5,
-        d: 14.5,
-        h: 8.5 + (tier >= 2 ? 3.5 : 0.0),
-        topColor: roofTop,
-        leftColor: roofLeft,
-        rightColor: roofRight,
-      );
-
-      // Seviye 5+ Kule Üstü Kağanlık Tuğları / Sancakları (Rüzgarla Dalgalanan)
-      if (tier >= 1) {
-        drawIsoCube(
-          canvas,
-          Offset(tx, ty - (towerHeight - 4.0)),
-          w: 2.2,
-          d: 2.2,
-          h: 11.0 + (tier >= 3 ? 4.0 : 0.0),
-          topColor: const Color(0xFFFEF08A),
-          leftColor: const Color(0xFFEAB308),
-          rightColor: const Color(0xFFCA8A04),
-        );
-        drawIsoCube(
-          canvas,
-          Offset(tx + 3.0 * cosIso + windSway, ty - (towerHeight + 2.0)),
-          w: 5.5 + (tier >= 3 ? 2.5 : 0.0),
-          d: 1.5,
-          h: 4.2 + (tier >= 3 ? 1.8 : 0.0),
-          topColor: tier >= 3 ? const Color(0xFF38BDF8) : const Color(0xFFEF4444),
-          leftColor: tier >= 3 ? const Color(0xFF0284C7) : const Color(0xFFDC2626),
-          rightColor: tier >= 3 ? const Color(0xFF0369A1) : const Color(0xFFB91C1C),
-        );
-      }
-    }
-
-    // 5. Merkez Kağan Otağı / Baş Kule
-    final Offset keepTop = Offset(baseCenter.dx, baseCenter.dy - mainHeight);
-
-    if (tier >= 2) {
-      // Seviye 15+ Merkez İmparatorluk Kubbesi
-      drawIsoCube(
-        canvas,
-        keepTop,
-        w: 17.0 + (tier >= 4 ? 4.5 : 0.0),
-        d: 17.0 + (tier >= 4 ? 4.5 : 0.0),
-        h: 8.5 + (tier >= 3 ? 5.5 : 0.0),
-        topColor: const Color(0xFFFEF08A),
-        leftColor: const Color(0xFFEAB308),
-        rightColor: const Color(0xFFCA8A04),
-      );
-    }
-
-    // 6. Merkez Altın Tamga Sancağı / Zirve Direği
-    final double spireBaseY = tier >= 2 ? keepTop.dy - 8.5 : keepTop.dy;
+    // 5. Altın Şangırak (Toono - Central Smoke Vent Crown Ring)
+    final double sangirakY = otagPos.dy - mainHeight - (7.0 + (tier >= 2 ? 3.0 : 0.0));
     drawIsoCube(
       canvas,
-      Offset(keepTop.dx, spireBaseY),
-      w: tier >= 3 ? 4.2 : 3.2,
-      d: tier >= 3 ? 4.2 : 3.2,
-      h: 15.0 + tier * 3.5,
+      Offset(otagPos.dx, sangirakY),
+      w: 9.0 + (tier >= 3 ? 3.0 : 0.0),
+      d: 9.0 + (tier >= 3 ? 3.0 : 0.0),
+      h: 4.0,
       topColor: const Color(0xFFFDE047),
       leftColor: const Color(0xFFEAB308),
       rightColor: const Color(0xFFCA8A04),
     );
 
-    // Dalgalanan Kağanlık Baş Sancağı
+    // 6. Zirve Kağanlık Sancağı & Orhun Tamga Direği (Khagan Flag Spire)
+    final double spireY = sangirakY - 4.0;
     drawIsoCube(
       canvas,
-      Offset(keepTop.dx + 4.0 * cosIso + windSway * 1.3, spireBaseY - 12.0),
-      w: 6.5 + tier * 1.5,
-      d: 1.5,
-      h: 5.0 + tier * 1.2,
-      topColor: tier >= 4 ? const Color(0xFFFDE047) : (tier >= 2 ? const Color(0xFF0284C7) : const Color(0xFFEF4444)),
-      leftColor: tier >= 4 ? const Color(0xFFF59E0B) : (tier >= 2 ? const Color(0xFF0369A1) : const Color(0xFFDC2626)),
-      rightColor: tier >= 4 ? const Color(0xFFD97706) : (tier >= 2 ? const Color(0xFF075985) : const Color(0xFFB91C1C)),
+      Offset(otagPos.dx, spireY),
+      w: tier >= 3 ? 3.8 : 2.8,
+      d: tier >= 3 ? 3.8 : 2.8,
+      h: 14.0 + tier * 3.0,
+      topColor: const Color(0xFFFDE047),
+      leftColor: const Color(0xFFEAB308),
+      rightColor: const Color(0xFFCA8A04),
     );
 
-    // 7. Seviye 30+ ve Seviye 50+ Göksel Kağanlık Zirve Tacı
+    // Dalgalanan Kutlu Kağanlık Sancağı (Gök Bayrak / Al Bayrak)
+    drawIsoCube(
+      canvas,
+      Offset(otagPos.dx + 4.0 * cosIso + windSway * 1.3, spireY - 10.0),
+      w: 6.5 + tier * 1.5,
+      d: 1.4,
+      h: 4.8 + tier * 1.0,
+      topColor: tier >= 4 ? const Color(0xFFFDE047) : (tier >= 3 ? const Color(0xFF38BDF8) : const Color(0xFFEF4444)),
+      leftColor: tier >= 4 ? const Color(0xFFF59E0B) : (tier >= 3 ? const Color(0xFF0284C7) : const Color(0xFFDC2626)),
+      rightColor: tier >= 4 ? const Color(0xFFD97706) : (tier >= 3 ? const Color(0xFF0369A1) : const Color(0xFFB91C1C)),
+    );
+
+    // Seviye 30+ ve 50+ Gök Tengri Tacı / Orhun Tamgası Zirve Işığı
     if (tier >= 3) {
       drawIsoCube(
         canvas,
-        Offset(keepTop.dx, spireBaseY - 15.0 - tier * 2.5),
-        w: tier >= 4 ? 13.0 : 9.0,
-        d: tier >= 4 ? 13.0 : 9.0,
-        h: tier >= 4 ? 6.5 : 4.5,
-        topColor: const Color(0xFFFACC15),
+        Offset(otagPos.dx, spireY - 14.0 - tier * 2.0),
+        w: tier >= 4 ? 11.0 : 8.0,
+        d: tier >= 4 ? 11.0 : 8.0,
+        h: tier >= 4 ? 5.5 : 4.0,
+        topColor: const Color(0xFFFDE047),
         leftColor: const Color(0xFFEAB308),
-        rightColor: const Color(0xFFB45309),
+        rightColor: const Color(0xFFCA8A04),
       );
     }
 
-    // 8. Gece Kapı Meşaleleri
+    // 7. Gece Işıkları ve Ocak Ateşi Parıltısı
     if (isNight) {
       final double flicker = 0.75 + 0.25 * math.sin(animTime * 5.0);
-      _sharedFillPaint.color = const Color(0xFFF59E0B).withValues(alpha: 0.7 * flicker);
-      canvas.drawCircle(Offset(portalPos.dx - 4.5, portalPos.dy - 3.0), 3.8 * flicker, _sharedFillPaint);
-      canvas.drawCircle(Offset(portalPos.dx + 4.5, portalPos.dy - 3.0), 3.8 * flicker, _sharedFillPaint);
+
+      // Şangırak Ocak Ateşi Tütmesi / Işığı (Hearth Light from Smoke Vent)
+      _sharedFillPaint.color = const Color(0xFFF59E0B).withValues(alpha: 0.8 * flicker);
+      canvas.drawCircle(Offset(otagPos.dx, sangirakY - 2.0), 5.5 * flicker, _sharedFillPaint);
+
+      // Kapı Meşaleleri (Entrance Torches)
+      _sharedFillPaint.color = const Color(0xFFF59E0B).withValues(alpha: 0.75 * flicker);
+      canvas.drawCircle(Offset(portalPos.dx - 4.5, portalPos.dy - 2.0), 3.5 * flicker, _sharedFillPaint);
+      canvas.drawCircle(Offset(portalPos.dx + 4.5, portalPos.dy - 2.0), 3.5 * flicker, _sharedFillPaint);
     }
   }
 
@@ -5670,6 +5752,11 @@ class VoxelIsometricRenderer {
         runeTop = const Color(0xFFFBBF24);
         runeLeft = const Color(0xFFF59E0B);
         runeRight = const Color(0xFFD97706);
+        break;
+      case ShrineType.stoneBoost:
+        runeTop = const Color(0xFFC084FC);
+        runeLeft = const Color(0xFFA855F7);
+        runeRight = const Color(0xFF9333EA);
         break;
       case ShrineType.speedBoost:
       case ShrineType.none:

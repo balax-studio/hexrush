@@ -85,7 +85,7 @@ class SteppeLoreNode {
           tier: 1,
           title: 'Çevik Atlı Posta',
           description: 'İşçi taşıma menzilini +1 Hex genişletir ve kervan hızını +%25 artırır.',
-          costWisdom: 30.0,
+          costWisdom: 30000.0,
           effectMultiplier: 1.25,
         ),
         SteppeLoreNode(
@@ -94,7 +94,7 @@ class SteppeLoreNode {
           tier: 2,
           title: 'İpek Yolu Ağı',
           description: 'Kervan yollarının ticaret sinerjisini +%50 artırır.',
-          costWisdom: 80.0,
+          costWisdom: 80000.0,
           effectMultiplier: 1.50,
         ),
         SteppeLoreNode(
@@ -103,7 +103,7 @@ class SteppeLoreNode {
           tier: 3,
           title: 'Kağanlık Kurye Teşkilatı',
           description: 'Tüm haritada işçi taşıma kapasitesini 2 katına çıkarır.',
-          costWisdom: 200.0,
+          costWisdom: 200000.0,
           effectMultiplier: 2.0,
         ),
 
@@ -114,7 +114,7 @@ class SteppeLoreNode {
           tier: 1,
           title: 'Kalın Keçe Dokuma',
           description: 'Kışın donan karoların ısıtma odun maliyetini %30 azaltır.',
-          costWisdom: 30.0,
+          costWisdom: 30000.0,
           effectMultiplier: 0.70,
         ),
         SteppeLoreNode(
@@ -123,7 +123,7 @@ class SteppeLoreNode {
           tier: 2,
           title: 'Ocak Başı Ateşi',
           description: 'Isıtılan karoların kışın üretim çarpanını +%40 artırır.',
-          costWisdom: 80.0,
+          costWisdom: 80000.0,
           effectMultiplier: 1.40,
         ),
         SteppeLoreNode(
@@ -132,7 +132,7 @@ class SteppeLoreNode {
           tier: 3,
           title: 'Zud Direnci',
           description: 'Zud fırtınasının negatif üretim cezasını yarı yarıya düşürür.',
-          costWisdom: 200.0,
+          costWisdom: 200000.0,
           effectMultiplier: 0.50,
         ),
 
@@ -143,7 +143,7 @@ class SteppeLoreNode {
           tier: 1,
           title: 'Yaylak-Kışlak Göçü',
           description: 'Nadasa bırakılan çayırlarda toprak sağlığı yenilenme hızını 2x yapar.',
-          costWisdom: 30.0,
+          costWisdom: 30000.0,
           effectMultiplier: 2.0,
         ),
         SteppeLoreNode(
@@ -151,8 +151,8 @@ class SteppeLoreNode {
           branch: SteppeLoreBranch.soilMastery,
           tier: 2,
           title: 'Kutlu Tohum Islahı',
-          description: 'Tüm tarla ve meyve bahçelerinde temel hasat verimini +%35 artırır.',
-          costWisdom: 80.0,
+          description: 'Tüm tarla ve meyve bahçalarında temel hasat verimini +%35 artırır.',
+          costWisdom: 80000.0,
           effectMultiplier: 1.35,
         ),
         SteppeLoreNode(
@@ -161,7 +161,7 @@ class SteppeLoreNode {
           tier: 3,
           title: 'Toprak Nefesi Patlaması',
           description: 'Dinlenmiş toprağın nefes patlaması (respiration burst) çarpanını 3 katına çıkarır.',
-          costWisdom: 200.0,
+          costWisdom: 200000.0,
           effectMultiplier: 3.0,
         ),
 
@@ -172,7 +172,7 @@ class SteppeLoreNode {
           tier: 1,
           title: 'Körük Ocağı Islahı',
           description: 'Madenlerden cevher ve demir çıkarma hızını +%30 artırır.',
-          costWisdom: 30.0,
+          costWisdom: 30000.0,
           effectMultiplier: 1.30,
         ),
         SteppeLoreNode(
@@ -181,7 +181,7 @@ class SteppeLoreNode {
           tier: 2,
           title: 'Şam Çeliği Sırrı',
           description: 'Şam Çeliği dökümhanesi verimini +%50 artırır.',
-          costWisdom: 80.0,
+          costWisdom: 80000.0,
           effectMultiplier: 1.50,
         ),
         SteppeLoreNode(
@@ -190,7 +190,7 @@ class SteppeLoreNode {
           tier: 3,
           title: 'Mete Han Yay & Kılıçları',
           description: 'Tüm maden ve zanaat yapılarının küresel verimini 2 katına çıkarır.',
-          costWisdom: 200.0,
+          costWisdom: 200000.0,
           effectMultiplier: 2.0,
         ),
       ];

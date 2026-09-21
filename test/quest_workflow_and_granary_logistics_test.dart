@@ -26,13 +26,88 @@ void main() {
       expect(granary.baseCarryingCapacity / worker.baseCarryingCapacity, closeTo(10.0, 0.01));
     });
 
-    test('Terminoloji: Oduncu Kampı, Hızar Otağı ve Tahıl Deposu & Ambarı net ve çakışmasızdır', () {
+    test('Tahıl Ambarı (granaryVault) lojistik istatistikleri ve kullanım oranı doğru hesaplanır', () {
+      const granaryCoord = HexAxial(0, 0);
+      const farmCoord = HexAxial(1, 0);
+
+      const granaryTile = HexTileModel(
+        coord: granaryCoord,
+        biome: TileBiome.meadow,
+        state: TileState.owned,
+        building: BuildingModel(type: BuildingType.granaryVault, level: 1),
+      );
+
+      const farmTile = HexTileModel(
+        coord: farmCoord,
+        biome: TileBiome.meadow,
+        state: TileState.owned,
+        building: BuildingModel(type: BuildingType.corn, level: 1),
+      );
+
+      final tileMap = {
+        granaryCoord: granaryTile,
+        farmCoord: farmTile,
+      };
+
+      final stats = EconomyCalculator.calculateWorkerLogisticsStats(
+        workerTile: granaryTile,
+        tiles: tileMap,
+      );
+
+      expect(stats.totalCapacity, greaterThan(0.0));
+      expect(stats.utilizedCapacity, greaterThan(0.0));
+      expect(stats.utilizationRatio, greaterThan(0.0));
+      expect(stats.coveredBuildingsCount, equals(1));
+    });
+
+    test('Terminoloji: Oduncu Kampı, Hızar Otağı ve Gıda Ambarı net ve çakışmasızdır', () {
       expect(GameLocalization.get('lumberjack_name', lang: 'tr'), 'Oduncu Kampı');
       expect(GameLocalization.get('sawmill_name', lang: 'tr'), 'Hızar Otağı');
-      expect(GameLocalization.get('granary_vault_name', lang: 'tr'), 'Tahıl Deposu & Ambarı');
+      expect(GameLocalization.get('granary_vault_name', lang: 'tr'), 'Gıda Ambarı');
       expect(GameLocalization.get('lumberjack_name', lang: 'en'), 'Lumberjack Camp');
       expect(GameLocalization.get('sawmill_name', lang: 'en'), 'Sawmill Works');
-      expect(GameLocalization.get('granary_vault_name', lang: 'en'), 'Granary Vault & Storehouse');
+      expect(GameLocalization.get('granary_vault_name', lang: 'en'), 'Food Storehouse');
+    });
+
+    test('İşçi kulübesi gıda depolayamaz/taşıyamaz; gıda gıda ambarında depolanır', () {
+      const cornCoord = HexAxial(1, 0);
+      const quarryCoord = HexAxial(2, 0);
+      const workerCoord = HexAxial(0, 0);
+
+      const cornTile = HexTileModel(
+        coord: cornCoord,
+        biome: TileBiome.meadow,
+        state: TileState.owned,
+        building: BuildingModel(type: BuildingType.corn, level: 1),
+      );
+
+      const quarryTile = HexTileModel(
+        coord: quarryCoord,
+        biome: TileBiome.meadow,
+        state: TileState.owned,
+        building: BuildingModel(type: BuildingType.quarry, level: 1),
+      );
+
+      const workerTile = HexTileModel(
+        coord: workerCoord,
+        biome: TileBiome.meadow,
+        state: TileState.owned,
+        building: BuildingModel(type: BuildingType.worker, level: 1),
+      );
+
+      final tileMap = {
+        cornCoord: cornTile,
+        quarryCoord: quarryTile,
+        workerCoord: workerTile,
+      };
+
+      // İşçi kulübesi gıda üreten mısır tarlasını kapsamamalı, ancak taş ocağını kapsamalıdır
+      final workerStats = EconomyCalculator.calculateWorkerLogisticsStats(
+        workerTile: workerTile,
+        tiles: tileMap,
+      );
+
+      expect(workerStats.coveredBuildingsCount, equals(1)); // Sadece Taş Ocağı
     });
 
     test('Görev Sıralaması: Fırın inşası Kervan kurma görevinden önce gelir (Ekmek blocker fix)', () {

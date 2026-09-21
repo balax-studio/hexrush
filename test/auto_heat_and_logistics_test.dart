@@ -117,19 +117,26 @@ void main() {
   group('3. İşçi Kulübesi Greedy Dağıtımı & Menzil Çakışması', () {
     test('Greedy allocation assigns production to closest worker and spills over when capacity is full', () {
       // Düzen:
-      // Mısır Tarlası (0, 0): talep = 0.42/sn
-      // İşçi Kulübesi 1 (1, 0): mesafe 1, kapasite 0.20/sn (yetmiyor)
-      // İşçi Kulübesi 2 (3, 0): mesafe 3, kapasite 1.00/sn (kalanı alacak)
-      const cornCoord = HexAxial(0, 0);
+      // 2 adet Taş Ocağı (0, 0) & (0, 1): toplam talep > 3.36/sn
+      // İşçi Kulübesi 1 (1, 0): mesafe 1, kapasite 3.36/sn (dolacak)
+      // İşçi Kulübesi 2 (3, 0): mesafe 3, kapasite 16.8/sn (kalanı alacak)
+      const quarry1Coord = HexAxial(0, 0);
+      const quarry2Coord = HexAxial(0, 1);
       const worker1Coord = HexAxial(1, 0);
       const worker2Coord = HexAxial(3, 0);
 
       final tiles = <HexAxial, HexTileModel>{
-        cornCoord: const HexTileModel(
-          coord: cornCoord,
+        quarry1Coord: const HexTileModel(
+          coord: quarry1Coord,
           biome: TileBiome.meadow,
           state: TileState.owned,
-          building: BuildingModel(type: BuildingType.corn, level: 5),
+          building: BuildingModel(type: BuildingType.quarry, level: 5),
+        ),
+        quarry2Coord: const HexTileModel(
+          coord: quarry2Coord,
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.quarry, level: 5),
         ),
         worker1Coord: const HexTileModel(
           coord: worker1Coord,

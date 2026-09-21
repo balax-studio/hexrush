@@ -6,6 +6,7 @@ import '../../core/audio/tactile_audio_service.dart';
 import '../../core/hex/hex_coordinates.dart';
 import '../../core/hex/hex_math.dart';
 import '../../core/localization/game_localization.dart';
+import '../../core/utils/number_formatter.dart';
 import '../../data/save_repository.dart';
 import '../../domain/economy/combat_calculator.dart';
 import '../../domain/economy/economy_calculator.dart';
@@ -83,8 +84,10 @@ class GameStateNotifier extends StateNotifier<GameState> {
         id: 'q_worker_1',
         titleTr: 'İlk Çadır',
         titleEn: 'First Camp',
-        descriptionTr: 'Otomatik hasat için 1 adet İşçi Kulübesi inşa et.',
-        descriptionEn: 'Build 1 Worker Hut to enable auto-harvesting.',
+        descriptionTr:
+            'Hammadde ve maden otomasyonu için 1 İşçi Kulübesi inşa et. (Not: İşçi kulübeleri gıda depolayamaz; gıda sadece Gıda Ambarında depolanır.)',
+        descriptionEn:
+            'Build 1 Worker Hut for automated raw material gathering. (Note: Worker huts cannot store food; food is stored in Food Storehouses.)',
         type: QuestType.buildStructure,
         targetBuilding: BuildingType.worker,
         targetAmount: 1,
@@ -98,9 +101,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
         titleTr: 'Han Otağı Yükselişi — Sv2',
         titleEn: 'Seat of the Khan — Lv2',
         descriptionTr:
-            'Kağan Otağını Seviye 2\'ye yükselt. Bu seviyeyle Arpa Tarlası, Otlak ve 10x Taşıma Hacimli Tahıl Deposu açılır.',
+            'Kağan Otağını Seviye 2\'ye yükselt. Bu seviyeyle Arpa Tarlası, Otlak ve Gıda Depolama için 10x Gıda Ambarı açılır.',
         descriptionEn:
-            'Upgrade your Khan\'s Yurt to Level 2. Unlocks Barley Field, Pasture, and 10x Granary Vault.',
+            'Upgrade your Khan\'s Yurt to Level 2. Unlocks Barley Field, Pasture, and 10x Food Storehouse.',
         type: QuestType.upgradeCastle,
         targetAmount: 2,
         rewardType: QuestRewardType.crowns,
@@ -108,12 +111,12 @@ class GameStateNotifier extends StateNotifier<GameState> {
       ),
       QuestModel(
         id: 'q_granary_1',
-        titleTr: 'Tahıl Ambarı Güvencesi',
-        titleEn: 'Granary Vault Secured',
+        titleTr: 'Gıda Ambarı Güvencesi',
+        titleEn: 'Food Storehouse Secured',
         descriptionTr:
-            'Sv2 Şato teknolojisi: Gıda transferini 10 katına (10x) çıkarmak için 1 Tahıl Deposu & Ambarı inşa et.',
+            'Sv2 Şato teknolojisi: Gıda depolamak ve transferini 10 katına (10x) çıkarmak için 1 Gıda Ambarı inşa et. (İşçi kulübeleri gıda depolayamaz.)',
         descriptionEn:
-            'Lv2 castle tech: Build 1 Granary Vault providing 10x transport volume for food.',
+            'Lv2 castle tech: Build 1 Food Storehouse to store food and boost transport 10x. (Worker huts cannot store food.)',
         type: QuestType.buildStructure,
         targetBuilding: BuildingType.granaryVault,
         targetAmount: 1,
@@ -632,19 +635,28 @@ class GameStateNotifier extends StateNotifier<GameState> {
     }
 
     // İlk tapınak (şatoya 4 hex uzaktaki) kesinlikle speedBoost (Lojistik/Taşıma Bonusu)
-    map[guaranteedSpeedShrineCoord] = map[guaranteedSpeedShrineCoord]!.copyWith(shrine: ShrineType.speedBoost);
+    final double guaranteedMult = random.nextBool() ? 2.0 : 3.0;
+    map[guaranteedSpeedShrineCoord] = map[guaranteedSpeedShrineCoord]!.copyWith(
+      shrine: ShrineType.speedBoost,
+      shrineMultiplierValue: guaranteedMult,
+    );
 
-    // Diğer sunaklar için rastgele tür havuzu
+    // Diğer sunaklar için rastgele tür havuzu (gıda, odun, taş, taşıma)
     final List<ShrineType> randomShrinePool = [
       ShrineType.foodBoost,
       ShrineType.woodBoost,
+      ShrineType.stoneBoost,
       ShrineType.speedBoost,
     ];
 
     for (int i = 1; i < placedShrineCoords.length; i++) {
       final c = placedShrineCoords[i];
       final randomType = randomShrinePool[random.nextInt(randomShrinePool.length)];
-      map[c] = map[c]!.copyWith(shrine: randomType);
+      final randomMult = random.nextBool() ? 2.0 : 3.0;
+      map[c] = map[c]!.copyWith(
+        shrine: randomType,
+        shrineMultiplierValue: randomMult,
+      );
     }
 
     return GameState(
@@ -844,11 +856,12 @@ class GameStateNotifier extends StateNotifier<GameState> {
         ) *
         state.frenzyMultiplier;
 
-    // İşçi transfer hız çarpanı (Her göçte kalıcı +%35 x Göç Sayısı)
+    // İşçi transfer hız çarpanı (Büyük Göç Kut verim artış çarpanı ile birebir uyumlu)
     final double workerTransferMult =
         EconomyCalculator.getWorkerTransferMultiplier(
       toreTalents: state.toreTalents,
       totalMigrations: state.progression.totalMigrations,
+      kutMultiplier: state.progression.kutMultiplier,
     );
 
     // Sezon güncellemesi (300 saniyede bir sezon değişir - 5 Dakika)
@@ -892,6 +905,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     // İşçi ve Şato Taşıma Kaynakları (4 Hex Menzil)
     final List<HexAxial> workerSourceCoords = [];
     final List<double> workerSourceCapacities = [];
+    final List<BuildingType?> workerSourceTypes = [];
 
     for (final t in state.tiles.values) {
       if (!t.isOwned) continue;
@@ -899,17 +913,20 @@ class GameStateNotifier extends StateNotifier<GameState> {
         // Fethedilmiş Kutlu Tapınak etrafına +%50 lojistik & taşıma aurası yayar
         workerSourceCoords.add(t.coord);
         workerSourceCapacities.add(5.0 * workerTransferMult);
+        workerSourceTypes.add(null);
       }
       if (t.building == null) continue;
       if (t.building!.type == BuildingType.castle) {
         // Şatodan gelen 1.0 taban taşıma kapasitesi (4 hex menzil)
         workerSourceCoords.add(t.coord);
         workerSourceCapacities.add(1.0 * workerTransferMult);
+        workerSourceTypes.add(BuildingType.castle);
       } else if (t.building!.type == BuildingType.worker ||
           t.building!.type == BuildingType.fishermanHut ||
           t.building!.type == BuildingType.granaryVault) {
         workerSourceCoords.add(t.coord);
         workerSourceCapacities.add(t.building!.currentCarryingCapacity * workerTransferMult);
+        workerSourceTypes.add(t.building!.type);
       }
     }
 
@@ -961,45 +978,6 @@ class GameStateNotifier extends StateNotifier<GameState> {
         continue;
       }
 
-      // 1. Bina Zincir Sinerjisi (Örn: Tarlanın yanındaki Değirmen 2x)
-      double chainSynergy = 1.0;
-      for (final nCoord in tile.coord.neighbors) {
-        final nTile = state.tiles[nCoord];
-        if (nTile != null && nTile.isOwned && nTile.building != null) {
-          if (b.type == BuildingType.windmill &&
-              nTile.building!.type == BuildingType.corn) {
-            chainSynergy = 2.0;
-          }
-          if (b.type == BuildingType.sawmill &&
-              nTile.building!.type == BuildingType.lumberjack) {
-            chainSynergy = 2.0;
-          }
-          if (b.type == BuildingType.bakery &&
-              nTile.building!.type == BuildingType.windmill) {
-            chainSynergy = 2.0;
-          }
-          if (b.type == BuildingType.furniture &&
-              nTile.building!.type == BuildingType.sawmill) {
-            chainSynergy = 2.0;
-          }
-        }
-      }
-
-      // 2. Biyom ve Komşuluk Sinerjisi (Sulama Bereketi, Jeotermal Maden, İpek Yolu vb.)
-      final neighborTiles = tile.coord.neighbors
-          .map((nc) => state.tiles[nc])
-          .whereType<HexTileModel>()
-          .toList();
-
-      final double biomeSynergy = EconomyCalculator.calculateAdjacencySynergy(
-        targetTile: tile,
-        neighborTiles: neighborTiles,
-        season: newSeason,
-        isZud: newIsZud,
-      );
-
-      final double totalSynergy = chainSynergy * biomeSynergy;
-
       // Karo ısıtma süresi ve kış koruması
       bool isWarmed = tile.isWarmed;
       double warmTimer = tile.warmTimer;
@@ -1028,34 +1006,21 @@ class GameStateNotifier extends StateNotifier<GameState> {
         titles: state.titles,
       );
 
-      final double docMult = EconomyCalculator.getDoctrineProductionMultiplier(
-        buildingType: b.type,
-        activeDoctrines: activeDoctrines,
-      );
-
-      final double soilMult = EconomyCalculator.calculateSoilHealthMultiplier(tile);
-      final double caravanMult = EconomyCalculator.calculateCaravanRouteMultiplier(tile.coord, state.caravanRoutes);
-      final double symbiosisMult = EconomyCalculator.calculateSymbiosisMultiplier(tile);
-      final double ancestralMult = EconomyCalculator.calculateAncestralRelicMultiplier(state.discoveredKurgans);
-      final double omenMult = EconomyCalculator.calculateCelestialOmenMultiplier(
-        state.celestialOmen,
-        resourceType: b.type == BuildingType.lumberjack || b.type == BuildingType.sawmill
-            ? 'wood'
-            : b.type == BuildingType.mine || b.type == BuildingType.quarry
-                ? 'iron'
-                : 'food',
-      );
-
-      final double damagePenalty = tile.isDamaged ? 0.5 : 1.0;
-      final double rate = EconomyCalculator.calculateBuildingProduction(
-        type: b.type,
-        level: b.level,
-        baseRate: b.baseProductionRate,
-        globalMultiplier: globalMult * docMult * caravanMult * symbiosisMult * ancestralMult * omenMult * damagePenalty,
-        seasonMultiplier: seasonMult * soilMult,
-        synergyMultiplier: totalSynergy,
-        workerMultiplier: 1.0, // Kapasite sistemi geldiği için oran sabitlendi
+      final double rate = EconomyCalculator.calculateTileEffectiveProductionRate(
+        tile: tile.copyWith(isWarmed: isWarmed),
+        tileMap: state.tiles,
+        globalMultiplier: globalMult,
+        seasonMultiplier: seasonMult,
         shrineMultiplier: state.shrineMultiplier,
+        season: newSeason,
+        isZud: newIsZud,
+        cumulativeBiomeCounts: state.progression.cumulativeBiomeCounts,
+        activeDoctrines: activeDoctrines,
+        caravanRoutes: state.caravanRoutes,
+        celestialOmen: state.celestialOmen,
+        discoveredKurgans: state.discoveredKurgans,
+        frenzyMultiplier: state.frenzyMultiplier,
+        titles: state.titles,
       );
 
       // Üretim ve Tüketim Mantığı
@@ -1122,8 +1087,12 @@ class GameStateNotifier extends StateNotifier<GameState> {
         double neededAmount = rate + b.accumulatedResource;
 
         // Menzildeki işçi kaynaklarını mesafeye göre (en yakından en uzağa) greedy olarak tara
+        final bool isFood = b.type.isFoodProducer;
         final List<int> inRangeIndices = [];
         for (int i = 0; i < workerSourceCoords.length; i++) {
+          if (isFood && workerSourceTypes[i] == BuildingType.worker) {
+            continue; // İşçi kulübesi gıda depolayamaz / taşıyamaz
+          }
           if (tile.coord.distanceTo(workerSourceCoords[i]) <= 4 && workerSourceCapacities[i] > 0.0) {
             inRangeIndices.add(i);
           }
@@ -1244,8 +1213,12 @@ class GameStateNotifier extends StateNotifier<GameState> {
         double carriedAmount = 0.0;
         if (b.accumulatedResource > 0.0) {
           double neededAmount = b.accumulatedResource;
+          final bool isFood = b.type.isFoodProducer;
           final List<int> inRangeIndices = [];
           for (int i = 0; i < workerSourceCoords.length; i++) {
+            if (isFood && workerSourceTypes[i] == BuildingType.worker) {
+              continue; // İşçi kulübesi gıda depolayamaz / taşıyamaz
+            }
             if (tile.coord.distanceTo(workerSourceCoords[i]) <= 4 && workerSourceCapacities[i] > 0.0) {
               inRangeIndices.add(i);
             }
@@ -3055,7 +3028,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     if (node == null) return false;
 
     if (state.resources.wisdom < node.costWisdom) {
-      showToast('Yetersiz Bilgelik: Bu töre için ${node.costWisdom.toInt()} Bitig Bilgeliği gerekir.');
+      showToast('Yetersiz Bilgelik: Bu töre için ${NumberFormatter.format(node.costWisdom)} Bitig Bilgeliği gerekir.');
       return false;
     }
 
@@ -3070,6 +3043,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       activeToast: 'Töre Kanunu Kabul Edildi: ${node.title} (${node.description})',
     );
 
+    _syncQuestProgress();
     TactileAudioService.instance.play(TactileSoundType.upgrade);
     saveGame();
     return true;

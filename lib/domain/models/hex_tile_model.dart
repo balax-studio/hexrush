@@ -29,6 +29,7 @@ enum ShrineType {
   none,
   foodBoost,
   woodBoost,
+  stoneBoost,
   speedBoost,
 }
 
@@ -39,6 +40,8 @@ extension ShrineTypeExtension on ShrineType {
         return 'Gıda Bereketi';
       case ShrineType.woodBoost:
         return 'Odun Bereketi';
+      case ShrineType.stoneBoost:
+        return 'Taş Bereketi';
       case ShrineType.speedBoost:
         return 'Lojistik Hızı';
       case ShrineType.none:
@@ -52,6 +55,8 @@ extension ShrineTypeExtension on ShrineType {
         return 'Food Abundance';
       case ShrineType.woodBoost:
         return 'Wood Abundance';
+      case ShrineType.stoneBoost:
+        return 'Stone Abundance';
       case ShrineType.speedBoost:
         return 'Logistics Speed';
       case ShrineType.none:
@@ -59,40 +64,28 @@ extension ShrineTypeExtension on ShrineType {
     }
   }
 
-  /// Temel bonus yüzdesi (Mesafe = 4 için baz oran)
-  double get boostPercentage {
-    switch (this) {
-      case ShrineType.foodBoost:
-        return 30.0;
-      case ShrineType.woodBoost:
-        return 25.0;
-      case ShrineType.speedBoost:
-        return 20.0;
-      case ShrineType.none:
-        return 0.0;
-    }
+  double get boostPercentage => 200.0;
+
+  double calculateBoostPercentage(int distance) => 200.0;
+
+  double getBoostMultiplier(int distance) => 2.0;
+
+  double get boostMultiplier => 2.0;
+
+  String get formattedBonusTr => 'x2 $titleTr (+%200)';
+  String get formattedBonusEn => 'x2 $titleEn (+200%)';
+
+  String getFormattedBonusTr(int distance, [double multiplierVal = 2.0]) {
+    final String multText = multiplierVal >= 3.0 ? 'x3 (3 Kat)' : 'x2 (2 Kat)';
+    final int pct = (multiplierVal * 100).toInt();
+    return '$multText $titleTr (+%$pct)';
   }
 
-  /// Şato merkezinden (0,0) uzaklaştıkça artan bonus yüzdesi
-  /// Temel oran (dist=4): food %30, wood %25, speed %20.
-  /// Merkezden her 1 hex uzaklaşma için: +%4 ek bonus.
-  double calculateBoostPercentage(int distance) {
-    if (this == ShrineType.none) return 0.0;
-    final int extraDistance = distance > 4 ? distance - 4 : 0;
-    return boostPercentage + (extraDistance * 4.0);
+  String getFormattedBonusEn(int distance, [double multiplierVal = 2.0]) {
+    final String multText = multiplierVal >= 3.0 ? 'x3 (3x)' : 'x2 (2x)';
+    final int pct = (multiplierVal * 100).toInt();
+    return '$multText $titleEn (+$pct%)';
   }
-
-  double getBoostMultiplier(int distance) => calculateBoostPercentage(distance) / 100.0;
-
-  double get boostMultiplier => boostPercentage / 100.0;
-
-  String get formattedBonusTr => '+%${boostPercentage.toInt()} $titleTr';
-  String get formattedBonusEn => '+${boostPercentage.toInt()}% $titleEn';
-
-  String getFormattedBonusTr(int distance) =>
-      '+%${calculateBoostPercentage(distance).toInt()} $titleTr (Menzil: $distance)';
-  String getFormattedBonusEn(int distance) =>
-      '+${calculateBoostPercentage(distance).toInt()}% $titleEn (Dist: $distance)';
 }
 
 class HexTileModel {
@@ -103,6 +96,7 @@ class HexTileModel {
   final bool isWarmed;
   final double warmTimer;
   final ShrineType shrine;
+  final double shrineMultiplierValue; // 2.0 (x2) or 3.0 (x3)
   final double soilHealth; // 0.0 to 1.0 (1.0 = fresh soil, 0.0 = exhausted)
   final bool isResting; // True when placed in transhumance pasture rest
   final double restTimeAccumulated; // Seconds spent resting, used for respiration burst
@@ -120,6 +114,7 @@ class HexTileModel {
     this.isWarmed = false,
     this.warmTimer = 0.0,
     this.shrine = ShrineType.none,
+    this.shrineMultiplierValue = 2.0,
     this.soilHealth = 1.0,
     this.isResting = false,
     this.restTimeAccumulated = 0.0,
@@ -141,10 +136,10 @@ class HexTileModel {
   bool get needsRepair => isDamaged || (wall != null && wall!.needsRepair);
 
   int get distanceFromCenter => HexMath.hexDistance(const HexAxial(0, 0), coord);
-  double get shrineBonusPercentage => shrine.calculateBoostPercentage(distanceFromCenter);
-  double get shrineBoostMultiplier => shrineBonusPercentage / 100.0;
-  String get formattedShrineBonusTr => shrine.getFormattedBonusTr(distanceFromCenter);
-  String get formattedShrineBonusEn => shrine.getFormattedBonusEn(distanceFromCenter);
+  double get shrineBonusPercentage => shrine == ShrineType.none ? 0.0 : (shrineMultiplierValue * 100.0);
+  double get shrineBoostMultiplier => shrine == ShrineType.none ? 0.0 : (shrineMultiplierValue - 1.0);
+  String get formattedShrineBonusTr => shrine.getFormattedBonusTr(distanceFromCenter, shrineMultiplierValue);
+  String get formattedShrineBonusEn => shrine.getFormattedBonusEn(distanceFromCenter, shrineMultiplierValue);
 
   HexTileModel copyWith({
     HexAxial? coord,
@@ -155,6 +150,7 @@ class HexTileModel {
     bool? isWarmed,
     double? warmTimer,
     ShrineType? shrine,
+    double? shrineMultiplierValue,
     double? soilHealth,
     bool? isResting,
     double? restTimeAccumulated,
@@ -174,6 +170,7 @@ class HexTileModel {
       isWarmed: isWarmed ?? this.isWarmed,
       warmTimer: warmTimer ?? this.warmTimer,
       shrine: shrine ?? this.shrine,
+      shrineMultiplierValue: shrineMultiplierValue ?? this.shrineMultiplierValue,
       soilHealth: soilHealth ?? this.soilHealth,
       isResting: isResting ?? this.isResting,
       restTimeAccumulated: restTimeAccumulated ?? this.restTimeAccumulated,
@@ -195,6 +192,7 @@ class HexTileModel {
       'is_warmed': isWarmed,
       'warm_timer': warmTimer,
       'shrine': shrine.index,
+      'shrine_mult': shrineMultiplierValue,
       'soil_health': soilHealth,
       'is_resting': isResting,
       'rest_time_accumulated': restTimeAccumulated,
@@ -212,6 +210,7 @@ class HexTileModel {
     final int biomeIdx = json['type'] as int? ?? 0;
     final int stateIdx = json['state'] as int? ?? 0;
     final int shrineIdx = json['shrine'] as int? ?? 0;
+    final double shrineMult = (json['shrine_mult'] as num?)?.toDouble() ?? 2.0;
     final int symbiosisIdx = json['symbiosis'] as int? ?? 0;
 
     BuildingModel? b;
@@ -243,6 +242,7 @@ class HexTileModel {
       isWarmed: json['is_warmed'] as bool? ?? false,
       warmTimer: (json['warm_timer'] as num?)?.toDouble() ?? 0.0,
       shrine: ShrineType.values[shrineIdx.clamp(0, ShrineType.values.length - 1)],
+      shrineMultiplierValue: shrineMult,
       soilHealth: (json['soil_health'] as num?)?.toDouble() ?? 1.0,
       isResting: json['is_resting'] as bool? ?? false,
       restTimeAccumulated: (json['rest_time_accumulated'] as num?)?.toDouble() ?? 0.0,

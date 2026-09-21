@@ -40,7 +40,7 @@ void main() {
           coord: HexAxial(1, 0),
           biome: TileBiome.meadow,
           state: TileState.owned,
-          building: BuildingModel(type: BuildingType.worker),
+          building: BuildingModel(type: BuildingType.granaryVault),
         ),
       ];
 
