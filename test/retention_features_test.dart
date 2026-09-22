@@ -192,11 +192,11 @@ void main() {
       notifier.dispose();
     });
 
-    test('updateNotificationSettings toggles preferences and persists state', () {
+    test('updateNotificationSettings toggles preferences and persists state', () async {
       final notifier = GameStateNotifier();
       expect(notifier.state.settings.notifications.storageFullAlert, isFalse);
 
-      notifier.updateNotificationSettings(storageFullAlert: true, seasonChangeAlert: true);
+      await notifier.updateNotificationSettings(storageFullAlert: true, seasonChangeAlert: true);
       expect(notifier.state.settings.notifications.storageFullAlert, isTrue);
       expect(notifier.state.settings.notifications.seasonChangeAlert, isTrue);
       expect(notifier.state.settings.notifications.questCompletedAlert, isFalse);

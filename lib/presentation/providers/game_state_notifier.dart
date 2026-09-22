@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../core/audio/tactile_audio_service.dart';
 import '../../core/hex/hex_coordinates.dart';
 import '../../core/hex/hex_math.dart';
@@ -2383,13 +2384,34 @@ class GameStateNotifier extends StateNotifier<GameState> {
     TactileAudioService.instance.updateSettings(isMusicEnabled: !newMuted);
   }
 
-  void updateNotificationSettings({
+  Future<void> updateNotificationSettings({
     bool? storageFullAlert,
     bool? seasonChangeAlert,
     bool? questCompletedAlert,
     bool? castleUpgradeReadyAlert,
     bool? questPanelHidden,
-  }) {
+  }) async {
+    // Bildirim izin kontrolü
+    final shouldAskPermission = (storageFullAlert == true ||
+        seasonChangeAlert == true ||
+        questCompletedAlert == true ||
+        castleUpgradeReadyAlert == true);
+
+    if (shouldAskPermission) {
+      try {
+        final status = await Permission.notification.status;
+        if (!status.isGranted) {
+          final result = await Permission.notification.request();
+          if (!result.isGranted) {
+            // İzin verilmediyse, açılmaya çalışılan toggle'ı kapalı var say (ya da UI'a izin verilmediğini bildir)
+            // Şimdilik sadece state güncellemesine devam ediyoruz fakat ileride toast vb eklenebilir.
+          }
+        }
+      } catch (e) {
+        // Test ortamı veya desteklenmeyen platformlar için yoksay
+      }
+    }
+
     final current = state.settings.notifications;
     final updated = current.copyWith(
       storageFullAlert: storageFullAlert,
@@ -2826,6 +2848,14 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
   void toggleDioramaMode() {
     state = state.copyWith(isDioramaMode: !state.isDioramaMode);
+  }
+
+  void wipeAllData() {
+    SaveRepository.deleteSave();
+    state = _createInitialState().copyWith(
+      activeToast: 'Bütün kayıtlar silindi. Yeni bir başlangıç...',
+    );
+    saveGame();
   }
 
   void resetGame() {

@@ -385,6 +385,41 @@ class SettingsDialog extends ConsumerWidget {
 
             const SizedBox(height: 10),
 
+            // Geliştirici Hesabı Butonu
+            TactileNeoButton(
+              onTap: () async {
+                final uri = Uri.parse('https://www.instagram.com/balaxstudio');
+                try {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                } catch (_) {}
+              },
+              backgroundColor: const Color(0xFF4C1D95),
+              borderColor: const Color(0xFFC084FC),
+              shadowColor: const Color(0xFF2E1065),
+              shadowOffset: 2.5,
+              height: 38,
+              padding: EdgeInsets.zero,
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.code_rounded, color: Color(0xFFC084FC), size: 16),
+                  const SizedBox(width: 6),
+                  Text(
+                    GameLocalization.get('developer_account', lang: lang).toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
             // Gizlilik Politikası Butonu
             TactileNeoButton(
               onTap: () async {
@@ -409,6 +444,42 @@ class SettingsDialog extends ConsumerWidget {
                   const SizedBox(width: 6),
                   Text(
                     GameLocalization.get('privacy_policy', lang: lang).toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            // Verilerimi Sil Butonu
+            TactileNeoButton(
+              onTap: () {
+                Navigator.of(context).pop();
+                showNeoTactileDialog<void>(
+                  context: context,
+                  builder: (ctx) => const DeleteDataConfirmDialog(),
+                );
+              },
+              backgroundColor: const Color(0xFF7F1D1D),
+              borderColor: const Color(0xFFFCA5A5),
+              shadowColor: const Color(0xFF450A0A),
+              shadowOffset: 2.5,
+              height: 38,
+              padding: EdgeInsets.zero,
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.delete_forever, color: Color(0xFFFCA5A5), size: 16),
+                  const SizedBox(width: 6),
+                  Text(
+                    GameLocalization.get('delete_data', lang: lang).toUpperCase(),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 11,
@@ -527,5 +598,103 @@ class _NeoRectSliderThumbShape extends SliderComponentShape {
 
     canvas.drawRect(rect, fillPaint);
     canvas.drawRect(rect, borderPaint);
+  }
+}
+
+class DeleteDataConfirmDialog extends ConsumerWidget {
+  const DeleteDataConfirmDialog({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifier = ref.read(gameStateProvider.notifier);
+    final lang = ref.watch(gameStateProvider.select((s) => s.settings.language));
+
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.warning_amber_rounded, color: Color(0xFFDC2626), size: 48),
+          const SizedBox(height: 12),
+          Text(
+            GameLocalization.get('delete_data_confirm_title', lang: lang),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.2,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF450A0A),
+              border: Border.all(color: const Color(0xFF7F1D1D), width: 2),
+              borderRadius: NeoBrutalistTheme.sharpRadius,
+            ),
+            child: Text(
+              GameLocalization.get('delete_data_confirm_desc', lang: lang),
+              style: const TextStyle(
+                color: Color(0xFFFCA5A5),
+                fontSize: 13,
+                height: 1.4,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: TactileNeoButton(
+                  onTap: () => Navigator.of(context).pop(),
+                  backgroundColor: const Color(0xFF1E293B),
+                  borderColor: const Color(0xFF64748B),
+                  shadowColor: const Color(0xFF020617),
+                  height: 44,
+                  child: const Center(
+                    child: Text(
+                      'X',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: TactileNeoButton(
+                  onTap: () {
+                    notifier.wipeAllData();
+                    Navigator.of(context).pop();
+                  },
+                  backgroundColor: const Color(0xFF7F1D1D),
+                  borderColor: const Color(0xFFFCA5A5),
+                  shadowColor: const Color(0xFF450A0A),
+                  height: 44,
+                  child: Center(
+                    child: Text(
+                      GameLocalization.get('delete_data', lang: lang).toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
