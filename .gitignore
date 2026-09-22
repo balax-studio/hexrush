@@ -10,6 +10,8 @@ build/
 # IDE & OS
 .idea/
 .vscode/
+.kotlin/
+android/.kotlin/
 *.iml
 *.iws
 *.ipr
