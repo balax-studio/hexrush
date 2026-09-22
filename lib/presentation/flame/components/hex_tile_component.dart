@@ -2044,18 +2044,20 @@ class HexTileComponent extends PositionComponent {
   }
 
   Color _getBiomeTopColor(TileBiome biome, int seed) {
-    final double blend = _seasonTransitionTimer > 0
+    final double rawProgress = _seasonTransitionTimer > 0
         ? (1.0 - (_seasonTransitionTimer / _seasonTransitionDuration)).clamp(0.0, 1.0)
         : 1.0;
+    // Organik mevsim geçişi (Cubic ease-in-out ile yumuşak harmanlama)
+    final double blend = Curves.easeInOutCubic.transform(rawProgress);
 
     final Color fromColor = _getBiomeTopColorForSeason(biome, _previousSeason, false, seed);
     final Color toColor = _getBiomeTopColorForSeason(biome, _currentSeason, isZud, seed);
 
     Color topColor = Color.lerp(fromColor, toColor, blend) ?? toColor;
 
-    // Sahipsiz / Keşfedilmiş Arazi: Hafif atmosferik sis tonlaması
+    // Sahipsiz / Keşfedilmiş Arazi: Gözü yormayan sakinleştirici koyu sis tonlaması (%20 matlaştırma)
     if (!tileModel.isOwned) {
-      topColor = Color.lerp(topColor, const Color(0xFF0F172A), 0.14)!;
+      topColor = Color.lerp(topColor, const Color(0xFF0F172A), 0.20)!;
     }
 
     return topColor;
@@ -2070,94 +2072,94 @@ class HexTileComponent extends PositionComponent {
     switch (biome) {
       case TileBiome.meadow:
         if (isWinter) {
-          baseColor = const Color(0xFFE2E8F0);
+          baseColor = const Color(0xFF8A9CA8); // Göz kamaştırmayan kırağı külü
         } else if (isAutumn) {
-          baseColor = const Color(0xFFD97706);
+          baseColor = const Color(0xFF8C6D3B); // Dingin step sarısı
         } else if (isSummer) {
-          baseColor = const Color(0xFF65A30D);
+          baseColor = const Color(0xFF4A7C54); // Ilık çayır
         } else {
-          baseColor = const Color(0xFF2E7D32);
+          baseColor = const Color(0xFF3E6B48); // Doğal ardıç yeşili
         }
         break;
 
       case TileBiome.forest:
         if (isWinter) {
-          baseColor = const Color(0xFF94A3B8);
+          baseColor = const Color(0xFF526374); // Taiga külü
         } else if (isAutumn) {
-          baseColor = const Color(0xFFEA580C);
+          baseColor = const Color(0xFF7C4325); // Kızıl meşe
         } else if (isSummer) {
-          baseColor = const Color(0xFF14532D);
+          baseColor = const Color(0xFF1E3F2E); // Koyu sedir
         } else {
-          baseColor = const Color(0xFF15803D);
+          baseColor = const Color(0xFF284E3A); // Bozkır ormanı
         }
         break;
 
       case TileBiome.mountain:
         if (isWinter) {
-          baseColor = const Color(0xFFF1F5F9);
+          baseColor = const Color(0xFF7A899C); // Buzul zirve
         } else if (isAutumn) {
-          baseColor = const Color(0xFF78350F);
+          baseColor = const Color(0xFF634C3E); // Tortul kayaç
         } else {
-          baseColor = const Color(0xFF64748B);
+          baseColor = const Color(0xFF576574); // Dingin granit
         }
         break;
 
       case TileBiome.sea:
         if (isWinter) {
-          baseColor = const Color(0xFFBAE6FD);
+          baseColor = const Color(0xFF4A6D7C); // Donmuş gölet
         } else if (isAutumn) {
-          baseColor = const Color(0xFF0369A1);
+          baseColor = const Color(0xFF1D4E5F); // Derin Hazar
         } else {
-          baseColor = const Color(0xFF0284C7);
+          baseColor = const Color(0xFF256378); // Turkuaz göl
         }
         break;
 
       case TileBiome.desert:
         if (isWinter) {
-          baseColor = const Color(0xFFFEF08A);
+          baseColor = const Color(0xFFB8A98E); // Buzlu kireçtaşı
         } else if (isAutumn) {
-          baseColor = const Color(0xFFD97706);
+          baseColor = const Color(0xFF9E743A); // Kalker toprağı
         } else if (isSummer) {
-          baseColor = const Color(0xFFF59E0B);
+          baseColor = const Color(0xFFA8884C); // Sıcak step kumu
         } else {
-          baseColor = const Color(0xFFFBBF24);
+          baseColor = const Color(0xFFB89758); // Kumsal buğdayı (aşırı parlamayan sarı)
         }
         break;
 
       case TileBiome.tundra:
         if (isWinter) {
-          baseColor = const Color(0xFFE0F2FE);
+          baseColor = const Color(0xFF879BB0); // Ayaz sisi
         } else if (isAutumn) {
-          baseColor = const Color(0xFFC084FC);
+          baseColor = const Color(0xFF705E7C); // Funda moru
         } else {
-          baseColor = const Color(0xFF93C5FD);
+          baseColor = const Color(0xFF6C8299); // Liken mavisi
         }
         break;
 
       case TileBiome.volcano:
-        baseColor = const Color(0xFF1E293B);
+        baseColor = const Color(0xFF2B2D3A); // Mat bazalt külü
         break;
 
       case TileBiome.wetland:
         if (isWinter) {
-          baseColor = const Color(0xFF64748B);
+          baseColor = const Color(0xFF4A585E); // Buz sazlığı
         } else if (isAutumn) {
-          baseColor = const Color(0xFF84CC16);
+          baseColor = const Color(0xFF586338); // Kamış step
         } else {
-          baseColor = const Color(0xFF0D9488);
+          baseColor = const Color(0xFF3B6359); // Yosunlu gölcük
         }
         break;
 
       case TileBiome.celestialCrater:
-        baseColor = const Color(0xFF1E1B4B);
+        baseColor = const Color(0xFF242244); // Kozmik meteorit
         break;
 
       case TileBiome.kurganValley:
-        baseColor = const Color(0xFF475569);
+        baseColor = const Color(0xFF4A4E5A); // Kadim tümülüs taşı
         break;
 
       case TileBiome.crystalChasm:
-        baseColor = const Color(0xFF065F46);
+        baseColor = const Color(0xFF1E5045); // Klorit damarı
         break;
     }
 
@@ -2185,19 +2187,20 @@ class HexTileComponent extends PositionComponent {
       case 0:
         return baseColor;
       case 1:
-        return Color.lerp(baseColor, Colors.white, 0.09)!;
+        return Color.lerp(baseColor, Colors.white, 0.06)!;
       case 2:
-        return Color.lerp(baseColor, const Color(0xFF0F172A), 0.08)!;
+        return Color.lerp(baseColor, const Color(0xFF0F172A), 0.07)!;
       case 3:
       default:
-        return Color.lerp(baseColor, const Color(0xFFFDE047), 0.07)!;
+        return Color.lerp(baseColor, const Color(0xFFFDE047), 0.05)!;
     }
   }
 
   (Color, Color, Color) _getBiome3DWallColors(TileBiome biome) {
-    final double blend = _seasonTransitionTimer > 0
+    final double rawProgress = _seasonTransitionTimer > 0
         ? (1.0 - (_seasonTransitionTimer / _seasonTransitionDuration)).clamp(0.0, 1.0)
         : 1.0;
+    final double blend = Curves.easeInOutCubic.transform(rawProgress);
 
     final (fL, fR, fB) = _getBiome3DWallColorsForSeason(biome, _previousSeason, false);
     final (tL, tR, tB) = _getBiome3DWallColorsForSeason(biome, _currentSeason, isZud);
@@ -2230,45 +2233,45 @@ class HexTileComponent extends PositionComponent {
     switch (biome) {
       case TileBiome.meadow:
         if (isWinter) {
-          return (const Color(0xFFCBD5E1), const Color(0xFF94A3B8), const Color(0xFF475569));
+          return (const Color(0xFF71828F), const Color(0xFF5A6B77), const Color(0xFF3F4D57));
         }
-        return (const Color(0xFF4D7C0F), const Color(0xFF3F6212), const Color(0xFF5C3A21));
+        return (const Color(0xFF33573A), const Color(0xFF28462F), const Color(0xFF1E3524));
 
       case TileBiome.forest:
         if (isWinter) {
-          return (const Color(0xFFCBD5E1), const Color(0xFF94A3B8), const Color(0xFF475569));
+          return (const Color(0xFF455462), const Color(0xFF37444F), const Color(0xFF28323B));
         }
-        return (const Color(0xFF166534), const Color(0xFF14532D), const Color(0xFF451A03));
+        return (const Color(0xFF1E3C2C), const Color(0xFF162E22), const Color(0xFF0F2018));
 
       case TileBiome.mountain:
         if (isWinter) {
-          return (const Color(0xFF94A3B8), const Color(0xFF64748B), const Color(0xFF334155));
+          return (const Color(0xFF647282), const Color(0xFF4F5B68), const Color(0xFF38424D));
         }
-        return (const Color(0xFF64748B), const Color(0xFF475569), const Color(0xFF334155));
+        return (const Color(0xFF434E5A), const Color(0xFF333B44), const Color(0xFF242A30));
 
       case TileBiome.sea:
-        return (const Color(0xFF0284C7), const Color(0xFF0369A1), const Color(0xFF075985));
+        return (const Color(0xFF1D4E5F), const Color(0xFF153B48), const Color(0xFF0D2730));
 
       case TileBiome.desert:
-        return (const Color(0xFFD97706), const Color(0xFFB45309), const Color(0xFF78350F));
+        return (const Color(0xFF967840), const Color(0xFF7A6030), const Color(0xFF5A4420));
 
       case TileBiome.tundra:
-        return (const Color(0xFF60A5FA), const Color(0xFF3B82F6), const Color(0xFF1D4ED8));
+        return (const Color(0xFF55687C), const Color(0xFF415060), const Color(0xFF2D3844));
 
       case TileBiome.volcano:
-        return (const Color(0xFF0F172A), const Color(0xFF020617), const Color(0xFF450A0A));
+        return (const Color(0xFF20222C), const Color(0xFF171820), const Color(0xFF2D1414));
 
       case TileBiome.wetland:
-        return (const Color(0xFF059669), const Color(0xFF047857), const Color(0xFF064E3B));
+        return (const Color(0xFF2D4E46), const Color(0xFF213B35), const Color(0xFF162723));
 
       case TileBiome.celestialCrater:
-        return (const Color(0xFF312E81), const Color(0xFF1E1B4B), const Color(0xFF0F0E2A));
+        return (const Color(0xFF1B1934), const Color(0xFF131125), const Color(0xFF0B0A15));
 
       case TileBiome.kurganValley:
-        return (const Color(0xFF334155), const Color(0xFF1E293B), const Color(0xFF0F172A));
+        return (const Color(0xFF383C46), const Color(0xFF2B2E36), const Color(0xFF1D1F24));
 
       case TileBiome.crystalChasm:
-        return (const Color(0xFF047857), const Color(0xFF065F46), const Color(0xFF022C22));
+        return (const Color(0xFF163E35), const Color(0xFF0F2E27), const Color(0xFF091C18));
     }
   }
 }
