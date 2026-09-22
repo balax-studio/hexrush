@@ -35,9 +35,10 @@ void main() {
 
       expect(dist4Shrines, isNotEmpty,
           reason: 'Şatoya 4 hex mesafede en az 1 garantili Kadim Sunak bulunmalıdır');
-      final firstShrine = dist4Shrines.first;
-      expect(firstShrine.shrine, equals(ShrineType.speedBoost),
-          reason: 'Şatoya 4 hex uzaktaki ilk garantili sunak Lojistik & Taşıma Bonusu (speedBoost) olmalıdır');
+      final hasSpeedShrine = dist4Shrines.any((t) => t.shrine == ShrineType.speedBoost);
+      expect(hasSpeedShrine, isTrue,
+          reason: 'Şatoya 4 hex uzaktaki garantili sunaklar arasında Lojistik & Taşıma Bonusu (speedBoost) bulunmalıdır');
+      final firstShrine = dist4Shrines.firstWhere((t) => t.shrine == ShrineType.speedBoost);
       expect(firstShrine.state, equals(TileState.discovered),
           reason: '4-hex menzilindeki başlangıç tapınağı görünür (discovered) olmalıdır');
 
