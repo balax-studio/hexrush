@@ -69,7 +69,6 @@ class FloatingResourceNumberComponent extends PositionComponent {
   static final Paint _innerBezelPaint = Paint()
     ..style = PaintingStyle.stroke
     ..strokeWidth = 1.0;
-  static final Paint _layerAlphaPaint = Paint();
 
   @override
   void render(Canvas canvas) {
@@ -115,21 +114,11 @@ class FloatingResourceNumberComponent extends PositionComponent {
       _borderPaint,
     );
 
-    // 5. Önceden Hesaplanmış Metin Çizimi (Zero Allocation & Bounded GPU Offscreen Buffer)
-    if (alpha < 0.99) {
-      _layerAlphaPaint.color = Color.fromRGBO(255, 255, 255, alpha);
-      canvas.saveLayer(_baseRect, _layerAlphaPaint);
-      _textPainter.paint(
-        canvas,
-        Offset(-_textPainter.width / 2, -_textPainter.height / 2),
-      );
-      canvas.restore();
-    } else {
-      _textPainter.paint(
-        canvas,
-        Offset(-_textPainter.width / 2, -_textPainter.height / 2),
-      );
-    }
+    // 5. Doğrudan Metin Çizimi (Sıfır saveLayer GPU maliyeti & Zero-GC)
+    _textPainter.paint(
+      canvas,
+      Offset(-_textPainter.width / 2, -_textPainter.height / 2),
+    );
 
     canvas.restore();
   }

@@ -598,7 +598,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     final List<HexAxial> otherLandCandidates = map.keys.where((c) {
       if (c.q == 0 && c.r == 0) return false;
       final int dist = HexMath.hexDistance(const HexAxial(0, 0), c);
-      if (dist <= 3) return false;
+      if (dist <= 4) return false;
       if (c == guaranteedSpeedShrineCoord) return false;
       final t = map[c]!;
       if (t.biome == TileBiome.sea || t.biome == TileBiome.mountain) return false;
@@ -2423,7 +2423,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     state = state.copyWith(
       settings: state.settings.copyWith(notifications: updated),
     );
-    saveGame();
+    unawaited(saveGame());
   }
 
   Future<void> saveGame() async {
