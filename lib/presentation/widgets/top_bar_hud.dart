@@ -13,6 +13,7 @@ import '../../domain/services/ad_reward_service.dart';
 import '../providers/game_state_notifier.dart';
 import 'ad_reward_progress_dialog.dart';
 import 'celestial_omen_hud.dart';
+import 'council_management_dialog.dart';
 import 'crown_breakdown_dialog.dart';
 import 'great_migration_dialog.dart';
 import 'icons/game_vector_icons.dart';
@@ -817,155 +818,81 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   ),
                   const SizedBox(width: 5),
 
-                  // Pazar Butonu
-                  _buildIconButton(
-                    icon: const GameVectorIcon(
-                      type: GameIconType.market,
-                      size: 15,
-                    ),
-                    onPressed: widget.onOpenMarket,
-                    tooltip: GameLocalization.get('market_title', lang: lang),
-                    backgroundColor: theme.slateBorder,
-                    borderColor: theme.border,
-                  ),
-                  const SizedBox(width: 5),
-
-                  // Töre Butonu
+                  // Kağanlık Meclisi & Birleşik Yönetim Butonu
                   Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      _buildIconButton(
-                        icon: const GameVectorIcon(
-                          type: GameIconType.tore,
-                          size: 15,
-                        ),
-                        onPressed: widget.onOpenTore,
-                        tooltip: 'Töre & Kurultay Meclisi',
-                        backgroundColor: theme.slateBorder,
-                        borderColor: theme.border,
-                      ),
-                      if (resources.crowns > 0)
-                        Positioned(
-                          top: -2,
-                          right: -2,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: theme.primaryGold,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: theme.border,
-                                width: 1.5,
+                      Semantics(
+                        button: true,
+                        label: lang == 'tr'
+                            ? 'Kurultay ve Yönetim Menüsü'
+                            : 'Council and Management Menu',
+                        child: TactileNeoButton(
+                          onTap: () {
+                            unawaited(
+                              TactileAudioService.instance.play(
+                                TactileSoundType.tap,
                               ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(width: 5),
-
-                  // Büyük Göç Butonu
-                  _buildIconButton(
-                    icon: const Icon(
-                      Icons.flight_takeoff,
-                      size: 15,
-                      color: Color(0xFFFFD700),
-                    ),
-                    onPressed: () {
-                      unawaited(
-                        TactileAudioService.instance.play(TactileSoundType.tap),
-                      );
-                      unawaited(HapticFeedback.lightImpact());
-                      showDialog<void>(
-                        context: context,
-                        builder: (ctx) => const GreatMigrationDialog(),
-                      );
-                    },
-                    tooltip: 'Büyük Göç & Çağ Atlayışı (Sıfırlama)',
-                    backgroundColor: const Color(0xFF78350F),
-                    borderColor: const Color(0xFFD97706),
-                  ),
-                  const SizedBox(width: 5),
-
-                  // Kompakt Frenzy / Çılgınlık Butonu
-                  Semantics(
-                    button: true,
-                    label: gameState.frenzyTimer > 0
-                        ? 'Toy Coşkusu Aktif: ${gameState.frenzyTimer.toInt()}s'
-                        : '10x Toy Coşkusu Reklam Takviyesi',
-                    child: TactileNeoButton(
-                      onTap: () async {
-                        unawaited(
-                          TactileAudioService.instance.play(
-                            TactileSoundType.tap,
-                          ),
-                        );
-                        unawaited(HapticFeedback.lightImpact());
-                        final completed = await showAdRewardProgressDialog(
-                          context,
-                          title: '10X TOY COŞKUSU',
-                          message: 'Ödül alınıyor lütfen bekleyiniz...',
-                        );
-                        if (completed && mounted) {
-                          await ref
-                              .read(gameStateProvider.notifier)
-                              .claimAdReward(
-                                AdRewardType.frenzyBoost,
+                            );
+                            unawaited(HapticFeedback.lightImpact());
+                            showDialog<void>(
+                              context: context,
+                              builder: (ctx) => CouncilManagementDialog(
+                                onOpenMarket: widget.onOpenMarket,
+                                onOpenTore: widget.onOpenTore,
+                                onOpenSettings: widget.onOpenSettings,
                                 adService: widget.adService,
-                              );
-                        }
-                      },
-                      backgroundColor: gameState.frenzyTimer > 0
-                          ? const Color(0xFFEF4444)
-                          : theme.accentColor,
-                      borderColor: theme.border,
-                      shadowColor: theme.shadowColor,
-                      shadowOffset: 2.0,
-                      height: 32,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      alignment: Alignment.center,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const GameVectorIcon(
-                            type: GameIconType.frenzy,
-                            size: 13,
-                            color: Colors.white,
+                              ),
+                            );
+                          },
+                          backgroundColor: gameState.frenzyTimer > 0
+                              ? const Color(0xFFEF4444)
+                              : (resources.crowns > 0
+                                  ? theme.primaryGold.withValues(alpha: 0.2)
+                                  : theme.slateBorder),
+                          borderColor: (resources.crowns > 0 ||
+                                  gameState.frenzyTimer > 0)
+                              ? theme.primaryGold
+                              : theme.border,
+                          shadowColor: theme.shadowColor,
+                          shadowOffset: 2.0,
+                          height: 32,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          alignment: Alignment.center,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              GameVectorIcon(
+                                type: GameIconType.tore,
+                                size: 15,
+                                color: gameState.frenzyTimer > 0
+                                    ? Colors.white
+                                    : (resources.crowns > 0
+                                        ? theme.primaryGold
+                                        : Colors.white),
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                gameState.frenzyTimer > 0
+                                    ? '${gameState.frenzyTimer.toInt()}s'
+                                    : (lang == 'tr' ? 'MECLİS' : 'COUNCIL'),
+                                style: TextStyle(
+                                  color: gameState.frenzyTimer > 0
+                                      ? Colors.white
+                                      : (resources.crowns > 0
+                                          ? theme.primaryGold
+                                          : Colors.white),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.4,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            gameState.frenzyTimer > 0
-                                ? '${gameState.frenzyTimer.toInt()}s'
-                                : '10x',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 5),
-
-                  // Ayarlar butonu
-                  Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      _buildIconButton(
-                        icon: const GameVectorIcon(
-                          type: GameIconType.settings,
-                          size: 15,
                         ),
-                        onPressed: widget.onOpenSettings,
-                        tooltip: 'Ayarlar',
-                        backgroundColor: theme.slateBorder,
-                        borderColor: theme.border,
                       ),
-                      if (gameState.settings.notifications.storageFullAlert ||
+                      if (resources.crowns > 0 ||
+                          gameState.settings.notifications.storageFullAlert ||
                           gameState.settings.notifications.seasonChangeAlert ||
                           gameState
                               .settings
@@ -979,14 +906,16 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                           top: -2,
                           right: -2,
                           child: Container(
-                            width: 6,
-                            height: 6,
+                            width: 8,
+                            height: 8,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFD97706),
-                              borderRadius: BorderRadius.circular(1.5),
+                              color: resources.crowns > 0
+                                  ? theme.primaryGold
+                                  : const Color(0xFFD97706),
+                              shape: BoxShape.circle,
                               border: Border.all(
                                 color: const Color(0xFF020617),
-                                width: 1.0,
+                                width: 1.5,
                               ),
                             ),
                           ),
