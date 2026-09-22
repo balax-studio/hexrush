@@ -775,16 +775,22 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Row(
-            children: [
-              Icon(Icons.shield_outlined, size: 14, color: Color(0xFF94A3B8)),
-              SizedBox(width: 6),
-              Text(
-                'Savunma Suru Yok',
-                style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10, fontWeight: FontWeight.bold),
-              ),
-            ],
+          const Expanded(
+            child: Row(
+              children: [
+                Icon(Icons.shield_outlined, size: 14, color: Color(0xFF94A3B8)),
+                SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Savunma Suru Yok',
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10, fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
           ),
+          const SizedBox(width: 6),
           TactileNeoButton(
             onTap: () => _showWallBuildDialog(context, ref, tile, gameState, theme),
             backgroundColor: theme.slateBorder,
@@ -1093,24 +1099,30 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'GELİŞTİRME GEREKSİNİMLERİ (SEVİYE $nextLvl)',
-                      style: const TextStyle(
-                        color: Color(0xFF94A3B8),
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.5,
+                    Flexible(
+                      child: Text(
+                        'GELİŞTİRME GEREKSİNİMLERİ (SEVİYE $nextLvl)',
+                        style: const TextStyle(
+                          color: Color(0xFF94A3B8),
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (!canAfford)
+                    if (!canAfford) ...[
+                      const SizedBox(width: 4),
                       const Text(
-                        'KAYNAK YETERSİZ',
+                        'YETERSİZ',
                         style: TextStyle(
                           color: Color(0xFFEF4444),
                           fontSize: 9,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 6),

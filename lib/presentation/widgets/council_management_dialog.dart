@@ -45,67 +45,77 @@ class CouncilManagementDialog extends ConsumerWidget {
           border: Border.all(color: theme.border, width: 2.5),
           boxShadow: theme.hardShadow(offset: 4.0),
         ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Başlık ve Kapat Butonu
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: theme.surfaceLight,
-                        borderRadius: NeoBrutalistTheme.sharpRadius,
-                        border: Border.all(color: theme.primaryGold, width: 1.5),
-                      ),
-                      alignment: Alignment.center,
-                      child: const GameVectorIcon(
-                        type: GameIconType.tore,
-                        size: 18,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.all(14),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Başlık ve Kapat Butonu
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Row(
                       children: [
-                        Text(
-                          lang == 'tr' ? 'KURULTAY & YÖNETİM' : 'COUNCIL & MANAGEMENT',
-                          style: TextStyle(
-                            color: theme.primaryGold,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.5,
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: theme.surfaceLight,
+                            borderRadius: NeoBrutalistTheme.sharpRadius,
+                            border: Border.all(color: theme.primaryGold, width: 1.5),
+                          ),
+                          alignment: Alignment.center,
+                          child: const GameVectorIcon(
+                            type: GameIconType.tore,
+                            size: 18,
                           ),
                         ),
-                        Text(
-                          lang == 'tr' ? 'Kağanlık İdari İşleri' : 'Realm Administration',
-                          style: const TextStyle(
-                            color: Color(0xFF94A3B8),
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                lang == 'tr' ? 'KURULTAY & YÖNETİM' : 'COUNCIL & MANAGEMENT',
+                                style: TextStyle(
+                                  color: theme.primaryGold,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.5,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                lang == 'tr' ? 'Kağanlık İdari İşleri' : 'Realm Administration',
+                                style: const TextStyle(
+                                  color: Color(0xFF94A3B8),
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-                TactileNeoButton(
-                  onTap: () => Navigator.of(context).pop(),
-                  backgroundColor: theme.surfaceLight,
-                  borderColor: theme.border,
-                  height: 28,
-                  width: 28,
-                  padding: EdgeInsets.zero,
-                  child: const Icon(Icons.close, color: Color(0xFF94A3B8), size: 16),
-                ),
-              ],
-            ),
+                  ),
+                  const SizedBox(width: 8),
+                  TactileNeoButton(
+                    onTap: () => Navigator.of(context).pop(),
+                    backgroundColor: theme.surfaceLight,
+                    borderColor: theme.border,
+                    height: 28,
+                    width: 28,
+                    padding: EdgeInsets.zero,
+                    child: const Icon(Icons.close, color: Color(0xFF94A3B8), size: 16),
+                  ),
+                ],
+              ),
 
             const SizedBox(height: 14),
 
@@ -133,8 +143,8 @@ class CouncilManagementDialog extends ConsumerWidget {
               borderColor: theme.border,
               shadowColor: theme.shadowColor,
               shadowOffset: 3.0,
-              height: 48,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+              height: 52,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               child: Row(
                 children: [
                   Container(
@@ -153,34 +163,38 @@ class CouncilManagementDialog extends ConsumerWidget {
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          gameState.frenzyTimer > 0
-                              ? (lang == 'tr' ? 'TOY COŞKUSU AKTİF!' : 'FRENZY ACTIVE!')
-                              : (lang == 'tr' ? '10X TOY COŞKUSU' : '10X REALM FRENZY'),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.3,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            gameState.frenzyTimer > 0
+                                ? (lang == 'tr' ? 'TOY COŞKUSU AKTİF!' : 'FRENZY ACTIVE!')
+                                : (lang == 'tr' ? '10X TOY COŞKUSU' : '10X REALM FRENZY'),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.3,
+                            ),
                           ),
-                        ),
-                        Text(
-                          gameState.frenzyTimer > 0
-                              ? '${gameState.frenzyTimer.toInt()}s ${lang == 'tr' ? 'kaldı (2x Hız)' : 'left (2x Speed)'}'
-                              : (lang == 'tr' ? '10 dk boyunca küresel üretimi 2 katına çıkar' : 'Boost all production 2x for 10 min'),
-                          style: const TextStyle(
-                            color: Color(0xFFFEF3C7),
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w600,
+                          Text(
+                            gameState.frenzyTimer > 0
+                                ? '${gameState.frenzyTimer.toInt()}s ${lang == 'tr' ? 'kaldı (2x Hız)' : 'left (2x Speed)'}'
+                                : (lang == 'tr' ? '10 dk boyunca küresel üretimi 2 katına çıkar' : 'Boost all production 2x for 10 min'),
+                            style: const TextStyle(
+                              color: Color(0xFFFEF3C7),
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 12),
@@ -266,8 +280,9 @@ class CouncilManagementDialog extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildMenuCard({
     required String title,
@@ -289,16 +304,16 @@ class CouncilManagementDialog extends ConsumerWidget {
       borderColor: theme.border,
       shadowColor: theme.shadowColor,
       shadowOffset: 2.5,
-      height: 64,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      height: 68,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Row(
         children: [
           Stack(
             clipBehavior: Clip.none,
             children: [
               Container(
-                width: 34,
-                height: 34,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
                   color: theme.surface,
                   borderRadius: NeoBrutalistTheme.sharpRadius,
@@ -327,33 +342,37 @@ class CouncilManagementDialog extends ConsumerWidget {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.2,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.2,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: Color(0xFF94A3B8),
-                    fontSize: 8.5,
-                    fontWeight: FontWeight.w600,
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: Color(0xFF94A3B8),
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

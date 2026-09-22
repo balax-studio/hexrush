@@ -66,46 +66,55 @@ class CrownBreakdownDialog extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0F172A),
-                          borderRadius: NeoBrutalistTheme.sharpRadius,
-                          border: Border.all(color: theme.primaryGold, width: 1.5),
-                        ),
-                        child: const GameVectorIcon(
-                          type: GameIconType.crown,
-                          size: 20,
-                          color: Color(0xFFFFD700),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            GameLocalization.get('glory_crown_breakdown', lang: lang),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.5,
-                            ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0F172A),
+                            borderRadius: NeoBrutalistTheme.sharpRadius,
+                            border: Border.all(color: theme.primaryGold, width: 1.5),
                           ),
-                          Text(
-                            'Büyük Göç Sıfırlama Hesabı',
-                            style: TextStyle(
-                              color: Colors.grey.shade400,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                            ),
+                          child: const GameVectorIcon(
+                            type: GameIconType.crown,
+                            size: 20,
+                            color: Color(0xFFFFD700),
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                GameLocalization.get('glory_crown_breakdown', lang: lang),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.5,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                'Büyük Göç Sıfırlama Hesabı',
+                                style: TextStyle(
+                                  color: Colors.grey.shade400,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   TactileNeoButton(
                     onTap: () => Navigator.of(context).pop(),
                     height: 28,
@@ -133,32 +142,42 @@ class CrownBreakdownDialog extends ConsumerWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Column(
-                      children: [
-                        Text(
-                          GameLocalization.get('current_crowns', lang: lang),
-                          style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w800),
+                    Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Column(
+                          children: [
+                            Text(
+                              GameLocalization.get('current_crowns', lang: lang),
+                              style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w800),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              '${gameState.resources.crowns}',
+                              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 3),
-                        Text(
-                          '${gameState.resources.crowns}',
-                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
-                        ),
-                      ],
+                      ),
                     ),
                     Container(width: 1.5, height: 32, color: const Color(0xFF334155)),
-                    Column(
-                      children: [
-                        Text(
-                          GameLocalization.get('to_earn_in_migration', lang: lang),
-                          style: const TextStyle(color: Color(0xFFFFD700), fontSize: 10, fontWeight: FontWeight.w800),
+                    Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Column(
+                          children: [
+                            Text(
+                              GameLocalization.get('to_earn_in_migration', lang: lang),
+                              style: const TextStyle(color: Color(0xFFFFD700), fontSize: 10, fontWeight: FontWeight.w800),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              '+${breakdown.totalCrowns} TAÇ',
+                              style: const TextStyle(color: Color(0xFFFFD700), fontSize: 18, fontWeight: FontWeight.w900),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 3),
-                        Text(
-                          '+${breakdown.totalCrowns} TAÇ',
-                          style: const TextStyle(color: Color(0xFFFFD700), fontSize: 18, fontWeight: FontWeight.w900),
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
@@ -318,6 +337,8 @@ class CrownBreakdownDialog extends ConsumerWidget {
                     fontSize: 11,
                     fontWeight: FontWeight.w900,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -326,6 +347,8 @@ class CrownBreakdownDialog extends ConsumerWidget {
                     color: Colors.grey.shade400,
                     fontSize: 9.5,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),

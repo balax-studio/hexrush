@@ -248,78 +248,90 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                         Row(
                           children: [
                             Expanded(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    GameLocalization.get('crowns_to_gain', lang: lang),
-                                    style: const TextStyle(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w800),
-                                    textAlign: TextAlign.center,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '+${breakdown.totalCrowns}',
-                                    style: const TextStyle(color: Color(0xFFFFD700), fontSize: 15, fontWeight: FontWeight.w900),
-                                  ),
-                                ],
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      GameLocalization.get('crowns_to_gain', lang: lang),
+                                      style: const TextStyle(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w800),
+                                      textAlign: TextAlign.center,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '+${breakdown.totalCrowns}',
+                                      style: const TextStyle(color: Color(0xFFFFD700), fontSize: 15, fontWeight: FontWeight.w900),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                             Container(width: 1, height: 24, color: const Color(0xFF334155)),
                             Expanded(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    GameLocalization.get('ancestral_tamga', lang: lang),
-                                    style: const TextStyle(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w800),
-                                    textAlign: TextAlign.center,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '+$newTamgas',
-                                    style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 15, fontWeight: FontWeight.w900),
-                                  ),
-                                ],
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      GameLocalization.get('ancestral_tamga', lang: lang),
+                                      style: const TextStyle(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w800),
+                                      textAlign: TextAlign.center,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '+$newTamgas',
+                                      style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 15, fontWeight: FontWeight.w900),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                             Container(width: 1, height: 24, color: const Color(0xFF334155)),
                             Expanded(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    GameLocalization.get('kut_multiplier', lang: lang),
-                                    style: const TextStyle(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w800),
-                                    textAlign: TextAlign.center,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '${nextKut.toStringAsFixed(2)}x',
-                                    style: const TextStyle(color: Color(0xFF10B981), fontSize: 15, fontWeight: FontWeight.w900),
-                                  ),
-                                ],
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      GameLocalization.get('kut_multiplier', lang: lang),
+                                      style: const TextStyle(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w800),
+                                      textAlign: TextAlign.center,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${nextKut.toStringAsFixed(2)}x',
+                                      style: const TextStyle(color: Color(0xFF10B981), fontSize: 15, fontWeight: FontWeight.w900),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                             Container(width: 1, height: 24, color: const Color(0xFF334155)),
                             Expanded(
-                              child: Column(
-                                children: [
-                                  const Text(
-                                    'TAŞIMA',
-                                    style: TextStyle(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w800),
-                                    textAlign: TextAlign.center,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '+$nextLogisticsPercent%',
-                                    style: const TextStyle(color: Color(0xFFF59E0B), fontSize: 15, fontWeight: FontWeight.w900),
-                                  ),
-                                ],
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Column(
+                                  children: [
+                                    const Text(
+                                      'TAŞIMA',
+                                      style: TextStyle(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w800),
+                                      textAlign: TextAlign.center,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '+$nextLogisticsPercent%',
+                                      style: const TextStyle(color: Color(0xFFF59E0B), fontSize: 15, fontWeight: FontWeight.w900),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
@@ -718,23 +730,26 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                           borderColor: Colors.black,
                           shadowOffset: 2.5,
                           alignment: Alignment.center,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(isEligible ? Icons.flight_takeoff : Icons.lock, color: isEligible ? Colors.white : Colors.white60, size: 16),
-                              const SizedBox(width: 6),
-                              Text(
-                                isEligible
-                                    ? GameLocalization.get('start_migration_btn', lang: lang)
-                                    : GameLocalization.get('migration_locked_btn', lang: lang),
-                                style: TextStyle(
-                                  color: isEligible ? Colors.white : Colors.white60,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 0.4,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(isEligible ? Icons.flight_takeoff : Icons.lock, color: isEligible ? Colors.white : Colors.white60, size: 16),
+                                const SizedBox(width: 6),
+                                Text(
+                                  isEligible
+                                      ? GameLocalization.get('start_migration_btn', lang: lang)
+                                      : GameLocalization.get('migration_locked_btn', lang: lang),
+                                  style: TextStyle(
+                                    color: isEligible ? Colors.white : Colors.white60,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.4,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -1052,29 +1067,34 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 1),
-              Row(
-                children: [
-                  Text(
-                    beforeText,
-                    style: const TextStyle(
-                      color: Color(0xFF94A3B8),
-                      fontSize: 8.5,
-                      fontWeight: FontWeight.w700,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      beforeText,
+                      style: const TextStyle(
+                        color: Color(0xFF94A3B8),
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4),
-                    child: Icon(Icons.arrow_forward, size: 10, color: Color(0xFF64748B)),
-                  ),
-                  Text(
-                    afterText,
-                    style: TextStyle(
-                      color: iconColor,
-                      fontSize: 8.5,
-                      fontWeight: FontWeight.w900,
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 4),
+                      child: Icon(Icons.arrow_forward, size: 10, color: Color(0xFF64748B)),
                     ),
-                  ),
-                ],
+                    Text(
+                      afterText,
+                      style: TextStyle(
+                        color: iconColor,
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
