@@ -130,10 +130,10 @@ class VoxelIsometricRenderer {
     _sharedFillPaint.color = topColor;
     canvas.drawPath(_cubeTopPath, _sharedFillPaint);
 
-    // 4. Kenar Vurgusu
-    if (specularHighlight && w >= 2.5 && h >= 1.5) {
+    // 4. Kenar Vurgusu (Yalnızca büyük anıtsal yapılarda; alt-piksel titreşimini ve göz yorgunluğunu önler)
+    if (specularHighlight && w >= 12.0 && h >= 10.0) {
       _cubeSpecularPaint
-        ..color = Colors.white.withValues(alpha: 0.32)
+        ..color = Colors.white.withValues(alpha: 0.16)
         ..strokeWidth = 1.0;
       _cubeSpecularPath
         ..reset()
@@ -142,22 +142,10 @@ class VoxelIsometricRenderer {
         ..lineTo(bRightX, tRightY);
       canvas.drawPath(_cubeSpecularPath, _cubeSpecularPaint);
 
-      _cubeSpecularPaint.color = Colors.white.withValues(alpha: 0.18);
+      _cubeSpecularPaint.color = Colors.white.withValues(alpha: 0.10);
       canvas.drawLine(
         Offset(bFrontX, tFrontY),
         Offset(bFrontX, bFrontY),
-        _cubeSpecularPaint,
-      );
-
-      _cubeSpecularPaint.color = Colors.black.withValues(alpha: 0.26);
-      canvas.drawLine(
-        Offset(bLeftX, bLeftY),
-        Offset(bFrontX, bFrontY),
-        _cubeSpecularPaint,
-      );
-      canvas.drawLine(
-        Offset(bFrontX, bFrontY),
-        Offset(bRightX, bRightY),
         _cubeSpecularPaint,
       );
     }

@@ -9,10 +9,11 @@ class FloatingVoxelCloudComponent extends PositionComponent {
   final double cloudScale;
   final double minX;
   final double maxX;
+  bool isReducedMotion = false;
 
   FloatingVoxelCloudComponent({
     required Vector2 initialPosition,
-    this.speed = 3.5,
+    this.speed = 1.6,
     this.cloudScale = 1.0,
     this.minX = -950.0,
     this.maxX = 950.0,
@@ -26,6 +27,7 @@ class FloatingVoxelCloudComponent extends PositionComponent {
   @override
   void update(double dt) {
     super.update(dt);
+    if (isReducedMotion) return;
     position.x += speed * dt;
     // Hafif izometrik y ekseni kayması (gerçekçi rüzgar akışı)
     position.y += speed * 0.22 * dt;
@@ -36,14 +38,15 @@ class FloatingVoxelCloudComponent extends PositionComponent {
   }
 
   static final Paint _groundShadowPaint = Paint()
-    ..color = Colors.black.withValues(alpha: 0.16)
+    ..color = Colors.black.withValues(alpha: 0.05)
     ..style = PaintingStyle.fill;
   static final Paint _innerGroundShadowPaint = Paint()
-    ..color = Colors.black.withValues(alpha: 0.08)
+    ..color = Colors.black.withValues(alpha: 0.02)
     ..style = PaintingStyle.fill;
 
   @override
   void render(Canvas canvas) {
+    if (isReducedMotion) return;
     // Frustum / Viewport Culling: Ekran dışındaki bulutları çizme
     final game = findGame();
     if (game is HexMapGame) {

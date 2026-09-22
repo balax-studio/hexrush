@@ -478,6 +478,7 @@ class SettingsModel {
   final NotificationSettingsModel notifications;
   final String activeThemePalette;
   final String activeTitle;
+  final bool reducedMotion;
 
   const SettingsModel({
     this.language = 'tr',
@@ -488,6 +489,7 @@ class SettingsModel {
     this.notifications = const NotificationSettingsModel(),
     this.activeThemePalette = 'basalt',
     this.activeTitle = 'nomad',
+    this.reducedMotion = false,
   });
 
   SettingsModel copyWith({
@@ -499,6 +501,7 @@ class SettingsModel {
     NotificationSettingsModel? notifications,
     String? activeThemePalette,
     String? activeTitle,
+    bool? reducedMotion,
   }) {
     return SettingsModel(
       language: language ?? this.language,
@@ -509,6 +512,7 @@ class SettingsModel {
       notifications: notifications ?? this.notifications,
       activeThemePalette: activeThemePalette ?? this.activeThemePalette,
       activeTitle: activeTitle ?? this.activeTitle,
+      reducedMotion: reducedMotion ?? this.reducedMotion,
     );
   }
 
@@ -521,6 +525,7 @@ class SettingsModel {
         'notifications': notifications.toJson(),
         'active_theme_palette': activeThemePalette,
         'active_title': activeTitle,
+        'reduced_motion': reducedMotion,
       };
 
   factory SettingsModel.fromJson(Map<String, dynamic> json) {
@@ -539,6 +544,7 @@ class SettingsModel {
       notifications: notif,
       activeThemePalette: json['active_theme_palette'] as String? ?? 'basalt',
       activeTitle: json['active_title'] as String? ?? 'nomad',
+      reducedMotion: json['reduced_motion'] as bool? ?? false,
     );
   }
 }

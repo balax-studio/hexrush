@@ -1,7 +1,8 @@
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
-import 'package:flutter/material.dart' show Colors, Color;
+import 'package:flutter/material.dart' show Colors, Color, Size;
 import '../../core/hex/hex_coordinates.dart';
 import '../../core/hex/hex_math.dart';
 import '../../domain/models/building_model.dart';
@@ -44,6 +45,11 @@ class HexMapGame extends FlameGame {
 
   GameState? _lastState;
   double _currentZoom = 1.0;
+  double _targetZoom = 1.0;
+  Offset? _zoomAnchorScreenPos;
+  Offset? _zoomAnchorWorldPos;
+  Size _lastScreenSize = const Size(1200, 800);
+  bool _isDragging = false;
   double _dayNightClock = 0.0;
   bool _isNight = false;
   final List<LightEmitter> _cachedLightEmitters = [];
@@ -90,7 +96,8 @@ class HexMapGame extends FlameGame {
         darkness: 0.0,
         emitters: const [],
       );
-      _sunRays.isEnabled = !(_lastState?.season.isZud ?? false);
+      final bool reduced = _lastState?.settings.reducedMotion ?? false;
+      _sunRays.isEnabled = !reduced && !(_lastState?.season.isZud ?? false);
     }
   }
 
@@ -189,13 +196,37 @@ class HexMapGame extends FlameGame {
     // Frustum Culling: Kamera görüş alanını güncelle
     ViewportCullingManager.instance.updateVisibleBounds(visibleWorldBounds);
 
-    // Pürüzsüz kamera sürükleme sönümlemesi (Pan Inertia)
-    if (_panVelocity.length2 > 1.0) {
+    // Pürüzsüz kamera sürükleme sönümlemesi (Sadece sürükleme bittiğinde ve fırlatıldıysa)
+    if (!_isDragging && _panVelocity.length2 > 10.0) {
       gameCamera.viewfinder.position += _panVelocity * dt;
       _clampCameraPosition();
-      _panVelocity *= 0.78; // Tok ve stabil sönümleme katsayısı
-    } else {
+      // Hızlı ve kararlı logaritmik sönümleme (skating/paten kaymasını engeller)
+      _panVelocity *= math.exp(-14.0 * dt);
+      if (_panVelocity.length < 5.0) {
+        _panVelocity = Vector2.zero();
+      }
+    } else if (_isDragging) {
       _panVelocity = Vector2.zero();
+    }
+
+    // Pürüzsüz Zoom Interpolasyonu (Ease-Out Lerp)
+    if ((_currentZoom - _targetZoom).abs() > 0.001) {
+      _currentZoom = _currentZoom + (_targetZoom - _currentZoom) * (1.0 - math.exp(-14.0 * dt));
+      gameCamera.viewfinder.zoom = _currentZoom;
+
+      if (_zoomAnchorScreenPos != null && _zoomAnchorWorldPos != null) {
+        final screenCenterX = _lastScreenSize.width / 2;
+        final screenCenterY = _lastScreenSize.height / 2;
+        final newCamX = _zoomAnchorWorldPos!.dx - (_zoomAnchorScreenPos!.dx - screenCenterX) / _currentZoom;
+        final newCamY = _zoomAnchorWorldPos!.dy - (_zoomAnchorScreenPos!.dy - screenCenterY) / _currentZoom;
+        gameCamera.viewfinder.position = Vector2(newCamX, newCamY);
+        _clampCameraPosition();
+      }
+    } else if (_currentZoom != _targetZoom) {
+      _currentZoom = _targetZoom;
+      gameCamera.viewfinder.zoom = _currentZoom;
+      _zoomAnchorScreenPos = null;
+      _zoomAnchorWorldPos = null;
     }
   }
 
@@ -397,19 +428,53 @@ class HexMapGame extends FlameGame {
     }
   }
 
+  void onDragStart() {
+    _isDragging = true;
+    _panVelocity = Vector2.zero();
+  }
+
+  void onDragEnd() {
+    _isDragging = false;
+    // Yalnızca belirgin bir fırlatma hareketi varsa ölçülü atalet bırak
+    if (_panVelocity.length > 650.0) {
+      _panVelocity = _panVelocity.normalized() * 650.0;
+    } else if (_panVelocity.length < 120.0) {
+      _panVelocity = Vector2.zero();
+    }
+  }
+
   void panCamera(Offset delta) {
-    if (delta.dx.isNaN || delta.dy.isNaN) return;
+    if (!isLoaded || delta.dx.isNaN || delta.dy.isNaN) return;
+    // 1:1 doğrudan elin hareketi kadar haritayı kaydır (visuomotor uyum)
     final panDelta = Vector2(-delta.dx, -delta.dy) / _currentZoom;
     gameCamera.viewfinder.position += panDelta;
     _clampCameraPosition();
-    _panVelocity = panDelta * 4.0; // Harekete atalet momentumu ekle
+    _panVelocity = panDelta / 0.016;
   }
 
   void zoomCamera(double delta) {
     if (delta.isNaN) return;
-    _currentZoom = (_currentZoom + delta).clamp(0.45, 2.2);
-    gameCamera.viewfinder.zoom = _currentZoom;
-    _clampCameraPosition();
+    _targetZoom = (_targetZoom + delta).clamp(0.45, 2.2);
+  }
+
+  void zoomCameraAtPoint(double delta, Offset screenPos, Size screenSize) {
+    if (delta.isNaN) return;
+    _lastScreenSize = screenSize;
+    final double newTarget = (_targetZoom + delta).clamp(0.45, 2.2);
+    if ((newTarget - _targetZoom).abs() < 0.0001) return;
+
+    if (isLoaded) {
+      final double screenCenterX = screenSize.width / 2;
+      final double screenCenterY = screenSize.height / 2;
+      final double worldX =
+          (screenPos.dx - screenCenterX) / _currentZoom + gameCamera.viewfinder.position.x;
+      final double worldY =
+          (screenPos.dy - screenCenterY) / _currentZoom + gameCamera.viewfinder.position.y;
+
+      _zoomAnchorScreenPos = screenPos;
+      _zoomAnchorWorldPos = Offset(worldX, worldY);
+    }
+    _targetZoom = newTarget;
   }
 
   void syncGameState(GameState state) {
@@ -445,8 +510,15 @@ class HexMapGame extends FlameGame {
       _updateWeather(state);
     }
     if (macroChanged) {
-      _currentZoom = state.isMacroOverview ? 0.45 : 1.0;
-      gameCamera.viewfinder.zoom = _currentZoom;
+      _targetZoom = state.isMacroOverview ? 0.45 : 1.0;
+    }
+    final bool reducedMotionChanged = prev == null || prev.settings.reducedMotion != state.settings.reducedMotion;
+    if (reducedMotionChanged) {
+      final bool reduced = state.settings.reducedMotion;
+      _sunRays.isEnabled = !reduced && !_isNight && !state.season.isZud;
+      for (final cloud in _cloudComponents) {
+        cloud.isReducedMotion = reduced;
+      }
     }
   }
 

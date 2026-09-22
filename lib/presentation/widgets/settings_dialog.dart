@@ -329,6 +329,33 @@ class SettingsDialog extends ConsumerWidget {
 
               const SizedBox(height: 16),
 
+              // Görsel Konfor & Erişilebilirlik
+              Text(
+                lang == 'tr' ? 'Görsel Konfor & Erişilebilirlik' : 'Visual Comfort & Accessibility',
+                style: NeoBrutalistTheme.fontLabel,
+              ),
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: NeoBrutalistTheme.sharpRadius,
+                  border: Border.all(
+                    color: const Color(0xFF334155),
+                    width: 1.5,
+                  ),
+                ),
+                child: _buildNotificationToggle(
+                  lang == 'tr'
+                      ? 'Sakin Görsel Mod (Düşük Hareket)'
+                      : 'Calm Visual Mode (Reduced Motion)',
+                  settings.reducedMotion,
+                  (val) => notifier.setReducedMotion(val),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
               // Dinamik Neo-Brutalist Tema Paleti
               Text(
                 GameLocalization.get('theme_palette', lang: lang),

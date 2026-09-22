@@ -2397,6 +2397,13 @@ class GameStateNotifier extends StateNotifier<GameState> {
     TactileAudioService.instance.updateSettings(isMusicEnabled: !newMuted);
   }
 
+  void setReducedMotion(bool value) {
+    state = state.copyWith(
+      settings: state.settings.copyWith(reducedMotion: value),
+    );
+    unawaited(saveGame());
+  }
+
   Future<void> updateNotificationSettings({
     bool? storageFullAlert,
     bool? seasonChangeAlert,

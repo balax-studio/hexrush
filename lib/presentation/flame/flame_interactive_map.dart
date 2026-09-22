@@ -53,8 +53,8 @@ class _FlameInteractiveMapState extends ConsumerState<FlameInteractiveMap> {
         return Listener(
           onPointerSignal: (signal) {
             if (signal is PointerScrollEvent) {
-              final double zoomDelta = signal.scrollDelta.dy > 0 ? -0.1 : 0.1;
-              _game.zoomCamera(zoomDelta);
+              final double zoomDelta = signal.scrollDelta.dy > 0 ? -0.15 : 0.15;
+              _game.zoomCameraAtPoint(zoomDelta, signal.localPosition, size);
             }
           },
           child: GestureDetector(
@@ -64,6 +64,7 @@ class _FlameInteractiveMapState extends ConsumerState<FlameInteractiveMap> {
             },
             onScaleStart: (details) {
               _lastFocalPoint = details.localFocalPoint;
+              _game.onDragStart();
             },
             onScaleUpdate: (details) {
               final Offset delta = details.localFocalPoint - _lastFocalPoint;
@@ -73,13 +74,16 @@ class _FlameInteractiveMapState extends ConsumerState<FlameInteractiveMap> {
               if (details.pointerCount <= 1) {
                 _game.panCamera(delta);
               } else {
-                // Çok parmaklı dokunmada hem kaydır hem yakınlaştır (Pinch-to-zoom)
+                // Çok parmaklı dokunmada hem kaydır hem odak noktasına yakınlaştır
                 _game.panCamera(delta);
                 if ((details.scale - 1.0).abs() > 0.005) {
                   final double zoomDelta = (details.scale - 1.0) * 0.05;
-                  _game.zoomCamera(zoomDelta);
+                  _game.zoomCameraAtPoint(zoomDelta, details.localFocalPoint, size);
                 }
               }
+            },
+            onScaleEnd: (_) {
+              _game.onDragEnd();
             },
             child: ClipRect(
               child: GameWidget(
