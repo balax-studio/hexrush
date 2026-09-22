@@ -954,6 +954,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                         ),
                         description:
                             'Değirmende mısırdan öğütülen hammadde. Taş fırında ekmek pişirmek ve pazarda takas için kullanılır.',
+                        strategicHint:
+                            'Çayır veya Çöl arazisine Yel Değirmeni kurarak (Kağan Otağı Sv.5) mısırdan üretilir. Fırında ekmek pişirmek için harcanır.',
                         theme: theme,
                       ),
                     ),
@@ -979,6 +981,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                         ),
                         description:
                             'Kereste fabrikasında kütüklerden biçilen tahtalar. Mobilya ve gelişmiş yapılar için elzemdir.',
+                        strategicHint:
+                            'Orman karosuna Kereste Fabrikası kurarak (Kağan Otağı Sv.5) odundan biçilir. Marangozhane ve köprü inşasında kullanılır.',
                         theme: theme,
                       ),
                     ),
@@ -1004,6 +1008,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                         ),
                         description:
                             'Taş köz fırınında un ve gıda harcanarak pişirilen yüksek besleyici gıda. Otağ geliştirmeleri için gereklidir.',
+                        strategicHint:
+                            'Çayır arazisine Ekmek Fırını kurarak (Kağan Otağı Sv.15) un ve gıdadan pişirilir. Otağ Sv.15+ geliştirmeleri için zorunludur.',
                         theme: theme,
                       ),
                     ),
@@ -1031,6 +1037,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                         ),
                         description:
                             'Marangoz otağında keresteden üretilir. Yüksek pazar takas değerine sahiptir.',
+                        strategicHint:
+                            'Orman karosuna Marangozhane kurarak (Kağan Otağı Sv.20) keresteden üretilir. İpek Yolu takaslarında en değerli ticaret malıdır.',
                         theme: theme,
                       ),
                     ),
@@ -1056,6 +1064,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                         ),
                         description:
                             'Madenlerden çıkarılan dayanıklı metal. Ağır donanım, kuleler ve anıtlar için kullanılır.',
+                        strategicHint:
+                            'Sadece DAĞ biyomunda inşa edilen Demir Madeni ile (Kağan Otağı Sv.15) çıkarılır veya İpek Yolu Pazarından takas edilir. İleri seviye Otağ yükseltmeleri için elzemdir.',
                         theme: theme,
                       ),
                     ),
@@ -1081,6 +1091,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                         ),
                         description:
                             'Orhun Bitig dikilitaşlarından ve kadim yazıtlardan süzülen töre bilgeliği. Bozkır Bilgelik Ağacı yeteneklerini açar.',
+                        strategicHint:
+                            'Çayır veya Dağ arazisine Orhun Yazıtı dikerek (Kağan Otağı Sv.5) ve Scribe Otağı ile (Kağan Otağı Sv.30) üretilir. Töre & Kurultay yeteneklerini açar.',
                         theme: theme,
                       ),
                     ),
@@ -1106,6 +1118,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                         ),
                         description:
                             'Kımız Otağında fermente edilen at sütü içeceği. İpek yolu elçi siparişlerinde ve fetihlerde güç sağlar.',
+                        strategicHint:
+                            'Çayır biyomuna Kımız Otağı kurarak (Kağan Otağı Sv.30) üretilir. Kervan siparişleri ve kutlu törenler için gereklidir.',
                         theme: theme,
                       ),
                     ),
@@ -1131,6 +1145,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                         ),
                         description:
                             'Keçe Çadırhanesinde yünden sıkıştırılan yalıtım örtüsü. Kış aylarında çadırları korur ve ticarette aranır.',
+                        strategicHint:
+                            'Çayır veya Çöl karosuna Keçe Çadırhanesi kurarak (Kağan Otağı Sv.20) üretilir. Kış donlarına karşı koruma ve kervan ticaretinde kullanılır.',
                         theme: theme,
                       ),
                     ),
@@ -1158,6 +1174,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                         ),
                         description:
                             'Dökümhanede kat kat dövülmüş su verilmiş kadim çelik. Ağır ordu donanımları ve elçi hediyeleri için kullanılır.',
+                        strategicHint:
+                            'Volkan veya Dağ biyomuna Şam Çeliği Ocağı kurarak (Kağan Otağı Sv.40) üretilir. En üst kademe askeri güç ve harikalar için şarttır.',
                         theme: theme,
                       ),
                     ),

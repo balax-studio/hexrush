@@ -1513,11 +1513,24 @@ class GameStateNotifier extends StateNotifier<GameState> {
           );
         }
       } else {
-        final randomBiome = TileBiome
-            .values[math.Random().nextInt(TileBiome.values.length)];
+        final roll = math.Random().nextDouble();
+        final TileBiome dynamicBiome;
+        if (roll < 0.45) {
+          dynamicBiome = TileBiome.meadow;
+        } else if (roll < 0.75) {
+          dynamicBiome = TileBiome.forest;
+        } else if (roll < 0.85) {
+          dynamicBiome = TileBiome.desert;
+        } else if (roll < 0.92) {
+          dynamicBiome = TileBiome.mountain;
+        } else if (roll < 0.96) {
+          dynamicBiome = TileBiome.tundra;
+        } else {
+          dynamicBiome = TileBiome.sea;
+        }
         updatedTiles[targetCoord] = HexTileModel(
           coord: targetCoord,
-          biome: randomBiome,
+          biome: dynamicBiome,
           state: TileState.discovered,
           shrine: ShrineType.none,
         );
