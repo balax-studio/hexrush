@@ -245,70 +245,70 @@ class HexTileComponent extends PositionComponent {
   /// Canlı Biyom Hayvanlarının Dinamik Gezinme ve Göç Hesabı (Fauna Wandering & Migration Engine)
   FaunaRoamData getFaunaRoamData(int faunaSeed, {double speedMultiplier = 1.0}) {
     final double timeOffset = ((faunaSeed * 5.41).abs() % 40.0);
-    final double t = (tileAnimTime * speedMultiplier * 0.45) + timeOffset;
+    final double t = (tileAnimTime * speedMultiplier * 0.28) + timeOffset;
 
     if (compatibleNeighborOffsets.isNotEmpty) {
       final int n = compatibleNeighborOffsets.length;
-      final int cycleIndex = (t / 22.0).floor();
+      final int cycleIndex = (t / 34.0).floor();
       final int targetIndex = (faunaSeed + cycleIndex) % n;
       final Offset targetOffset = compatibleNeighborOffsets[targetIndex];
-      final double cycle = t % 22.0;
+      final double cycle = t % 34.0;
 
-      if (cycle < 5.0) {
-        // 1. Ana Karoda Otlama / Yavaş Adımlama (0s - 5s)
+      if (cycle < 9.0) {
+        // 1. Ana Karoda Sakin Otlama / Dinlenme (0s - 9s)
         final double phaseT = cycle;
-        final double ox = math.cos(phaseT * 0.7) * 7.0;
-        final double oy = math.sin(phaseT * 0.5) * 4.0;
-        final double vx = -math.sin(phaseT * 0.7) * 4.9;
+        final double ox = math.cos(phaseT * 0.4) * 4.5;
+        final double oy = math.sin(phaseT * 0.3) * 2.5;
+        final double vx = -math.sin(phaseT * 0.4) * 1.8;
         return FaunaRoamData(
           offset: Offset(ox, oy),
-          flipX: vx > 0.15 ? true : (vx < -0.15 ? false : faunaSeed % 2 != 0),
-          walkAnim: phaseT < 3.0 ? t * 2.5 : 0.0,
+          flipX: vx > 0.1 ? true : (vx < -0.1 ? false : faunaSeed % 2 != 0),
+          walkAnim: phaseT < 3.0 ? t * 1.5 : 0.0,
           isMoving: phaseT < 3.0,
         );
-      } else if (cycle < 9.5) {
-        // 2. Komşu Biyoma Doğru Göç / Yürüme (5s - 9.5s)
-        final double progress = (cycle - 5.0) / 4.5;
+      } else if (cycle < 15.0) {
+        // 2. Komşu Biyoma Doğru Yavaş Adımlama (9s - 15s)
+        final double progress = (cycle - 9.0) / 6.0;
         final double s = progress * progress * (3.0 - 2.0 * progress);
-        final Offset startPt = Offset(math.cos(5.0 * 0.7) * 7.0, math.sin(5.0 * 0.5) * 4.0);
-        final Offset endPt = targetOffset * 0.68;
+        final Offset startPt = Offset(math.cos(9.0 * 0.4) * 4.5, math.sin(9.0 * 0.3) * 2.5);
+        final Offset endPt = targetOffset * 0.60;
         final Offset currentPos = Offset.lerp(startPt, endPt, s)!;
         final Offset dir = endPt - startPt;
         return FaunaRoamData(
           offset: currentPos,
-          flipX: dir.dx > 0, // dx > 0 ise sağa bakar (flipX = true), dx < 0 ise sola bakar (flipX = false)
-          walkAnim: t * 3.0,
+          flipX: dir.dx > 0,
+          walkAnim: t * 1.8,
           isMoving: true,
         );
-      } else if (cycle < 15.5) {
-        // 3. Komşu Biyomda Otlama ve Keşif (9.5s - 15.5s)
-        final double phaseT = cycle - 9.5;
-        final Offset neighborBase = targetOffset * 0.68;
-        final double ox = math.sin(phaseT * 0.6) * 6.0;
-        final double oy = math.cos(phaseT * 0.4) * 3.5;
-        final double vx = math.cos(phaseT * 0.6) * 3.6;
+      } else if (cycle < 24.0) {
+        // 3. Komşu Biyomda Ağırbaşlı Otlama ve Dinlenme (15s - 24s)
+        final double phaseT = cycle - 15.0;
+        final Offset neighborBase = targetOffset * 0.60;
+        final double ox = math.sin(phaseT * 0.35) * 4.0;
+        final double oy = math.cos(phaseT * 0.25) * 2.2;
+        final double vx = math.cos(phaseT * 0.35) * 1.4;
         return FaunaRoamData(
           offset: Offset(neighborBase.dx + ox, neighborBase.dy + oy),
-          flipX: vx > 0.15 ? true : (vx < -0.15 ? false : faunaSeed % 2 != 0),
-          walkAnim: phaseT < 3.5 ? t * 2.2 : 0.0,
-          isMoving: phaseT < 3.5,
+          flipX: vx > 0.1 ? true : (vx < -0.1 ? false : faunaSeed % 2 != 0),
+          walkAnim: phaseT < 3.0 ? t * 1.4 : 0.0,
+          isMoving: phaseT < 3.0,
         );
-      } else if (cycle < 20.0) {
-        // 4. Ana Karoya Geri Dönüş (15.5s - 20s)
-        final double progress = (cycle - 15.5) / 4.5;
+      } else if (cycle < 30.0) {
+        // 4. Ana Karoya Sakin Dönüş (24s - 30s)
+        final double progress = (cycle - 24.0) / 6.0;
         final double s = progress * progress * (3.0 - 2.0 * progress);
-        final Offset startPt = targetOffset * 0.68;
+        final Offset startPt = targetOffset * 0.60;
         const Offset endPt = Offset.zero;
         final Offset currentPos = Offset.lerp(startPt, endPt, s)!;
         final Offset dir = endPt - startPt;
         return FaunaRoamData(
           offset: currentPos,
-          flipX: dir.dx > 0, // Geri dönerken hareket yönüne göre yüzünü dön
-          walkAnim: t * 3.0,
+          flipX: dir.dx > 0,
+          walkAnim: t * 1.8,
           isMoving: true,
         );
       } else {
-        // 5. Dinlenme / Çevreye Bakma (20s - 22s)
+        // 5. Tam Dinlenme / Çevreye Bakma (30s - 34s)
         return FaunaRoamData(
           offset: Offset.zero,
           flipX: faunaSeed % 2 != 0,
@@ -317,42 +317,42 @@ class HexTileComponent extends PositionComponent {
         );
       }
     } else {
-      // Benzer komşu biyom yoksa kendi karosunun içinde devriye döner (16s loop)
-      final double cycle = t % 16.0;
-      if (cycle < 4.5) {
-        final double progress = cycle / 4.5;
+      // Benzer komşu biyom yoksa kendi karosunun içinde seyrek dinlenmeli devriye (26s loop)
+      final double cycle = t % 26.0;
+      if (cycle < 5.0) {
+        final double progress = cycle / 5.0;
         final double s = progress * progress * (3.0 - 2.0 * progress);
-        const Offset pA = Offset(-9.0, 4.0);
-        const Offset pB = Offset(9.0, -3.0);
+        const Offset pA = Offset(-6.0, 2.5);
+        const Offset pB = Offset(6.0, -2.0);
         return FaunaRoamData(
           offset: Offset.lerp(pA, pB, s)!,
-          flipX: true, // Sağa doğru yürüyor
-          walkAnim: t * 2.6,
+          flipX: true,
+          walkAnim: t * 1.6,
           isMoving: true,
         );
-      } else if (cycle < 8.0) {
-        final double sub = cycle - 4.5;
+      } else if (cycle < 13.0) {
+        final double sub = cycle - 5.0;
         return FaunaRoamData(
-          offset: Offset(9.0 + math.sin(sub * 1.5) * 1.5, -3.0 + math.cos(sub * 1.2) * 1.0),
+          offset: Offset(6.0 + math.sin(sub * 0.8) * 0.8, -2.0 + math.cos(sub * 0.6) * 0.6),
           flipX: true,
           walkAnim: 0.0,
           isMoving: false,
         );
-      } else if (cycle < 12.5) {
-        final double progress = (cycle - 8.0) / 4.5;
+      } else if (cycle < 18.0) {
+        final double progress = (cycle - 13.0) / 5.0;
         final double s = progress * progress * (3.0 - 2.0 * progress);
-        const Offset pB = Offset(9.0, -3.0);
-        const Offset pC = Offset(-5.0, -6.0);
+        const Offset pB = Offset(6.0, -2.0);
+        const Offset pC = Offset(-3.5, -4.0);
         return FaunaRoamData(
           offset: Offset.lerp(pB, pC, s)!,
-          flipX: false, // Sola doğru yürüyor
-          walkAnim: t * 2.6,
+          flipX: false,
+          walkAnim: t * 1.6,
           isMoving: true,
         );
       } else {
-        final double sub = cycle - 12.5;
+        final double sub = cycle - 18.0;
         return FaunaRoamData(
-          offset: Offset(-5.0 + math.cos(sub * 1.5) * 1.5, -6.0 + math.sin(sub * 1.2) * 1.0),
+          offset: Offset(-3.5 + math.cos(sub * 0.8) * 0.8, -4.0 + math.sin(sub * 0.6) * 0.6),
           flipX: false,
           walkAnim: 0.0,
           isMoving: false,

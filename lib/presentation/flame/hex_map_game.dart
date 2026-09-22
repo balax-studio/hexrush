@@ -193,7 +193,7 @@ class HexMapGame extends FlameGame {
     if (_panVelocity.length2 > 1.0) {
       gameCamera.viewfinder.position += _panVelocity * dt;
       _clampCameraPosition();
-      _panVelocity *= 0.88; // Sönümleme katsayısı
+      _panVelocity *= 0.78; // Tok ve stabil sönümleme katsayısı
     } else {
       _panVelocity = Vector2.zero();
     }

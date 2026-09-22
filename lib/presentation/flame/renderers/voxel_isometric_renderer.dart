@@ -611,7 +611,7 @@ class VoxelIsometricRenderer {
     String? season,
     bool isZud = false,
   }) {
-    final double windSway = math.sin(animTime * 2.5 + baseCenter.dx * 0.04) * (2.2 * windFactor * scale);
+    final double windSway = math.sin(animTime * 1.2 + baseCenter.dx * 0.04) * (0.95 * windFactor * scale);
 
     final double trunkW = 6.0 * scale;
     final double trunkH = 16.0 * scale;
@@ -709,7 +709,7 @@ class VoxelIsometricRenderer {
     String? season,
     bool isZud = false,
   }) {
-    final double windSway = math.sin(animTime * 3.0 + baseCenter.dx * 0.05) * (2.8 * windFactor * scale);
+    final double windSway = math.sin(animTime * 1.4 + baseCenter.dx * 0.05) * (1.1 * windFactor * scale);
 
     final double trunkW = 5.0 * scale;
     final double trunkH = 20.0 * scale;
@@ -791,7 +791,7 @@ class VoxelIsometricRenderer {
     String? season,
     bool isZud = false,
   }) {
-    final double windSway = math.sin(animTime * 2.0 + baseCenter.dy * 0.04) * (1.6 * windFactor * scale);
+    final double windSway = math.sin(animTime * 1.1 + baseCenter.dy * 0.04) * (0.75 * windFactor * scale);
 
     drawIsoCube(
       canvas,
@@ -1390,7 +1390,7 @@ class VoxelIsometricRenderer {
       for (int r = -2; r <= 2; r++) {
         for (int c = -2; c <= 2; c++) {
           if (r <= -1 && c <= -1) continue;
-          final double windSway = math.sin(animTime * 3.2 + r * 0.8 + c * 0.5) * 1.8;
+          final double windSway = math.sin(animTime * 1.3 + r * 0.4 + c * 0.3) * 0.70;
           final double offX = (c * 5.5 * cosIso) - (r * 5.5 * cosIso) + windSway;
           final double offY = (c * 5.5 * sinIso) + (r * 5.5 * sinIso);
           final double stalkH = 8.5 + ((r.abs() + c.abs()) % 3) * 1.5;
@@ -1435,7 +1435,7 @@ class VoxelIsometricRenderer {
       for (int side in [-1, 1]) {
         for (int r = -2; r <= 2; r++) {
           for (int c = 0; c <= 1; c++) {
-            final double windSway = math.sin(animTime * 3.0 + side * 1.4 + r * 0.7 + c * 0.5) * 1.6;
+            final double windSway = math.sin(animTime * 1.3 + side * 0.8 + r * 0.4 + c * 0.3) * 0.65;
             final double offX = (r * 5.8 * cosIso) + (side * (8.5 + c * 4.5) * sinIso) + windSway;
             final double offY = (r * 5.8 * sinIso) + (side * (8.5 + c * 4.5) * cosIso);
             final double stalkH = 8.0 + ((r + c + 4) % 3) * 1.5;
@@ -1469,7 +1469,7 @@ class VoxelIsometricRenderer {
       for (int r = -2; r <= 2; r++) {
         for (int c = -2; c <= 2; c++) {
           if (r == 0 && c == 0) continue;
-          final double windSway = math.sin(animTime * 3.0 + (r * 0.7) + (c * 0.5)) * 1.8;
+          final double windSway = math.sin(animTime * 1.3 + (r * 0.4) + (c * 0.3)) * 0.70;
           final double offX = (c * 5.6 * cosIso) - (r * 5.6 * cosIso) + windSway;
           final double offY = (c * 5.6 * sinIso) + (r * 5.6 * sinIso);
           final Offset stalkPos = Offset(fieldTop.dx + offX, fieldTop.dy + offY);

@@ -21,7 +21,7 @@ class SeasonWeatherParticleEmitter extends Component {
 
   bool isActive = true;
 
-  SeasonWeatherParticleEmitter({this.particleCount = 70});
+  SeasonWeatherParticleEmitter({this.particleCount = 28});
 
   @override
   Future<void> onLoad() async {
@@ -43,13 +43,13 @@ class SeasonWeatherParticleEmitter extends Component {
       _particles.add(_WeatherParticle(
         x: (_random.nextDouble() - 0.5) * 1100,
         y: (_random.nextDouble() - 0.5) * 1100,
-        size: _random.nextDouble() * 3.0 + 2.0,
-        speedY: _random.nextDouble() * 35 + 25,
-        speedX: (_random.nextDouble() - 0.5) * 20,
-        opacity: _random.nextDouble() * 0.5 + 0.35,
+        size: _random.nextDouble() * 2.2 + 1.8,
+        speedY: _random.nextDouble() * 22 + 16,
+        speedX: (_random.nextDouble() - 0.5) * 12,
+        opacity: _random.nextDouble() * 0.35 + 0.25,
         seed: _random.nextDouble() * 100.0,
         rotation: _random.nextDouble() * math.pi * 2,
-        rotationSpeed: (_random.nextDouble() - 0.5) * 3.5,
+        rotationSpeed: (_random.nextDouble() - 0.5) * 2.0,
         colorVariant: i % 4,
       ));
     }
@@ -65,31 +65,31 @@ class SeasonWeatherParticleEmitter extends Component {
       _transitionTimer = math.max(0.0, _transitionTimer - dt);
     }
 
-    final double speedMult = isZud ? 3.2 : (_currentSeason == 'SUMMER' ? 0.6 : 1.0);
+    final double speedMult = isZud ? 2.2 : (_currentSeason == 'SUMMER' ? 0.45 : 0.70);
 
     for (final p in _particles) {
       p.rotation += p.rotationSpeed * dt;
 
       if (_currentSeason == 'WINTER' || isZud) {
-        // Kar ve Tipi Fiziği (Aşağı ve yana doğru rüzgar savrulması)
-        final double windSway = math.sin(_animTime * 2.0 + p.seed) * (isZud ? 45.0 : 15.0);
+        // Kar ve Tipi Fiziği (Aşağı ve yana doğru yumuşak rüzgar savrulması)
+        final double windSway = math.sin(_animTime * 1.3 + p.seed) * (isZud ? 28.0 : 8.0);
         p.y += p.speedY * speedMult * dt;
         p.x += (p.speedX + windSway) * dt;
       } else if (_currentSeason == 'AUTUMN') {
-        // Sonbahar Yaprak Fiziği (Yavaşça salınarak düşen yapraklar)
-        final double leafSway = math.sin(_animTime * 2.8 + p.seed) * 28.0;
-        p.y += (p.speedY * 0.7) * dt;
-        p.x += (p.speedX * 0.5 + leafSway) * dt;
+        // Sonbahar Yaprak Fiziği (Yavaşça ve sakince salınarak düşen yapraklar)
+        final double leafSway = math.sin(_animTime * 1.8 + p.seed) * 16.0;
+        p.y += (p.speedY * 0.5) * dt;
+        p.x += (p.speedX * 0.4 + leafSway) * dt;
       } else if (_currentSeason == 'SPRING') {
-        // Bahar Polen / Çiçek Yaprağı Fiziği (Hafif yukarı ve çapraz süzülme)
-        final double breezeX = math.cos(_animTime * 1.5 + p.seed) * 18.0 + 12.0;
-        final double breezeY = math.sin(_animTime * 1.8 + p.seed) * 12.0 - 15.0;
+        // Bahar Polen / Çiçek Yaprağı Fiziği (Hafif yukarı ve sakin süzülme)
+        final double breezeX = math.cos(_animTime * 1.0 + p.seed) * 10.0 + 7.0;
+        final double breezeY = math.sin(_animTime * 1.2 + p.seed) * 7.0 - 9.0;
         p.y += breezeY * dt;
         p.x += breezeX * dt;
       } else {
-        // Yaz Güneş Tozu & Sıcak Hava Zerrecikleri (Ağır ağır yükselen altın zerrecikler)
-        final double hazeY = -12.0 + math.sin(_animTime * 1.2 + p.seed) * 6.0;
-        final double hazeX = math.cos(_animTime * 1.0 + p.seed) * 8.0;
+        // Yaz Güneş Tozu & Sıcak Hava Zerrecikleri (Ağır ağır yükselen sakin zerrecikler)
+        final double hazeY = -7.0 + math.sin(_animTime * 0.8 + p.seed) * 3.5;
+        final double hazeX = math.cos(_animTime * 0.7 + p.seed) * 4.5;
         p.y += hazeY * dt;
         p.x += hazeX * dt;
       }
