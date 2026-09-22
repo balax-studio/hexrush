@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import '../renderers/viewport_culling_manager.dart';
 
 /// 4 Mevsim Atmosferik Hava Parçacık Sistemi (Season Weather Particle Emitter)
 /// Zero-GC bütçesiyle çalışan; Kışın voksel kar kristalleri ve Zud fırtınası,
@@ -124,6 +125,10 @@ class SeasonWeatherParticleEmitter extends Component {
         : 1.0;
 
     for (final p in _particles) {
+      if (!ViewportCullingManager.instance.isVisible(Offset(p.x, p.y), radius: p.size * 2)) {
+        continue;
+      }
+
       final Color targetColor = _getParticleColor(_currentSeason, isZud, p.colorVariant);
       final Color fromColor = _getParticleColor(_previousSeason, false, p.colorVariant);
       final Color activeColor = Color.lerp(fromColor, targetColor, blend) ?? targetColor;
