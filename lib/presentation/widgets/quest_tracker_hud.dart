@@ -48,16 +48,56 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
 
   @override
   Widget build(BuildContext context) {
+    final lang = ref.watch(gameStateProvider.select((s) => s.settings.language));
+    final bool isTr = lang == 'tr';
+    final activePalette = ref.watch(gameStateProvider.select((s) => s.settings.activeThemePalette));
+    final theme = NeoBrutalistTheme.getTheme(activePalette);
+
     final questPanelHidden = ref.watch(
       gameStateProvider.select((s) => s.settings.notifications.questPanelHidden),
     );
-    if (questPanelHidden) return const SizedBox.shrink();
+    if (questPanelHidden) {
+      return RepaintBoundary(
+        child: TactileNeoButton(
+          onTap: () {
+            TactileAudioService.instance.play(TactileSoundType.tap);
+            ref.read(gameStateProvider.notifier).updateNotificationSettings(
+                  questPanelHidden: false,
+                );
+          },
+          backgroundColor: theme.surface,
+          borderColor: theme.border,
+          shadowColor: theme.shadowColor,
+          shadowOffset: 2.0,
+          height: 28,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.explore_rounded,
+                size: 14,
+                color: theme.primaryGold,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                isTr ? 'GÖREV' : 'QUEST',
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                  color: Color(0xFFCBD5E1),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     final quests = ref.watch(gameStateProvider.select((s) => s.quests));
-    final lang = ref.watch(gameStateProvider.select((s) => s.settings.language));
     final notifier = ref.read(gameStateProvider.notifier);
-    final activePalette = ref.watch(gameStateProvider.select((s) => s.settings.activeThemePalette));
-    final theme = NeoBrutalistTheme.getTheme(activePalette);
 
     // İlk teslim alınmamış görevi bul
     final activeQuest = quests.firstWhere(
@@ -123,58 +163,94 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header Bar
-              InkWell(
-                onTap: () {
-                  TactileAudioService.instance.play(TactileSoundType.tap);
-                  setState(() {
-                    _isCollapsed = !_isCollapsed;
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                  color: isCompleted
-                      ? theme.shadowColor
-                      : theme.surfaceLight,
-                  child: Row(
-                    children: [
-                      Icon(
-                        isCompleted
-                            ? Icons.military_tech_rounded
-                            : Icons.explore_rounded,
-                        size: 14,
-                        color: isCompleted
-                            ? theme.primaryGold
-                            : const Color(0xFF94A3B8),
-                      ),
-                      const SizedBox(width: 5),
-                      Expanded(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            _isCollapsed && !allDone
-                                ? '${GameLocalization.get('quest', lang: lang)}: ${activeQuest.currentAmount}/${activeQuest.targetAmount}'
-                                : GameLocalization.get('objective', lang: lang),
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.0,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                color: isCompleted
+                    ? theme.shadowColor
+                    : theme.surfaceLight,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          TactileAudioService.instance.play(TactileSoundType.tap);
+                          setState(() {
+                            _isCollapsed = !_isCollapsed;
+                          });
+                        },
+                        child: Row(
+                          children: [
+                            Icon(
+                              isCompleted
+                                  ? Icons.military_tech_rounded
+                                  : Icons.explore_rounded,
+                              size: 14,
                               color: isCompleted
-                                  ? const Color(0xFFFDE68A)
-                                  : const Color(0xFFCBD5E1),
+                                  ? theme.primaryGold
+                                  : const Color(0xFF94A3B8),
                             ),
-                          ),
+                            const SizedBox(width: 5),
+                            Expanded(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  _isCollapsed && !allDone
+                                      ? '${GameLocalization.get('quest', lang: lang)}: ${activeQuest.currentAmount}/${activeQuest.targetAmount}'
+                                      : GameLocalization.get('objective', lang: lang),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1.0,
+                                    color: isCompleted
+                                        ? const Color(0xFFFDE68A)
+                                        : const Color(0xFFCBD5E1),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      Icon(
-                        _isCollapsed
-                            ? Icons.expand_more_rounded
-                            : Icons.expand_less_rounded,
-                        size: 15,
-                        color: const Color(0xFF94A3B8),
+                    ),
+                    // Küçült / Büyüt Butonu
+                    InkWell(
+                      onTap: () {
+                        TactileAudioService.instance.play(TactileSoundType.tap);
+                        setState(() {
+                          _isCollapsed = !_isCollapsed;
+                        });
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(2),
+                        child: Icon(
+                          _isCollapsed
+                              ? Icons.expand_more_rounded
+                              : Icons.expand_less_rounded,
+                          size: 16,
+                          color: const Color(0xFF94A3B8),
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 4),
+                    // Tamamen Kapat / Gizle Butonu (X)
+                    InkWell(
+                      onTap: () {
+                        TactileAudioService.instance.play(TactileSoundType.tap);
+                        ref.read(gameStateProvider.notifier).updateNotificationSettings(
+                              questPanelHidden: true,
+                            );
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.all(2),
+                        child: Icon(
+                          Icons.close_rounded,
+                          size: 15,
+                          color: Color(0xFF94A3B8),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
