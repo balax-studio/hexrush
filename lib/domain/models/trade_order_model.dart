@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 class TradeOrderModel {
   final String id;
   final String title;
@@ -8,18 +10,35 @@ class TradeOrderModel {
   final int buffDurationSeconds;
   final bool isFulfilled;
   final String createdAt;
+  final int unlockTimestamp; // Kilidin kalkacağı epoch milisaniyesi (30 dk bekleme)
+  final int slotIndex;
+  final int dailyCycleIndex; // O günkü kaçıncı başarılan sipariş katı (her biri 10x maliyet)
 
   const TradeOrderModel({
     required this.id,
     required this.title,
     required this.requesterName,
     required this.requiredResources,
-    required this.rewardCrowns,
-    this.rewardSpeedMultiplier = 1.25,
-    this.buffDurationSeconds = 600, // 10 dakika
+    this.rewardCrowns = 0,
+    this.rewardSpeedMultiplier = 1.35,
+    this.buffDurationSeconds = 1800, // 30 dakika (3x artırılmış)
     this.isFulfilled = false,
     required this.createdAt,
+    this.unlockTimestamp = 0,
+    this.slotIndex = 0,
+    this.dailyCycleIndex = 0,
   });
+
+  bool isLocked([int? currentNowMs]) {
+    final now = currentNowMs ?? DateTime.now().millisecondsSinceEpoch;
+    return isFulfilled && unlockTimestamp > now;
+  }
+
+  int getRemainingSeconds([int? currentNowMs]) {
+    if (!isFulfilled || unlockTimestamp <= 0) return 0;
+    final now = currentNowMs ?? DateTime.now().millisecondsSinceEpoch;
+    return math.max(0, (unlockTimestamp - now) ~/ 1000);
+  }
 
   TradeOrderModel copyWith({
     String? id,
@@ -31,6 +50,9 @@ class TradeOrderModel {
     int? buffDurationSeconds,
     bool? isFulfilled,
     String? createdAt,
+    int? unlockTimestamp,
+    int? slotIndex,
+    int? dailyCycleIndex,
   }) {
     return TradeOrderModel(
       id: id ?? this.id,
@@ -42,6 +64,9 @@ class TradeOrderModel {
       buffDurationSeconds: buffDurationSeconds ?? this.buffDurationSeconds,
       isFulfilled: isFulfilled ?? this.isFulfilled,
       createdAt: createdAt ?? this.createdAt,
+      unlockTimestamp: unlockTimestamp ?? this.unlockTimestamp,
+      slotIndex: slotIndex ?? this.slotIndex,
+      dailyCycleIndex: dailyCycleIndex ?? this.dailyCycleIndex,
     );
   }
 
@@ -56,6 +81,9 @@ class TradeOrderModel {
       'buffDurationSeconds': buffDurationSeconds,
       'isFulfilled': isFulfilled,
       'createdAt': createdAt,
+      'unlockTimestamp': unlockTimestamp,
+      'slotIndex': slotIndex,
+      'dailyCycleIndex': dailyCycleIndex,
     };
   }
 
@@ -68,11 +96,14 @@ class TradeOrderModel {
             (k, v) => MapEntry(k, (v as num).toDouble()),
           ) ??
           {},
-      rewardCrowns: json['rewardCrowns'] as int? ?? 5,
-      rewardSpeedMultiplier: (json['rewardSpeedMultiplier'] as num?)?.toDouble() ?? 1.25,
-      buffDurationSeconds: json['buffDurationSeconds'] as int? ?? 600,
+      rewardCrowns: json['rewardCrowns'] as int? ?? 0,
+      rewardSpeedMultiplier: (json['rewardSpeedMultiplier'] as num?)?.toDouble() ?? 1.35,
+      buffDurationSeconds: json['buffDurationSeconds'] as int? ?? 1800,
       isFulfilled: json['isFulfilled'] as bool? ?? false,
       createdAt: json['createdAt'] as String? ?? DateTime.now().toIso8601String(),
+      unlockTimestamp: json['unlockTimestamp'] as int? ?? 0,
+      slotIndex: json['slotIndex'] as int? ?? 0,
+      dailyCycleIndex: json['dailyCycleIndex'] as int? ?? 0,
     );
   }
 }

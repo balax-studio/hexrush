@@ -77,7 +77,7 @@ class _HexpediaDialogState extends ConsumerState<HexpediaDialog> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      GameLocalization.get('hexpedia_title', lang: lang),
+                      GameLocalization.get('consult_elders', lang: lang).toUpperCase(),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
@@ -95,7 +95,7 @@ class _HexpediaDialogState extends ConsumerState<HexpediaDialog> {
                       border: Border.all(color: const Color(0xFF10B981), width: 1),
                     ),
                     child: Text(
-                      '${entries.length} REHBER',
+                      '${entries.length} ${lang == 'tr' ? 'REHBER' : (lang == 'es' ? 'GUÍAS' : (lang == 'de' ? 'GUIDES' : 'GUIDES'))}',
                       style: const TextStyle(
                         color: Color(0xFF6EE7B7),
                         fontSize: 10,

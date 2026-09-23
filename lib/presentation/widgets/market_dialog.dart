@@ -224,7 +224,7 @@ class MarketDialog extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.local_shipping, size: 16, color: Color(0xFFFDE047)),
+                  const GameVectorIcon(type: GameIconType.tradeOrders, size: 16, color: Color(0xFFFDE047)),
                   const SizedBox(width: 8),
                   Text(
                     lang == 'tr' ? 'İPEK YOLU ELÇİ SİPARİŞLERİ' : 'SILK ROAD ENVOY ORDERS',

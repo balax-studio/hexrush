@@ -27,7 +27,7 @@ void main() {
       );
 
       expect(find.byType(LeftBar), findsOneWidget);
-      expect(find.byType(GameVectorIcon), findsNWidgets(8));
+      expect(find.byType(GameVectorIcon), findsNWidgets(7));
     });
 
     testWidgets('All new GameVectorIcon types paint without exception', (tester) async {

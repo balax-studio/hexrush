@@ -875,19 +875,81 @@ class _GameIconPainter extends CustomPainter {
   }
 
   void _drawTradeOrders(Canvas canvas, double w, double h) {
-    final Paint fill = Paint()..color = customColor ?? const Color(0xFFFDE047);
+    final Color mainColor = customColor ?? const Color(0xFFFDE047);
+    final Paint fill = Paint()
+      ..color = mainColor
+      ..style = PaintingStyle.fill;
     final Paint stroke = Paint()
-      ..color = Colors.black
+      ..color = mainColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
-    // Kervan sandığı / elçi arabası
-    final Rect wagon = Rect.fromLTWH(w * 0.2, h * 0.35, w * 0.6, h * 0.35);
-    canvas.drawRect(wagon, fill);
-    canvas.drawRect(wagon, stroke);
-    // Tekerlekler
-    final Paint wheel = Paint()..color = Colors.black;
-    canvas.drawCircle(Offset(w * 0.35, h * 0.75), w * 0.1, wheel);
-    canvas.drawCircle(Offset(w * 0.65, h * 0.75), w * 0.1, wheel);
+      ..strokeWidth = 1.6
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final Paint darkStroke = Paint()
+      ..color = const Color(0xFF0F172A)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    // 1. Zemin & Ticaret Terazisi / Kervan Boyunduruğu (Üst Çapraz Kiriş)
+    final Path balanceBeam = Path()
+      ..moveTo(w * 0.15, h * 0.32)
+      ..lineTo(w * 0.85, h * 0.32);
+    canvas.drawPath(balanceBeam, stroke);
+
+    // Kervan Tamga / Orta Tepe Gönderi (Envoy Spire)
+    final Path centerSpire = Path()
+      ..moveTo(w * 0.5, h * 0.12)
+      ..lineTo(w * 0.5, h * 0.88);
+    canvas.drawPath(centerSpire, stroke);
+
+    // 2. İpek Rulosu & Kumaş Kıvrımları (Sol Kefe & İpek Denkleri)
+    final Rect silkRoll = Rect.fromLTWH(w * 0.16, h * 0.48, w * 0.22, h * 0.26);
+    final RRect rSilk = RRect.fromRectAndRadius(silkRoll, const Radius.circular(3));
+    canvas.drawRRect(rSilk, fill);
+    canvas.drawRRect(rSilk, darkStroke);
+
+    // İpek kuşağı deseni / çizgi
+    canvas.drawLine(Offset(w * 0.22, h * 0.48), Offset(w * 0.22, h * 0.74), darkStroke);
+    canvas.drawLine(Offset(w * 0.32, h * 0.48), Offset(w * 0.32, h * 0.74), darkStroke);
+
+    // Sol asma zinciri
+    final Path leftChain = Path()
+      ..moveTo(w * 0.22, h * 0.32)
+      ..lineTo(w * 0.27, h * 0.48);
+    canvas.drawPath(leftChain, stroke..strokeWidth = 1.2);
+
+    // 3. Altın Sandığı & Değerli Maden Külçeleri (Sağ Kefe)
+    final Rect goldChest = Rect.fromLTWH(w * 0.62, h * 0.52, w * 0.24, h * 0.24);
+    final RRect rChest = RRect.fromRectAndRadius(goldChest, const Radius.circular(2));
+    canvas.drawRRect(rChest, fill);
+    canvas.drawRRect(rChest, darkStroke);
+
+    // Sandık kilidi ve köşebent
+    final Rect lock = Rect.fromLTWH(w * 0.71, h * 0.60, w * 0.06, h * 0.07);
+    canvas.drawRect(lock, fill..color = const Color(0xFF0F172A));
+
+    // Sağ asma zinciri
+    final Path rightChain = Path()
+      ..moveTo(w * 0.78, h * 0.32)
+      ..lineTo(w * 0.74, h * 0.52);
+    canvas.drawPath(rightChain, stroke..strokeWidth = 1.2);
+
+    // 4. Üst Elçi Sancağı / Bozkır Tamgası (Piramidal Çatı / Flama)
+    final Path envoyPennant = Path()
+      ..moveTo(w * 0.5, h * 0.12)
+      ..lineTo(w * 0.68, h * 0.20)
+      ..lineTo(w * 0.5, h * 0.28)
+      ..close();
+    canvas.drawPath(envoyPennant, fill..color = mainColor);
+    canvas.drawPath(envoyPennant, darkStroke);
+
+    // Taban Dayanağı (Alt Platform)
+    final Path basePedestal = Path()
+      ..moveTo(w * 0.35, h * 0.88)
+      ..lineTo(w * 0.65, h * 0.88);
+    canvas.drawPath(basePedestal, stroke..strokeWidth = 2.0);
   }
 
   void _drawSteppeHorn(Canvas canvas, double w, double h) {

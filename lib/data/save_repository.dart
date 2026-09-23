@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../domain/models/achievement_model.dart';
 import '../domain/models/ad_reward_model.dart';
 import '../domain/models/ancestral_kurgan_model.dart';
 import '../domain/models/caravan_route_model.dart';
@@ -29,6 +30,7 @@ class SaveDataBundle {
   final List<AncestralKurgan> discoveredKurgans;
   final AdRewardTracking adTracking;
   final CombatState? combatState;
+  final List<AchievementModel> achievements;
 
   const SaveDataBundle({
     required this.timestamp,
@@ -49,6 +51,7 @@ class SaveDataBundle {
     this.discoveredKurgans = const [],
     this.adTracking = const AdRewardTracking(),
     this.combatState,
+    this.achievements = const [],
   });
 }
 
@@ -182,6 +185,17 @@ class SaveRepository {
         } catch (_) {}
       }
 
+      final List<AchievementModel> achievements = [];
+      if (data['achievements'] is List) {
+        for (final item in (data['achievements'] as List)) {
+          if (item is Map) {
+            try {
+              achievements.add(AchievementModel.fromJson(Map<String, dynamic>.from(item)));
+            } catch (_) {}
+          }
+        }
+      }
+
       return SaveDataBundle(
         timestamp: timestamp,
         resources: resources,
@@ -201,6 +215,7 @@ class SaveRepository {
         discoveredKurgans: discoveredKurgans,
         adTracking: adTracking,
         combatState: combatState,
+        achievements: achievements.isNotEmpty ? achievements : AchievementCatalog.getInitialList(),
       );
     } catch (e) {
       // JSON parse error fallback
@@ -227,6 +242,7 @@ class SaveRepository {
     List<AncestralKurgan> discoveredKurgans = const [],
     AdRewardTracking adTracking = const AdRewardTracking(),
     CombatState? combatState,
+    List<AchievementModel> achievements = const [],
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final slotsJson = <String, String?>{};
@@ -254,6 +270,7 @@ class SaveRepository {
       'discovered_kurgans': discoveredKurgans.map((k) => k.toJson()).toList(),
       'ad_tracking': adTracking.toJson(),
       'combat_state': combatState?.toJson(),
+      'achievements': achievements.map((a) => a.toJson()).toList(),
     };
 
     return prefs.setString(_saveKey, jsonEncode(data));

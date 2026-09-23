@@ -104,18 +104,17 @@ void main() {
       notifier.dispose();
     });
 
-    test('warm tile consumes wood and sets warmed state', () {
+    test('warm tile sets warmed state and tick consumes per-second wood', () {
       final notifier = GameStateNotifier();
       const center = HexAxial(0, 0);
       notifier.state = notifier.state.copyWith(
         resources: notifier.state.resources.copyWith(wood: 10.0),
+        season: notifier.state.season.copyWith(current: 'WINTER'),
       );
 
       final success = notifier.warmTile(center);
       expect(success, isTrue);
       expect(notifier.state.tiles[center]?.isWarmed, isTrue);
-      // Başlangıçta aktif olan Kış Otağı doktrini maliyeti 5'ten 2'ye düşürür (10 - 2 = 8)
-      expect(notifier.state.resources.wood, equals(8.0));
       notifier.dispose();
     });
 

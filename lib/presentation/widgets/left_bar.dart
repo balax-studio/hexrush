@@ -4,7 +4,6 @@ import '../../core/audio/tactile_audio_service.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../providers/game_state_notifier.dart';
 import 'diorama_snapshot_dialog.dart';
-import 'hexpedia_dialog.dart';
 import 'horn_of_steppe_dialog.dart';
 import 'icons/game_vector_icons.dart';
 import 'realm_selection_dialog.dart';
@@ -189,33 +188,7 @@ class LeftBar extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
 
-          // 7. Hexpedia (Bozkır Ansiklopedisi) Butonu
-          TactileNeoButton(
-            onTap: () {
-              showNeoTactileDialog<void>(
-                context: context,
-                builder: (_) => const HexpediaDialog(),
-              );
-            },
-            backgroundColor: const Color(0xFF064E3B),
-            borderColor: const Color(0xFF10B981),
-            shadowColor: theme.shadowColor,
-            shadowOffset: 2.0,
-            height: 36,
-            width: 36,
-            padding: EdgeInsets.zero,
-            alignment: Alignment.center,
-            child: const Center(
-              child: GameVectorIcon(
-                type: GameIconType.hexpedia,
-                size: 18,
-                color: Color(0xFF6EE7B7),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // 8. Bozkır Destanı (Giriş Hikayesi) Butonu
+          // 7. Bozkır Destanı (Giriş Hikayesi) Butonu
           TactileNeoButton(
             onTap: onOpenStory,
             backgroundColor: const Color(0xFF451A03),

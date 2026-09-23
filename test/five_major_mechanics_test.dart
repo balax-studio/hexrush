@@ -15,38 +15,53 @@ void main() {
   });
 
   group('5 Major Mechanics Integration & Economy Test Suite', () {
-    test('1. İpek Yolu Elçi Siparişleri (Trade Orders) generation and fulfillment', () {
+    test('1. İpek Yolu Elçi Siparişleri (Trade Orders) generation, fulfillment & 30m lock', () {
       final initialOrders = EconomyCalculator.generateInitialTradeOrders();
       expect(initialOrders.length, equals(3));
       expect(initialOrders.any((o) => o.title.contains('Bizans')), isTrue);
+      expect(initialOrders.first.rewardCrowns, equals(0));
+      expect(initialOrders.first.buffDurationSeconds, equals(1800)); // 30 dk (3x)
+      expect(initialOrders.first.requiredResources['wood'], equals(8000.0)); // 100x
 
       final order = initialOrders.first;
       final notifier = GameStateNotifier();
 
-      // Set resources high enough to fulfill
+      // Set resources high enough to fulfill 100x
       notifier.state = notifier.state.copyWith(
         resources: notifier.state.resources.copyWith(
-          food: 500.0,
-          wood: 500.0,
-          flour: 500.0,
-          plank: 500.0,
-          bread: 500.0,
-          furniture: 500.0,
-          stone: 500.0,
-          iron: 500.0,
-          fish: 500.0,
-          kumis: 500.0,
-          felt: 500.0,
-          damascusSteel: 500.0,
-          crowns: 0,
+          food: 50000.0,
+          wood: 50000.0,
+          flour: 50000.0,
+          plank: 50000.0,
+          bread: 50000.0,
+          furniture: 50000.0,
+          stone: 50000.0,
+          iron: 50000.0,
+          fish: 50000.0,
+          kumis: 50000.0,
+          felt: 50000.0,
+          damascusSteel: 50000.0,
+          crowns: 5,
         ),
       );
 
       final beforeCrowns = notifier.state.resources.crowns;
       final bool success = notifier.fulfillTradeOrder(order.id);
       expect(success, isTrue);
-      expect(notifier.state.resources.crowns, greaterThanOrEqualTo(beforeCrowns + order.rewardCrowns));
-      expect(notifier.state.frenzyTimer, greaterThan(0));
+      // Taç kazanılmamalı (0 taç)
+      expect(notifier.state.resources.crowns, equals(beforeCrowns));
+      // Altın Çağ hız buff'ı aktifleşmeli
+      expect(notifier.state.frenzyTimer, greaterThanOrEqualTo(1800));
+
+      // Sipariş kilitli olmalı (30 dk / 1800s bekleme)
+      final fulfilledOrder = notifier.state.progression.activeTradeOrders.firstWhere((o) => o.id == order.id);
+      expect(fulfilledOrder.isFulfilled, isTrue);
+      expect(fulfilledOrder.isLocked(), isTrue);
+      expect(fulfilledOrder.getRemainingSeconds(), greaterThan(1700));
+
+      // Günlük 10x katlanma ve yeni sipariş testi
+      final nextOrder = EconomyCalculator.generateTradeOrderForSlot(0, dailyCycleIndex: 1);
+      expect(nextOrder.requiredResources['wood'], equals(80000.0)); // 10x of 8000
     });
 
     test('2. Orhun Bitig & Göçebe Bilgelik Ağacı (Lore Tech Tree)', () {

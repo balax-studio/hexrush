@@ -206,6 +206,8 @@ class ProgressionModel {
   final List<String> activeOaths;
   final double kutMultiplier;
   final bool hasSeenIntro;
+  final int dailyTradeOrdersCompletedCount;
+  final String lastTradeResetDate;
 
   const ProgressionModel({
     this.castleLevel = 1,
@@ -230,6 +232,8 @@ class ProgressionModel {
     this.activeOaths = const [],
     this.kutMultiplier = 1.0,
     this.hasSeenIntro = false,
+    this.dailyTradeOrdersCompletedCount = 0,
+    this.lastTradeResetDate = '',
   });
 
   ProgressionModel copyWith({
@@ -251,6 +255,8 @@ class ProgressionModel {
     List<String>? activeOaths,
     double? kutMultiplier,
     bool? hasSeenIntro,
+    int? dailyTradeOrdersCompletedCount,
+    String? lastTradeResetDate,
   }) {
     return ProgressionModel(
       castleLevel: castleLevel ?? this.castleLevel,
@@ -273,6 +279,9 @@ class ProgressionModel {
       activeOaths: activeOaths ?? this.activeOaths,
       kutMultiplier: kutMultiplier ?? this.kutMultiplier,
       hasSeenIntro: hasSeenIntro ?? this.hasSeenIntro,
+      dailyTradeOrdersCompletedCount:
+          dailyTradeOrdersCompletedCount ?? this.dailyTradeOrdersCompletedCount,
+      lastTradeResetDate: lastTradeResetDate ?? this.lastTradeResetDate,
     );
   }
 
@@ -295,6 +304,8 @@ class ProgressionModel {
         'active_oaths': activeOaths,
         'kut_multiplier': kutMultiplier,
         'has_seen_intro': hasSeenIntro,
+        'daily_trade_orders_completed_count': dailyTradeOrdersCompletedCount,
+        'last_trade_reset_date': lastTradeResetDate,
       };
 
   factory ProgressionModel.fromJson(Map<String, dynamic> json) {
@@ -369,6 +380,9 @@ class ProgressionModel {
       activeOaths: oaths,
       kutMultiplier: (json['kut_multiplier'] as num?)?.toDouble() ?? 1.0,
       hasSeenIntro: json['has_seen_intro'] as bool? ?? false,
+      dailyTradeOrdersCompletedCount:
+          json['daily_trade_orders_completed_count'] as int? ?? 0,
+      lastTradeResetDate: json['last_trade_reset_date'] as String? ?? '',
     );
   }
 }

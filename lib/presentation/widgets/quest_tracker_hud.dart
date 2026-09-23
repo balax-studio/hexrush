@@ -101,7 +101,7 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
         animation: _borderColorAnimation,
         builder: (context, child) {
         return Container(
-          width: 250,
+          width: 200,
           decoration: BoxDecoration(
             color: theme.surface,
             borderRadius: BorderRadius.circular(4),
@@ -132,7 +132,7 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                   });
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                   color: isCompleted
                       ? theme.shadowColor
                       : theme.surfaceLight,
@@ -142,24 +142,28 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                         isCompleted
                             ? Icons.military_tech_rounded
                             : Icons.explore_rounded,
-                        size: 15,
+                        size: 14,
                         color: isCompleted
                             ? theme.primaryGold
                             : const Color(0xFF94A3B8),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 5),
                       Expanded(
-                        child: Text(
-                          _isCollapsed && !allDone
-                              ? '${isTr ? 'GÖREV' : 'QUEST'}: ${activeQuest.currentAmount}/${activeQuest.targetAmount}'
-                              : (isTr ? 'GÖREV' : 'OBJECTIVE'),
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.0,
-                            color: isCompleted
-                                ? const Color(0xFFFDE68A)
-                                : const Color(0xFFCBD5E1),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            _isCollapsed && !allDone
+                                ? '${isTr ? 'GÖREV' : 'QUEST'}: ${activeQuest.currentAmount}/${activeQuest.targetAmount}'
+                                : (isTr ? 'GÖREV' : 'OBJECTIVE'),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.0,
+                              color: isCompleted
+                                  ? const Color(0xFFFDE68A)
+                                  : const Color(0xFFCBD5E1),
+                            ),
                           ),
                         ),
                       ),
@@ -167,7 +171,7 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                         _isCollapsed
                             ? Icons.expand_more_rounded
                             : Icons.expand_less_rounded,
-                        size: 16,
+                        size: 15,
                         color: const Color(0xFF94A3B8),
                       ),
                     ],
@@ -178,15 +182,19 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
               // Body Content
               if (!_isCollapsed)
                 Padding(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        title,
-                        style: NeoBrutalistTheme.fontTitle,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          title,
+                          style: NeoBrutalistTheme.fontTitle,
+                        ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 3),
                       Text(
                         description,
                         style: const TextStyle(
@@ -195,7 +203,7 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                           height: 1.3,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
 
                       if (!allDone) ...[
                         // Progress Bar
@@ -206,62 +214,65 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                               isTr ? 'İlerleme' : 'Progress',
                               style: const TextStyle(
                                 fontSize: 9,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF64748B),
-                              ),
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF64748B),
                             ),
-                            Text(
-                              '${activeQuest.currentAmount} / ${activeQuest.targetAmount}',
-                              style: NeoBrutalistTheme.fontTelemetry.copyWith(
-                                color: const Color(0xFFE2E8F0),
-                              ),
+                          ),
+                          Text(
+                            '${activeQuest.currentAmount} / ${activeQuest.targetAmount}',
+                            style: NeoBrutalistTheme.fontTelemetry.copyWith(
+                              color: const Color(0xFFE2E8F0),
+                              fontSize: 9,
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(2),
-                          child: Container(
-                            height: 6,
-                            color: theme.surfaceLight,
-                            child: FractionallySizedBox(
-                              alignment: Alignment.centerLeft,
-                              widthFactor: progressRatio,
-                              child: Container(
-                                color: activeQuest.isCompleted
-                                    ? const Color(0xFF10B981)
-                                    : theme.accentColor,
-                              ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(2),
+                        child: Container(
+                          height: 5,
+                          color: theme.surfaceLight,
+                          child: FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: progressRatio,
+                            child: Container(
+                              color: activeQuest.isCompleted
+                                  ? const Color(0xFF10B981)
+                                  : theme.accentColor,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                      ),
+                      const SizedBox(height: 6),
 
-                        // Reward Section or Tactile Claim Button
-                        if (activeQuest.isCompleted)
-                          SizedBox(
-                            width: double.infinity,
-                            child: TactileNeoButton(
-                              onTap: () {
-                                notifier.claimQuestReward(activeQuest.id);
-                              },
-                              backgroundColor: theme.primaryGold,
-                              borderColor: theme.border,
-                              shadowColor: theme.shadowColor,
-                              shadowOffset: 2.5,
-                              height: 32,
-                              padding: EdgeInsets.zero,
-                              alignment: Alignment.center,
-                              soundType: TactileSoundType.reward,
+                      // Reward Section or Tactile Claim Button
+                      if (activeQuest.isCompleted)
+                        SizedBox(
+                          width: double.infinity,
+                          child: TactileNeoButton(
+                            onTap: () {
+                              notifier.claimQuestReward(activeQuest.id);
+                            },
+                            backgroundColor: theme.primaryGold,
+                            borderColor: theme.border,
+                            shadowColor: theme.shadowColor,
+                            shadowOffset: 2.0,
+                            height: 28,
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            alignment: Alignment.center,
+                            soundType: TactileSoundType.reward,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   const Icon(
                                     Icons.redeem_rounded,
-                                    size: 14,
+                                    size: 13,
                                     color: Color(0xFF0F172A),
                                   ),
-                                  const SizedBox(width: 4),
+                                  const SizedBox(width: 3),
                                   Text(
                                     isTr
                                         ? 'ÖDÜLÜ AL (+${activeQuest.rewardAmount} ${activeQuest.rewardType.name.toUpperCase()})'
@@ -276,115 +287,132 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                                 ],
                               ),
                             ),
-                          )
-                        else
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: theme.surfaceLight,
-                              borderRadius: BorderRadius.circular(3),
-                              border: Border.all(
-                                color: theme.slateBorder,
-                                width: 1,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.card_giftcard_rounded,
-                                  size: 11,
-                                  color: theme.primaryGold,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  isTr
-                                      ? 'Ödül: +${activeQuest.rewardAmount} ${activeQuest.rewardType.name.toUpperCase()}'
-                                      : 'Reward: +${activeQuest.rewardAmount} ${activeQuest.rewardType.name.toUpperCase()}',
-                                  style: NeoBrutalistTheme.fontBadge.copyWith(
-                                    color: theme.primaryGold,
-                                  ),
-                                ),
-                              ],
+                          ),
+                        )
+                      else
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 5, vertical: 2.5),
+                          decoration: BoxDecoration(
+                            color: theme.surfaceLight,
+                            borderRadius: BorderRadius.circular(3),
+                            border: Border.all(
+                              color: theme.slateBorder,
+                              width: 1,
                             ),
                           ),
-                      ] else ...[
-                        // All normal quests finished -> Show Endgame Victory Goals
-                        Consumer(builder: (context, ref, _) {
-                          final p = ref.watch(gameStateProvider.select((s) => s.progression));
-                          final res = ref.watch(gameStateProvider.select((s) => s.resources));
-                          final routes = ref.watch(gameStateProvider.select((s) => s.caravanRoutes));
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.card_giftcard_rounded,
+                                size: 10,
+                                color: theme.primaryGold,
+                              ),
+                              const SizedBox(width: 3),
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    isTr
+                                        ? 'Ödül: +${activeQuest.rewardAmount} ${activeQuest.rewardType.name.toUpperCase()}'
+                                        : 'Reward: +${activeQuest.rewardAmount} ${activeQuest.rewardType.name.toUpperCase()}',
+                                    style: NeoBrutalistTheme.fontBadge.copyWith(
+                                      color: theme.primaryGold,
+                                      fontSize: 8.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ] else ...[
+                      // All normal quests finished -> Show Endgame Victory Goals
+                      Consumer(builder: (context, ref, _) {
+                        final p = ref.watch(gameStateProvider.select((s) => s.progression));
+                        final res = ref.watch(gameStateProvider.select((s) => s.resources));
+                        final routes = ref.watch(gameStateProvider.select((s) => s.caravanRoutes));
 
-                          final canBengu = !p.victoryMilestones['culturalBenguTas']! &&
-                              EconomyCalculator.checkCulturalVictoryProgress(
-                                resources: res,
-                                unlockedLoreIds: p.unlockedLoreIds,
-                              );
-                          final canSilk = !p.victoryMilestones['silkRoadNetwork']! &&
-                              EconomyCalculator.checkSilkRoadVictoryProgress(
-                                routes: routes,
-                                resources: res,
-                              );
-                          final canRealm = !p.victoryMilestones['realmConquest']! &&
-                              EconomyCalculator.checkRealmConquestProgress(
-                                cumulativeBiomeCounts: p.cumulativeBiomeCounts,
-                                ownedCount: p.ownedCount,
-                              );
+                        final canBengu = !p.victoryMilestones['culturalBenguTas']! &&
+                            EconomyCalculator.checkCulturalVictoryProgress(
+                              resources: res,
+                              unlockedLoreIds: p.unlockedLoreIds,
+                            );
+                        final canSilk = !p.victoryMilestones['silkRoadNetwork']! &&
+                            EconomyCalculator.checkSilkRoadVictoryProgress(
+                              routes: routes,
+                              resources: res,
+                            );
+                        final canRealm = !p.victoryMilestones['realmConquest']! &&
+                            EconomyCalculator.checkRealmConquestProgress(
+                              cumulativeBiomeCounts: p.cumulativeBiomeCounts,
+                              ownedCount: p.ownedCount,
+                            );
 
-                          if (canBengu) {
-                            return TactileNeoButton(
-                              onTap: () => notifier.claimCulturalVictory(),
-                              backgroundColor: const Color(0xFF10B981),
-                              borderColor: Colors.black,
-                              height: 32,
-                              alignment: Alignment.center,
+                        if (canBengu) {
+                          return TactileNeoButton(
+                            onTap: () => notifier.claimCulturalVictory(),
+                            backgroundColor: const Color(0xFF10B981),
+                            borderColor: Colors.black,
+                            height: 28,
+                            alignment: Alignment.center,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
                               child: Text(GameLocalization.get('claim_bengutas', lang: lang), style: const TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.w900)),
-                            );
-                          }
-                          if (canSilk) {
-                            return TactileNeoButton(
-                              onTap: () => notifier.claimSilkRoadVictory(),
-                              backgroundColor: const Color(0xFFF59E0B),
-                              borderColor: Colors.black,
-                              height: 32,
-                              alignment: Alignment.center,
-                              child: Text(GameLocalization.get('claim_silkroad', lang: lang), style: const TextStyle(color: Colors.black, fontSize: 9.5, fontWeight: FontWeight.w900)),
-                            );
-                          }
-                          if (canRealm) {
-                            return TactileNeoButton(
-                              onTap: () => notifier.claimRealmConquestVictory(),
-                              backgroundColor: const Color(0xFF818CF8),
-                              borderColor: Colors.black,
-                              height: 32,
-                              alignment: Alignment.center,
-                              child: Text(GameLocalization.get('claim_realmconquest', lang: lang), style: const TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.w900)),
-                            );
-                          }
-
-                          return Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF0F172A),
-                              borderRadius: BorderRadius.circular(3),
-                              border: Border.all(color: const Color(0xFF334155)),
-                            ),
-                            child: Text(
-                              GameLocalization.get('victory_quest_target', lang: lang),
-                              style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9, height: 1.3),
                             ),
                           );
-                        }),
-                      ],
+                        }
+                        if (canSilk) {
+                          return TactileNeoButton(
+                            onTap: () => notifier.claimSilkRoadVictory(),
+                            backgroundColor: const Color(0xFFF59E0B),
+                            borderColor: Colors.black,
+                            height: 28,
+                            alignment: Alignment.center,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(GameLocalization.get('claim_silkroad', lang: lang), style: const TextStyle(color: Colors.black, fontSize: 9.5, fontWeight: FontWeight.w900)),
+                            ),
+                          );
+                        }
+                        if (canRealm) {
+                          return TactileNeoButton(
+                            onTap: () => notifier.claimRealmConquestVictory(),
+                            backgroundColor: const Color(0xFF818CF8),
+                            borderColor: Colors.black,
+                            height: 28,
+                            alignment: Alignment.center,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(GameLocalization.get('claim_realmconquest', lang: lang), style: const TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.w900)),
+                            ),
+                          );
+                        }
+
+                        return Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0F172A),
+                            borderRadius: BorderRadius.circular(3),
+                            border: Border.all(color: const Color(0xFF334155)),
+                          ),
+                          child: Text(
+                            GameLocalization.get('victory_quest_target', lang: lang),
+                            style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9, height: 1.3),
+                          ),
+                        );
+                      }),
                     ],
-                  ),
+                  ],
                 ),
-            ],
-          ),
-        );
-      },
-    ),
+              ),
+          ],
+        ),
+      );
+    },
+  ),
     );
   }
 }

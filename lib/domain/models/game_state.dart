@@ -1,5 +1,6 @@
 import '../../core/hex/hex_coordinates.dart';
 import '../economy/economy_calculator.dart';
+import 'achievement_model.dart';
 import 'ad_reward_model.dart';
 import 'ancestral_kurgan_model.dart';
 import 'caravan_route_model.dart';
@@ -41,6 +42,7 @@ class GameState {
   final AdRewardTracking adTracking;
   final OfflineGainsResult? pendingOfflineGains;
   final CombatState combatState;
+  final List<AchievementModel> achievements;
 
   const GameState({
     required this.tiles,
@@ -84,6 +86,7 @@ class GameState {
     this.adTracking = const AdRewardTracking(),
     this.pendingOfflineGains,
     this.combatState = const CombatState(),
+    this.achievements = const [],
   });
 
   QuestModel? get currentActiveQuest {
@@ -93,6 +96,14 @@ class GameState {
       if (match != null && !match.isClaimed) return match;
     }
     return quests.where((q) => !q.isClaimed).firstOrNull;
+  }
+
+  int get unclaimedAchievementCount {
+    return achievements.where((a) => a.isUnlocked && !a.isRewardClaimed).length;
+  }
+
+  int get unlockedAchievementCount {
+    return achievements.where((a) => a.isUnlocked).length;
   }
 
   GameState copyWith({
@@ -129,6 +140,7 @@ class GameState {
     OfflineGainsResult? pendingOfflineGains,
     bool clearPendingOfflineGains = false,
     CombatState? combatState,
+    List<AchievementModel>? achievements,
   }) {
     return GameState(
       tiles: tiles ?? this.tiles,
@@ -161,6 +173,7 @@ class GameState {
       adTracking: adTracking ?? this.adTracking,
       pendingOfflineGains: clearPendingOfflineGains ? null : (pendingOfflineGains ?? this.pendingOfflineGains),
       combatState: combatState ?? this.combatState,
+      achievements: achievements ?? this.achievements,
     );
   }
 }

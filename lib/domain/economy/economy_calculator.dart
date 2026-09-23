@@ -2268,17 +2268,20 @@ class EconomyCalculator {
     final Map<HexAxial, double> buildingRates = {};
     for (final t in tiles) {
       if (!t.isOwned || !t.hasBuilding) continue;
-      final double tileSeasonMult = getSeasonProductionMultiplier(
-        season: season,
-        isZud: isZud,
-        isTileWarmed: t.isWarmed,
-        titles: titles,
-      );
+      double effSeasonMult = seasonMultiplier;
+      if (season.toUpperCase() == 'WINTER' || isZud) {
+        effSeasonMult = getSeasonProductionMultiplier(
+          season: season,
+          isZud: isZud,
+          isTileWarmed: t.isWarmed,
+          titles: titles,
+        );
+      }
       final double r = calculateTileEffectiveProductionRate(
         tile: t,
         tileMap: map,
         globalMultiplier: globalMultiplier,
-        seasonMultiplier: tileSeasonMult,
+        seasonMultiplier: effSeasonMult,
         shrineMultiplier: shrineMultiplier,
         season: season,
         isZud: isZud,
@@ -3161,40 +3164,121 @@ class EconomyCalculator {
     }
   }
 
-  /// 17. İpek Yolu Başlangıç Kervan Siparişleri (Han Buyrukları) Üretici
+  /// 17. İpek Yolu Başlangıç Kervan Siparişleri (Han Buyrukları) Üretici (100x Kaynak, 0 Taç, 3x Buff Süresi)
   static List<TradeOrderModel> generateInitialTradeOrders() {
     return [
       const TradeOrderModel(
         id: 'order_byzantine_1',
         title: 'Bizans Sarayı Kereste Buyruğu',
         requesterName: 'Konstantinopolis Elçisi',
-        requiredResources: {'wood': 80.0, 'bread': 40.0},
-        rewardCrowns: 8,
+        requiredResources: {'wood': 8000.0, 'bread': 4000.0},
+        rewardCrowns: 0,
         rewardSpeedMultiplier: 1.35,
-        buffDurationSeconds: 600,
+        buffDurationSeconds: 1800, // 30 dakika (3x)
         createdAt: '2026-08-26',
+        slotIndex: 0,
+        dailyCycleIndex: 0,
       ),
       const TradeOrderModel(
         id: 'order_sogdian_1',
         title: 'Soğd Kervanı Demir & Un Takası',
         requesterName: 'Semerkant Başkâtibi',
-        requiredResources: {'stone': 60.0, 'flour': 50.0, 'iron': 20.0},
-        rewardCrowns: 14,
+        requiredResources: {'stone': 6000.0, 'flour': 5000.0, 'iron': 2000.0},
+        rewardCrowns: 0,
         rewardSpeedMultiplier: 1.50,
-        buffDurationSeconds: 900,
+        buffDurationSeconds: 2700, // 45 dakika (3x)
         createdAt: '2026-08-26',
+        slotIndex: 1,
+        dailyCycleIndex: 0,
       ),
       const TradeOrderModel(
         id: 'order_persian_1',
         title: 'Sasani Hanı Kımız & Keçe Seferi',
         requesterName: 'İsfahan Saray Kethüdası',
-        requiredResources: {'furniture': 40.0, 'bread': 50.0, 'food': 100.0},
-        rewardCrowns: 20,
+        requiredResources: {'furniture': 4000.0, 'bread': 5000.0, 'food': 10000.0},
+        rewardCrowns: 0,
         rewardSpeedMultiplier: 1.75,
-        buffDurationSeconds: 1200,
+        buffDurationSeconds: 3600, // 60 dakika (3x)
         createdAt: '2026-08-26',
+        slotIndex: 2,
+        dailyCycleIndex: 0,
       ),
     ];
+  }
+
+  /// 17.1. Yenilenen İpek Yolu Siparişi Üretici (30 dk bekleme sonrası, günlük 10x artış periyodu)
+  static TradeOrderModel generateTradeOrderForSlot(int slotIndex, {int dailyCycleIndex = 0}) {
+    final double mult = math.pow(10.0, dailyCycleIndex).toDouble();
+    final int timestamp = DateTime.now().millisecondsSinceEpoch;
+
+    // Şablon havuzu
+    final templates = [
+      {
+        'title': 'Bizans Sarayı Kereste & Ekmek Buyruğu',
+        'requester': 'Konstantinopolis Elçisi',
+        'base': <String, double>{'wood': 8000.0, 'bread': 4000.0},
+        'speed': 1.35,
+        'duration': 1800, // 30 dk
+      },
+      {
+        'title': 'Soğd Kervanı Taş & Demir Takası',
+        'requester': 'Semerkant Başkâtibi',
+        'base': <String, double>{'stone': 6000.0, 'flour': 5000.0, 'iron': 2000.0},
+        'speed': 1.50,
+        'duration': 2700, // 45 dk
+      },
+      {
+        'title': 'Sasani Hanı Kımız & Mobilya Seferi',
+        'requester': 'İsfahan Saray Kethüdası',
+        'base': <String, double>{'furniture': 4000.0, 'bread': 5000.0, 'food': 10000.0},
+        'speed': 1.75,
+        'duration': 3600, // 60 dk
+      },
+      {
+        'title': 'Tang Hanedanı İpek & Şam Çeliği Alımı',
+        'requester': 'Çang\'an Başelçisi',
+        'base': <String, double>{'damascus_steel': 500.0, 'felt': 3000.0, 'kumis': 4000.0},
+        'speed': 1.60,
+        'duration': 2400, // 40 dk
+      },
+      {
+        'title': 'Hazar Kağanlığı Balık & Kalas Anlaşması',
+        'requester': 'İtil Gümrük Beyi',
+        'base': <String, double>{'fish': 8000.0, 'plank': 5000.0, 'stone': 4000.0},
+        'speed': 1.45,
+        'duration': 2100, // 35 dk
+      },
+      {
+        'title': 'Abbasi Divanı Obsidyen & Zanaat Siparişi',
+        'requester': 'Bağdat Saray Taciri',
+        'base': <String, double>{'obsidian': 1000.0, 'furniture': 6000.0, 'flour': 8000.0},
+        'speed': 1.80,
+        'duration': 3600, // 60 dk
+      },
+    ];
+
+    final int pickIndex = slotIndex % templates.length;
+    final t = templates[pickIndex];
+    final Map<String, double> baseReqs = t['base'] as Map<String, double>;
+    final Map<String, double> scaledReqs = {};
+    for (final entry in baseReqs.entries) {
+      scaledReqs[entry.key] = entry.value * mult;
+    }
+
+    return TradeOrderModel(
+      id: 'trade_order_${slotIndex}_${timestamp}_$dailyCycleIndex',
+      title: t['title'] as String,
+      requesterName: t['requester'] as String,
+      requiredResources: scaledReqs,
+      rewardCrowns: 0,
+      rewardSpeedMultiplier: (t['speed'] as double) + math.min(0.5, dailyCycleIndex * 0.05),
+      buffDurationSeconds: t['duration'] as int,
+      isFulfilled: false,
+      createdAt: DateTime.now().toIso8601String(),
+      unlockTimestamp: 0,
+      slotIndex: slotIndex,
+      dailyCycleIndex: dailyCycleIndex,
+    );
   }
 
   /// 18. Kompakt Sayı Biçimlendirme Köprüsü (1000 -> 1K, 1000000 -> 1M)

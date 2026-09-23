@@ -3,17 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/tactile_audio_service.dart';
+import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/models/ad_reward_model.dart';
 import '../../domain/services/ad_reward_service.dart';
 import '../providers/game_state_notifier.dart';
+import 'achievements_dialog.dart';
 import 'ad_reward_progress_dialog.dart';
 import 'great_migration_dialog.dart';
+import 'hexpedia_dialog.dart';
 import 'icons/game_vector_icons.dart';
+import 'tactile_dialog_route.dart';
 import 'tactile_neo_button.dart';
 
 /// Kağanlık Meclisi & Birleşik Yönetim Menüsü
-/// Üst bardaki küçük butonların yerine 2x2 ferah ve taktil aksiyon kartları sunar.
+/// Üst bardaki küçük butonların yerine 2x3 ferah ve taktil aksiyon kartları sunar.
 class CouncilManagementDialog extends ConsumerWidget {
   final VoidCallback onOpenMarket;
   final VoidCallback onOpenTore;
@@ -33,6 +37,7 @@ class CouncilManagementDialog extends ConsumerWidget {
     final gameState = ref.watch(gameStateProvider);
     final lang = gameState.settings.language;
     final theme = NeoBrutalistTheme.getTheme(gameState.settings.activeThemePalette);
+    final unclaimedAchievements = gameState.unclaimedAchievementCount;
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -78,7 +83,11 @@ class CouncilManagementDialog extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                lang == 'tr' ? 'KURULTAY & YÖNETİM' : 'COUNCIL & MANAGEMENT',
+                                lang == 'tr'
+                                    ? 'KURULTAY & YÖNETİM'
+                                    : (lang == 'es'
+                                        ? 'CONSEJO Y GESTIÓN'
+                                        : (lang == 'de' ? 'RAT & VERWALTUNG' : 'COUNCIL & MANAGEMENT')),
                                 style: TextStyle(
                                   color: theme.primaryGold,
                                   fontSize: 13,
@@ -89,7 +98,11 @@ class CouncilManagementDialog extends ConsumerWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                lang == 'tr' ? 'Kağanlık İdari İşleri' : 'Realm Administration',
+                                lang == 'tr'
+                                    ? 'Kağanlık İdari İşleri'
+                                    : (lang == 'es'
+                                        ? 'Administración del Kaganato'
+                                        : (lang == 'de' ? 'Reichsverwaltung' : 'Realm Administration')),
                                 style: const TextStyle(
                                   color: Color(0xFF94A3B8),
                                   fontSize: 9.5,
@@ -117,172 +130,270 @@ class CouncilManagementDialog extends ConsumerWidget {
                 ],
               ),
 
-            const SizedBox(height: 14),
+              const SizedBox(height: 14),
 
-            // 1. Üst Tam Genişlikli 10x Toy Coşkusu (Frenzy Boost) Bannerı
-            TactileNeoButton(
-              onTap: () async {
-                unawaited(TactileAudioService.instance.play(TactileSoundType.tap));
-                unawaited(HapticFeedback.lightImpact());
-                Navigator.of(context).pop();
-                final completed = await showAdRewardProgressDialog(
-                  context,
-                  title: '10X TOY COŞKUSU',
-                  message: 'Ödül alınıyor lütfen bekleyiniz...',
-                );
-                if (completed) {
-                  await ref.read(gameStateProvider.notifier).claimAdReward(
-                        AdRewardType.frenzyBoost,
-                        adService: adService,
-                      );
-                }
-              },
-              backgroundColor: gameState.frenzyTimer > 0
-                  ? const Color(0xFFDC2626)
-                  : const Color(0xFFD97706),
-              borderColor: theme.border,
-              shadowColor: theme.shadowColor,
-              shadowOffset: 3.0,
-              height: 52,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              child: Row(
-                children: [
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: Colors.black26,
-                      borderRadius: NeoBrutalistTheme.sharpRadius,
+              // 1. Üst Tam Genişlikli 10x Toy Coşkusu (Frenzy Boost) Bannerı
+              TactileNeoButton(
+                onTap: () async {
+                  unawaited(TactileAudioService.instance.play(TactileSoundType.tap));
+                  unawaited(HapticFeedback.lightImpact());
+                  Navigator.of(context).pop();
+                  final completed = await showAdRewardProgressDialog(
+                    context,
+                    title: lang == 'tr'
+                        ? '10X TOY COŞKUSU'
+                        : (lang == 'es'
+                            ? '10X FRENESÍ REAL'
+                            : (lang == 'de' ? '10X REICHSFRENZY' : '10X REALM FRENZY')),
+                    message: lang == 'tr'
+                        ? 'Ödül alınıyor lütfen bekleyiniz...'
+                        : 'Claiming reward, please wait...',
+                  );
+                  if (completed) {
+                    await ref.read(gameStateProvider.notifier).claimAdReward(
+                          AdRewardType.frenzyBoost,
+                          adService: adService,
+                        );
+                  }
+                },
+                backgroundColor: gameState.frenzyTimer > 0
+                    ? const Color(0xFFDC2626)
+                    : const Color(0xFFD97706),
+                borderColor: theme.border,
+                shadowColor: theme.shadowColor,
+                shadowOffset: 3.0,
+                height: 52,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: Colors.black26,
+                        borderRadius: NeoBrutalistTheme.sharpRadius,
+                      ),
+                      alignment: Alignment.center,
+                      child: const GameVectorIcon(
+                        type: GameIconType.frenzy,
+                        size: 16,
+                        color: Colors.white,
+                      ),
                     ),
-                    alignment: Alignment.center,
-                    child: const GameVectorIcon(
-                      type: GameIconType.frenzy,
-                      size: 16,
-                      color: Colors.white,
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              gameState.frenzyTimer > 0
+                                  ? (lang == 'tr'
+                                      ? 'TOY COŞKUSU AKTİF!'
+                                      : (lang == 'es'
+                                          ? '¡FRENESÍ ACTIVO!'
+                                          : (lang == 'de' ? 'FRENZY AKTIV!' : 'FRENZY ACTIVE!')))
+                                  : (lang == 'tr'
+                                      ? '10X TOY COŞKUSU'
+                                      : (lang == 'es'
+                                          ? '10X FRENESÍ REAL'
+                                          : (lang == 'de' ? '10X REICHSFRENZY' : '10X REALM FRENZY'))),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                            Text(
+                              gameState.frenzyTimer > 0
+                                  ? '${gameState.frenzyTimer.toInt()}s ${lang == 'tr' ? 'kaldı (2x Hız)' : (lang == 'es' ? 'restante (2x)' : (lang == 'de' ? 'übrig (2x)' : 'left (2x Speed)'))}'
+                                  : (lang == 'tr'
+                                      ? '10 dk boyunca küresel üretimi 2 katına çıkar'
+                                      : (lang == 'es'
+                                          ? 'Duplica la producción por 10 min'
+                                          : (lang == 'de'
+                                              ? 'Verdopple die Produktion für 10 Min'
+                                              : 'Boost all production 2x for 10 min'))),
+                              style: const TextStyle(
+                                color: Color(0xFFFEF3C7),
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 12),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // 2. 2x3 Izgara Düzeni:
+              // Satır 1: Pazar, Töre
+              Row(
+                children: [
+                  // İpek Yolu Pazarı
+                  Expanded(
+                    child: _buildMenuCard(
+                      title: lang == 'tr'
+                          ? 'İPEK YOLU PAZARI'
+                          : (lang == 'es'
+                              ? 'MERCADO DE LA SEDA'
+                              : (lang == 'de' ? 'SEIDENSTRASSE-MARKT' : 'SILK ROAD MARKET')),
+                      subtitle: lang == 'tr'
+                          ? 'Takas & Ticaret'
+                          : (lang == 'es'
+                              ? 'Comercio'
+                              : (lang == 'de' ? 'Ressourcentausch' : 'Resource Trade')),
+                      iconType: GameIconType.market,
+                      theme: theme,
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        onOpenMarket();
+                      },
                     ),
                   ),
                   const SizedBox(width: 10),
+                  // Töre & Meclis
                   Expanded(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            gameState.frenzyTimer > 0
-                                ? (lang == 'tr' ? 'TOY COŞKUSU AKTİF!' : 'FRENZY ACTIVE!')
-                                : (lang == 'tr' ? '10X TOY COŞKUSU' : '10X REALM FRENZY'),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                          Text(
-                            gameState.frenzyTimer > 0
-                                ? '${gameState.frenzyTimer.toInt()}s ${lang == 'tr' ? 'kaldı (2x Hız)' : 'left (2x Speed)'}'
-                                : (lang == 'tr' ? '10 dk boyunca küresel üretimi 2 katına çıkar' : 'Boost all production 2x for 10 min'),
-                            style: const TextStyle(
-                              color: Color(0xFFFEF3C7),
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
+                    child: _buildMenuCard(
+                      title: lang == 'tr'
+                          ? 'TÖRE & DOKTRİN'
+                          : (lang == 'es'
+                              ? 'TRADICIÓN Y TALENTOS'
+                              : (lang == 'de' ? 'TRADITION & TALENTE' : 'CUSTOM & TALENTS')),
+                      subtitle: lang == 'tr'
+                          ? 'Kalıcı Yetenekler'
+                          : (lang == 'es'
+                              ? 'Árbol de Talentos'
+                              : (lang == 'de' ? 'Talentbaum' : 'Steppe Lore Tree')),
+                      iconType: GameIconType.tore,
+                      badgeCount: gameState.resources.crowns.toInt(),
+                      theme: theme,
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        onOpenTore();
+                      },
                     ),
                   ),
-                  const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 12),
                 ],
               ),
-            ),
 
-            const SizedBox(height: 10),
+              const SizedBox(height: 10),
 
-            // 2. 2x2 Izgara Düzeni: Pazar, Töre, Göç, Ayarlar
-            Row(
-              children: [
-                // İpek Yolu Pazarı
-                Expanded(
-                  child: _buildMenuCard(
-                    title: lang == 'tr' ? 'İPEK YOLU PAZARI' : 'SILK ROAD MARKET',
-                    subtitle: lang == 'tr' ? 'Takas & Ticaret' : 'Resource Trade',
-                    iconType: GameIconType.market,
-                    theme: theme,
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      onOpenMarket();
-                    },
+              // Satır 2: Başarılarım, Yaşlılara Danış (Wiki)
+              Row(
+                children: [
+                  // Başarılarım
+                  Expanded(
+                    child: _buildMenuCard(
+                      title: GameLocalization.get('achievements', lang: lang).toUpperCase(),
+                      subtitle: GameLocalization.get('achievements_subtitle', lang: lang),
+                      icon: Icons.workspace_premium,
+                      iconColor: const Color(0xFFFDE047),
+                      badgeCount: unclaimedAchievements > 0 ? unclaimedAchievements : null,
+                      theme: theme,
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        showNeoTactileDialog<void>(
+                          context: context,
+                          builder: (_) => const AchievementsDialog(),
+                        );
+                      },
+                    ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                // Töre & Meclis
-                Expanded(
-                  child: _buildMenuCard(
-                    title: lang == 'tr' ? 'TÖRE & DOKTRİN' : 'CUSTOM & TALENTS',
-                    subtitle: lang == 'tr' ? 'Kalıcı Yetenekler' : 'Steppe Lore Tree',
-                    iconType: GameIconType.tore,
-                    badgeCount: gameState.resources.crowns.toInt(),
-                    theme: theme,
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      onOpenTore();
-                    },
+                  const SizedBox(width: 10),
+                  // Yaşlılara Danış (Wiki)
+                  Expanded(
+                    child: _buildMenuCard(
+                      title: GameLocalization.get('consult_elders', lang: lang).toUpperCase(),
+                      subtitle: GameLocalization.get('consult_elders_subtitle', lang: lang),
+                      icon: Icons.menu_book,
+                      iconColor: const Color(0xFF10B981),
+                      theme: theme,
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        showNeoTactileDialog<void>(
+                          context: context,
+                          builder: (_) => const HexpediaDialog(),
+                        );
+                      },
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
 
-            const SizedBox(height: 10),
+              const SizedBox(height: 10),
 
-            Row(
-              children: [
-                // Büyük Göç (Prestij)
-                Expanded(
-                  child: _buildMenuCard(
-                    title: lang == 'tr' ? 'BÜYÜK GÖÇ' : 'GREAT MIGRATION',
-                    subtitle: lang == 'tr' ? 'Yeni Çağ & Tamgalar' : 'Prestige & Seals',
-                    icon: Icons.flight_takeoff,
-                    iconColor: const Color(0xFFFFD700),
-                    theme: theme,
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      unawaited(TactileAudioService.instance.play(TactileSoundType.tap));
-                      unawaited(HapticFeedback.lightImpact());
-                      showDialog<void>(
-                        context: context,
-                        builder: (ctx) => const GreatMigrationDialog(),
-                      );
-                    },
+              // Satır 3: Büyük Göç, Ayarlar
+              Row(
+                children: [
+                  // Büyük Göç (Prestij)
+                  Expanded(
+                    child: _buildMenuCard(
+                      title: lang == 'tr'
+                          ? 'BÜYÜK GÖÇ'
+                          : (lang == 'es'
+                              ? 'GRAN MIGRACIÓN'
+                              : (lang == 'de' ? 'GROSSE WANDERUNG' : 'GREAT MIGRATION')),
+                      subtitle: lang == 'tr'
+                          ? 'Yeni Çağ & Tamgalar'
+                          : (lang == 'es'
+                              ? 'Prestigio y Sellos'
+                              : (lang == 'de' ? 'Prestige & Siegel' : 'Prestige & Seals')),
+                      icon: Icons.flight_takeoff,
+                      iconColor: const Color(0xFFFFD700),
+                      theme: theme,
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        unawaited(TactileAudioService.instance.play(TactileSoundType.tap));
+                        unawaited(HapticFeedback.lightImpact());
+                        showDialog<void>(
+                          context: context,
+                          builder: (ctx) => const GreatMigrationDialog(),
+                        );
+                      },
+                    ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                // Ayarlar & Obayı Yönet
-                Expanded(
-                  child: _buildMenuCard(
-                    title: lang == 'tr' ? 'OBAYI YÖNET' : 'REALM SETTINGS',
-                    subtitle: lang == 'tr' ? 'Ses, Dil & Veriler' : 'Audio & Language',
-                    iconType: GameIconType.settings,
-                    theme: theme,
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      onOpenSettings();
-                    },
+                  const SizedBox(width: 10),
+                  // Ayarlar & Obayı Yönet
+                  Expanded(
+                    child: _buildMenuCard(
+                      title: lang == 'tr'
+                          ? 'OBAYI YÖNET'
+                          : (lang == 'es'
+                              ? 'AJUSTES DEL REINO'
+                              : (lang == 'de' ? 'REICHSOPTIONEN' : 'REALM SETTINGS')),
+                      subtitle: lang == 'tr'
+                          ? 'Ses, Dil & Veriler'
+                          : (lang == 'es'
+                              ? 'Audio e Idioma'
+                              : (lang == 'de' ? 'Audio & Sprache' : 'Audio & Language')),
+                      iconType: GameIconType.settings,
+                      theme: theme,
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        onOpenSettings();
+                      },
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildMenuCard({
     required String title,
@@ -321,20 +432,34 @@ class CouncilManagementDialog extends ConsumerWidget {
                 ),
                 alignment: Alignment.center,
                 child: iconType != null
-                    ? GameVectorIcon(type: iconType, size: 16)
-                    : Icon(icon, size: 16, color: iconColor ?? Colors.white),
+                    ? GameVectorIcon(
+                        type: iconType,
+                        size: 16,
+                      )
+                    : Icon(
+                        icon,
+                        size: 18,
+                        color: iconColor ?? theme.primaryGold,
+                      ),
               ),
               if (badgeCount != null && badgeCount > 0)
                 Positioned(
-                  top: -3,
-                  right: -3,
+                  top: -5,
+                  right: -5,
                   child: Container(
-                    width: 8,
-                    height: 8,
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                     decoration: BoxDecoration(
-                      color: theme.primaryGold,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: theme.border, width: 1.5),
+                      color: const Color(0xFFEF4444),
+                      borderRadius: BorderRadius.circular(3),
+                      border: Border.all(color: Colors.white, width: 1),
+                    ),
+                    child: Text(
+                      badgeCount > 99 ? '99+' : badgeCount.toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                 ),
@@ -342,38 +467,39 @@ class CouncilManagementDialog extends ConsumerWidget {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.2,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.2,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      color: Color(0xFF94A3B8),
-                      fontSize: 8.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: Color(0xFF94A3B8),
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w600,
                   ),
-                ],
-              ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
+          ),
+          const Icon(
+            Icons.chevron_right,
+            size: 14,
+            color: Color(0xFF64748B),
           ),
         ],
       ),

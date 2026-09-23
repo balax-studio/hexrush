@@ -1,7 +1,9 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
+import '../../core/utils/number_formatter.dart';
 import '../../domain/models/trade_order_model.dart';
 import '../providers/game_state_notifier.dart';
 import 'icons/game_vector_icons.dart';
@@ -17,12 +19,14 @@ class TradeOrdersDialog extends ConsumerWidget {
     final theme = NeoBrutalistTheme.getTheme(palette);
     final state = ref.watch(gameStateProvider);
     final orders = state.progression.activeTradeOrders;
+    final dailyCount = state.progression.dailyTradeOrdersCompletedCount;
+    final dailyMultiplier = math.pow(10.0, dailyCount).toDouble();
 
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 480, maxHeight: 580),
+        constraints: const BoxConstraints(maxWidth: 480, maxHeight: 600),
         decoration: BoxDecoration(
           color: theme.surface,
           borderRadius: BorderRadius.circular(4),
@@ -46,17 +50,34 @@ class TradeOrdersDialog extends ConsumerWidget {
               ),
               child: Row(
                 children: [
-                  const GameVectorIcon(type: GameIconType.crown, size: 20, color: Color(0xFFFFD700)),
+                  const GameVectorIcon(type: GameIconType.tradeOrders, size: 20, color: Color(0xFFFDE047)),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text(
-                      GameLocalization.get('trade_orders_title', lang: lang),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.8,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          GameLocalization.get('trade_orders_title', lang: lang),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        if (dailyCount > 0)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              '${GameLocalization.get('daily_trade_multiplier', lang: lang)}: ${NumberFormatter.format(dailyMultiplier)}x (Seviye $dailyCount)',
+                              style: const TextStyle(
+                                color: Color(0xFFFDE047),
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                   TactileNeoButton(
@@ -106,6 +127,13 @@ class TradeOrdersDialog extends ConsumerWidget {
     TradeOrderModel order,
     String lang,
   ) {
+    final int nowMs = DateTime.now().millisecondsSinceEpoch;
+    final bool isLocked = order.isLocked(nowMs);
+    final int remainingSec = order.getRemainingSeconds(nowMs);
+    final int remMin = remainingSec ~/ 60;
+    final int remSecPart = remainingSec % 60;
+    final String timerStr = '${remMin.toString().padLeft(2, '0')}:${remSecPart.toString().padLeft(2, '0')}';
+
     final currentRes = state.resources;
     bool canAffordAll = true;
 
@@ -124,6 +152,8 @@ class TradeOrdersDialog extends ConsumerWidget {
         'kumis' => currentRes.kumis,
         'felt' => currentRes.felt,
         'damascus_steel' || 'damascussteel' => currentRes.damascusSteel,
+        'obsidian' => currentRes.obsidian,
+        'mithril' => currentRes.mithril,
         _ => 0.0,
       } as num).toDouble();
 
@@ -143,7 +173,7 @@ class TradeOrdersDialog extends ConsumerWidget {
             ),
           ),
           child: Text(
-            '${req.key.toUpperCase()}: ${current.toInt()}/${req.value.toInt()}',
+            '${req.key.toUpperCase()}: ${NumberFormatter.format(current)} / ${NumberFormatter.format(req.value)}',
             style: TextStyle(
               color: hasEnough ? const Color(0xFF6EE7B7) : const Color(0xFFFCA5A5),
               fontSize: 9,
@@ -157,16 +187,17 @@ class TradeOrdersDialog extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: order.isFulfilled ? const Color(0xFF0F172A) : theme.surface,
+        color: isLocked ? const Color(0xFF0B0F19) : theme.surface,
         borderRadius: BorderRadius.circular(3),
         border: Border.all(
-          color: order.isFulfilled ? theme.slateBorder : theme.border,
+          color: isLocked ? const Color(0xFF334155) : theme.border,
           width: 2,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Başlık ve Ödül Çipi
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -174,84 +205,96 @@ class TradeOrdersDialog extends ConsumerWidget {
                 child: Text(
                   order.title,
                   style: TextStyle(
-                    color: order.isFulfilled ? Colors.grey.shade500 : Colors.white,
+                    color: isLocked ? Colors.grey.shade500 : Colors.white,
                     fontSize: 11,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
+                  color: isLocked ? const Color(0xFF1E293B) : const Color(0xFF451A03),
                   borderRadius: BorderRadius.circular(2),
-                  border: Border.all(color: theme.primaryGold, width: 1),
+                  border: Border.all(
+                    color: isLocked ? theme.slateBorder : const Color(0xFFF59E0B),
+                    width: 1,
+                  ),
                 ),
-                child: Row(
-                  children: [
-                    const GameVectorIcon(type: GameIconType.crown, size: 10, color: Color(0xFFFFD700)),
-                    const SizedBox(width: 4),
-                    Text(
-                      '+${order.rewardCrowns} TAÇ',
-                      style: const TextStyle(
-                        color: Color(0xFFFFD700),
-                        fontSize: 9,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  '${order.rewardSpeedMultiplier.toStringAsFixed(2)}x HIZ • ${order.buffDurationSeconds ~/ 60} DK',
+                  style: TextStyle(
+                    color: isLocked ? Colors.grey.shade400 : const Color(0xFFFDE047),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 4),
           Text(
-            'Elçi: ${order.requesterName} • Ödül: ${order.rewardSpeedMultiplier}x Altın Çağ Hızı (${order.buffDurationSeconds ~/ 60} dk)',
+            'Elçi: ${order.requesterName}',
             style: TextStyle(
               color: Colors.grey.shade400,
               fontSize: 9,
             ),
           ),
           const SizedBox(height: 8),
-          Wrap(children: reqWidgets),
-          const SizedBox(height: 6),
-          Align(
-            alignment: Alignment.centerRight,
-            child: order.isFulfilled
-                ? Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF064E3B),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+
+          if (isLocked) ...[
+            // Kilitli / Kervan Yolda Durumu
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(2),
+                border: Border.all(color: const Color(0xFF334155), width: 1),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.hourglass_top, size: 14, color: Color(0xFFFDE047)),
+                  const SizedBox(width: 8),
+                  Expanded(
                     child: Text(
-                      GameLocalization.get('order_delivered', lang: lang),
+                      '${GameLocalization.get('caravan_in_transit', lang: lang)} • ${GameLocalization.get('new_envoy_timer', lang: lang)} $timerStr',
                       style: const TextStyle(
-                        color: Color(0xFF6EE7B7),
-                        fontSize: 9,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  )
-                : TactileNeoButton(
-                    onTap: canAffordAll
-                        ? () => ref.read(gameStateProvider.notifier).fulfillTradeOrder(order.id)
-                        : null,
-                    height: 32,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    alignment: Alignment.center,
-                    backgroundColor: canAffordAll ? theme.primaryGold : theme.surfaceLight,
-                    borderColor: canAffordAll ? const Color(0xFFB45309) : theme.slateBorder,
-                    child: Text(
-                      GameLocalization.get('deliver_order_btn', lang: lang),
-                      style: TextStyle(
-                        color: canAffordAll ? Colors.black : Colors.grey.shade500,
+                        color: Color(0xFFFDE047),
                         fontSize: 10,
                         fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ),
-          ),
+                ],
+              ),
+            ),
+          ] else ...[
+            // İstenen Kaynaklar Listesi
+            Wrap(children: reqWidgets),
+            const SizedBox(height: 6),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TactileNeoButton(
+                onTap: canAffordAll
+                    ? () => ref.read(gameStateProvider.notifier).fulfillTradeOrder(order.id)
+                    : null,
+                height: 32,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                alignment: Alignment.center,
+                backgroundColor: canAffordAll ? theme.primaryGold : theme.surfaceLight,
+                borderColor: canAffordAll ? const Color(0xFFB45309) : theme.slateBorder,
+                child: Text(
+                  GameLocalization.get('deliver_order_btn', lang: lang),
+                  style: TextStyle(
+                    color: canAffordAll ? Colors.black : Colors.grey.shade500,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

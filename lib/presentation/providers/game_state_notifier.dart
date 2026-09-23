@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../core/audio/tactile_audio_service.dart';
@@ -9,8 +10,10 @@ import '../../core/hex/hex_math.dart';
 import '../../core/localization/game_localization.dart';
 import '../../core/utils/number_formatter.dart';
 import '../../data/save_repository.dart';
+import '../../domain/economy/achievement_tracker.dart';
 import '../../domain/economy/combat_calculator.dart';
 import '../../domain/economy/economy_calculator.dart';
+import '../../domain/models/achievement_model.dart';
 import '../../domain/models/ad_reward_model.dart';
 import '../../domain/services/ad_reward_service.dart';
 import '../../domain/models/ancestral_kurgan_model.dart';
@@ -672,6 +675,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       doctrines: DoctrineCardModel.getInitialDoctrines(),
       celestialOmen: CelestialOmen.fromYearIndex(0),
       yearIndex: 0,
+      achievements: AchievementCatalog.getInitialList(),
     );
   }
 
@@ -697,9 +701,30 @@ class GameStateNotifier extends StateNotifier<GameState> {
                         .copyWith(level: save.progression.castleLevel))
                 : t
         };
-        final loadedOrders = save.progression.activeTradeOrders.isNotEmpty
+        final int nowMs = DateTime.now().millisecondsSinceEpoch;
+        final String todayStr = DateTime.now().toIso8601String().substring(0, 10);
+        int dailyCount = save.progression.dailyTradeOrdersCompletedCount;
+        String lastReset = save.progression.lastTradeResetDate;
+        if (lastReset != todayStr) {
+          dailyCount = 0;
+          lastReset = todayStr;
+        }
+
+        final rawOrders = save.progression.activeTradeOrders.isNotEmpty
             ? save.progression.activeTradeOrders
             : EconomyCalculator.generateInitialTradeOrders();
+
+        final loadedOrders = rawOrders.asMap().entries.map((entry) {
+          final idx = entry.key;
+          final order = entry.value;
+          if (order.isFulfilled && order.unlockTimestamp > 0 && order.unlockTimestamp <= nowMs) {
+            return EconomyCalculator.generateTradeOrderForSlot(
+              order.slotIndex == 0 && idx != 0 ? idx : order.slotIndex,
+              dailyCycleIndex: dailyCount,
+            );
+          }
+          return order;
+        }).toList();
 
         state = state.copyWith(
           tiles: tilesMap,
@@ -707,6 +732,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
           progression: save.progression.copyWith(
             totalSessions: save.progression.totalSessions + 1,
             activeTradeOrders: loadedOrders,
+            dailyTradeOrdersCompletedCount: dailyCount,
+            lastTradeResetDate: lastReset,
           ),
           season: save.season,
           settings: save.settings,
@@ -722,12 +749,13 @@ class GameStateNotifier extends StateNotifier<GameState> {
           discoveredKurgans: save.discoveredKurgans,
           adTracking: save.adTracking.checkDailyReset(),
           combatState: save.combatState ?? state.combatState,
+          achievements: save.achievements.isNotEmpty ? save.achievements : AchievementCatalog.getInitialList(),
         );
 
         _syncQuestProgress();
+        _checkAchievements();
 
         // Offline gelir hesapla (Soğuk Başlatma / Cold Boot)
-        final int nowMs = DateTime.now().millisecondsSinceEpoch;
         final int? storedLastActiveMs = await SaveRepository.getLastActiveTimestamp();
         final int lastActiveMs = storedLastActiveMs ?? (save.timestamp * 1000);
 
@@ -902,6 +930,31 @@ class GameStateNotifier extends StateNotifier<GameState> {
     // Frenzy zamanlayıcı
     final double newFrenzyTimer = math.max(0.0, state.frenzyTimer - 1.0);
     final int newFrenzyMultiplier = newFrenzyTimer > 0 ? state.frenzyMultiplier : 1;
+
+    // İpek Yolu Kervan Siparişleri Kilit & Günlük Sıfırlama Kontrolü (30 dk bekleme)
+    final int nowMs = DateTime.now().millisecondsSinceEpoch;
+    final String todayStr = DateTime.now().toIso8601String().substring(0, 10);
+    int currentDailyCompleted = state.progression.dailyTradeOrdersCompletedCount;
+    String currentResetDate = state.progression.lastTradeResetDate;
+
+    if (currentResetDate != todayStr) {
+      currentDailyCompleted = 0;
+      currentResetDate = todayStr;
+    }
+
+    bool tradeOrdersChanged = false;
+    final updatedTradeOrders = state.progression.activeTradeOrders.asMap().entries.map((entry) {
+      final idx = entry.key;
+      final order = entry.value;
+      if (order.isFulfilled && order.unlockTimestamp > 0 && order.unlockTimestamp <= nowMs) {
+        tradeOrdersChanged = true;
+        return EconomyCalculator.generateTradeOrderForSlot(
+          order.slotIndex == 0 && idx != 0 ? idx : order.slotIndex,
+          dailyCycleIndex: currentDailyCompleted,
+        );
+      }
+      return order;
+    }).toList();
 
     // İşçi ve Şato Taşıma Kaynakları (4 Hex Menzil)
     final List<HexAxial> workerSourceCoords = [];
@@ -1381,11 +1434,20 @@ class GameStateNotifier extends StateNotifier<GameState> {
       seasonLerpProgress: newLerp,
       yearIndex: newYearIndex,
       celestialOmen: newOmen,
+      progression: (tradeOrdersChanged || currentResetDate != state.progression.lastTradeResetDate)
+          ? state.progression.copyWith(
+              dailyTradeOrdersCompletedCount: currentDailyCompleted,
+              lastTradeResetDate: currentResetDate,
+              activeTradeOrders: tradeOrdersChanged ? updatedTradeOrders : state.progression.activeTradeOrders,
+            )
+          : state.progression,
     );
 
     if (state.combatState.isActiveWave) {
       _processCombatTick(1.0, updatedTiles);
     }
+
+    _checkAchievements();
   }
 
   void selectTile(HexAxial? coord) {
@@ -2457,6 +2519,70 @@ class GameStateNotifier extends StateNotifier<GameState> {
     unawaited(saveGame());
   }
 
+  void _checkAchievements() {
+    final result = AchievementTracker.evaluate(state);
+    final newlyUnlocked = result.newlyUnlocked;
+
+    if (newlyUnlocked.isNotEmpty) {
+      final firstNew = newlyUnlocked.first;
+      final lang = state.settings.language;
+      final title = firstNew.getTitle(lang);
+
+      final String toastMsg = switch (lang) {
+        'tr' => 'BAŞARIM AÇILDI: $title! (+${firstNew.crownReward} Taç)',
+        'es' => '¡LOGRO DESBLOQUEADO: $title! (+${firstNew.crownReward} Coronas)',
+        'de' => 'ERFOLG FREIGESCHALTET: $title! (+${firstNew.crownReward} Kronen)',
+        _ => 'ACHIEVEMENT UNLOCKED: $title! (+${firstNew.crownReward} Crowns)',
+      };
+
+      state = state.copyWith(
+        achievements: result.updatedAchievements,
+        activeToast: toastMsg,
+      );
+
+      TactileAudioService.instance.play(TactileSoundType.reward);
+      HapticFeedback.heavyImpact();
+      saveGame();
+    } else {
+      state = state.copyWith(achievements: result.updatedAchievements);
+    }
+  }
+
+  bool claimAchievementReward(String achievementId) {
+    final index = state.achievements.indexWhere((a) => a.id == achievementId);
+    if (index == -1) return false;
+
+    final ach = state.achievements[index];
+    if (!ach.isUnlocked || ach.isRewardClaimed) return false;
+
+    final updatedAch = ach.copyWith(isRewardClaimed: true);
+    final updatedList = List<AchievementModel>.from(state.achievements);
+    updatedList[index] = updatedAch;
+
+    final lang = state.settings.language;
+    final title = ach.getTitle(lang);
+
+    final String toastMsg = switch (lang) {
+      'tr' => 'ÖDÜL ALINDI: $title (+${ach.crownReward} Taç)',
+      'es' => 'RECOMPENSA RECLAMADA: $title (+${ach.crownReward} Coronas)',
+      'de' => 'BELOHNUNG ERHALTEN: $title (+${ach.crownReward} Kronen)',
+      _ => 'REWARD CLAIMED: $title (+${ach.crownReward} Crowns)',
+    };
+
+    state = state.copyWith(
+      resources: state.resources.copyWith(
+        crowns: state.resources.crowns + ach.crownReward,
+      ),
+      achievements: updatedList,
+      activeToast: toastMsg,
+    );
+
+    TactileAudioService.instance.play(TactileSoundType.reward);
+    HapticFeedback.mediumImpact();
+    saveGame();
+    return true;
+  }
+
   Future<void> saveGame() async {
     _isSaveDirty = false;
     await SaveRepository.saveGame(
@@ -2477,6 +2603,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       discoveredKurgans: state.discoveredKurgans,
       adTracking: state.adTracking,
       combatState: state.combatState,
+      achievements: state.achievements,
     );
   }
 
@@ -2778,6 +2905,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       activeToast: 'İpek Yolu Kervan Hattı Kuruldu! (+%25 Takas Rezonansı)',
     );
 
+    _syncQuestProgress();
     TactileAudioService.instance.play(TactileSoundType.build);
     saveGame();
   }
@@ -2788,6 +2916,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       caravanRoutes: updatedRoutes,
       activeToast: 'Kervan yolu kaldırıldı.',
     );
+    _syncQuestProgress();
     TactileAudioService.instance.play(TactileSoundType.tap);
     saveGame();
   }
@@ -3039,10 +3168,12 @@ class GameStateNotifier extends StateNotifier<GameState> {
         'kumis' => currentRes.kumis,
         'felt' => currentRes.felt,
         'damascus_steel' || 'damascussteel' => currentRes.damascusSteel,
+        'obsidian' => currentRes.obsidian,
+        'mithril' => currentRes.mithril,
         _ => 0.0,
       };
       if (available < req.value) {
-        showToast('Yetersiz Kaynak: ${req.key.toUpperCase()} miktarı eksik (${available.toInt()} / ${req.value.toInt()}).');
+        showToast('Yetersiz Kaynak: ${req.key.toUpperCase()} miktarı eksik (${NumberFormatter.format(available)} / ${NumberFormatter.format(req.value)}).');
         return false;
       }
     }
@@ -3061,19 +3192,40 @@ class GameStateNotifier extends StateNotifier<GameState> {
       kumis: currentRes.kumis - (order.requiredResources['kumis'] ?? 0.0),
       felt: currentRes.felt - (order.requiredResources['felt'] ?? 0.0),
       damascusSteel: currentRes.damascusSteel - (order.requiredResources['damascus_steel'] ?? order.requiredResources['damascussteel'] ?? 0.0),
-      crowns: currentRes.crowns + order.rewardCrowns,
+      obsidian: currentRes.obsidian - (order.requiredResources['obsidian'] ?? 0.0),
+      mithril: currentRes.mithril - (order.requiredResources['mithril'] ?? 0.0),
     );
 
-    // Siparişi tamamlandı olarak işaretle
+    final int nowMs = DateTime.now().millisecondsSinceEpoch;
+    final int lockUntilMs = nowMs + 1800 * 1000; // 30 dakika bekleme süresi
+
+    final todayStr = DateTime.now().toIso8601String().substring(0, 10);
+    int nextDailyCount = state.progression.dailyTradeOrdersCompletedCount;
+    String lastReset = state.progression.lastTradeResetDate;
+    if (lastReset != todayStr) {
+      nextDailyCount = 0;
+      lastReset = todayStr;
+    }
+    nextDailyCount += 1;
+
+    // Siparişi kilitli ve tamamlandı olarak işaretle
     final updatedOrders = List<TradeOrderModel>.from(state.progression.activeTradeOrders);
-    updatedOrders[orderIndex] = order.copyWith(isFulfilled: true);
+    updatedOrders[orderIndex] = order.copyWith(
+      isFulfilled: true,
+      unlockTimestamp: lockUntilMs,
+      dailyCycleIndex: nextDailyCount,
+    );
 
     state = state.copyWith(
       resources: updatedRes,
-      progression: state.progression.copyWith(activeTradeOrders: updatedOrders),
+      progression: state.progression.copyWith(
+        activeTradeOrders: updatedOrders,
+        dailyTradeOrdersCompletedCount: nextDailyCount,
+        lastTradeResetDate: lastReset,
+      ),
       frenzyMultiplier: math.max(state.frenzyMultiplier, (order.rewardSpeedMultiplier).toInt()),
       frenzyTimer: state.frenzyTimer + order.buffDurationSeconds.toDouble(),
-      activeToast: '${order.title} tamamlandı! (+${order.rewardCrowns} Taç & Altın Çağ Hız Buff\'ı)',
+      activeToast: '${order.title} tamamlandı! (${order.rewardSpeedMultiplier}x Altın Çağ Hızı - ${order.buffDurationSeconds ~/ 60} Dk)',
     );
 
     TactileAudioService.instance.play(TactileSoundType.reward);
