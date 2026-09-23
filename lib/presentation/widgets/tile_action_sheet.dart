@@ -1425,11 +1425,12 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
     final double cost = b.upgradeCost;
     final bool canUpgrade = gameState.resources.food >= cost;
     final bool hasAccum = b.accumulatedResource > 0;
-    final bool isWinter = gameState.season.current == 'WINTER';
-    final double warmWoodCost =
-        EconomyCalculator.getWinterWarmWoodCost(notifier.getActiveDoctrines());
-    final bool canWarm =
-        isWinter && !tile.isWarmed && gameState.resources.wood >= warmWoodCost;
+    final bool isWinter = gameState.season.current == 'WINTER' || gameState.season.isZud;
+    final double warmWoodPerSec = EconomyCalculator.getHeatingWoodConsumptionRate(
+      buildingLevel: b.level,
+      activeDoctrines: notifier.getActiveDoctrines(),
+    );
+    final bool canWarm = isWinter && (tile.isWarmed || gameState.resources.wood >= warmWoodPerSec);
 
     final neighborTiles = tile.coord.neighbors
         .map((nc) => gameState.tiles[nc])
@@ -2049,29 +2050,29 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
               ),
             ),
             if (isWinter) ...[
-              if (!tile.isWarmed) ...[
-                const SizedBox(width: 8),
-                TactileNeoButton(
-                  onTap: canWarm ? () => notifier.warmTile(tile.coord) : null,
-                  isEnabled: canWarm,
-                  backgroundColor: const Color(0xFFF97316),
-                  borderColor: theme.border,
-                  shadowColor: theme.shadowColor,
-                  shadowOffset: 2.5,
-                  height: 38,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  alignment: Alignment.center,
-                  soundType: TactileSoundType.tap,
-                  child: Text(
-                    'ISIT (${NumberFormatter.format(warmWoodCost)} ODUN)',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                    ),
+              const SizedBox(width: 8),
+              TactileNeoButton(
+                onTap: canWarm ? () => notifier.warmTile(tile.coord) : null,
+                isEnabled: canWarm,
+                backgroundColor: tile.isWarmed ? const Color(0xFFEA580C) : const Color(0xFFF97316),
+                borderColor: theme.border,
+                shadowColor: theme.shadowColor,
+                shadowOffset: 2.5,
+                height: 38,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                alignment: Alignment.center,
+                soundType: TactileSoundType.tap,
+                child: Text(
+                  tile.isWarmed
+                      ? 'ISITMA AÇIK (-${warmWoodPerSec.toStringAsFixed(2)}/sn)'
+                      : 'ISIT (-${warmWoodPerSec.toStringAsFixed(2)}/sn ODUN)',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
-              ],
+              ),
               const SizedBox(width: 8),
               TactileNeoButton(
                 onTap: () => notifier.toggleAutoHeat(tile.coord),

@@ -117,7 +117,7 @@ class TactileAudioService {
       if (_musicPlayer != null) {
         await _musicPlayer!.setVolume(_musicVolume);
         await _musicPlayer!.setReleaseMode(ReleaseMode.loop);
-        await _musicPlayer!.play(AssetSource('audio/steppe_chill_loop.wav'));
+        await _musicPlayer!.play(AssetSource('audio/steppe_chill_loop.mp3'));
         _isMusicPlaying = true;
       }
     } catch (_) {

@@ -142,6 +142,61 @@ extension BuildingTypeExtension on BuildingType {
         return false;
     }
   }
+
+  /// Lojistik darboğazında (Starvation) taşıma önceliği (Yüksek puan = önce taşınır)
+  /// Tier 4 (En Yüksek / 50): Kımız, Şam Çeliği, Keçe, Rünik Yazıt, Efsanevi Biyom Binaları
+  /// Tier 3 (İşlenmiş / 30): Ekmek, Mobilya, Kervansaray, Şifa Otağı, Parşömen
+  /// Tier 2 (Rafine / 15): Un, Kereste, Maden, Balıkçı, Bahçe, Mera
+  /// Tier 1 (Temel Hammadde / 5): Mısır, Arpa, Odun, Taş Ocağı vb.
+  int get logisticsPriority {
+    switch (this) {
+      // Tier 4: İleri Teknoloji & Katma Değerli Prestij Ürünleri
+      case BuildingType.kumisYurt:
+      case BuildingType.feltTentWorkshop:
+      case BuildingType.damascusForge:
+      case BuildingType.runicStele:
+      case BuildingType.celestialAnvil:
+      case BuildingType.ancestralTotem:
+      case BuildingType.prismaticResonator:
+        return 50;
+
+      // Tier 3: İkincil İşlenmiş Ürünler
+      case BuildingType.bakery:
+      case BuildingType.furniture:
+      case BuildingType.caravanserai:
+      case BuildingType.herbalistYurt:
+      case BuildingType.scribeWorkshop:
+      case BuildingType.astrolabe:
+      case BuildingType.obsidianForge:
+      case BuildingType.permafrostDig:
+      case BuildingType.steamVent:
+      case BuildingType.geothermalBath:
+        return 30;
+
+      // Tier 2: Rafine ve İkincil Üreticiler
+      case BuildingType.windmill:
+      case BuildingType.sawmill:
+      case BuildingType.mine:
+      case BuildingType.fisherman:
+      case BuildingType.orchard:
+      case BuildingType.pasture:
+      case BuildingType.resinCamp:
+      case BuildingType.reindeerSanctuary:
+      case BuildingType.oasisCistern:
+        return 15;
+
+      // Tier 1: Temel Hammaddeler
+      case BuildingType.corn:
+      case BuildingType.barley:
+      case BuildingType.lumberjack:
+      case BuildingType.quarry:
+        return 5;
+
+      // Altyapı ve Depo
+      default:
+        return 0;
+    }
+  }
 }
 
 class BuildingModel {
@@ -379,9 +434,11 @@ class BuildingModel {
     }
   }
 
-  /// Temel taşıma kapasitesi (İşçiler ve Ambarlar için)
+  /// Temel taşıma kapasitesi (İşçiler, Şato ve Ambarlar için)
   double get baseCarryingCapacity {
     switch (type) {
+      case BuildingType.castle:
+        return 3.0; // Şato merkez yönetim ve iaşe taban kapasitesi
       case BuildingType.worker:
         return 3.36;
       case BuildingType.fishermanHut:

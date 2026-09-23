@@ -225,14 +225,14 @@ void main() {
       notifier.state = notifier.state.copyWith(
         tiles: {coord: tile},
         season: notifier.state.season.copyWith(current: 'WINTER', isZud: false),
-        resources: notifier.state.resources.copyWith(wood: 100.0), // Bol odun (> 2x maliyet)
+        resources: notifier.state.resources.copyWith(wood: 100.0), // Bol odun
       );
 
       notifier.testTick();
 
       final updatedTile = notifier.state.tiles[coord]!;
       expect(updatedTile.isWarmed, isTrue);
-      expect(updatedTile.warmTimer, closeTo(179.0, 1.0)); // 180s - 1s tick
+      expect(updatedTile.warmTimer, closeTo(60.0, 1.0));
     });
 
     test('Auto-Heat fail-safe does NOT trigger when wood reserve is too low', () {
@@ -248,21 +248,19 @@ void main() {
         isAutoHeatEnabled: true,
       );
 
-      // Yetersiz odun (< safeWoodReserve + warmWoodCost)
+      // Yetersiz odun (< saniyelik tüketim)
       notifier.state = notifier.state.copyWith(
         tiles: {coord: tile},
         season: notifier.state.season.copyWith(current: 'WINTER', isZud: false),
-        resources: notifier.state.resources.copyWith(wood: 5.0),
+        resources: notifier.state.resources.copyWith(wood: 0.0),
       );
 
       notifier.testTick();
 
       final updatedTile = notifier.state.tiles[coord]!;
-      // Odun rezervi yetmediği için otomatik ısıtıcı devreye girmemeli (Fail-safe)
       expect(updatedTile.isWarmed, isFalse);
       expect(updatedTile.warmTimer, equals(0.0));
-      // Odun harcanmamalı
-      expect(notifier.state.resources.wood, equals(5.0));
+      expect(notifier.state.resources.wood, equals(0.0));
     });
   });
 

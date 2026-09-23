@@ -572,7 +572,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
     // 2. KADİM SUNAK (SHRINE) YERLEŞİMİ
     // Kural 1: Şatoya (0,0) tam 4 hex uzaktaki herhangi bir kara karosuna garantili Kadim Sunak yerleştirilir ve türü kesinlikle Lojistik & Taşıma Bonusu (ShrineType.speedBoost) olur.
-    // Kural 2: Diğer sunaklar birbirleri arasında en az 7 hex mesafe olacak şekilde haritaya rastgele dağıtılır ve türleri rastgeledir.
+    // Kural 2: Diğer sunaklar birbirleri arasında en az 5 hex mesafe olacak şekilde haritaya rastgele dağıtılır ve türleri rastgeledir.
     final List<HexAxial> placedShrineCoords = [];
 
     final List<HexAxial> dist4LandCandidates = map.keys.where((c) {
@@ -611,7 +611,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     }).toList();
 
     const int targetShrineCount = 11;
-    const int minDistance = 7; // Sunaklar arasında en az 7 hex mesafe
+    const int minDistance = 5; // Sunaklar arasında en az 5 hex mesafe
 
     for (int attempt = 0; attempt < 50 && placedShrineCoords.length < targetShrineCount; attempt++) {
       placedShrineCoords.clear();
@@ -966,7 +966,15 @@ class GameStateNotifier extends StateNotifier<GameState> {
     double currentFlour = state.resources.flour;
     double currentPlank = state.resources.plank;
 
-    for (final entry in state.tiles.entries) {
+    // Karoları Katma Değer / Lojistik Önceliğine (logisticsPriority) göre işle
+    final sortedTileEntries = state.tiles.entries.toList()
+      ..sort((a, b) {
+        final prioA = a.value.building?.type.logisticsPriority ?? 0;
+        final prioB = b.value.building?.type.logisticsPriority ?? 0;
+        return prioB.compareTo(prioA);
+      });
+
+    for (final entry in sortedTileEntries) {
       final tile = entry.value;
       if (!tile.isOwned || tile.building == null) continue;
 
@@ -979,24 +987,30 @@ class GameStateNotifier extends StateNotifier<GameState> {
         continue;
       }
 
-      // Karo ısıtma süresi ve kış koruması
-      bool isWarmed = tile.isWarmed;
-      double warmTimer = tile.warmTimer;
-      if (isWarmed) {
-        warmTimer = math.max(0.0, warmTimer - 1.0);
-        if (warmTimer <= 0.0) isWarmed = false;
-      }
-
-      // Otomatik Isıtma (Auto-Heat) ve Rezerv Kontrolü (Fail-Safe)
-      if ((newSeason == 'WINTER' || newIsZud) && tile.isAutoHeatEnabled && !isWarmed) {
-        final double warmWoodCost = EconomyCalculator.getWinterWarmWoodCost(activeDoctrines);
-        final double safeWoodReserve = warmWoodCost * 2; // Rezerv emniyet eşiği (en az 2x maliyet rezervi)
-        if (currentWood >= safeWoodReserve + warmWoodCost) {
-          currentWood -= warmWoodCost;
-          addedWood -= warmWoodCost;
-          isWarmed = true;
-          warmTimer = 180.0;
+      // Karo kış ısıtması ve seviye bazlı saniyelik anlık odun tüketimi (-x/sn)
+      bool isWarmed = false;
+      double warmTimer = 0.0;
+      if (newSeason == 'WINTER' || newIsZud) {
+        final bool wantsHeating = tile.isWarmed || tile.isAutoHeatEnabled;
+        if (wantsHeating) {
+          final double heatWoodPerSec = EconomyCalculator.getHeatingWoodConsumptionRate(
+            buildingLevel: b.level,
+            activeDoctrines: activeDoctrines,
+          );
+          if (currentWood >= heatWoodPerSec) {
+            currentWood -= heatWoodPerSec;
+            addedWood -= heatWoodPerSec;
+            isWarmed = true;
+            warmTimer = 60.0;
+          } else {
+            // Yetersiz odun -> Isıtma söner
+            isWarmed = false;
+            warmTimer = 0.0;
+          }
         }
+      } else {
+        isWarmed = false;
+        warmTimer = 0.0;
       }
 
       final double seasonMult =
@@ -1537,9 +1551,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       }
     }
 
-    double newShrineMult = state.shrineMultiplier;
     if (tile.hasShrine) {
-      newShrineMult += tile.shrineBoostMultiplier;
       showToast('Kutlu Tapınak Fethedildi: ${tile.formattedShrineBonusTr}.');
     }
 
@@ -1582,7 +1594,6 @@ class GameStateNotifier extends StateNotifier<GameState> {
         tutorialStep: nextTutorial,
         cumulativeBiomeCounts: newCumulativeBiomes,
       ),
-      shrineMultiplier: newShrineMult,
       activeToast: tile.hasShrine
           ? 'Sunak gücüyle beraber yeni arsa fethedildi.'
           : '${cost.toInt()} Gıda karşılığında yeni arsa fethedildi.',
@@ -1933,29 +1944,29 @@ class GameStateNotifier extends StateNotifier<GameState> {
   bool warmTile(HexAxial coord) {
     final tile = state.tiles[coord];
     if (tile == null || !tile.isOwned) return false;
-    if (tile.isWarmed) {
-      showToast('Bu karo zaten ısıtılmış.');
-      return false;
-    }
 
-    final activeDoctrines = getActiveDoctrines();
-    final double woodCost = EconomyCalculator.getWinterWarmWoodCost(activeDoctrines);
-
-    if (state.resources.wood < woodCost) {
-      showToast('Karoyu ısıtmak için ${woodCost.toInt()} Odun gereklidir.');
-      return false;
+    final bool willWarm = !tile.isWarmed;
+    if (willWarm) {
+      final activeDoctrines = getActiveDoctrines();
+      final double secRate = EconomyCalculator.getHeatingWoodConsumptionRate(
+        buildingLevel: tile.building?.level ?? 1,
+        activeDoctrines: activeDoctrines,
+      );
+      if (state.resources.wood < secRate) {
+        showToast('Isıtmayı başlatmak için yeterli odun yok.');
+        return false;
+      }
     }
 
     final updatedTiles = Map<HexAxial, HexTileModel>.from(state.tiles);
     updatedTiles[coord] = tile.copyWith(
-      isWarmed: true,
-      warmTimer: 180.0, // 3 dakika kış koruması
+      isWarmed: willWarm,
+      warmTimer: willWarm ? 60.0 : 0.0,
     );
 
     state = state.copyWith(
       tiles: updatedTiles,
-      resources: state.resources.copyWith(wood: state.resources.wood - woodCost),
-      activeToast: 'Karo 3 dakika boyunca ısıtıldı (${woodCost.toInt()} Odun)!',
+      activeToast: willWarm ? 'Isıtma açıldı (Saniyelik odun tüketir)' : 'Isıtma kapatıldı',
     );
 
     TactileAudioService.instance.play(TactileSoundType.tap);

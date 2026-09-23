@@ -593,10 +593,19 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
       }
     }
 
+    int warmedTilesCount = 0;
+    int autoHeatTilesCount = 0;
+    for (final t in gameState.tiles.values) {
+      if (t.isWarmed) warmedTilesCount++;
+      if (t.isAutoHeatEnabled) autoHeatTilesCount++;
+    }
+
     final int ratesHash = Object.hash(
       gameState.tiles.length,
       buildingCount,
       totalBuildingLevels,
+      warmedTilesCount,
+      autoHeatTilesCount,
       gameState.progression.castleLevel,
       gameState.resources.crowns,
       gameState.toreTalents.length,

@@ -41,8 +41,8 @@ class WorkerFlowArrowComponent extends PositionComponent {
     ..strokeWidth = 3.6
     ..strokeCap = StrokeCap.round;
 
-  static final Paint _mainGreenLinePaint = Paint()
-    ..color = const Color(0xFF10B981) // Emerald green
+  static final Paint _mainLinePaint = Paint()
+    ..color = const Color(0xFF10B981) // Emerald green / Amber Gold
     ..style = PaintingStyle.stroke
     ..strokeWidth = 2.0
     ..strokeCap = StrokeCap.round;
@@ -57,7 +57,7 @@ class WorkerFlowArrowComponent extends PositionComponent {
     ..strokeWidth = 1.0;
 
   static final Paint _pulseDotPaint = Paint()
-    ..color = const Color(0xFF6EE7B7) // Bright mint green
+    ..color = const Color(0xFF6EE7B7) // Bright mint green / bright gold
     ..style = PaintingStyle.fill;
 
   static final Paint _pulseGlowPaint = Paint()
@@ -76,6 +76,10 @@ class WorkerFlowArrowComponent extends PositionComponent {
     required HexAxial? workerCoord,
     required List<MapEntry<HexAxial, BuildingType>> contributors,
     required double Function(HexAxial coord) getTileElevation,
+    Color mainColor = const Color(0xFF10B981),
+    Color pulseColor = const Color(0xFF6EE7B7),
+    Color glowColor = const Color(0x8034D399),
+    Color borderColor = const Color(0xFF064E3B),
   }) {
     if (workerCoord == null || contributors.isEmpty) {
       _workerCoord = null;
@@ -85,6 +89,13 @@ class WorkerFlowArrowComponent extends PositionComponent {
 
     _workerCoord = workerCoord;
     _flows.clear();
+
+    // Renkleri güncelle (Zero-GC)
+    _mainLinePaint.color = mainColor;
+    _arrowHeadPaint.color = mainColor;
+    _arrowHeadBorderPaint.color = borderColor;
+    _pulseDotPaint.color = pulseColor;
+    _pulseGlowPaint.color = glowColor;
 
     final workerPixelRaw = HexMath.hexToPixel(workerCoord, hexSize: HexTileComponent.hexRadius);
     final double workerElev = getTileElevation(workerCoord);
@@ -161,8 +172,8 @@ class WorkerFlowArrowComponent extends PositionComponent {
       // 1. Koyu arka plan gölge çizgisi (Yüksek kontrast için)
       canvas.drawLine(pStartOffset, pEndOffset, _shadowLinePaint);
 
-      // 2. Ana ince yeşil çizgi
-      canvas.drawLine(pStartOffset, pEndOffset, _mainGreenLinePaint);
+      // 2. Ana ince çizgi
+      canvas.drawLine(pStartOffset, pEndOffset, _mainLinePaint);
 
       // 3. Hedefte (işçi kulübesine varış noktasında) zarif yeşil ok ucu
       final arrowTip = pEnd;

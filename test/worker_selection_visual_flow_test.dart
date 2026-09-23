@@ -7,8 +7,8 @@ import 'package:hex_rush/domain/models/game_state.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('Worker Hut Selection Visual Flow & Range Tests', () {
-    test('Worker selection detects in-range owned tiles and producer contributors', () {
+  group('Worker Hut & Granary Selection Visual Flow & Range Tests', () {
+    test('Worker selection only connects to non-food producers (ignores food)', () {
       const workerCoord = HexAxial(2, 2);
 
       final tiles = <HexAxial, HexTileModel>{
@@ -19,41 +19,23 @@ void main() {
           state: TileState.owned,
           building: BuildingModel(type: BuildingType.worker, level: 1),
         ),
-        // Menzilde (mesafe 1) fethedilmiş mısır tarlası (üretim binası)
+        // Menzilde (mesafe 1) fethedilmiş mısır tarlası (Gıda üreticisi -> İşçi buna bağlanmamalı!)
         const HexAxial(2, 3): const HexTileModel(
           coord: HexAxial(2, 3),
           biome: TileBiome.meadow,
           state: TileState.owned,
           building: BuildingModel(type: BuildingType.corn, level: 1),
         ),
-        // Menzilde (mesafe 3) fethedilmiş taş ocağı (üretim binası)
+        // Menzilde (mesafe 3) fethedilmiş taş ocağı (Hammadde üreticisi -> İşçi buna bağlanmalı)
         const HexAxial(2, 5): const HexTileModel(
           coord: HexAxial(2, 5),
           biome: TileBiome.meadow,
           state: TileState.owned,
           building: BuildingModel(type: BuildingType.quarry, level: 1),
         ),
-        // Menzilde (mesafe 2) fethedilmiş boş çayır (bina yok ama fethedilmiş alan)
+        // Menzilde (mesafe 2) fethedilmiş oduncu (Hammadde üreticisi -> İşçi buna bağlanmalı)
         const HexAxial(3, 2): const HexTileModel(
           coord: HexAxial(3, 2),
-          biome: TileBiome.meadow,
-          state: TileState.owned,
-        ),
-        // Menzilde (mesafe 2) ama henüz fethedilmemiş (unowned) arazi
-        const HexAxial(1, 2): const HexTileModel(
-          coord: HexAxial(1, 2),
-          biome: TileBiome.meadow,
-          state: TileState.discovered,
-        ),
-        // Menzilde (mesafe 2) ama sisli (fog) arazi
-        const HexAxial(2, 0): const HexTileModel(
-          coord: HexAxial(2, 0),
-          biome: TileBiome.meadow,
-          state: TileState.fog,
-        ),
-        // Menzil dışında (mesafe 5) fethedilmiş oduncu
-        const HexAxial(7, 2): const HexTileModel(
-          coord: HexAxial(7, 2),
           biome: TileBiome.forest,
           state: TileState.owned,
           building: BuildingModel(type: BuildingType.lumberjack, level: 1),
@@ -69,8 +51,7 @@ void main() {
       expect(selectedTile, isNotNull);
       expect(selectedTile!.building?.type, equals(BuildingType.worker));
 
-      final Set<HexAxial> workerRangeCoords = {};
-      final List<HexAxial> producerCoords = [];
+      final List<HexAxial> workerContributors = [];
 
       for (final entry in state.tiles.entries) {
         final coord = entry.key;
@@ -78,36 +59,91 @@ void main() {
         if (!tile.isOwned || tile.isFog) continue;
 
         if (coord.distanceTo(workerCoord) <= 4) {
-          workerRangeCoords.add(coord);
-
           if (coord != workerCoord && tile.hasBuilding) {
             final b = tile.building!;
-            if (b.type != BuildingType.castle &&
+            if (!b.type.isFoodProducer &&
+                b.type != BuildingType.castle &&
                 b.type != BuildingType.worker &&
                 b.type != BuildingType.watchtower &&
                 b.type != BuildingType.bridge &&
                 b.type != BuildingType.fishermanHut &&
                 b.type != BuildingType.granaryVault) {
-              producerCoords.add(coord);
+              workerContributors.add(coord);
             }
           }
         }
       }
 
-      // Menzildeki fethedilmiş alanlar (işçi kulübesi, mısır, taş ocağı, boş çayır)
-      expect(workerRangeCoords.contains(const HexAxial(2, 3)), isTrue);
-      expect(workerRangeCoords.contains(const HexAxial(2, 5)), isTrue);
-      expect(workerRangeCoords.contains(const HexAxial(3, 2)), isTrue);
+      // Taş ocağı ve Oduncu bağlanmalı
+      expect(workerContributors, containsAll([const HexAxial(2, 5), const HexAxial(3, 2)]));
+      // Mısır tarlası gıda ürettiği için işçi kulübesine ASLA bağlanmamalı
+      expect(workerContributors.contains(const HexAxial(2, 3)), isFalse);
+    });
 
-      // Sisli veya sahipsiz veya menzil dışı araziler menzilde olmamalı
-      expect(workerRangeCoords.contains(const HexAxial(1, 2)), isFalse);
-      expect(workerRangeCoords.contains(const HexAxial(2, 0)), isFalse);
-      expect(workerRangeCoords.contains(const HexAxial(7, 2)), isFalse);
+    test('Granary selection only connects to food producers', () {
+      const granaryCoord = HexAxial(0, 0);
 
-      // Malzeme tedarik eden üretim binaları
-      expect(producerCoords, containsAll([const HexAxial(2, 3), const HexAxial(2, 5)]));
-      expect(producerCoords.contains(const HexAxial(3, 2)), isFalse); // Boş çayır üretici değil
-      expect(producerCoords.contains(const HexAxial(7, 2)), isFalse); // Menzil dışı
+      final tiles = <HexAxial, HexTileModel>{
+        // Gıda ambarı
+        granaryCoord: const HexTileModel(
+          coord: granaryCoord,
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.granaryVault, level: 1),
+        ),
+        // Menzilde (mesafe 1) fethedilmiş mısır tarlası (Gıda üreticisi -> Ambara bağlanmalı)
+        const HexAxial(0, 1): const HexTileModel(
+          coord: HexAxial(0, 1),
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.corn, level: 1),
+        ),
+        // Menzilde (mesafe 2) fethedilmiş fırın (Gıda üreticisi -> Ambara bağlanmalı)
+        const HexAxial(0, 2): const HexTileModel(
+          coord: HexAxial(0, 2),
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.bakery, level: 1),
+        ),
+        // Menzilde (mesafe 1) fethedilmiş taş ocağı (Hammadde üreticisi -> Ambara bağlanmamalı)
+        const HexAxial(1, 0): const HexTileModel(
+          coord: HexAxial(1, 0),
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.quarry, level: 1),
+        ),
+      };
+
+      final state = GameState(
+        tiles: tiles,
+        selectedCoord: granaryCoord,
+      );
+
+      final selectedTile = state.selectedCoord != null ? state.tiles[state.selectedCoord!] : null;
+      expect(selectedTile, isNotNull);
+      expect(selectedTile!.building?.type, equals(BuildingType.granaryVault));
+
+      final List<HexAxial> granaryContributors = [];
+
+      for (final entry in state.tiles.entries) {
+        final coord = entry.key;
+        final tile = entry.value;
+        if (!tile.isOwned || tile.isFog) continue;
+
+        if (coord.distanceTo(granaryCoord) <= 4) {
+          if (coord != granaryCoord && tile.hasBuilding) {
+            final b = tile.building!;
+            if (b.type.isFoodProducer) {
+              granaryContributors.add(coord);
+            }
+          }
+        }
+      }
+
+      // Mısır tarlası ve fırın ambara bağlanmalı
+      expect(granaryContributors, containsAll([const HexAxial(0, 1), const HexAxial(0, 2)]));
+      // Taş ocağı ambara ASLA bağlanmamalı
+      expect(granaryContributors.contains(const HexAxial(1, 0)), isFalse);
     });
   });
 }

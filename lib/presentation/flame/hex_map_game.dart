@@ -663,15 +663,19 @@ class HexMapGame extends FlameGame {
         prev.season.isZud != state.season.isZud ||
         prev.settings.activeThemePalette != state.settings.activeThemePalette;
 
-    // İşçi Kulübesi seçildiğinde 4-hex menzili ve malzeme tedarik eden üretim binalarının tespiti
+    // İşçi Kulübesi veya Gıda Ambarı seçildiğinde 4-hex menzili ve malzeme/gıda tedarik eden binaların tespiti
     final selectedTile = state.selectedCoord != null ? state.tiles[state.selectedCoord!] : null;
     final bool isWorkerSelected = selectedTile != null &&
         selectedTile.isOwned &&
         selectedTile.hasBuilding &&
         selectedTile.building!.type == BuildingType.worker;
+    final bool isGranarySelected = selectedTile != null &&
+        selectedTile.isOwned &&
+        selectedTile.hasBuilding &&
+        selectedTile.building!.type == BuildingType.granaryVault;
 
-    final Set<HexAxial> workerRangeCoords = {};
-    final List<MapEntry<HexAxial, BuildingType>> workerContributors = [];
+    final Set<HexAxial> logisticsRangeCoords = {};
+    final List<MapEntry<HexAxial, BuildingType>> logisticsContributors = [];
 
     if (isWorkerSelected) {
       final selectedCoord = state.selectedCoord!;
@@ -681,30 +685,72 @@ class HexMapGame extends FlameGame {
         if (!tile.isOwned || tile.isFog) continue;
 
         if (coord.distanceTo(selectedCoord) <= 4) {
-          workerRangeCoords.add(coord);
+          logisticsRangeCoords.add(coord);
 
           if (coord != selectedCoord && tile.hasBuilding) {
             final b = tile.building!;
-            if (_isProducerBuilding(b.type)) {
-              workerContributors.add(MapEntry(coord, b.type));
+            // İşçi kulübesi gıda taşımadığı için yalnızca gıda DIŞI üretim binalarını bağlar
+            if (_isProducerBuilding(b.type) && !b.type.isFoodProducer) {
+              logisticsContributors.add(MapEntry(coord, b.type));
+            }
+          }
+        }
+      }
+    } else if (isGranarySelected) {
+      final selectedCoord = state.selectedCoord!;
+      for (final entry in state.tiles.entries) {
+        final coord = entry.key;
+        final tile = entry.value;
+        if (!tile.isOwned || tile.isFog) continue;
+
+        if (coord.distanceTo(selectedCoord) <= 4) {
+          logisticsRangeCoords.add(coord);
+
+          if (coord != selectedCoord && tile.hasBuilding) {
+            final b = tile.building!;
+            // Gıda ambarı yalnızca gıda üreten binalara bağlanır
+            if (b.type.isFoodProducer) {
+              logisticsContributors.add(MapEntry(coord, b.type));
             }
           }
         }
       }
     }
 
-    // İnce yeşil lojistik akış oklarını güncelle
-    _workerFlowArrows.updateFlows(
-      workerCoord: isWorkerSelected ? state.selectedCoord : null,
-      contributors: workerContributors,
-      getTileElevation: (c) {
-        final t = state.tiles[c];
-        if (t == null) return 0.0;
-        return HexTileComponent.getBiomeElevation(t.biome, isFog: t.isFog);
-      },
-    );
+    // Lojistik akış oklarını güncelle (İşçi için zümrüt yeşili, Gıda Ambarı için kehribar/altın)
+    if (isWorkerSelected) {
+      _workerFlowArrows.updateFlows(
+        workerCoord: state.selectedCoord,
+        contributors: logisticsContributors,
+        getTileElevation: (c) {
+          final t = state.tiles[c];
+          if (t == null) return 0.0;
+          return HexTileComponent.getBiomeElevation(t.biome, isFog: t.isFog);
+        },
+        mainColor: const Color(0xFF10B981),
+        pulseColor: const Color(0xFF6EE7B7),
+        glowColor: const Color(0x8034D399),
+        borderColor: const Color(0xFF064E3B),
+      );
+    } else if (isGranarySelected) {
+      _workerFlowArrows.updateFlows(
+        workerCoord: state.selectedCoord,
+        contributors: logisticsContributors,
+        getTileElevation: (c) {
+          final t = state.tiles[c];
+          if (t == null) return 0.0;
+          return HexTileComponent.getBiomeElevation(t.biome, isFog: t.isFog);
+        },
+        mainColor: const Color(0xFFF59E0B),
+        pulseColor: const Color(0xFFFDE047),
+        glowColor: const Color(0x80FBBF24),
+        borderColor: const Color(0xFF78350F),
+      );
+    } else {
+      _workerFlowArrows.clearFlows();
+    }
 
-    final Set<HexAxial> contributorCoords = workerContributors.map((e) => e.key).toSet();
+    final Set<HexAxial> contributorCoords = logisticsContributors.map((e) => e.key).toSet();
 
     for (final entry in state.tiles.entries) {
       final coord = entry.key;
@@ -712,7 +758,7 @@ class HexMapGame extends FlameGame {
       final bool isSel = state.selectedCoord == coord;
       final bool wasSel = prev?.selectedCoord == coord;
       final prevTile = prev?.tiles[coord];
-      final bool inRange = workerRangeCoords.contains(coord);
+      final bool inRange = logisticsRangeCoords.contains(coord);
       final bool isContributor = contributorCoords.contains(coord);
 
       // Değişmeyen, seçimi ve menzil durumu değişmeyen karoları atla (Saniyelik tam harita tarama yükünü sıfırlar)

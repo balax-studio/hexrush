@@ -62,6 +62,18 @@ void main() {
       expect(cost, equals(5.0));
     });
 
+    test('getHeatingWoodConsumptionRate scales with level and applies discounts', () {
+      final lvl1 = EconomyCalculator.getHeatingWoodConsumptionRate(buildingLevel: 1);
+      final lvl5 = EconomyCalculator.getHeatingWoodConsumptionRate(buildingLevel: 5);
+      final lvl10 = EconomyCalculator.getHeatingWoodConsumptionRate(buildingLevel: 10);
+
+      expect(lvl1, closeTo(0.10, 0.001));
+      expect(lvl5, closeTo(0.18, 0.001));
+      expect(lvl10, closeTo(0.28, 0.001));
+      expect(lvl5 > lvl1, isTrue);
+      expect(lvl10 > lvl5, isTrue);
+    });
+
     test('Warmed tile maintains positive production in winter/zud', () {
       final unWarmedMult = EconomyCalculator.getSeasonProductionMultiplier(
         season: 'WINTER',

@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import '../../core/hex/hex_coordinates.dart';
 import '../../core/utils/number_formatter.dart';
 import '../models/ad_reward_model.dart';
@@ -250,7 +251,9 @@ class EconomyCalculator {
     Map<String, dynamic> titles = const {},
     double kutMultiplier = 1.0,
   }) {
-    final double castleBonusPercent = calculateCastleBonusPercentage(castleLevel);
+    final double castleBonusPercent = calculateCastleBonusPercentage(
+      castleLevel,
+    );
     final double castleMult = 1.0 + (castleBonusPercent / 100.0);
 
     // Yetenek Ağacı Çarpanları
@@ -275,8 +278,7 @@ class EconomyCalculator {
       titleBoost += 0.15;
     }
 
-    final double prestigeMult =
-        1.0 + talentBoost + toreBoost + titleBoost;
+    final double prestigeMult = 1.0 + talentBoost + toreBoost + titleBoost;
     return castleMult * prestigeMult * math.max(1.0, kutMultiplier);
   }
 
@@ -313,7 +315,10 @@ class EconomyCalculator {
     // 4. Kutsal Andlar (Meydan okumalar - and başına ekstra +%15)
     final double oathBonus = activeOaths.length * 0.15;
 
-    return math.max(1.0, 1.0 + tamgaBonus + migrationBonus + victoryBonus + oathBonus);
+    return math.max(
+      1.0,
+      1.0 + tamgaBonus + migrationBonus + victoryBonus + oathBonus,
+    );
   }
 
   /// Kültürel Zafer Kontrolü: 4 Cepheye Bengü Taş Dikme (Orhun Anıtları)
@@ -381,7 +386,8 @@ class EconomyCalculator {
     final int hexCrowns = ownedHexCount ~/ 5;
 
     // 2. Ambar envanterindeki refah stoğundan Taç (Kademeli Refah Modeli)
-    final double totalResourceStock = resources.food +
+    final double totalResourceStock =
+        resources.food +
         resources.wood +
         resources.stone +
         resources.iron +
@@ -410,11 +416,11 @@ class EconomyCalculator {
     // - Keşfedilen her Kadim Sunak: 1 Taç
     // - Kağan Otağı seviyesi: Her 2 seviyede 1 Taç (Sv.3 = 1, Sv.5 = 2 vb.)
     // - İnşa edilen her 15 bina kademesi: 1 Taç
-    final int buildingAndShrineCrowns = shrineCount +
-        (castleLevel ~/ 2) +
-        (buildingLevelsTotal ~/ 15);
+    final int buildingAndShrineCrowns =
+        shrineCount + (castleLevel ~/ 2) + (buildingLevelsTotal ~/ 15);
 
-    final int totalCrowns = hexCrowns + resourceCrowns + buildingAndShrineCrowns;
+    final int totalCrowns =
+        hexCrowns + resourceCrowns + buildingAndShrineCrowns;
 
     return ResetCrownsBreakdown(
       hexCrowns: hexCrowns,
@@ -434,20 +440,45 @@ class EconomyCalculator {
       if (!tile.isOwned || !tile.hasShrine) continue;
       if (resourceType == 'transport' && tile.shrine == ShrineType.speedBoost) {
         mult *= tile.shrineMultiplierValue;
-      } else if (resourceType == 'food' && tile.shrine == ShrineType.foodBoost) {
+      } else if (resourceType == 'food' &&
+          tile.shrine == ShrineType.foodBoost) {
         mult *= tile.shrineMultiplierValue;
-      } else if (resourceType == 'wood' && tile.shrine == ShrineType.woodBoost) {
+      } else if (resourceType == 'wood' &&
+          tile.shrine == ShrineType.woodBoost) {
         mult *= tile.shrineMultiplierValue;
-      } else if (resourceType == 'stone' && tile.shrine == ShrineType.stoneBoost) {
+      } else if (resourceType == 'stone' &&
+          tile.shrine == ShrineType.stoneBoost) {
         mult *= tile.shrineMultiplierValue;
       }
     }
     return mult;
   }
 
+  /// Gıda Ambarı (granaryVault) etrafındaki her gıda üreticisi (isFoodProducer) karo başına +%20 (+0.20) lojistik debi sinerjisi kazanır
+  static double calculateGranarySynergyMultiplier(
+    HexTileModel granaryTile,
+    Map<HexAxial, HexTileModel> tiles,
+  ) {
+    if (granaryTile.building?.type != BuildingType.granaryVault) return 1.0;
+    int foodProducerNeighbors = 0;
+    for (final neighborCoord in granaryTile.coord.neighbors) {
+      final nTile = tiles[neighborCoord];
+      if (nTile != null &&
+          nTile.isOwned &&
+          nTile.building != null &&
+          nTile.building!.type.isFoodProducer) {
+        foodProducerNeighbors++;
+      }
+    }
+    return 1.0 + (foodProducerNeighbors * 0.20);
+  }
+
   static double getWorkerTransferMultiplier({
+    int castleLevel = 1,
+    int crowns = 0,
     Map<String, dynamic> talents = const {},
     Map<String, dynamic> toreTalents = const {},
+    Map<String, dynamic> titles = const {},
     int totalMigrations = 0,
     int tamgas = 0,
     Map<String, bool> victoryMilestones = const {},
@@ -462,7 +493,8 @@ class EconomyCalculator {
       roadLvl = (tonyukuk['pavedRoads'] as num? ?? 0).toInt();
     }
     final double baseMultiplier = 1.0 + speedLvl * 0.10 + roadLvl * 0.08;
-    final double effectiveKut = kutMultiplier ??
+    final double effectiveKut =
+        kutMultiplier ??
         calculateKutMultiplier(
           tamgas: tamgas,
           totalMigrations: totalMigrations,
@@ -470,10 +502,22 @@ class EconomyCalculator {
           activeOaths: activeOaths,
         );
     final double transportShrineMult = tiles != null
-        ? calculateResourceShrineMultiplier(tiles: tiles, resourceType: 'transport')
+        ? calculateResourceShrineMultiplier(
+            tiles: tiles,
+            resourceType: 'transport',
+          )
         : 1.0;
 
-    return baseMultiplier * math.max(1.0, effectiveKut) * transportShrineMult;
+    final double globalMult = getGlobalMultiplier(
+      castleLevel: castleLevel,
+      crowns: crowns,
+      talents: talents,
+      toreTalents: toreTalents,
+      titles: titles,
+      kutMultiplier: effectiveKut,
+    );
+
+    return baseMultiplier * globalMult * transportShrineMult;
   }
 
   /// Haritadaki tüm işçi kulübeleri ve üretim binaları arasında dinamik greedy lojistik yük dağıtımı yapar.
@@ -505,7 +549,8 @@ class EconomyCalculator {
       if (!t.isOwned || t.building == null) continue;
       if (t.building!.type == BuildingType.castle) {
         workerTiles.add(t);
-        final double cap = 1.0 * workerTransferMult;
+        final double cap =
+            t.building!.currentCarryingCapacity * workerTransferMult;
         totalCapacities[t.coord] = cap;
         remainingCapacities[t.coord] = cap;
         assignedTransports[t.coord] = 0.0;
@@ -515,7 +560,12 @@ class EconomyCalculator {
           t.building!.type == BuildingType.fishermanHut ||
           t.building!.type == BuildingType.granaryVault) {
         workerTiles.add(t);
-        final double cap = t.building!.currentCarryingCapacity * workerTransferMult;
+        final double granarySynergy =
+            calculateGranarySynergyMultiplier(t, tiles);
+        final double cap =
+            t.building!.currentCarryingCapacity *
+            workerTransferMult *
+            granarySynergy;
         totalCapacities[t.coord] = cap;
         remainingCapacities[t.coord] = cap;
         assignedTransports[t.coord] = 0.0;
@@ -567,11 +617,13 @@ class EconomyCalculator {
 
       // Kapsayan işçi kulübelerini tespit edip sayaçlara ekle
       for (final wt in workerTiles) {
-        if (tile.building!.type.isFoodProducer && wt.building?.type == BuildingType.worker) {
+        if (tile.building!.type.isFoodProducer &&
+            wt.building?.type == BuildingType.worker) {
           continue; // İşçi kulübesi gıda depolayamaz / taşıyamaz
         }
         if (tile.coord.distanceTo(wt.coord) <= 4) {
-          demandInCoverage[wt.coord] = (demandInCoverage[wt.coord] ?? 0.0) + realRate;
+          demandInCoverage[wt.coord] =
+              (demandInCoverage[wt.coord] ?? 0.0) + realRate;
           coveredCounts[wt.coord] = (coveredCounts[wt.coord] ?? 0) + 1;
         }
       }
@@ -583,15 +635,17 @@ class EconomyCalculator {
       if (needed <= 0.0) continue;
 
       final bool isFood = pt.building!.type.isFoodProducer;
-      final inRangeWorkers = workerTiles
-          .where((wt) {
+      final inRangeWorkers =
+          workerTiles.where((wt) {
             if (isFood && wt.building?.type == BuildingType.worker) {
               return false; // İşçi kulübesi gıda depolayamaz
             }
             return pt.coord.distanceTo(wt.coord) <= 4;
-          })
-          .toList()
-        ..sort((a, b) => pt.coord.distanceTo(a.coord).compareTo(pt.coord.distanceTo(b.coord)));
+          }).toList()..sort(
+            (a, b) => pt.coord
+                .distanceTo(a.coord)
+                .compareTo(pt.coord.distanceTo(b.coord)),
+          );
 
       for (final wt in inRangeWorkers) {
         if (needed <= 0.0) break;
@@ -599,7 +653,8 @@ class EconomyCalculator {
         if (remCap > 0.0) {
           final double alloc = math.min(remCap, needed);
           remainingCapacities[wt.coord] = remCap - alloc;
-          assignedTransports[wt.coord] = (assignedTransports[wt.coord] ?? 0.0) + alloc;
+          assignedTransports[wt.coord] =
+              (assignedTransports[wt.coord] ?? 0.0) + alloc;
           needed -= alloc;
         }
       }
@@ -610,7 +665,9 @@ class EconomyCalculator {
     for (final wt in workerTiles) {
       final double totalCap = totalCapacities[wt.coord] ?? 0.0;
       final double assigned = assignedTransports[wt.coord] ?? 0.0;
-      final double rawRatio = totalCap > 0.0 ? (assigned / totalCap).clamp(0.0, 1.0) : 0.0;
+      final double rawRatio = totalCap > 0.0
+          ? (assigned / totalCap).clamp(0.0, 1.0)
+          : 0.0;
       final double utilRatio = (rawRatio - 1.0).abs() < 0.0001 ? 1.0 : rawRatio;
 
       result[wt.coord] = WorkerLogisticsStats(
@@ -665,7 +722,8 @@ class EconomyCalculator {
 
     return allStats[workerTile.coord] ??
         WorkerLogisticsStats(
-          totalCapacity: workerTile.building!.currentCarryingCapacity * workerTransferMult,
+          totalCapacity:
+              workerTile.building!.currentCarryingCapacity * workerTransferMult,
           utilizedCapacity: 0.0,
           utilizationRatio: 0.0,
           demandInCoverage: 0.0,
@@ -708,7 +766,9 @@ class EconomyCalculator {
 
     // Doktrin: Göçer İaşesi (Boş çayırlardan iaşe)
     if (rKey == 'food' &&
-        activeDoctrines.any((d) => d.effectType == DoctrineEffectType.meadowGrazeYield)) {
+        activeDoctrines.any(
+          (d) => d.effectType == DoctrineEffectType.meadowGrazeYield,
+        )) {
       int emptyMeadows = 0;
       for (final t in tiles.values) {
         if (t.isOwned && t.biome == TileBiome.meadow && !t.hasBuilding) {
@@ -716,14 +776,16 @@ class EconomyCalculator {
         }
       }
       if (emptyMeadows > 0) {
-        producers.add(ResourceContributor(
-          buildingType: BuildingType.pasture,
-          level: 1,
-          coord: const HexAxial(0, 0),
-          rate: emptyMeadows * 0.5,
-          isProducer: true,
-          customLabel: 'Göçer İaşesi ($emptyMeadows Çayır)',
-        ));
+        producers.add(
+          ResourceContributor(
+            buildingType: BuildingType.pasture,
+            level: 1,
+            coord: const HexAxial(0, 0),
+            rate: emptyMeadows * 0.5,
+            isProducer: true,
+            customLabel: 'Göçer İaşesi ($emptyMeadows Çayır)',
+          ),
+        );
       }
     }
 
@@ -767,245 +829,310 @@ class EconomyCalculator {
             b.type == BuildingType.oasisCistern ||
             b.type == BuildingType.reindeerSanctuary ||
             b.type == BuildingType.herbalistYurt) {
-          producers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: rate,
-            isProducer: true,
-          ));
+          producers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: rate,
+              isProducer: true,
+            ),
+          );
         }
         if (b.type == BuildingType.windmill) {
-          consumers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: rate * 0.5,
-            isProducer: false,
-          ));
+          consumers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: rate * 0.5,
+              isProducer: false,
+            ),
+          );
         } else if (b.type == BuildingType.bakery) {
-          consumers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: rate * 0.4,
-            isProducer: false,
-          ));
+          consumers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: rate * 0.4,
+              isProducer: false,
+            ),
+          );
         } else if (b.type == BuildingType.kumisYurt) {
-          consumers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: 1.0,
-            isProducer: false,
-          ));
+          consumers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: 1.0,
+              isProducer: false,
+            ),
+          );
         } else if (b.type == BuildingType.feltTentWorkshop) {
-          consumers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: 0.5,
-            isProducer: false,
-          ));
+          consumers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: 0.5,
+              isProducer: false,
+            ),
+          );
         }
       } else if (rKey == 'wood') {
-        if (b.type == BuildingType.lumberjack || b.type == BuildingType.resinCamp) {
-          producers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: rate,
-            isProducer: true,
-          ));
+        if (b.type == BuildingType.lumberjack ||
+            b.type == BuildingType.resinCamp) {
+          producers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: rate,
+              isProducer: true,
+            ),
+          );
         }
         if (b.type == BuildingType.sawmill) {
-          consumers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: rate * 0.5,
-            isProducer: false,
-          ));
+          consumers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: rate * 0.5,
+              isProducer: false,
+            ),
+          );
         } else if (b.type == BuildingType.furniture) {
-          consumers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: rate * 0.4,
-            isProducer: false,
-          ));
+          consumers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: rate * 0.4,
+              isProducer: false,
+            ),
+          );
         } else if (b.type == BuildingType.feltTentWorkshop) {
-          consumers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: 0.5,
-            isProducer: false,
-          ));
+          consumers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: 0.5,
+              isProducer: false,
+            ),
+          );
         } else if (b.type == BuildingType.damascusForge) {
-          consumers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: 0.5,
-            isProducer: false,
-          ));
+          consumers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: 0.5,
+              isProducer: false,
+            ),
+          );
         }
       } else if (rKey == 'flour') {
         if (b.type == BuildingType.windmill) {
-          producers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: rate,
-            isProducer: true,
-          ));
+          producers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: rate,
+              isProducer: true,
+            ),
+          );
         }
         if (b.type == BuildingType.bakery) {
-          consumers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: rate * 0.4,
-            isProducer: false,
-          ));
+          consumers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: rate * 0.4,
+              isProducer: false,
+            ),
+          );
         }
       } else if (rKey == 'plank') {
-        if (b.type == BuildingType.sawmill || b.type == BuildingType.scribeWorkshop) {
-          producers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: rate,
-            isProducer: true,
-          ));
+        if (b.type == BuildingType.sawmill ||
+            b.type == BuildingType.scribeWorkshop) {
+          producers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: rate,
+              isProducer: true,
+            ),
+          );
         }
         if (b.type == BuildingType.furniture) {
-          consumers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: rate * 0.4,
-            isProducer: false,
-          ));
+          consumers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: rate * 0.4,
+              isProducer: false,
+            ),
+          );
         }
       } else if (rKey == 'bread') {
-        if (b.type == BuildingType.bakery || b.type == BuildingType.caravanserai) {
-          producers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: rate,
-            isProducer: true,
-          ));
+        if (b.type == BuildingType.bakery ||
+            b.type == BuildingType.caravanserai) {
+          producers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: rate,
+              isProducer: true,
+            ),
+          );
         }
       } else if (rKey == 'furniture') {
         if (b.type == BuildingType.furniture) {
-          producers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: rate,
-            isProducer: true,
-          ));
+          producers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: rate,
+              isProducer: true,
+            ),
+          );
         }
       } else if (rKey == 'stone') {
-        if (b.type == BuildingType.quarry || b.type == BuildingType.mine || b.type == BuildingType.steamVent) {
-          producers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: rate,
-            isProducer: true,
-          ));
+        if (b.type == BuildingType.quarry ||
+            b.type == BuildingType.mine ||
+            b.type == BuildingType.steamVent) {
+          producers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: rate,
+              isProducer: true,
+            ),
+          );
         }
       } else if (rKey == 'iron') {
         if (b.type == BuildingType.mine ||
             b.type == BuildingType.permafrostDig ||
             b.type == BuildingType.obsidianForge ||
             b.type == BuildingType.celestialAnvil) {
-          producers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: rate,
-            isProducer: true,
-          ));
+          producers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: rate,
+              isProducer: true,
+            ),
+          );
         }
         if (b.type == BuildingType.damascusForge) {
-          consumers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: 0.5,
-            isProducer: false,
-          ));
+          consumers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: 0.5,
+              isProducer: false,
+            ),
+          );
         }
       } else if (rKey == 'fish') {
         if (b.type == BuildingType.fisherman) {
-          producers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: rate,
-            isProducer: true,
-          ));
+          producers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: rate,
+              isProducer: true,
+            ),
+          );
         }
       } else if (rKey == 'kumis') {
         if (b.type == BuildingType.kumisYurt) {
-          final double soilMult = unlockedLoreIds.contains('lore_soil_2') ? 1.35 : 1.0;
-          producers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: 0.25 * globalMult * soilMult,
-            isProducer: true,
-          ));
+          final double soilMult = unlockedLoreIds.contains('lore_soil_2')
+              ? 1.35
+              : 1.0;
+          producers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: 0.25 * globalMult * soilMult,
+              isProducer: true,
+            ),
+          );
         }
       } else if (rKey == 'felt') {
         if (b.type == BuildingType.feltTentWorkshop) {
-          final double weatherMult = unlockedLoreIds.contains('lore_weather_2') ? 1.40 : 1.0;
-          producers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: 0.22 * globalMult * weatherMult,
-            isProducer: true,
-          ));
+          final double weatherMult = unlockedLoreIds.contains('lore_weather_2')
+              ? 1.40
+              : 1.0;
+          producers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: 0.22 * globalMult * weatherMult,
+              isProducer: true,
+            ),
+          );
         }
       } else if (rKey == 'damascussteel' || rKey == 'damascus') {
         if (b.type == BuildingType.damascusForge) {
-          final double metalMult = unlockedLoreIds.contains('lore_metal_2') ? 1.50 : 1.0;
-          producers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: 0.18 * globalMult * metalMult,
-            isProducer: true,
-          ));
+          final double metalMult = unlockedLoreIds.contains('lore_metal_2')
+              ? 1.50
+              : 1.0;
+          producers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: 0.18 * globalMult * metalMult,
+              isProducer: true,
+            ),
+          );
         }
       } else if (rKey == 'wisdom' || rKey == 'lore') {
-        if (b.type == BuildingType.runicStele || b.type == BuildingType.astrolabe) {
-          producers.add(ResourceContributor(
-            buildingType: b.type,
-            level: b.level,
-            coord: tile.coord,
-            rate: rate,
-            isProducer: true,
-          ));
+        if (b.type == BuildingType.runicStele ||
+            b.type == BuildingType.astrolabe) {
+          producers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: rate,
+              isProducer: true,
+            ),
+          );
         }
       }
     }
 
     // Lojistik Taşıma Kapasitesi Dağıtımı (allocateGreedyLogistics ile Tek Doğruluk Kaynağı)
     final double workerTransferMult = getWorkerTransferMultiplier(
+      castleLevel: castleLevel,
+      crowns: crowns,
       toreTalents: toreTalents,
+      titles: titles,
       totalMigrations: totalMigrations,
       kutMultiplier: kutMultiplier,
       tiles: tiles,
     );
 
-    final Map<HexAxial, double> producerDemands = {for (final p in producers) p.coord: p.rate};
+    final Map<HexAxial, double> producerDemands = {
+      for (final p in producers) p.coord: p.rate,
+    };
     final Map<HexAxial, double> untransportedByCoord = allocateGreedyLogistics(
       tiles: tiles,
       producerDemands: producerDemands,
@@ -1018,15 +1145,17 @@ class EconomyCalculator {
     for (final prod in producers) {
       final double untransported = untransportedByCoord[prod.coord] ?? 0.0;
       totalUntransported += untransported;
-      finalProducers.add(ResourceContributor(
-        buildingType: prod.buildingType,
-        level: prod.level,
-        coord: prod.coord,
-        rate: prod.rate,
-        isProducer: prod.isProducer,
-        customLabel: prod.customLabel,
-        untransportedRate: untransported,
-      ));
+      finalProducers.add(
+        ResourceContributor(
+          buildingType: prod.buildingType,
+          level: prod.level,
+          coord: prod.coord,
+          rate: prod.rate,
+          isProducer: prod.isProducer,
+          customLabel: prod.customLabel,
+          untransportedRate: untransported,
+        ),
+      );
     }
 
     // Sıralama (En yüksek katkı en başta)
@@ -1111,11 +1240,11 @@ class EconomyCalculator {
     // C(n) = C_base * 1.6^n * W(n)
     double wallMult = 1.0;
     if (ownedCount >= 50) {
-      wallMult = 50.0;
+      wallMult = 11.0;
     } else if (ownedCount >= 20) {
-      wallMult = 10.0;
+      wallMult = 4.0;
     } else if (ownedCount >= 10) {
-      wallMult = 5.0;
+      wallMult = 2.0;
     }
 
     // Mesafe Sınırı (Soft-Wall): Merkezden 20 birim uzaktaki yerler satın alınamaz olsun (x10000)
@@ -1128,7 +1257,8 @@ class EconomyCalculator {
     final int bCount = biomeCounts[biome.name] ?? 0;
     final double biomeScaling = math.pow(1.05, bCount).toDouble();
 
-    final double cost = base *
+    final double cost =
+        base *
         math.pow(1.6, ownedCount) *
         wallMult *
         biomeScaling *
@@ -1241,7 +1371,10 @@ class EconomyCalculator {
   }
 
   /// Şato geliştirme maliyetlerini kaynak modelinden düşer
-  static ResourcesModel deductCastleUpgradeCost(ResourcesModel resources, int nextLevel) {
+  static ResourcesModel deductCastleUpgradeCost(
+    ResourcesModel resources,
+    int nextLevel,
+  ) {
     final costs = getCastleUpgradeCost(nextLevel);
     return resources.copyWith(
       food: math.max(0.0, resources.food - (costs['food'] ?? 0.0)),
@@ -1251,13 +1384,19 @@ class EconomyCalculator {
       flour: math.max(0.0, resources.flour - (costs['flour'] ?? 0.0)),
       plank: math.max(0.0, resources.plank - (costs['plank'] ?? 0.0)),
       bread: math.max(0.0, resources.bread - (costs['bread'] ?? 0.0)),
-      furniture: math.max(0.0, resources.furniture - (costs['furniture'] ?? 0.0)),
+      furniture: math.max(
+        0.0,
+        resources.furniture - (costs['furniture'] ?? 0.0),
+      ),
       fish: math.max(0.0, resources.fish - (costs['fish'] ?? 0.0)),
       wisdom: math.max(0.0, resources.wisdom - (costs['wisdom'] ?? 0.0)),
       kumis: math.max(0.0, resources.kumis - (costs['kumis'] ?? 0.0)),
       felt: math.max(0.0, resources.felt - (costs['felt'] ?? 0.0)),
       obsidian: math.max(0.0, resources.obsidian - (costs['obsidian'] ?? 0.0)),
-      damascusSteel: math.max(0.0, resources.damascusSteel - (costs['damascusSteel'] ?? 0.0)),
+      damascusSteel: math.max(
+        0.0,
+        resources.damascusSteel - (costs['damascusSteel'] ?? 0.0),
+      ),
       mithril: math.max(0.0, resources.mithril - (costs['mithril'] ?? 0.0)),
     );
   }
@@ -1301,12 +1440,14 @@ class EconomyCalculator {
       case 'AUTUMN':
         if (buildingType == BuildingType.orchard) return 1.30;
         if (buildingType == BuildingType.pasture) return 1.25;
-        if (buildingType == BuildingType.mine || buildingType == BuildingType.quarry) {
+        if (buildingType == BuildingType.mine ||
+            buildingType == BuildingType.quarry) {
           return 1.15;
         }
         return 1.0;
       case 'WINTER':
-        if (buildingType == BuildingType.barley) return 1.15; // Soğuğa dayanıklı
+        if (buildingType == BuildingType.barley)
+          return 1.15; // Soğuğa dayanıklı
         if (buildingType == BuildingType.orchard) return 0.65; // Kış uykusu
         return 1.0;
       default:
@@ -1333,13 +1474,13 @@ class EconomyCalculator {
     final double milestoneBoost = math.pow(2.0, k).toDouble();
 
     return (baseRate * level * milestoneBoost) *
-           globalMultiplier *
-           seasonMultiplier *
-           synergyMultiplier *
-           workerMultiplier *
-           shrineMultiplier *
-           biomeMasteryMultiplier *
-           seasonalBoostMultiplier;
+        globalMultiplier *
+        seasonMultiplier *
+        synergyMultiplier *
+        workerMultiplier *
+        shrineMultiplier *
+        biomeMasteryMultiplier *
+        seasonalBoostMultiplier;
   }
 
   /// Tek bir karodaki binanın tüm küresel, mevsimsel, sinerji, töre, doktrin ve kervan çarpanlarıyla net debisini hesaplar.
@@ -1376,10 +1517,18 @@ class EconomyCalculator {
     for (final nCoord in tile.coord.neighbors) {
       final nTile = tileMap[nCoord];
       if (nTile != null && nTile.isOwned && nTile.building != null) {
-        if (b.type == BuildingType.windmill && nTile.building!.type == BuildingType.corn) chainSynergy = 2.0;
-        if (b.type == BuildingType.sawmill && nTile.building!.type == BuildingType.lumberjack) chainSynergy = 2.0;
-        if (b.type == BuildingType.bakery && nTile.building!.type == BuildingType.windmill) chainSynergy = 2.0;
-        if (b.type == BuildingType.furniture && nTile.building!.type == BuildingType.sawmill) chainSynergy = 2.0;
+        if (b.type == BuildingType.windmill &&
+            nTile.building!.type == BuildingType.corn)
+          chainSynergy = 2.0;
+        if (b.type == BuildingType.sawmill &&
+            nTile.building!.type == BuildingType.lumberjack)
+          chainSynergy = 2.0;
+        if (b.type == BuildingType.bakery &&
+            nTile.building!.type == BuildingType.windmill)
+          chainSynergy = 2.0;
+        if (b.type == BuildingType.furniture &&
+            nTile.building!.type == BuildingType.sawmill)
+          chainSynergy = 2.0;
       }
     }
 
@@ -1411,46 +1560,61 @@ class EconomyCalculator {
     );
 
     final double soilMult = calculateSoilHealthMultiplier(tile);
-    final double caravanMult = calculateCaravanRouteMultiplier(tile.coord, caravanRoutes);
+    final double caravanMult = calculateCaravanRouteMultiplier(
+      tile.coord,
+      caravanRoutes,
+    );
     final double symbiosisMult = calculateSymbiosisMultiplier(tile);
-    final double ancestralMult = calculateAncestralRelicMultiplier(discoveredKurgans);
+    final double ancestralMult = calculateAncestralRelicMultiplier(
+      discoveredKurgans,
+    );
     final double omenMult = celestialOmen != null
         ? calculateCelestialOmenMultiplier(
             celestialOmen,
-            resourceType: b.type == BuildingType.lumberjack || b.type == BuildingType.sawmill
+            resourceType:
+                b.type == BuildingType.lumberjack ||
+                    b.type == BuildingType.sawmill
                 ? 'wood'
                 : b.type == BuildingType.mine || b.type == BuildingType.quarry
-                    ? 'iron'
-                    : 'food',
+                ? 'iron'
+                : 'food',
           )
         : 1.0;
 
-    final String resType = (b.type == BuildingType.lumberjack ||
+    final String resType =
+        (b.type == BuildingType.lumberjack ||
             b.type == BuildingType.sawmill ||
             b.type == BuildingType.furniture ||
             b.type == BuildingType.resinCamp)
         ? 'wood'
         : (b.type == BuildingType.mine ||
-                b.type == BuildingType.quarry ||
-                b.type == BuildingType.obsidianForge ||
-                b.type == BuildingType.permafrostDig)
-            ? 'stone'
-            : 'food';
+              b.type == BuildingType.quarry ||
+              b.type == BuildingType.obsidianForge ||
+              b.type == BuildingType.permafrostDig)
+        ? 'stone'
+        : 'food';
 
     final double resShrineMult = calculateResourceShrineMultiplier(
       tiles: tileMap,
       resourceType: resType,
     );
 
-    final double warmedMultiplier = tile.isWarmed ? 1.50 : 1.0;
-    final double effectiveSeasonMultiplier = seasonMultiplier * soilMult * warmedMultiplier;
+    final double effectiveSeasonMultiplier = seasonMultiplier * soilMult;
     final double damagePenalty = tile.isDamaged ? 0.5 : 1.0;
 
     return calculateBuildingProduction(
       type: b.type,
       level: b.level,
       baseRate: b.baseProductionRate,
-      globalMultiplier: globalMultiplier * docMult * caravanMult * symbiosisMult * ancestralMult * omenMult * damagePenalty * frenzyMultiplier,
+      globalMultiplier:
+          globalMultiplier *
+          docMult *
+          caravanMult *
+          symbiosisMult *
+          ancestralMult *
+          omenMult *
+          damagePenalty *
+          frenzyMultiplier,
       seasonMultiplier: effectiveSeasonMultiplier,
       synergyMultiplier: chainSynergy * biomeSynergy,
       workerMultiplier: 1.0,
@@ -1476,13 +1640,21 @@ class EconomyCalculator {
       if (!t.isOwned || t.building == null) continue;
       if (t.building!.type == BuildingType.castle) {
         workerSourceCoords.add(t.coord);
-        workerSourceCapacities.add(1.0 * workerTransferMult);
+        workerSourceCapacities.add(
+          t.building!.currentCarryingCapacity * workerTransferMult,
+        );
         workerSourceTypes.add(BuildingType.castle);
       } else if (t.building!.type == BuildingType.worker ||
           t.building!.type == BuildingType.fishermanHut ||
           t.building!.type == BuildingType.granaryVault) {
         workerSourceCoords.add(t.coord);
-        workerSourceCapacities.add(t.building!.currentCarryingCapacity * workerTransferMult);
+        final double granarySynergy =
+            calculateGranarySynergyMultiplier(t, tiles);
+        workerSourceCapacities.add(
+          t.building!.currentCarryingCapacity *
+              workerTransferMult *
+              granarySynergy,
+        );
         workerSourceTypes.add(t.building!.type);
       }
     }
@@ -1491,25 +1663,43 @@ class EconomyCalculator {
       return remainingDemand;
     }
 
-    for (final entry in producerDemands.entries) {
+    // Üreticileri Kademe / Katma Değer Önceliğine (logisticsPriority) göre sırala
+    final sortedEntries = producerDemands.entries.toList()
+      ..sort((a, b) {
+        final bTypeA = tiles[a.key]?.building?.type;
+        final bTypeB = tiles[b.key]?.building?.type;
+        final prioA = bTypeA?.logisticsPriority ?? 0;
+        final prioB = bTypeB?.logisticsPriority ?? 0;
+        if (prioA != prioB) {
+          return prioB.compareTo(prioA); // Yüksek öncelikli ürünler (Kımız, Şam Çeliği vb.) önce taşınır
+        }
+        return b.value.compareTo(a.value);
+      });
+
+    for (final entry in sortedEntries) {
       final HexAxial pCoord = entry.key;
       double needed = entry.value;
       if (needed <= 0.0) continue;
 
       final HexTileModel? pTile = tiles[pCoord];
-      final bool isFood = pTile?.building != null && pTile!.building!.type.isFoodProducer;
+      final bool isFood =
+          pTile?.building != null && pTile!.building!.type.isFoodProducer;
 
       final inRangeIndices = <int>[];
       for (int i = 0; i < workerSourceCoords.length; i++) {
         if (isFood && workerSourceTypes[i] == BuildingType.worker) {
           continue; // İşçi kulübesi gıda depolayamaz / taşıyamaz
         }
-        if (pCoord.distanceTo(workerSourceCoords[i]) <= 4 && workerSourceCapacities[i] > 0.0) {
+        if (pCoord.distanceTo(workerSourceCoords[i]) <= 4 &&
+            workerSourceCapacities[i] > 0.0) {
           inRangeIndices.add(i);
         }
       }
-      inRangeIndices.sort((a, b) =>
-          pCoord.distanceTo(workerSourceCoords[a]).compareTo(pCoord.distanceTo(workerSourceCoords[b])));
+      inRangeIndices.sort(
+        (a, b) => pCoord
+            .distanceTo(workerSourceCoords[a])
+            .compareTo(pCoord.distanceTo(workerSourceCoords[b])),
+      );
 
       for (final idx in inRangeIndices) {
         if (needed <= 0.0) break;
@@ -1581,9 +1771,12 @@ class EconomyCalculator {
       flourSeasonalTag = 'İLKBAHAR: +%25 TAŞ TALEBİ';
     } else if (season == 'WINTER' || isZud) {
       flourToStoneGain = 10.0;
-      flourSeasonalTag = isZud ? 'ZUD: +%25 ERZAK TALEBİ' : 'KIŞ: +%25 ERZAK DEĞERİ';
+      flourSeasonalTag = isZud
+          ? 'ZUD: +%25 ERZAK TALEBİ'
+          : 'KIŞ: +%25 ERZAK DEĞERİ';
     }
-    final double finalFlourStone = (flourToStoneGain * merchantBonus).roundToDouble();
+    final double finalFlourStone = (flourToStoneGain * merchantBonus)
+        .roundToDouble();
 
     // 2. Ekmek -> Demir (Kış Kıtlığı & Yaz Seferi)
     double breadToIronGain = 5.0;
@@ -1598,7 +1791,8 @@ class EconomyCalculator {
       breadToIronGain = 6.0; // +20%
       breadSeasonalTag = 'YAZ SEFERİ: +%20 DEMİR KAZANCI';
     }
-    final double finalBreadIron = (breadToIronGain * merchantBonus).roundToDouble();
+    final double finalBreadIron = (breadToIronGain * merchantBonus)
+        .roundToDouble();
 
     // 3. Mobilya -> Taş (Sonbahar Barınak / Otağ Yalıtımı)
     double furnitureToStoneGain = 15.0;
@@ -1607,11 +1801,14 @@ class EconomyCalculator {
       furnitureToStoneGain = 21.0; // +40%
       furnitureSeasonalTag = 'SONBAHAR: +%40 YURT YALITIM TALEBİ';
     }
-    final double finalFurnitureStone = (furnitureToStoneGain * merchantBonus).roundToDouble();
+    final double finalFurnitureStone = (furnitureToStoneGain * merchantBonus)
+        .roundToDouble();
 
     // 4. Demir + Taş -> Şan / Kutlu Tamga (Sonbahar Kurultay İndirimi)
     final double crownCost = (season == 'AUTUMN') ? 20.0 : 25.0;
-    final String crownSeasonalTag = (season == 'AUTUMN') ? 'KURULTAY SEZONU: %20 İNDİRİM' : '';
+    final String crownSeasonalTag = (season == 'AUTUMN')
+        ? 'KURULTAY SEZONU: %20 İNDİRİM'
+        : '';
 
     return [
       {
@@ -1663,8 +1860,10 @@ class EconomyCalculator {
         'toIcon': 'crown',
         'toAmount': '1 Şan',
         'seasonTag': crownSeasonalTag,
-        'desc': 'Değerli madenleri birleştirerek hanlık şanı ve kutlu tamga döv.',
-        'canAfford': resources.iron >= crownCost && resources.stone >= crownCost,
+        'desc':
+            'Değerli madenleri birleştirerek hanlık şanı ve kutlu tamga döv.',
+        'canAfford':
+            resources.iron >= crownCost && resources.stone >= crownCost,
         'costIron': crownCost,
         'costStone': crownCost,
         'gainCrowns': 1.0,
@@ -1765,23 +1964,27 @@ class EconomyCalculator {
     final double cappedSeconds = effectiveSeconds;
 
     final foodStorageCoords = tiles
-        .where((t) =>
-            t.isOwned &&
-            t.building != null &&
-            (t.building!.type == BuildingType.granaryVault ||
-                t.building!.type == BuildingType.castle ||
-                t.building!.type == BuildingType.fishermanHut))
+        .where(
+          (t) =>
+              t.isOwned &&
+              t.building != null &&
+              (t.building!.type == BuildingType.granaryVault ||
+                  t.building!.type == BuildingType.castle ||
+                  t.building!.type == BuildingType.fishermanHut),
+        )
         .map((t) => t.coord)
         .toList();
 
     final generalWorkerCoords = tiles
-        .where((t) =>
-            t.isOwned &&
-            t.building != null &&
-            (t.building!.type == BuildingType.worker ||
-                t.building!.type == BuildingType.granaryVault ||
-                t.building!.type == BuildingType.castle ||
-                t.building!.type == BuildingType.fishermanHut))
+        .where(
+          (t) =>
+              t.isOwned &&
+              t.building != null &&
+              (t.building!.type == BuildingType.worker ||
+                  t.building!.type == BuildingType.granaryVault ||
+                  t.building!.type == BuildingType.castle ||
+                  t.building!.type == BuildingType.fishermanHut),
+        )
         .map((t) => t.coord)
         .toList();
 
@@ -2043,11 +2246,15 @@ class EconomyCalculator {
           t.building!.type == BuildingType.fishermanHut ||
           t.building!.type == BuildingType.granaryVault) {
         workerSourceCoords.add(t.coord);
-        workerSourceCapacities.add(t.building!.currentCarryingCapacity * workerTransferMult);
+        workerSourceCapacities.add(
+          t.building!.currentCarryingCapacity * workerTransferMult,
+        );
       }
     }
 
-    if (activeDoctrines.any((d) => d.effectType == DoctrineEffectType.meadowGrazeYield)) {
+    if (activeDoctrines.any(
+      (d) => d.effectType == DoctrineEffectType.meadowGrazeYield,
+    )) {
       int emptyMeadows = 0;
       for (final t in tiles) {
         if (t.isOwned && t.biome == TileBiome.meadow && !t.hasBuilding) {
@@ -2061,11 +2268,17 @@ class EconomyCalculator {
     final Map<HexAxial, double> buildingRates = {};
     for (final t in tiles) {
       if (!t.isOwned || !t.hasBuilding) continue;
+      final double tileSeasonMult = getSeasonProductionMultiplier(
+        season: season,
+        isZud: isZud,
+        isTileWarmed: t.isWarmed,
+        titles: titles,
+      );
       final double r = calculateTileEffectiveProductionRate(
         tile: t,
         tileMap: map,
         globalMultiplier: globalMultiplier,
-        seasonMultiplier: seasonMultiplier,
+        seasonMultiplier: tileSeasonMult,
         shrineMultiplier: shrineMultiplier,
         season: season,
         isZud: isZud,
@@ -2207,6 +2420,28 @@ class EconomyCalculator {
       }
     }
 
+    // Kış ve Zud mevsiminde aktif ısıtılan binaların saniyelik odun tüketimi (-x/sn)
+    if (season.toUpperCase() == 'WINTER' || isZud) {
+      double totalHeatingWoodConsumption = 0.0;
+      for (final t in tiles) {
+        if (!t.isOwned || !t.hasBuilding || !t.isWarmed) continue;
+        final b = t.building!;
+        if (b.type == BuildingType.castle ||
+            b.type == BuildingType.worker ||
+            b.type == BuildingType.watchtower ||
+            b.type == BuildingType.bridge ||
+            b.type == BuildingType.fishermanHut ||
+            b.type == BuildingType.granaryVault) {
+          continue;
+        }
+        totalHeatingWoodConsumption += getHeatingWoodConsumptionRate(
+          buildingLevel: b.level,
+          activeDoctrines: activeDoctrines,
+        );
+      }
+      netWood -= totalHeatingWoodConsumption;
+    }
+
     return NetResourceRates(
       food: netFood,
       wood: netWood,
@@ -2263,7 +2498,9 @@ class EconomyCalculator {
         break;
     }
 
-    final bool hasOasisCisternNeighbor = neighborTiles.any((n) => n.building?.type == BuildingType.oasisCistern);
+    final bool hasOasisCisternNeighbor = neighborTiles.any(
+      (n) => n.building?.type == BuildingType.oasisCistern,
+    );
 
     for (final neighbor in neighborTiles) {
       if (neighbor.isFog) continue;
@@ -2291,7 +2528,9 @@ class EconomyCalculator {
 
         case TileBiome.volcano:
           // Volkan: Madenlere +%50 Jeotermal Isı & Dökümhane Bonusu
-          if (bType == BuildingType.mine || bType == BuildingType.quarry || bType == BuildingType.obsidianForge) {
+          if (bType == BuildingType.mine ||
+              bType == BuildingType.quarry ||
+              bType == BuildingType.obsidianForge) {
             synergy += 0.50;
           }
           // Orman binalarına kuruma/kül riski (-%15)
@@ -2304,11 +2543,13 @@ class EconomyCalculator {
 
         case TileBiome.desert:
           // Çöl: Değirmen & Mobilyacıya +%40 İpek Yolu Ticaret Bonusu
-          if (bType == BuildingType.windmill || bType == BuildingType.furniture) {
+          if (bType == BuildingType.windmill ||
+              bType == BuildingType.furniture) {
             synergy += 0.40;
           }
           // Çiftliklere kuraklık cezası (-%20), eğer komşuda Vaha Sarnıcı yoksa
-          if ((bType == BuildingType.corn || bType == BuildingType.orchard) && !hasOasisCisternNeighbor) {
+          if ((bType == BuildingType.corn || bType == BuildingType.orchard) &&
+              !hasOasisCisternNeighbor) {
             synergy -= 0.20;
           }
           break;
@@ -2349,10 +2590,14 @@ class EconomyCalculator {
         case TileBiome.tundra:
           // Tundra: Kışın soğuk cezası (-%25), ancak Arpa ve Madenlere dayanıklılık
           if (season.toUpperCase() == 'WINTER' || isZud) {
-            if (bType == BuildingType.corn || bType == BuildingType.orchard) synergy -= 0.25;
-            if (bType == BuildingType.barley) synergy += 0.15; // Soğuk dayanıklılığı
+            if (bType == BuildingType.corn || bType == BuildingType.orchard)
+              synergy -= 0.25;
+            if (bType == BuildingType.barley)
+              synergy += 0.15; // Soğuk dayanıklılığı
           }
-          if (bType == BuildingType.mine || bType == BuildingType.quarry || bType == BuildingType.permafrostDig) {
+          if (bType == BuildingType.mine ||
+              bType == BuildingType.quarry ||
+              bType == BuildingType.permafrostDig) {
             synergy += 0.25;
           }
           break;
@@ -2382,7 +2627,9 @@ class EconomyCalculator {
       }
       // Komşuda Obsidyen Dökümhanesi varsa alet dayanıklılığı ver
       if (neighbor.building?.type == BuildingType.obsidianForge &&
-          (bType == BuildingType.mine || bType == BuildingType.quarry || bType == BuildingType.sawmill)) {
+          (bType == BuildingType.mine ||
+              bType == BuildingType.quarry ||
+              bType == BuildingType.sawmill)) {
         synergy += 0.35;
       }
     }
@@ -2427,7 +2674,9 @@ class EconomyCalculator {
         break;
     }
 
-    final bool hasOasisCisternNeighbor = neighborTiles.any((n) => n.building?.type == BuildingType.oasisCistern);
+    final bool hasOasisCisternNeighbor = neighborTiles.any(
+      (n) => n.building?.type == BuildingType.oasisCistern,
+    );
     if (hasOasisCisternNeighbor) {
       labels.add('+40% Vaha Sarnıcı Aurası');
     }
@@ -2471,10 +2720,14 @@ class EconomyCalculator {
           break;
 
         case TileBiome.volcano:
-          if (bType == BuildingType.mine || bType == BuildingType.quarry || bType == BuildingType.obsidianForge) {
+          if (bType == BuildingType.mine ||
+              bType == BuildingType.quarry ||
+              bType == BuildingType.obsidianForge) {
             labels.add('+50% Jeotermal Dökümhane (Volkan)');
           }
-          if (bType == BuildingType.lumberjack || bType == BuildingType.sawmill || bType == BuildingType.resinCamp) {
+          if (bType == BuildingType.lumberjack ||
+              bType == BuildingType.sawmill ||
+              bType == BuildingType.resinCamp) {
             labels.add('-15% Kül Kuruması (Volkan)');
           }
           break;
@@ -2485,13 +2738,16 @@ class EconomyCalculator {
               bType == BuildingType.caravanserai) {
             labels.add('+40% İpek Yolu Ticareti (Çöl)');
           }
-          if ((bType == BuildingType.corn || bType == BuildingType.orchard) && !hasOasisCisternNeighbor) {
+          if ((bType == BuildingType.corn || bType == BuildingType.orchard) &&
+              !hasOasisCisternNeighbor) {
             labels.add('-20% Kuraklık (Çöl)');
           }
           break;
 
         case TileBiome.mountain:
-          if (bType == BuildingType.mine || bType == BuildingType.quarry || bType == BuildingType.astrolabe) {
+          if (bType == BuildingType.mine ||
+              bType == BuildingType.quarry ||
+              bType == BuildingType.astrolabe) {
             labels.add('+35% Zengin Damar & Taş (Dağ)');
           }
           if (bType == BuildingType.watchtower) {
@@ -2510,10 +2766,14 @@ class EconomyCalculator {
 
         case TileBiome.tundra:
           if (season.toUpperCase() == 'WINTER' || isZud) {
-            if (bType == BuildingType.corn || bType == BuildingType.orchard) labels.add('-25% Ayaz Şoku (Tundra)');
-            if (bType == BuildingType.barley) labels.add('+15% Soğuk Direnci (Arpa)');
+            if (bType == BuildingType.corn || bType == BuildingType.orchard)
+              labels.add('-25% Ayaz Şoku (Tundra)');
+            if (bType == BuildingType.barley)
+              labels.add('+15% Soğuk Direnci (Arpa)');
           }
-          if (bType == BuildingType.mine || bType == BuildingType.quarry || bType == BuildingType.permafrostDig) {
+          if (bType == BuildingType.mine ||
+              bType == BuildingType.quarry ||
+              bType == BuildingType.permafrostDig) {
             labels.add('+25% Permafrost Damarı (Tundra)');
           }
           break;
@@ -2535,20 +2795,25 @@ class EconomyCalculator {
         labels.add('+35% Jeotermal Isı Aurası');
       }
       if (neighbor.building?.type == BuildingType.obsidianForge &&
-          (bType == BuildingType.mine || bType == BuildingType.quarry || bType == BuildingType.sawmill)) {
+          (bType == BuildingType.mine ||
+              bType == BuildingType.quarry ||
+              bType == BuildingType.sawmill)) {
         labels.add('+35% Obsidyen Alet Gücü');
       }
     }
 
     if (bType == BuildingType.orchard) {
-      if (season.toUpperCase() == 'SUMMER') labels.add('+50% Yaz Meyve Coşkusu');
+      if (season.toUpperCase() == 'SUMMER')
+        labels.add('+50% Yaz Meyve Coşkusu');
       if (season.toUpperCase() == 'AUTUMN') labels.add('+30% Sonbahar Hasadı');
       if (season.toUpperCase() == 'WINTER') labels.add('-35% Kış Uykusu');
     } else if (bType == BuildingType.pasture) {
-      if (season.toUpperCase() == 'AUTUMN') labels.add('+25% Sonbahar Besi Dönemi');
+      if (season.toUpperCase() == 'AUTUMN')
+        labels.add('+25% Sonbahar Besi Dönemi');
       if (season.toUpperCase() == 'SPRING') labels.add('+15% Bahar Yavrulama');
     } else if (bType == BuildingType.barley) {
-      if (season.toUpperCase() == 'WINTER') labels.add('+20% Ayazda Dirençli Hasat');
+      if (season.toUpperCase() == 'WINTER')
+        labels.add('+20% Ayazda Dirençli Hasat');
     }
 
     return labels;
@@ -2562,13 +2827,14 @@ class EconomyCalculator {
     double mult = 1.0;
     for (final doc in activeDoctrines) {
       if (doc.effectType == DoctrineEffectType.cropBonus &&
-          (buildingType == BuildingType.corn || buildingType == BuildingType.windmill)) {
+          (buildingType == BuildingType.corn ||
+              buildingType == BuildingType.windmill)) {
         mult += doc.effectValue;
       }
       if (doc.effectType == DoctrineEffectType.desertTradeBonus &&
           (buildingType == BuildingType.windmill ||
-           buildingType == BuildingType.furniture ||
-           buildingType == BuildingType.bakery)) {
+              buildingType == BuildingType.furniture ||
+              buildingType == BuildingType.bakery)) {
         mult += doc.effectValue;
       }
     }
@@ -2576,7 +2842,9 @@ class EconomyCalculator {
   }
 
   /// Aktif doktrinlere göre karo fetih maliyeti çarpanı
-  static double getConquestCostMultiplier(List<DoctrineCardModel> activeDoctrines) {
+  static double getConquestCostMultiplier(
+    List<DoctrineCardModel> activeDoctrines,
+  ) {
     double discount = 0.0;
     for (final doc in activeDoctrines) {
       if (doc.effectType == DoctrineEffectType.conquestDiscount) {
@@ -2586,7 +2854,7 @@ class EconomyCalculator {
     return math.max(0.2, 1.0 - discount);
   }
 
-  /// Aktif doktrinlere göre kış ısıtma odun maliyeti
+  /// Aktif doktrinlere göre kış ısıtma odun maliyeti (Referans / Peşin)
   static double getWinterWarmWoodCost(List<DoctrineCardModel> activeDoctrines) {
     for (final doc in activeDoctrines) {
       if (doc.effectType == DoctrineEffectType.winterWarmDiscount) {
@@ -2594,6 +2862,21 @@ class EconomyCalculator {
       }
     }
     return 5.0;
+  }
+
+  /// Seviye ve aktif doktrinlere göre kış ısıtma saniyelik odun tüketim debisi (-x/sn)
+  static double getHeatingWoodConsumptionRate({
+    required int buildingLevel,
+    List<DoctrineCardModel> activeDoctrines = const [],
+  }) {
+    final double base = 0.10 * (1.0 + (math.max(1, buildingLevel) - 1) * 0.20);
+    double discount = 0.0;
+    for (final doc in activeDoctrines) {
+      if (doc.effectType == DoctrineEffectType.winterWarmDiscount) {
+        discount += 0.30;
+      }
+    }
+    return math.max(0.02, base * (1.0 - discount));
   }
 
   /// 1. Yaylak-Kışlak & Toprak Dinlendirme Çarpanı (Soil Health & Respiration Boost)
@@ -2608,8 +2891,13 @@ class EconomyCalculator {
   }
 
   /// 2. Kervan İpek Yolu Takas Rezonansı (+25% Çarpan)
-  static double calculateCaravanRouteMultiplier(HexAxial coord, List<CaravanRoute> routes) {
-    final bool hasRoute = routes.any((r) => r.startCoord == coord || r.endCoord == coord);
+  static double calculateCaravanRouteMultiplier(
+    HexAxial coord,
+    List<CaravanRoute> routes,
+  ) {
+    final bool hasRoute = routes.any(
+      (r) => r.startCoord == coord || r.endCoord == coord,
+    );
     return hasRoute ? 1.25 : 1.0;
   }
 
@@ -2619,7 +2907,10 @@ class EconomyCalculator {
   }
 
   /// 4. 12 Hayvanlı Göksel Alamet Kaynak Çarpanı
-  static double calculateCelestialOmenMultiplier(CelestialOmen omen, {required String resourceType}) {
+  static double calculateCelestialOmenMultiplier(
+    CelestialOmen omen, {
+    required String resourceType,
+  }) {
     switch (resourceType.toLowerCase()) {
       case 'wood':
         return omen.woodMultiplier;
@@ -2641,7 +2932,9 @@ class EconomyCalculator {
   }
 
   /// 5. Keşfedilen Ata Kurganları Prestij Mirası Çarpanı
-  static double calculateAncestralRelicMultiplier(List<AncestralKurgan> kurgans) {
+  static double calculateAncestralRelicMultiplier(
+    List<AncestralKurgan> kurgans,
+  ) {
     double boost = 0.0;
     for (final kurgan in kurgans) {
       if (kurgan.isDiscovered) {
@@ -2695,7 +2988,10 @@ class EconomyCalculator {
     required int crowns,
     required int dailyWatches,
   }) {
-    final double mult = getGlobalMultiplier(castleLevel: castleLevel, crowns: crowns);
+    final double mult = getGlobalMultiplier(
+      castleLevel: castleLevel,
+      crowns: crowns,
+    );
     final double dimReturn = getAdRewardDiminishingReturn(dailyWatches);
     final double baseAmount = (30.0 + castleLevel * 15.0) * mult * dimReturn;
 
@@ -2708,7 +3004,9 @@ class EconomyCalculator {
   }
 
   /// 12. Çevrimdışı 2.0x Çift Kat Bereketli Kazanç Hesabı
-  static OfflineGainsResult calculateOfflineAdBoostedGains(OfflineGainsResult original) {
+  static OfflineGainsResult calculateOfflineAdBoostedGains(
+    OfflineGainsResult original,
+  ) {
     const double boost = 2.0;
     return OfflineGainsResult(
       seconds: original.seconds,
@@ -2780,9 +3078,13 @@ class EconomyCalculator {
     switch (buildingType) {
       case BuildingType.kumisYurt:
         // Gıda -> Kımız dönüşümü (1.0 gıda -> 0.25 kımız), 15 Gıda taban rezervi korunur
-        final double soilMultiplier = unlockedLoreIds.contains('lore_soil_2') ? 1.35 : 1.0;
+        final double soilMultiplier = unlockedLoreIds.contains('lore_soil_2')
+            ? 1.35
+            : 1.0;
         final bool canCraft = resources.food > (reserveFloor + 1.0);
-        final double maxCraft = canCraft ? 0.25 * globalMultiplier * soilMultiplier : 0.0;
+        final double maxCraft = canCraft
+            ? 0.25 * globalMultiplier * soilMultiplier
+            : 0.0;
         return {
           'consumed_food': canCraft ? 1.0 : 0.0,
           'gained_kumis': maxCraft,
@@ -2790,9 +3092,14 @@ class EconomyCalculator {
 
       case BuildingType.feltTentWorkshop:
         // Odun + Gıda -> Keçe dönüşümü, 15 Odun ve 15 Gıda taban rezervi korunur
-        final double weatherMultiplier = unlockedLoreIds.contains('lore_weather_2') ? 1.40 : 1.0;
-        final bool canCraft = resources.wood > (reserveFloor + 0.5) && resources.food > (reserveFloor + 0.5);
-        final double maxCraft = canCraft ? 0.22 * globalMultiplier * weatherMultiplier : 0.0;
+        final double weatherMultiplier =
+            unlockedLoreIds.contains('lore_weather_2') ? 1.40 : 1.0;
+        final bool canCraft =
+            resources.wood > (reserveFloor + 0.5) &&
+            resources.food > (reserveFloor + 0.5);
+        final double maxCraft = canCraft
+            ? 0.22 * globalMultiplier * weatherMultiplier
+            : 0.0;
         return {
           'consumed_wood': canCraft ? 0.5 : 0.0,
           'consumed_food': canCraft ? 0.5 : 0.0,
@@ -2801,9 +3108,15 @@ class EconomyCalculator {
 
       case BuildingType.damascusForge:
         // Demir + Odun -> Şam Çeliği dönüşümü, 15 Demir ve 15 Odun taban rezervi korunur
-        final double metalMultiplier = unlockedLoreIds.contains('lore_metal_2') ? 1.50 : 1.0;
-        final bool canCraft = resources.iron > (reserveFloor + 0.5) && resources.wood > (reserveFloor + 0.5);
-        final double maxCraft = canCraft ? 0.18 * globalMultiplier * metalMultiplier : 0.0;
+        final double metalMultiplier = unlockedLoreIds.contains('lore_metal_2')
+            ? 1.50
+            : 1.0;
+        final bool canCraft =
+            resources.iron > (reserveFloor + 0.5) &&
+            resources.wood > (reserveFloor + 0.5);
+        final double maxCraft = canCraft
+            ? 0.18 * globalMultiplier * metalMultiplier
+            : 0.0;
         return {
           'consumed_iron': canCraft ? 0.5 : 0.0,
           'consumed_wood': canCraft ? 0.5 : 0.0,
@@ -2855,10 +3168,7 @@ class EconomyCalculator {
         id: 'order_byzantine_1',
         title: 'Bizans Sarayı Kereste Buyruğu',
         requesterName: 'Konstantinopolis Elçisi',
-        requiredResources: {
-          'wood': 80.0,
-          'bread': 40.0,
-        },
+        requiredResources: {'wood': 80.0, 'bread': 40.0},
         rewardCrowns: 8,
         rewardSpeedMultiplier: 1.35,
         buffDurationSeconds: 600,
@@ -2868,11 +3178,7 @@ class EconomyCalculator {
         id: 'order_sogdian_1',
         title: 'Soğd Kervanı Demir & Un Takası',
         requesterName: 'Semerkant Başkâtibi',
-        requiredResources: {
-          'stone': 60.0,
-          'flour': 50.0,
-          'iron': 20.0,
-        },
+        requiredResources: {'stone': 60.0, 'flour': 50.0, 'iron': 20.0},
         rewardCrowns: 14,
         rewardSpeedMultiplier: 1.50,
         buffDurationSeconds: 900,
@@ -2882,11 +3188,7 @@ class EconomyCalculator {
         id: 'order_persian_1',
         title: 'Sasani Hanı Kımız & Keçe Seferi',
         requesterName: 'İsfahan Saray Kethüdası',
-        requiredResources: {
-          'furniture': 40.0,
-          'bread': 50.0,
-          'food': 100.0,
-        },
+        requiredResources: {'furniture': 40.0, 'bread': 50.0, 'food': 100.0},
         rewardCrowns: 20,
         rewardSpeedMultiplier: 1.75,
         buffDurationSeconds: 1200,
@@ -2914,8 +3216,8 @@ class EconomyCalculator {
     required int questIndex,
     int castleLevel = 1,
   }) {
-    final double scalingFactor = 1.0 + (questIndex * 0.15) + (math.max(0, castleLevel - 1) * 0.10);
+    final double scalingFactor =
+        1.0 + (questIndex * 0.15) + (math.max(0, castleLevel - 1) * 0.10);
     return (baseReward * scalingFactor).round();
   }
 }
-

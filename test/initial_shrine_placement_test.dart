@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hex_rush/core/hex/hex_coordinates.dart';
 import 'package:hex_rush/core/hex/hex_math.dart';
+import 'package:hex_rush/domain/economy/economy_calculator.dart';
 import 'package:hex_rush/domain/models/hex_tile_model.dart';
 import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -81,9 +82,10 @@ void main() {
 
       final updatedTile = notifier.state.tiles[dist4Shrine.coord];
       expect(updatedTile!.isOwned, isTrue);
-      expect(notifier.state.shrineMultiplier, greaterThan(1.0));
-      expect(notifier.state.shrineMultiplier, closeTo(1.0 + dist4Shrine.shrineBoostMultiplier, 0.001),
-          reason: 'Lojistik hızı tapınağı fethiyle çarpan mesafe bazlı artmalıdır');
+      final workerMult = EconomyCalculator.getWorkerTransferMultiplier(tiles: notifier.state.tiles);
+      expect(workerMult, greaterThanOrEqualTo(2.0));
+      expect(workerMult, closeTo(dist4Shrine.shrineMultiplierValue, 0.001),
+          reason: 'Lojistik hızı tapınağı fethiyle taşıma katsayısı artmalıdır');
     });
   });
 }

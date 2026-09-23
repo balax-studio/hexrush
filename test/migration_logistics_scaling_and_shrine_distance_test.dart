@@ -61,15 +61,15 @@ void main() {
       expect(speedShrine.shrineBonusPercentage, greaterThanOrEqualTo(200.0));
       expect(speedShrine.shrineBoostMultiplier, greaterThanOrEqualTo(1.0));
 
-      // 2. Diğer tüm sunaklar arasında minDistance >= 7 kuralı
+      // 2. Diğer tüm sunaklar arasında minDistance >= 5 kuralı
       final allShrines = state.tiles.values.where((t) => t.hasShrine).toList();
       expect(allShrines.length, equals(11));
 
       for (int i = 0; i < allShrines.length; i++) {
         for (int j = i + 1; j < allShrines.length; j++) {
           final dist = HexMath.hexDistance(allShrines[i].coord, allShrines[j].coord);
-          expect(dist >= 7, isTrue,
-              reason: 'Sunaklar arası mesafe en az 7 olmalıdır: ${allShrines[i].coord} - ${allShrines[j].coord} ($dist)');
+          expect(dist >= 5, isTrue,
+              reason: 'Sunaklar arası mesafe en az 5 olmalıdır: ${allShrines[i].coord} - ${allShrines[j].coord} ($dist)');
         }
       }
     });
