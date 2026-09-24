@@ -761,13 +761,27 @@ class HexMapGame extends FlameGame {
       final bool inRange = logisticsRangeCoords.contains(coord);
       final bool isContributor = contributorCoords.contains(coord);
 
-      // Değişmeyen, seçimi ve menzil durumu değişmeyen karoları atla (Saniyelik tam harita tarama yükünü sıfırlar)
+      // Komşulardan hangileri sahipsiz veya sisli? (Outer Territory Perimeter Mask)
+      int unownedMask = 0;
+      if (tile.isOwned) {
+        for (int i = 0; i < 6; i++) {
+          final nCoord = coord.neighbors[i];
+          final nTile = state.tiles[nCoord];
+          if (nTile == null || nTile.isFog || !nTile.isOwned) {
+            unownedMask |= (1 << i);
+          }
+        }
+      }
+
+      // Değişmeyen, seçimi, sınır ve menzil durumu değişmeyen karoları atla (Saniyelik tam harita tarama yükünü sıfırlar)
       if (!globalChange &&
           _isTileVisuallyIdentical(prevTile, tile) &&
           isSel == wasSel &&
           _tileComponents.containsKey(coord)) {
         final comp = _tileComponents[coord]!;
-        if (comp.isInWorkerRange == inRange && comp.isHarvestHighlight == isContributor) {
+        if (comp.isInWorkerRange == inRange &&
+            comp.isHarvestHighlight == isContributor &&
+            comp.unownedNeighborMask == unownedMask) {
           continue;
         }
       }
@@ -828,6 +842,7 @@ class HexMapGame extends FlameGame {
           newCompatibleNeighborOffsets: compatibleNeighbors,
           newNorthWestDeltaElevation: nwDelta,
           newFogNeighborMask: fogMask,
+          newUnownedNeighborMask: unownedMask,
         );
       } else {
         final comp = HexTileComponent(
@@ -844,6 +859,7 @@ class HexMapGame extends FlameGame {
           compatibleNeighborOffsets: compatibleNeighbors,
           northWestDeltaElevation: nwDelta,
           fogNeighborMask: fogMask,
+          unownedNeighborMask: unownedMask,
         );
         final pixelPos = HexMath.hexToPixel(coord, hexSize: HexTileComponent.hexRadius);
         comp.priority = (pixelPos.dy + 1000).toInt();

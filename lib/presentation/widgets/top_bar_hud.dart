@@ -8,14 +8,11 @@ import '../../core/theme/neo_brutalist_theme.dart';
 import '../../core/utils/number_formatter.dart';
 import '../../domain/economy/economy_calculator.dart';
 import '../../domain/models/game_state_model.dart';
-import '../../domain/models/ad_reward_model.dart';
 import '../../domain/services/ad_reward_service.dart';
 import '../providers/game_state_notifier.dart';
-import 'ad_reward_progress_dialog.dart';
 import 'celestial_omen_hud.dart';
 import 'council_management_dialog.dart';
 import 'crown_breakdown_dialog.dart';
-import 'great_migration_dialog.dart';
 import 'icons/game_vector_icons.dart';
 import 'season_calendar_widget.dart';
 import 'tactile_neo_button.dart';
@@ -647,6 +644,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
         toreTalents: gameState.toreTalents,
         totalMigrations: gameState.progression.totalMigrations,
         kutMultiplier: gameState.progression.kutMultiplier,
+        frenzyMultiplier: gameState.frenzyMultiplier,
       );
     }
 
@@ -734,36 +732,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     ),
                   ),
                   const SizedBox(width: 6),
-                  if (resources.stone > 0 ||
-                      gameState.progression.castleLevel >= 2) ...[
-                    ResourcePulseChip(
-                      type: GameIconType.stone,
-                      value: resources.stone,
-                      color: const Color(0xFF94A3B8),
-                      rate: netRates.stone,
-                      untransportedRate: netRates.untransportedStone,
-                      theme: theme,
-                      onTap: () => _showResourceExplanation(
-                        context,
-                        resourceKey: 'stone',
-                        title: 'TAŞ',
-                        iconType: GameIconType.stone,
-                        iconColor: const Color(0xFF94A3B8),
-                        currentStock: NumberFormatter.format(resources.stone),
-                        netRate: NumberFormatter.formatRate(
-                          netRates.stone,
-                          decimals: 1,
-                          unitSuffix: '/saniye',
-                        ),
-                        description:
-                            'Gelişmiş binalar, taş fırınlar ve anıtsal harikalar inşa etmek için gereklidir.',
-                        strategicHint:
-                            'Dağ maden ocaklarından çıkarılır ve pazardan takas edilir.',
-                        theme: theme,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                  ],
+
                   ResourcePulseChip(
                     type: GameIconType.crown,
                     value: resources.crowns.toDouble(),
@@ -883,7 +852,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                               const SizedBox(width: 5),
                               Text(
                                 gameState.frenzyTimer > 0
-                                    ? '${gameState.frenzyTimer.toInt()}s'
+                                    ? '10x ${gameState.frenzyTimer.toInt()}s'
                                     : (lang == 'tr' ? 'MECLİS' : 'COUNCIL'),
                                 style: TextStyle(
                                   color: gameState.frenzyTimer > 0
@@ -935,13 +904,40 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
               ),
             ),
 
-            // Genişletilmiş Kaynak Çekmecesi (Un, Kereste, Ekmek, Mobilya, Demir)
+            // Genişletilmiş Kaynak Çekmecesi (Taş, Un, Kereste, Ekmek, Mobilya, Demir)
             if (_isDrawerExpanded) ...[
               const SizedBox(height: 8),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
+                    ResourcePulseChip(
+                      type: GameIconType.stone,
+                      value: resources.stone,
+                      color: const Color(0xFF94A3B8),
+                      rate: netRates.stone,
+                      untransportedRate: netRates.untransportedStone,
+                      theme: theme,
+                      onTap: () => _showResourceExplanation(
+                        context,
+                        resourceKey: 'stone',
+                        title: 'TAŞ',
+                        iconType: GameIconType.stone,
+                        iconColor: const Color(0xFF94A3B8),
+                        currentStock: NumberFormatter.format(resources.stone),
+                        netRate: NumberFormatter.formatRate(
+                          netRates.stone,
+                          decimals: 1,
+                          unitSuffix: '/saniye',
+                        ),
+                        description:
+                            'Gelişmiş binalar, taş fırınlar ve anıtsal harikalar inşa etmek için gereklidir.',
+                        strategicHint:
+                            'Dağ maden ocaklarından çıkarılır ve pazardan takas edilir.',
+                        theme: theme,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
                     ResourcePulseChip(
                       type: GameIconType.flour,
                       value: resources.flour,
@@ -1429,7 +1425,6 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
     NeoBrutalistThemeData theme, {
     VoidCallback? onTap,
   }) {
-    final lang = ref.watch(gameStateProvider).settings.language;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1447,15 +1442,6 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
           children: [
             const GameVectorIcon(type: GameIconType.land, size: 14),
             const SizedBox(width: 5),
-            Text(
-              GameLocalization.get('land', lang: lang).toUpperCase(),
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 9,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(width: 4),
             Text(
               '$count',
               style: const TextStyle(

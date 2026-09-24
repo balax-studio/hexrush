@@ -137,7 +137,7 @@ class CouncilManagementDialog extends ConsumerWidget {
                 onTap: () async {
                   unawaited(TactileAudioService.instance.play(TactileSoundType.tap));
                   unawaited(HapticFeedback.lightImpact());
-                  Navigator.of(context).pop();
+                  final notifier = ref.read(gameStateProvider.notifier);
                   final completed = await showAdRewardProgressDialog(
                     context,
                     title: lang == 'tr'
@@ -150,10 +150,10 @@ class CouncilManagementDialog extends ConsumerWidget {
                         : 'Claiming reward, please wait...',
                   );
                   if (completed) {
-                    await ref.read(gameStateProvider.notifier).claimAdReward(
-                          AdRewardType.frenzyBoost,
-                          adService: adService,
-                        );
+                    await notifier.claimAdReward(
+                      AdRewardType.frenzyBoost,
+                      adService: adService,
+                    );
                   }
                 },
                 backgroundColor: gameState.frenzyTimer > 0
@@ -169,7 +169,7 @@ class CouncilManagementDialog extends ConsumerWidget {
                     Container(
                       width: 28,
                       height: 28,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Colors.black26,
                         borderRadius: NeoBrutalistTheme.sharpRadius,
                       ),
@@ -192,10 +192,12 @@ class CouncilManagementDialog extends ConsumerWidget {
                             Text(
                               gameState.frenzyTimer > 0
                                   ? (lang == 'tr'
-                                      ? 'TOY COŞKUSU AKTİF!'
+                                      ? '10X TOY COŞKUSU (${gameState.frenzyTimer.toInt()}s)'
                                       : (lang == 'es'
-                                          ? '¡FRENESÍ ACTIVO!'
-                                          : (lang == 'de' ? 'FRENZY AKTIV!' : 'FRENZY ACTIVE!')))
+                                          ? '10X FRENESÍ REAL (${gameState.frenzyTimer.toInt()}s)'
+                                          : (lang == 'de'
+                                              ? '10X REICHSFRENZY (${gameState.frenzyTimer.toInt()}s)'
+                                              : '10X REALM FRENZY (${gameState.frenzyTimer.toInt()}s)')))
                                   : (lang == 'tr'
                                       ? '10X TOY COŞKUSU'
                                       : (lang == 'es'
@@ -210,14 +212,20 @@ class CouncilManagementDialog extends ConsumerWidget {
                             ),
                             Text(
                               gameState.frenzyTimer > 0
-                                  ? '${gameState.frenzyTimer.toInt()}s ${lang == 'tr' ? 'kaldı (2x Hız)' : (lang == 'es' ? 'restante (2x)' : (lang == 'de' ? 'übrig (2x)' : 'left (2x Speed)'))}'
-                                  : (lang == 'tr'
-                                      ? '10 dk boyunca küresel üretimi 2 katına çıkar'
+                                  ? (lang == 'tr'
+                                      ? '10x üretim & lojistik verimi devrede'
                                       : (lang == 'es'
-                                          ? 'Duplica la producción por 10 min'
+                                          ? '10x producción y logística activa'
                                           : (lang == 'de'
-                                              ? 'Verdopple die Produktion für 10 Min'
-                                              : 'Boost all production 2x for 10 min'))),
+                                              ? '10x Produktion & Logistik aktiv'
+                                              : '10x production & logistics active')))
+                                  : (lang == 'tr'
+                                      ? '4 dk boyunca 10x üretim ve lojistik verimi'
+                                      : (lang == 'es'
+                                          ? '10x producción y logística por 4 min'
+                                          : (lang == 'de'
+                                              ? '10x Produktion & Logistik für 4 Min'
+                                              : '10x production & logistics efficiency for 4 min'))),
                               style: const TextStyle(
                                 color: Color(0xFFFEF3C7),
                                 fontSize: 9.5,
@@ -230,6 +238,25 @@ class CouncilManagementDialog extends ConsumerWidget {
                         ),
                       ),
                     ),
+                    if (gameState.frenzyTimer > 0) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.black38,
+                          borderRadius: NeoBrutalistTheme.sharpRadius,
+                          border: Border.all(color: const Color(0xFFFDE047), width: 1),
+                        ),
+                        child: Text(
+                          '${gameState.frenzyTimer.toInt()}s',
+                          style: const TextStyle(
+                            color: Color(0xFFFDE047),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                    ],
                     const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 12),
                   ],
                 ),

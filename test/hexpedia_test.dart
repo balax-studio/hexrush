@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hex_rush/core/localization/game_localization.dart';
 import 'package:hex_rush/domain/models/hexpedia_entry_model.dart';
 import 'package:hex_rush/presentation/widgets/hexpedia_dialog.dart';
 
@@ -74,7 +75,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Check title and icons
-      expect(find.text('HEXPEDIA - BOZKIR ANSİKLOPEDİSİ'), findsOneWidget);
+      expect(find.text(GameLocalization.get('consult_elders', lang: 'tr').toUpperCase()), findsOneWidget);
       expect(find.byIcon(Icons.menu_book), findsWidgets);
       expect(find.byType(TextField), findsOneWidget);
 

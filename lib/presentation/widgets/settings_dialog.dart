@@ -268,67 +268,6 @@ class SettingsDialog extends ConsumerWidget {
 
               const SizedBox(height: 16),
 
-              // Bildirim Tercihleri
-              Text(
-                GameLocalization.get('notification_prefs', lang: lang),
-                style: NeoBrutalistTheme.fontLabel,
-              ),
-              const SizedBox(height: 6),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
-                  borderRadius: NeoBrutalistTheme.sharpRadius,
-                  border: Border.all(
-                    color: const Color(0xFF334155),
-                    width: 1.5,
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    _buildNotificationToggle(
-                      GameLocalization.get('storage_full_alert', lang: lang),
-                      settings.notifications.storageFullAlert,
-                      (val) => notifier.updateNotificationSettings(
-                        storageFullAlert: val,
-                      ),
-                    ),
-                    _buildNotificationToggle(
-                      GameLocalization.get('season_change_alert', lang: lang),
-                      settings.notifications.seasonChangeAlert,
-                      (val) => notifier.updateNotificationSettings(
-                        seasonChangeAlert: val,
-                      ),
-                    ),
-                    _buildNotificationToggle(
-                      GameLocalization.get('quest_completed_alert', lang: lang),
-                      settings.notifications.questCompletedAlert,
-                      (val) => notifier.updateNotificationSettings(
-                        questCompletedAlert: val,
-                      ),
-                    ),
-                    _buildNotificationToggle(
-                      GameLocalization.get('castle_upgrade_alert', lang: lang),
-                      settings.notifications.castleUpgradeReadyAlert,
-                      (val) => notifier.updateNotificationSettings(
-                        castleUpgradeReadyAlert: val,
-                      ),
-                    ),
-                    _buildNotificationToggle(
-                      lang == 'tr'
-                          ? 'Görev Panelini Gizle'
-                          : 'Hide Quest Panel',
-                      settings.notifications.questPanelHidden,
-                      (val) => notifier.updateNotificationSettings(
-                        questPanelHidden: val,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
               // Görsel Konfor & Erişilebilirlik
               Text(
                 lang == 'tr' ? 'Görsel Konfor & Erişilebilirlik' : 'Visual Comfort & Accessibility',
@@ -345,12 +284,25 @@ class SettingsDialog extends ConsumerWidget {
                     width: 1.5,
                   ),
                 ),
-                child: _buildNotificationToggle(
-                  lang == 'tr'
-                      ? 'Sakin Görsel Mod (Düşük Hareket)'
-                      : 'Calm Visual Mode (Reduced Motion)',
-                  settings.reducedMotion,
-                  (val) => notifier.setReducedMotion(val),
+                child: Column(
+                  children: [
+                    _buildNotificationToggle(
+                      lang == 'tr'
+                          ? 'Sakin Görsel Mod (Düşük Hareket)'
+                          : 'Calm Visual Mode (Reduced Motion)',
+                      settings.reducedMotion,
+                      (val) => notifier.setReducedMotion(val),
+                    ),
+                    _buildNotificationToggle(
+                      lang == 'tr'
+                          ? 'Görev Panelini Gizle'
+                          : 'Hide Quest Panel',
+                      settings.notifications.questPanelHidden,
+                      (val) => notifier.updateNotificationSettings(
+                        questPanelHidden: val,
+                      ),
+                    ),
+                  ],
                 ),
               ),
 

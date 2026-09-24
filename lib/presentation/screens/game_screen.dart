@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/tactile_audio_service.dart';
+import '../../core/notifications/local_notification_service.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/economy/economy_calculator.dart';
 import '../flame/flame_interactive_map.dart';
@@ -40,6 +41,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    LocalNotificationService.instance.initialize();
+    LocalNotificationService.instance.cancelIdleNotifications();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkPendingOfflineGains();
       final settings = ref.read(gameStateProvider).settings;
@@ -65,9 +68,14 @@ class _GameScreenState extends ConsumerState<GameScreen>
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive ||
         state == AppLifecycleState.hidden) {
+      final currentSettings = ref.read(gameStateProvider).settings;
+      LocalNotificationService.instance.scheduleOnAppBackground(
+        settings: currentSettings,
+      );
       TactileAudioService.instance.pauseBackgroundMusic();
       ref.read(gameStateProvider.notifier).pauseGameLoop();
     } else if (state == AppLifecycleState.resumed) {
+      LocalNotificationService.instance.cancelIdleNotifications();
       TactileAudioService.instance.resumeBackgroundMusic();
       ref.read(gameStateProvider.notifier).resumeGameLoop().then((_) {
         if (mounted) {

@@ -158,5 +158,45 @@ void main() {
 
       recorder.endRecording();
     });
+
+    test('HexTileComponent renders exterior borders only facing unowned neighbors', () {
+      const coord = HexAxial(0, 0);
+      const ownedTile = HexTileModel(
+        coord: coord,
+        biome: TileBiome.meadow,
+        state: TileState.owned,
+      );
+
+      final component = HexTileComponent(
+        coord: coord,
+        tileModel: ownedTile,
+        isSelected: false,
+        season: 'SPRING',
+        isZud: false,
+        unownedNeighborMask: 0x05, // Only directions 0 and 2 face unowned hexes
+      );
+
+      expect(component.unownedNeighborMask, equals(0x05));
+
+      final PictureRecorder recorder = PictureRecorder();
+      final Canvas canvas = Canvas(recorder);
+
+      // Verify rendering with exterior border mask succeeds without error
+      component.render(canvas);
+
+      // When all neighbors are owned (internal hex), mask is 0
+      component.updateData(
+        newTileModel: ownedTile,
+        newIsSelected: false,
+        newSeason: 'SPRING',
+        newIsZud: false,
+        newUnownedNeighborMask: 0,
+      );
+
+      expect(component.unownedNeighborMask, equals(0));
+      component.render(canvas);
+
+      recorder.endRecording();
+    });
   });
 }

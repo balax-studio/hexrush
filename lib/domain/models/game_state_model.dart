@@ -432,6 +432,12 @@ class SeasonModel {
 }
 
 class NotificationSettingsModel {
+  final bool enabled;
+  final bool idle1hAlert;
+  final bool idle4hAlert;
+  final bool dailyCouncilAlert;
+  final bool dailyHarvestAlert;
+  final bool inactivityAlert;
   final bool storageFullAlert;
   final bool seasonChangeAlert;
   final bool questCompletedAlert;
@@ -439,6 +445,12 @@ class NotificationSettingsModel {
   final bool questPanelHidden;
 
   const NotificationSettingsModel({
+    this.enabled = true,
+    this.idle1hAlert = true,
+    this.idle4hAlert = true,
+    this.dailyCouncilAlert = true,
+    this.dailyHarvestAlert = true,
+    this.inactivityAlert = true,
     this.storageFullAlert = false,
     this.seasonChangeAlert = false,
     this.questCompletedAlert = false,
@@ -447,6 +459,12 @@ class NotificationSettingsModel {
   });
 
   NotificationSettingsModel copyWith({
+    bool? enabled,
+    bool? idle1hAlert,
+    bool? idle4hAlert,
+    bool? dailyCouncilAlert,
+    bool? dailyHarvestAlert,
+    bool? inactivityAlert,
     bool? storageFullAlert,
     bool? seasonChangeAlert,
     bool? questCompletedAlert,
@@ -454,6 +472,12 @@ class NotificationSettingsModel {
     bool? questPanelHidden,
   }) {
     return NotificationSettingsModel(
+      enabled: enabled ?? this.enabled,
+      idle1hAlert: idle1hAlert ?? this.idle1hAlert,
+      idle4hAlert: idle4hAlert ?? this.idle4hAlert,
+      dailyCouncilAlert: dailyCouncilAlert ?? this.dailyCouncilAlert,
+      dailyHarvestAlert: dailyHarvestAlert ?? this.dailyHarvestAlert,
+      inactivityAlert: inactivityAlert ?? this.inactivityAlert,
       storageFullAlert: storageFullAlert ?? this.storageFullAlert,
       seasonChangeAlert: seasonChangeAlert ?? this.seasonChangeAlert,
       questCompletedAlert: questCompletedAlert ?? this.questCompletedAlert,
@@ -464,6 +488,12 @@ class NotificationSettingsModel {
   }
 
   Map<String, dynamic> toJson() => {
+        'enabled': enabled,
+        'idle_1h_alert': idle1hAlert,
+        'idle_4h_alert': idle4hAlert,
+        'daily_council_alert': dailyCouncilAlert,
+        'daily_harvest_alert': dailyHarvestAlert,
+        'inactivity_alert': inactivityAlert,
         'storage_full_alert': storageFullAlert,
         'season_change_alert': seasonChangeAlert,
         'quest_completed_alert': questCompletedAlert,
@@ -473,6 +503,12 @@ class NotificationSettingsModel {
 
   factory NotificationSettingsModel.fromJson(Map<String, dynamic> json) {
     return NotificationSettingsModel(
+      enabled: json['enabled'] as bool? ?? true,
+      idle1hAlert: json['idle_1h_alert'] as bool? ?? true,
+      idle4hAlert: json['idle_4h_alert'] as bool? ?? true,
+      dailyCouncilAlert: json['daily_council_alert'] as bool? ?? true,
+      dailyHarvestAlert: json['daily_harvest_alert'] as bool? ?? true,
+      inactivityAlert: json['inactivity_alert'] as bool? ?? true,
       storageFullAlert: json['storage_full_alert'] as bool? ?? false,
       seasonChangeAlert: json['season_change_alert'] as bool? ?? false,
       questCompletedAlert: json['quest_completed_alert'] as bool? ?? false,

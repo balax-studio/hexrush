@@ -105,17 +105,14 @@ class HexTileComponent extends PositionComponent {
     ..color = const Color(0x22F97316)
     ..style = PaintingStyle.fill;
   static final Paint _badgeShadowPaint = Paint()..color = Colors.black;
-  static final Paint _unownedTopScrimPaint = Paint()
-    ..color = const Color(0x18020617)
-    ..style = PaintingStyle.fill;
   static final Paint _unownedBorderPaint = Paint()
-    ..color = const Color(0x3A000000)
+    ..color = const Color(0x22475569)
     ..style = PaintingStyle.stroke
     ..strokeWidth = 1.0;
   static final Paint _ownedTerritoryBorderPaint = Paint()
-    ..color = const Color(0x55D97706)
+    ..color = const Color(0xFFF59E0B) // Tok Bozkır Kehribarı / Altın Sınır Çerçevesi
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 1.6;
+    ..strokeWidth = 2.2;
 
   // Uçurum, Jeolojik Katman ve Kot Farkı Derinlik Araçları (Zero-GC)
   static final Paint _strataDarkPaint = Paint()..style = PaintingStyle.stroke..strokeWidth = 1.2;
@@ -151,6 +148,7 @@ class HexTileComponent extends PositionComponent {
   List<Offset> compatibleNeighborOffsets;
   double northWestDeltaElevation;
   int fogNeighborMask;
+  int unownedNeighborMask;
 
   HexTileComponent({
     required this.coord,
@@ -166,6 +164,7 @@ class HexTileComponent extends PositionComponent {
     this.compatibleNeighborOffsets = const [],
     this.northWestDeltaElevation = 0.0,
     this.fogNeighborMask = 0,
+    this.unownedNeighborMask = 0,
     this.onTileTapped,
   })  : _previousSeason = season,
         _currentSeason = season,
@@ -195,6 +194,7 @@ class HexTileComponent extends PositionComponent {
     List<Offset>? newCompatibleNeighborOffsets,
     double? newNorthWestDeltaElevation,
     int? newFogNeighborMask,
+    int? newUnownedNeighborMask,
   }) {
     isFrenzyActive = newIsFrenzyActive;
     if (!isSelected && newIsSelected) {
@@ -211,6 +211,9 @@ class HexTileComponent extends PositionComponent {
     }
     if (newFogNeighborMask != null) {
       fogNeighborMask = newFogNeighborMask;
+    }
+    if (newUnownedNeighborMask != null) {
+      unownedNeighborMask = newUnownedNeighborMask;
     }
 
     final bool buildingAdded = !tileModel.hasBuilding && newTileModel.hasBuilding;
@@ -467,17 +470,17 @@ class HexTileComponent extends PositionComponent {
       case TileBiome.meadow:
         return 14.0;
       case TileBiome.forest:
-        return 20.0;
+        return 18.0;
       case TileBiome.tundra:
-        return 24.0;
+        return 22.0;
       case TileBiome.celestialCrater:
-        return 28.0;
+        return 24.0;
       case TileBiome.kurganValley:
-        return 32.0;
+        return 24.0;
       case TileBiome.volcano:
-        return 38.0;
+        return 26.0;
       case TileBiome.mountain:
-        return 44.0;
+        return 28.0;
     }
   }
 
@@ -546,7 +549,6 @@ class HexTileComponent extends PositionComponent {
 
   void _render3DExtrudedWalls(Canvas canvas, List<Offset> corners, double elevation) {
     final bool isPerimeter = fogNeighborMask != 0;
-    final double wallH = baseDepth3D + elevation + (isPerimeter ? 8.0 : 0.0);
     final (wallLeft, wallRight, bedrock) = _getBiome3DWallColors(tileModel.biome);
 
     _sharedFillPaint.style = PaintingStyle.fill;
@@ -555,9 +557,31 @@ class HexTileComponent extends PositionComponent {
       final pA = corners[i];
       final pB = corners[(i + 1) % 6];
 
-      // Eğer bu yüzey sis/boşluğa bakıyorsa sert 4px neo-brutalist düşen gölge
       final int dir = wallToDir[i];
       final bool facesAbyss = (fogNeighborMask & (1 << dir)) != 0;
+
+      // Gerçek kot farkı kontrolü: Aynı yükseklikteki açık komşular arasına gereksiz 3D duvar çizilmesini engeller
+      double wallH = 0.0;
+      if (facesAbyss) {
+        wallH = baseDepth3D + elevation + (isPerimeter ? 8.0 : 0.0);
+      } else {
+        final game = findGame();
+        if (game is HexMapGame) {
+          final neighborCoord = coord + HexAxial.directions[dir];
+          final neighborComp = game.getTileComponent(neighborCoord);
+          if (neighborComp != null && !neighborComp.tileModel.isFog) {
+            final neighborElev = getBiomeElevation(neighborComp.tileModel.biome, isFog: false);
+            final deltaElev = elevation - neighborElev;
+            if (deltaElev > 0.5) {
+              wallH = deltaElev;
+            }
+          }
+        }
+      }
+
+      if (wallH <= 0.5) continue;
+
+      // Eğer bu yüzey sis/boşluğa bakıyorsa sert 4px neo-brutalist düşen gölge
       if (facesAbyss) {
         _islandShadowPath
           ..reset()
@@ -693,11 +717,6 @@ class HexTileComponent extends PositionComponent {
       }
     }
 
-    final double highlightAlpha = !tileModel.isOwned
-        ? (isNight ? 0.02 : 0.05)
-        : (isNight ? 0.05 : 0.12);
-    _highlightPaint.color = Colors.white.withValues(alpha: highlightAlpha);
-    canvas.drawPath(_topPath, _highlightPaint);
 
     // Uçurum Düşen Gölgeleri (Cliff Cast Shadow from NW Higher Neighbor)
     if (northWestDeltaElevation > 4.0 && !tileModel.isFog) {
@@ -770,12 +789,20 @@ class HexTileComponent extends PositionComponent {
       }
     }
 
-    // Sahipsiz / Keşfedilmiş Arazi: Silikleştirme ve karartma zemin katmanı
-    if (!tileModel.isOwned) {
-      canvas.drawPath(_topPath, _unownedTopScrimPaint);
+    // Sahipsiz vs Sahip Olunan Dış Sınır Çerçevesi (İç kesişimlerde çizilmez, sadece dış sınırda birleşik altın çerçeve)
+    if (tileModel.isOwned && !isSelected && unownedNeighborMask != 0) {
+      const List<int> dirStartCorners = [0, 5, 4, 3, 2, 1];
+      const List<int> dirEndCorners = [1, 0, 5, 4, 3, 2];
+
+      for (int dir = 0; dir < 6; dir++) {
+        if ((unownedNeighborMask & (1 << dir)) != 0) {
+          final pA = corners[dirStartCorners[dir]];
+          final pB = corners[dirEndCorners[dir]];
+          canvas.drawLine(pA, pB, _ownedTerritoryBorderPaint);
+        }
+      }
+    } else if (!tileModel.isOwned) {
       canvas.drawPath(_topPath, _unownedBorderPaint);
-    } else if (!isSelected) {
-      canvas.drawPath(_topPath, _ownedTerritoryBorderPaint);
     }
 
     if (tileModel.isWarmed) {
@@ -827,6 +854,22 @@ class HexTileComponent extends PositionComponent {
     final double tTime = tileAnimTime;
     final double windWave = VoxelIsometricRenderer.getSteppeWindWave(tTime, coord.q, coord.r);
     final double tapProgress = _bounceTimer > 0 ? (1.0 - (_bounceTimer / _bounceDuration)) : 0.0;
+
+    // --- 1. ARKA SAVUNMA SURLARI (Kuzey / Y < center.dy) ---
+    // Binanın ve ağaçların arkasında kalması gereken kuzey surları önce çizilir
+    if (tileModel.hasActiveWall) {
+      final wallEdges = _calculateActiveWallEdges();
+      VoxelIsometricRenderer.drawVoxelPerimeterWall(
+        canvas,
+        corners,
+        center: center,
+        tier: tileModel.wall!.tier,
+        activeEdges: wallEdges,
+        isNight: isNight,
+        animTime: tTime,
+        layer: VoxelWallLayer.backOnly,
+      );
+    }
 
     if (tileModel.hasShrine) {
       VoxelIsometricRenderer.drawVoxelAncientShrine(
@@ -1258,16 +1301,19 @@ class HexTileComponent extends PositionComponent {
       );
     }
 
-    // 4. Savunma Suru (Akıllı Kesişim ve Sınır Koruması)
+    // --- 4. ÖN SAVUNMA SURLARI (Güney / Y >= center.dy) ---
+    // Binanın ve arazinin önünde yer alması gereken güney surları en son çizilir
     if (tileModel.hasActiveWall) {
       final wallEdges = _calculateActiveWallEdges();
       VoxelIsometricRenderer.drawVoxelPerimeterWall(
         canvas,
         corners,
+        center: center,
         tier: tileModel.wall!.tier,
         activeEdges: wallEdges,
         isNight: isNight,
         animTime: tTime,
+        layer: VoxelWallLayer.frontOnly,
       );
     }
   }
@@ -1423,7 +1469,7 @@ class HexTileComponent extends PositionComponent {
       VoxelIsometricRenderer.drawVoxelLeafScatter(canvas, center, progress: tapProgress, seed: seed);
     }
 
-    if (isNight && seed % 2 == 0) {
+    if (isNight && tileModel.isOwned && seed % 2 == 0) {
       VoxelIsometricRenderer.drawVoxelFireflies(
         canvas,
         center,
@@ -1653,15 +1699,6 @@ class HexTileComponent extends PositionComponent {
         break;
     }
 
-    // Bozkırda Yuvarlanan Çalı (Tumbleweed)
-    VoxelIsometricRenderer.drawVoxelTumbleweed(
-      canvas,
-      center,
-      animTime: tileAnimTime,
-      seed: seed,
-      windWave: windWave,
-    );
-
     if (isNight && seed % 4 == 0) {
       VoxelIsometricRenderer.drawVoxelFireflies(
         canvas,
@@ -1684,7 +1721,7 @@ class HexTileComponent extends PositionComponent {
     // Zirve Toz Kar Sürgünü
     VoxelIsometricRenderer.drawVoxelSnowDrift(
       canvas,
-      Offset(center.dx, center.dy - 24),
+      Offset(center.dx, center.dy - 16),
       animTime: tileAnimTime,
       windWave: windWave,
       seed: seed,
@@ -2055,9 +2092,17 @@ class HexTileComponent extends PositionComponent {
 
     Color topColor = Color.lerp(fromColor, toColor, blend) ?? toColor;
 
-    // Sahipsiz / Keşfedilmiş Arazi: Gözü yormayan sakinleştirici koyu sis tonlaması (%20 matlaştırma)
     if (!tileModel.isOwned) {
-      topColor = Color.lerp(topColor, const Color(0xFF0F172A), 0.20)!;
+      // 1. Doygunluk Kırma (Desaturation): Rengin aydınlık bileşenini hesapla
+      final double r = topColor.r;
+      final double g = topColor.g;
+      final double b = topColor.b;
+      final double lum = 0.299 * r + 0.587 * g + 0.114 * b;
+      final Color desat = Color.from(alpha: 1.0, red: lum, green: lum, blue: lum);
+
+      // 2. Kül & Arduvaz Harmanlaması: Mat, soluk kül-bazalt tülü (%55 grileşme + %35 arduvaz karartma)
+      final Color grayed = Color.lerp(topColor, desat, 0.55)!;
+      topColor = Color.lerp(grayed, const Color(0xFF1E293B), 0.35)!;
     }
 
     return topColor;
@@ -2072,94 +2117,96 @@ class HexTileComponent extends PositionComponent {
     switch (biome) {
       case TileBiome.meadow:
         if (isWinter) {
-          baseColor = const Color(0xFF8A9CA8); // Göz kamaştırmayan kırağı külü
+          baseColor = const Color(0xFF94A3B8); // Buzlu kırağı
         } else if (isAutumn) {
-          baseColor = const Color(0xFF8C6D3B); // Dingin step sarısı
+          baseColor = const Color(0xFFB45309); // Sıcak altın step
         } else if (isSummer) {
-          baseColor = const Color(0xFF4A7C54); // Ilık çayır
+          baseColor = const Color(0xFF388E3C); // Canlı ılık çayır
         } else {
-          baseColor = const Color(0xFF3E6B48); // Doğal ardıç yeşili
+          baseColor = const Color(0xFF2E7D32); // Canlı çayır zümrütü
         }
         break;
 
       case TileBiome.forest:
         if (isWinter) {
-          baseColor = const Color(0xFF526374); // Taiga külü
+          baseColor = const Color(0xFF475569); // Taiga külü
         } else if (isAutumn) {
-          baseColor = const Color(0xFF7C4325); // Kızıl meşe
+          baseColor = const Color(0xFF9A3412); // Zengin kızıl meşe
         } else if (isSummer) {
-          baseColor = const Color(0xFF1E3F2E); // Koyu sedir
+          baseColor = const Color(0xFF166534); // Derin zümrüt ormanı
         } else {
-          baseColor = const Color(0xFF284E3A); // Bozkır ormanı
+          baseColor = const Color(0xFF15803D); // Canlı sedir/çam yeşili
         }
         break;
 
       case TileBiome.mountain:
         if (isWinter) {
-          baseColor = const Color(0xFF7A899C); // Buzul zirve
+          baseColor = const Color(0xFF94A3B8); // Buzul zirve
         } else if (isAutumn) {
-          baseColor = const Color(0xFF634C3E); // Tortul kayaç
+          baseColor = const Color(0xFF78350F); // Tortul kayaç
+        } else if (isSummer) {
+          baseColor = const Color(0xFF78716C); // Sıcak granit
         } else {
-          baseColor = const Color(0xFF576574); // Dingin granit
+          baseColor = const Color(0xFF64748B); // Asil granit
         }
         break;
 
       case TileBiome.sea:
         if (isWinter) {
-          baseColor = const Color(0xFF4A6D7C); // Donmuş gölet
+          baseColor = const Color(0xFF38BDF8); // Donmuş açık gölet
         } else if (isAutumn) {
-          baseColor = const Color(0xFF1D4E5F); // Derin Hazar
+          baseColor = const Color(0xFF0369A1); // Derin Hazar
         } else {
-          baseColor = const Color(0xFF256378); // Turkuaz göl
+          baseColor = const Color(0xFF0284C7); // Canlı turkuaz Hazar mavisi
         }
         break;
 
       case TileBiome.desert:
         if (isWinter) {
-          baseColor = const Color(0xFFB8A98E); // Buzlu kireçtaşı
+          baseColor = const Color(0xFFCBD5E1); // Buzlu kireçtaşı
         } else if (isAutumn) {
-          baseColor = const Color(0xFF9E743A); // Kalker toprağı
+          baseColor = const Color(0xFFB45309); // Kalker toprağı
         } else if (isSummer) {
-          baseColor = const Color(0xFFA8884C); // Sıcak step kumu
+          baseColor = const Color(0xFFF59E0B); // Canlı sıcak step kumu
         } else {
-          baseColor = const Color(0xFFB89758); // Kumsal buğdayı (aşırı parlamayan sarı)
+          baseColor = const Color(0xFFD97706); // Altın kumsal buğdayı
         }
         break;
 
       case TileBiome.tundra:
         if (isWinter) {
-          baseColor = const Color(0xFF879BB0); // Ayaz sisi
+          baseColor = const Color(0xFFBAE6FD); // Ayaz don kristali
         } else if (isAutumn) {
-          baseColor = const Color(0xFF705E7C); // Funda moru
+          baseColor = const Color(0xFF818CF8); // Funda moru
         } else {
-          baseColor = const Color(0xFF6C8299); // Liken mavisi
+          baseColor = const Color(0xFF38BDF8); // Canlı kutup mavisi
         }
         break;
 
       case TileBiome.volcano:
-        baseColor = const Color(0xFF2B2D3A); // Mat bazalt külü
+        baseColor = const Color(0xFF3B1818); // Kor ışıltılı volkanik bazalt
         break;
 
       case TileBiome.wetland:
         if (isWinter) {
-          baseColor = const Color(0xFF4A585E); // Buz sazlığı
+          baseColor = const Color(0xFF64748B); // Buz sazlığı
         } else if (isAutumn) {
-          baseColor = const Color(0xFF586338); // Kamış step
+          baseColor = const Color(0xFF65A30D); // Kamış step
         } else {
-          baseColor = const Color(0xFF3B6359); // Yosunlu gölcük
+          baseColor = const Color(0xFF0D9488); // Canlı sazlık zümrütü
         }
         break;
 
       case TileBiome.celestialCrater:
-        baseColor = const Color(0xFF242244); // Kozmik meteorit
+        baseColor = const Color(0xFF4338CA); // Parlayan kozmik meteorit
         break;
 
       case TileBiome.kurganValley:
-        baseColor = const Color(0xFF4A4E5A); // Kadim tümülüs taşı
+        baseColor = const Color(0xFF78350F); // Kadim tuğ kehribarı
         break;
 
       case TileBiome.crystalChasm:
-        baseColor = const Color(0xFF1E5045); // Klorit damarı
+        baseColor = const Color(0xFF059669); // Canlı zümrüt klorit damarı
         break;
     }
 
@@ -2213,9 +2260,9 @@ class HexTileComponent extends PositionComponent {
 
     // Sahipsiz / Keşfedilmiş Arazi: 3D duvarlarda kapalı/derinlik tonlaması
     if (!tileModel.isOwned) {
-      wL = Color.lerp(wL, const Color(0xFF0F172A), 0.35)!;
-      wR = Color.lerp(wR, const Color(0xFF0F172A), 0.35)!;
-      wB = Color.lerp(wB, const Color(0xFF020617), 0.35)!;
+      wL = Color.lerp(wL, const Color(0xFF040814), 0.40)!;
+      wR = Color.lerp(wR, const Color(0xFF040814), 0.40)!;
+      wB = Color.lerp(wB, const Color(0xFF020617), 0.40)!;
     }
 
     final theme = NeoBrutalistTheme.getTheme(themePalette);

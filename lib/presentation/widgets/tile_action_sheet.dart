@@ -33,6 +33,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
   HexTileModel? _cachedTile;
   bool _showLockedBuildings = false;
   bool _isSynergyExpanded = false;
+  bool _showTutorialHint = true;
 
   @override
   void initState() {
@@ -133,7 +134,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Tutorial Hint Section
-                if (gameState.progression.tutorialStep < 9)
+                if (gameState.progression.tutorialStep < 9 && _showTutorialHint)
                   _buildTutorialHint(gameState.progression.tutorialStep, lang, theme),
 
                 // Header: Yapı/Biyom Adı, Durum ve Kapat Butonu
@@ -254,6 +255,22 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                       ),
                     ),
                     const SizedBox(width: 8),
+                    if (gameState.progression.tutorialStep < 9 && !_showTutorialHint) ...[
+                      TactileNeoButton(
+                        onTap: () {
+                          setState(() {
+                            _showTutorialHint = true;
+                          });
+                        },
+                        backgroundColor: theme.primaryGold,
+                        borderColor: theme.border,
+                        shadowOffset: 2.0,
+                        padding: const EdgeInsets.all(5),
+                        soundType: TactileSoundType.tap,
+                        child: const Icon(Icons.help_outline, color: Colors.black, size: 16),
+                      ),
+                      const SizedBox(width: 6),
+                    ],
                     TactileNeoButton(
                       onTap: () {
                         ref.read(gameStateProvider.notifier).clearSelection();
@@ -827,55 +844,184 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: const Color(0xFF060913),
         shape: const RoundedRectangleBorder(
           side: BorderSide(color: Color(0xFF334155), width: 2),
-          borderRadius: BorderRadius.all(Radius.circular(3)),
+          borderRadius: BorderRadius.all(Radius.circular(4)),
         ),
-        title: Text(
-          currentWall != null ? 'SURI YÜKSELT' : 'SAVUNMA SURU SEÇİN',
-          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: availableTiers.map((tier) {
-            final cost = CombatCalculator.calculateWallCost(tier);
-            return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: TactileNeoButton(
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  notifier.buildOrUpgradeWall(tile.coord, tier);
-                },
-                backgroundColor: theme.surfaceLight,
-                borderColor: theme.border,
-                shadowOffset: 2.0,
-                padding: const EdgeInsets.all(8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          tier.titleTr,
-                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900),
-                        ),
-                        Text(
-                          'HP: ${tier.maxHp.toInt()} | Hendek: ${tier.passiveThornDps.toInt()}/s',
-                          style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      cost.entries.map((e) => '${e.value.toInt()} ${e.key}').join(', '),
-                      style: const TextStyle(color: Color(0xFFFDE047), fontSize: 9, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
+        titlePadding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        contentPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B),
+                border: Border.all(color: const Color(0xFF475569), width: 1.5),
+                borderRadius: BorderRadius.circular(3),
               ),
-            );
-          }).toList(),
+              child: const Icon(Icons.shield, size: 16, color: Color(0xFFFDE047)),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    currentWall != null ? 'SURI YÜKSELT' : 'SAVUNMA SURU SEÇİN',
+                    style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900),
+                  ),
+                  const Text(
+                    'Düşman akınlarına ve koçbaşlarına karşı tahkimat kurun',
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: 320,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: availableTiers.map((tier) {
+              final cost = CombatCalculator.calculateWallCost(tier);
+              final bool canAfford = cost.entries.every((e) {
+                switch (e.key) {
+                  case 'wood':
+                    return gameState.resources.wood >= e.value;
+                  case 'stone':
+                    return gameState.resources.stone >= e.value;
+                  case 'iron':
+                    return gameState.resources.iron >= e.value;
+                  case 'plank':
+                    return gameState.resources.plank >= e.value;
+                  case 'damascusSteel':
+                    return gameState.resources.damascusSteel >= e.value;
+                  default:
+                    return true;
+                }
+              });
+
+              final (badgeColor, borderColor, subtitle, tagText) = switch (tier) {
+                WallTier.woodenPalisade => (
+                    const Color(0xFFD97706),
+                    const Color(0xFFB45309),
+                    'Kazıklı Bozkır Çiti • Süvari Kapanı',
+                    'T1 HIZLI SAVUNMA'
+                  ),
+                WallTier.stoneRampart => (
+                    const Color(0xFF0D9488),
+                    const Color(0xFF0F766E),
+                    'Yontma Mazgal Sur • Sekizgen Burç',
+                    'T2 AĞIR DİRENÇ'
+                  ),
+                WallTier.ironFortification => (
+                    const Color(0xFFEF4444),
+                    const Color(0xFFDC2626),
+                    'Zırhlı Çelik Hisar • Akkor Ateş Kulesi',
+                    'T3 EFSANEVİ KALE'
+                  ),
+              };
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: TactileNeoButton(
+                  onTap: canAfford
+                      ? () {
+                          Navigator.of(ctx).pop();
+                          notifier.buildOrUpgradeWall(tile.coord, tier);
+                        }
+                      : null,
+                  backgroundColor: canAfford ? const Color(0xFF0F172A) : const Color(0xFF0A0F1D),
+                  borderColor: canAfford ? borderColor : const Color(0xFF334155),
+                  shadowOffset: canAfford ? 2.5 : 0.0,
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: badgeColor,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                tier.titleTr,
+                                style: TextStyle(
+                                  color: canAfford ? Colors.white : Colors.white54,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: badgeColor.withValues(alpha: 0.15),
+                              border: Border.all(color: badgeColor.withValues(alpha: 0.6), width: 1),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                            child: Text(
+                              tagText,
+                              style: TextStyle(
+                                color: badgeColor,
+                                fontSize: 8,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9, fontWeight: FontWeight.w500),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E293B),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                            child: Text(
+                              'HP: ${tier.maxHp.toInt()} | Hendek: ${tier.passiveThornDps.toInt()}/s',
+                              style: TextStyle(
+                                color: canAfford ? const Color(0xFF38BDF8) : Colors.white38,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            cost.entries.map((e) => '${e.value.toInt()} ${e.key}').join(', '),
+                            style: TextStyle(
+                              color: canAfford ? const Color(0xFFFDE047) : const Color(0xFFEF4444),
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
         ),
       ),
     );
@@ -1494,6 +1640,9 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
       toreTalents: gameState.toreTalents,
       totalMigrations: gameState.progression.totalMigrations,
       kutMultiplier: gameState.progression.kutMultiplier,
+      frenzyMultiplier: (gameState.frenzyTimer > 0 && gameState.frenzyMultiplier > 1)
+          ? gameState.frenzyMultiplier
+          : 1,
     );
     final isLogisticsBuilding = b.currentCarryingCapacity > 0 && b.baseProductionRate == 0.0;
 
@@ -2604,7 +2753,19 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
       ),
       child: Row(
         children: [
-          const Icon(Icons.help_outline, color: Colors.black, size: 20),
+          TactileNeoButton(
+            onTap: () {
+              setState(() {
+                _showTutorialHint = false;
+              });
+            },
+            backgroundColor: Colors.white,
+            borderColor: Colors.black,
+            shadowOffset: 1.5,
+            padding: const EdgeInsets.all(4),
+            soundType: TactileSoundType.tap,
+            child: const Icon(Icons.close, color: Colors.black, size: 14),
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(

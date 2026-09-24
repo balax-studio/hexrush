@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hex_rush/core/hex/hex_coordinates.dart';
 import 'package:hex_rush/domain/economy/economy_calculator.dart';
 import 'package:hex_rush/domain/models/building_model.dart';
@@ -8,6 +9,10 @@ import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
 
   group('Worker Range (4 Hex Radius) & Gathering Tests', () {
     test('HexAxial.distanceTo calculates correct hex distance', () {

@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hex_rush/domain/economy/economy_calculator.dart';
-import 'package:hex_rush/domain/models/trade_order_model.dart';
 import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';

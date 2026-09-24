@@ -97,8 +97,8 @@ class AchievementModel {
     if (base == null) {
       return AchievementModel(
         id: json['id'] as String? ?? 'unknown',
-        titles: {'tr': 'Bilinmeyen Başarım', 'en': 'Unknown Achievement'},
-        descriptions: {'tr': '', 'en': ''},
+        titles: const {'tr': 'Bilinmeyen Başarım', 'en': 'Unknown Achievement'},
+        descriptions: const {'tr': '', 'en': ''},
         category: AchievementCategory.mastery,
         iconCode: 'star',
         currentProgress: (json['currentProgress'] as num?)?.toDouble() ?? 0.0,

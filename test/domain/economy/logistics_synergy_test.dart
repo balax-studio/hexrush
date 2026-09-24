@@ -7,11 +7,11 @@ import 'package:hex_rush/domain/models/hex_tile_model.dart';
 void main() {
   group('Logistics Scaling & Granary Synergy Tests', () {
     test('Castle carries with scaled capacity based on level', () {
-      final castleLvl1 = const BuildingModel(
+      const castleLvl1 = BuildingModel(
         type: BuildingType.castle,
         level: 1,
       );
-      final castleLvl10 = const BuildingModel(
+      const castleLvl10 = BuildingModel(
         type: BuildingType.castle,
         level: 10,
       );
@@ -36,12 +36,12 @@ void main() {
     });
 
     test('GranaryVault gains +20% logistics synergy per neighboring food producer', () {
-      final centerCoord = const HexAxial(0, 0);
-      final granaryTile = HexTileModel(
+      const centerCoord = HexAxial(0, 0);
+      const granaryTile = HexTileModel(
         coord: centerCoord,
         biome: TileBiome.meadow,
         state: TileState.owned,
-        building: const BuildingModel(
+        building: BuildingModel(
           type: BuildingType.granaryVault,
           level: 1,
         ),

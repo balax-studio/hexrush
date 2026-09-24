@@ -485,6 +485,7 @@ class EconomyCalculator {
     List<String> activeOaths = const [],
     double? kutMultiplier,
     Map<HexAxial, HexTileModel>? tiles,
+    int frenzyMultiplier = 1,
   }) {
     final int speedLvl = (talents['workerSpeed'] as num? ?? 0).toInt();
     int roadLvl = 0;
@@ -517,7 +518,7 @@ class EconomyCalculator {
       kutMultiplier: effectiveKut,
     );
 
-    return baseMultiplier * globalMult * transportShrineMult;
+    return baseMultiplier * globalMult * transportShrineMult * frenzyMultiplier;
   }
 
   /// Haritadaki tüm işçi kulübeleri ve üretim binaları arasında dinamik greedy lojistik yük dağıtımı yapar.
@@ -1128,6 +1129,7 @@ class EconomyCalculator {
       totalMigrations: totalMigrations,
       kutMultiplier: kutMultiplier,
       tiles: tiles,
+      frenzyMultiplier: frenzyMultiplier,
     );
 
     final Map<HexAxial, double> producerDemands = {
@@ -1446,9 +1448,12 @@ class EconomyCalculator {
         }
         return 1.0;
       case 'WINTER':
-        if (buildingType == BuildingType.barley)
+        if (buildingType == BuildingType.barley) {
           return 1.15; // Soğuğa dayanıklı
-        if (buildingType == BuildingType.orchard) return 0.65; // Kış uykusu
+        }
+        if (buildingType == BuildingType.orchard) {
+          return 0.65; // Kış uykusu
+        }
         return 1.0;
       default:
         return 1.0;
@@ -1518,17 +1523,21 @@ class EconomyCalculator {
       final nTile = tileMap[nCoord];
       if (nTile != null && nTile.isOwned && nTile.building != null) {
         if (b.type == BuildingType.windmill &&
-            nTile.building!.type == BuildingType.corn)
+            nTile.building!.type == BuildingType.corn) {
           chainSynergy = 2.0;
+        }
         if (b.type == BuildingType.sawmill &&
-            nTile.building!.type == BuildingType.lumberjack)
+            nTile.building!.type == BuildingType.lumberjack) {
           chainSynergy = 2.0;
+        }
         if (b.type == BuildingType.bakery &&
-            nTile.building!.type == BuildingType.windmill)
+            nTile.building!.type == BuildingType.windmill) {
           chainSynergy = 2.0;
+        }
         if (b.type == BuildingType.furniture &&
-            nTile.building!.type == BuildingType.sawmill)
+            nTile.building!.type == BuildingType.sawmill) {
           chainSynergy = 2.0;
+        }
       }
     }
 
@@ -2195,6 +2204,7 @@ class EconomyCalculator {
     Map<String, dynamic> talents = const {},
     int totalMigrations = 0,
     double kutMultiplier = 1.0,
+    int frenzyMultiplier = 1,
   }) {
     double netFood = 0.0;
     double netWood = 0.0;
@@ -2233,6 +2243,7 @@ class EconomyCalculator {
       totalMigrations: totalMigrations,
       kutMultiplier: kutMultiplier,
       tiles: map,
+      frenzyMultiplier: frenzyMultiplier,
     );
     final List<HexAxial> workerSourceCoords = [];
     final List<double> workerSourceCapacities = [];
@@ -2593,10 +2604,12 @@ class EconomyCalculator {
         case TileBiome.tundra:
           // Tundra: Kışın soğuk cezası (-%25), ancak Arpa ve Madenlere dayanıklılık
           if (season.toUpperCase() == 'WINTER' || isZud) {
-            if (bType == BuildingType.corn || bType == BuildingType.orchard)
+            if (bType == BuildingType.corn || bType == BuildingType.orchard) {
               synergy -= 0.25;
-            if (bType == BuildingType.barley)
+            }
+            if (bType == BuildingType.barley) {
               synergy += 0.15; // Soğuk dayanıklılığı
+            }
           }
           if (bType == BuildingType.mine ||
               bType == BuildingType.quarry ||
@@ -2769,10 +2782,12 @@ class EconomyCalculator {
 
         case TileBiome.tundra:
           if (season.toUpperCase() == 'WINTER' || isZud) {
-            if (bType == BuildingType.corn || bType == BuildingType.orchard)
+            if (bType == BuildingType.corn || bType == BuildingType.orchard) {
               labels.add('-25% Ayaz Şoku (Tundra)');
-            if (bType == BuildingType.barley)
+            }
+            if (bType == BuildingType.barley) {
               labels.add('+15% Soğuk Direnci (Arpa)');
+            }
           }
           if (bType == BuildingType.mine ||
               bType == BuildingType.quarry ||
@@ -2806,17 +2821,26 @@ class EconomyCalculator {
     }
 
     if (bType == BuildingType.orchard) {
-      if (season.toUpperCase() == 'SUMMER')
+      if (season.toUpperCase() == 'SUMMER') {
         labels.add('+50% Yaz Meyve Coşkusu');
-      if (season.toUpperCase() == 'AUTUMN') labels.add('+30% Sonbahar Hasadı');
-      if (season.toUpperCase() == 'WINTER') labels.add('-35% Kış Uykusu');
+      }
+      if (season.toUpperCase() == 'AUTUMN') {
+        labels.add('+30% Sonbahar Hasadı');
+      }
+      if (season.toUpperCase() == 'WINTER') {
+        labels.add('-35% Kış Uykusu');
+      }
     } else if (bType == BuildingType.pasture) {
-      if (season.toUpperCase() == 'AUTUMN')
+      if (season.toUpperCase() == 'AUTUMN') {
         labels.add('+25% Sonbahar Besi Dönemi');
-      if (season.toUpperCase() == 'SPRING') labels.add('+15% Bahar Yavrulama');
+      }
+      if (season.toUpperCase() == 'SPRING') {
+        labels.add('+15% Bahar Yavrulama');
+      }
     } else if (bType == BuildingType.barley) {
-      if (season.toUpperCase() == 'WINTER')
+      if (season.toUpperCase() == 'WINTER') {
         labels.add('+20% Ayazda Dirençli Hasat');
+      }
     }
 
     return labels;

@@ -3,8 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../../core/audio/tactile_audio_service.dart';
+import '../../core/notifications/local_notification_service.dart';
 import '../../core/hex/hex_coordinates.dart';
 import '../../core/hex/hex_math.dart';
 import '../../core/localization/game_localization.dart';
@@ -885,12 +885,13 @@ class GameStateNotifier extends StateNotifier<GameState> {
         ) *
         state.frenzyMultiplier;
 
-    // İşçi transfer hız çarpanı (Büyük Göç Kut verim artış çarpanı ile birebir uyumlu)
+    // İşçi transfer hız çarpanı (Büyük Göç Kut verim artış çarpanı ve Toy Coşkusu ile birebir uyumlu)
     final double workerTransferMult =
         EconomyCalculator.getWorkerTransferMultiplier(
       toreTalents: state.toreTalents,
       totalMigrations: state.progression.totalMigrations,
       kutMultiplier: state.progression.kutMultiplier,
+      frenzyMultiplier: state.frenzyMultiplier,
     );
 
     // Sezon güncellemesi (300 saniyede bir sezon değişir - 5 Dakika)
@@ -2477,47 +2478,6 @@ class GameStateNotifier extends StateNotifier<GameState> {
     unawaited(saveGame());
   }
 
-  Future<void> updateNotificationSettings({
-    bool? storageFullAlert,
-    bool? seasonChangeAlert,
-    bool? questCompletedAlert,
-    bool? castleUpgradeReadyAlert,
-    bool? questPanelHidden,
-  }) async {
-    // Bildirim izin kontrolü
-    final shouldAskPermission = (storageFullAlert == true ||
-        seasonChangeAlert == true ||
-        questCompletedAlert == true ||
-        castleUpgradeReadyAlert == true);
-
-    if (shouldAskPermission) {
-      try {
-        final status = await Permission.notification.status;
-        if (!status.isGranted) {
-          final result = await Permission.notification.request();
-          if (!result.isGranted) {
-            // İzin verilmediyse, açılmaya çalışılan toggle'ı kapalı var say (ya da UI'a izin verilmediğini bildir)
-            // Şimdilik sadece state güncellemesine devam ediyoruz fakat ileride toast vb eklenebilir.
-          }
-        }
-      } catch (e) {
-        // Test ortamı veya desteklenmeyen platformlar için yoksay
-      }
-    }
-
-    final current = state.settings.notifications;
-    final updated = current.copyWith(
-      storageFullAlert: storageFullAlert,
-      seasonChangeAlert: seasonChangeAlert,
-      questCompletedAlert: questCompletedAlert,
-      castleUpgradeReadyAlert: castleUpgradeReadyAlert,
-      questPanelHidden: questPanelHidden,
-    );
-    state = state.copyWith(
-      settings: state.settings.copyWith(notifications: updated),
-    );
-    unawaited(saveGame());
-  }
 
   void _checkAchievements() {
     final result = AchievementTracker.evaluate(state);
@@ -3870,6 +3830,56 @@ class GameStateNotifier extends StateNotifier<GameState> {
     TactileAudioService.instance.play(TactileSoundType.build);
     saveGame();
     return true;
+  }
+
+  Future<void> toggleNotifications({bool? explicitValue}) async {
+    final currentNotifs = state.settings.notifications;
+    final newValue = explicitValue ?? !currentNotifs.enabled;
+
+    await updateNotificationSettings(enabled: newValue);
+  }
+
+  Future<void> updateNotificationSettings({
+    bool? enabled,
+    bool? idle1hAlert,
+    bool? idle4hAlert,
+    bool? dailyCouncilAlert,
+    bool? dailyHarvestAlert,
+    bool? inactivityAlert,
+    bool? storageFullAlert,
+    bool? seasonChangeAlert,
+    bool? questCompletedAlert,
+    bool? castleUpgradeReadyAlert,
+    bool? questPanelHidden,
+  }) async {
+    final currentNotifs = state.settings.notifications;
+    final newNotifs = currentNotifs.copyWith(
+      enabled: enabled,
+      idle1hAlert: idle1hAlert,
+      idle4hAlert: idle4hAlert,
+      dailyCouncilAlert: dailyCouncilAlert,
+      dailyHarvestAlert: dailyHarvestAlert,
+      inactivityAlert: inactivityAlert,
+      storageFullAlert: storageFullAlert,
+      seasonChangeAlert: seasonChangeAlert,
+      questCompletedAlert: questCompletedAlert,
+      castleUpgradeReadyAlert: castleUpgradeReadyAlert,
+      questPanelHidden: questPanelHidden,
+    );
+
+    if (enabled != null) {
+      if (enabled) {
+        await LocalNotificationService.instance.requestPermissions();
+      } else {
+        await LocalNotificationService.instance.cancelAll();
+      }
+    }
+
+    state = state.copyWith(
+      settings: state.settings.copyWith(notifications: newNotifs),
+    );
+    unawaited(TactileAudioService.instance.play(TactileSoundType.tap));
+    await saveGame();
   }
 
   /// Geliştirici ve test araçları için kontrollü state mutasyonu

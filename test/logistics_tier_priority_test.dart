@@ -33,34 +33,34 @@ void main() {
     });
 
     test('Ambar kapasitesi kısıtlı olduğunda Kımız Mısırdan önce taşınmalıdır', () {
-      final origin = HexAxial(0, 0); // Gıda Ambarı
-      final cornCoord = HexAxial(1, 0); // Mısır Tarlası (Mesafe 1)
-      final kumisCoord = HexAxial(2, 0); // Kımız Otağı (Mesafe 2)
+      const origin = HexAxial(0, 0); // Gıda Ambarı
+      const cornCoord = HexAxial(1, 0); // Mısır Tarlası (Mesafe 1)
+      const kumisCoord = HexAxial(2, 0); // Kımız Otağı (Mesafe 2)
 
       final tiles = <HexAxial, HexTileModel>{
-        origin: HexTileModel(
+        origin: const HexTileModel(
           coord: origin,
           biome: TileBiome.meadow,
           state: TileState.owned,
-          building: const BuildingModel(
+          building: BuildingModel(
             type: BuildingType.granaryVault,
             level: 1, // Kapasite: 33.6
           ),
         ),
-        cornCoord: HexTileModel(
+        cornCoord: const HexTileModel(
           coord: cornCoord,
           biome: TileBiome.meadow,
           state: TileState.owned,
-          building: const BuildingModel(
+          building: BuildingModel(
             type: BuildingType.corn,
             level: 5,
           ),
         ),
-        kumisCoord: HexTileModel(
+        kumisCoord: const HexTileModel(
           coord: kumisCoord,
           biome: TileBiome.meadow,
           state: TileState.owned,
-          building: const BuildingModel(
+          building: BuildingModel(
             type: BuildingType.kumisYurt,
             level: 1,
           ),

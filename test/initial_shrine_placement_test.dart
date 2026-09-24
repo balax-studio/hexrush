@@ -54,7 +54,7 @@ void main() {
       const center = HexAxial(0, 0);
 
       final dist4Shrine = notifier.state.tiles.values.firstWhere(
-        (t) => HexMath.hexDistance(center, t.coord) == 4 && t.hasShrine,
+        (t) => HexMath.hexDistance(center, t.coord) == 4 && t.shrine == ShrineType.speedBoost,
       );
 
       final initialMultiplier = notifier.state.shrineMultiplier;

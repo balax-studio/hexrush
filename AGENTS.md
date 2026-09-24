@@ -109,9 +109,9 @@ Bu dosya, projede çalışan tüm yapay zeka ajanları ve geliştiriciler için 
     - `git stash save` -> `git pull --rebase` -> `git stash pop` akışı uygulanır; çakışmalarda her iki özelliğin de korunduğu kapsayıcı birleştirme yapılır.
     - İşlem sonrası `flutter test` çalıştırılarak tüm testlerin eksiksiz geçtiği doğrulanır (`.agents/rules/kayipsiz_git_senkronizasyon_ve_birlestirme_protokolu.md`).
 
-23. **Cerrahi Arama, Ripgrep ve Token Tasarrufu Standardı (Surgical Phased Retrieval):**
-    - Kod analizi ve düzenleme taleplerinde dosyaları körü körüne topluca okumak (bulk read) yasaktır; hedef sınıf/fonksiyon öncelikle `ripgrep` / `grep_search` ile taranmalıdır.
-    - Kademeli arama protokolü (standart -> `-u` gizli dosyalar -> `-tdart` / `-tjson` dosya tipi filtreleme) uygulanır.
+23. **Cerrahi Arama, Ripgrep, Graft ve Token Tasarrufu Standardı (Surgical Phased Retrieval):**
+    - Kod analizi ve düzenleme taleplerinde dosyaları körü körüne topluca okumak (bulk read) yasaktır; mimari haritalama için `graft` (`graft/`), hedef sınıf/fonksiyon için öncelikle `ripgrep` / `grep_search` ile taranmalıdır.
+    - Kademeli arama protokolü (Graft bağlam düğümleri -> standart arama -> `-u` gizli dosyalar -> `-tdart` / `-tjson` dosya tipi filtreleme) uygulanır.
     - Cerrahi müdahale öncesinde kod bloğunun yaşam döngüsü ve yan etkileri incelenmeli, gereksiz token tüketimi ve bağlam kirliliği engellenmelidir (`.agents/rules/cerrahi_arama_ve_ripgrep_tasarruf_standartlari.md`).
 
 24. **Görsel ve Taktil Mükemmellik, Voksel Derinlik ve Hasat Standartları (Visual Elevation & Tactile Polish Standards):**
