@@ -132,7 +132,7 @@ class CouncilManagementDialog extends ConsumerWidget {
                   final notifier = ref.read(gameStateProvider.notifier);
                   final completed = await showAdRewardProgressDialog(
                     context,
-                    title: GameLocalization.get('toy_frenzy_10x', lang: lang),
+                    title: GameLocalization.get('frenzy_boost', lang: lang).toUpperCase(),
                     message: GameLocalization.get('reward_processing_wait', lang: lang),
                   );
                   if (completed) {
@@ -177,8 +177,8 @@ class CouncilManagementDialog extends ConsumerWidget {
                           children: [
                             Text(
                               gameState.frenzyTimer > 0
-                                  ? '${GameLocalization.get('toy_frenzy_10x', lang: lang)} (${gameState.frenzyTimer.toInt()}s)'
-                                  : GameLocalization.get('toy_frenzy_10x', lang: lang),
+                                  ? '${GameLocalization.get('frenzy_boost', lang: lang).toUpperCase()} (${gameState.frenzyTimer.toInt()}s)'
+                                  : GameLocalization.get('frenzy_boost', lang: lang).toUpperCase(),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 12,
@@ -187,9 +187,7 @@ class CouncilManagementDialog extends ConsumerWidget {
                               ),
                             ),
                             Text(
-                              gameState.frenzyTimer > 0
-                                  ? GameLocalization.get('toy_frenzy_active', lang: lang)
-                                  : GameLocalization.get('frenzy_boost', lang: lang),
+                              GameLocalization.get('frenzy_boost', lang: lang),
                               style: const TextStyle(
                                 color: Color(0xFFFEF3C7),
                                 fontSize: 9.5,
