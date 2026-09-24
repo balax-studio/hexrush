@@ -32,13 +32,9 @@ class CaravanLinkSheet extends ConsumerWidget {
 
     final title = GameLocalization.get('establish_caravan_route', lang: lang);
     final originText = GameLocalization.get('origin', lang: lang);
-    final costText = lang == 'tr'
-        ? 'Maliyet: 30 Kalas, 20 Ekmek | Bonus: +%25 Takas Rezonansı'
-        : 'Cost: 30 Planks, 20 Bread | Bonus: +25% Trade Resonance';
-    final emptyMsg = lang == 'tr'
-        ? '8 Hex menzilinde kervan bağlanabilecek başka bir fethedilmiş arazi bulunamadı.'
-        : 'No other conquered lands found within 8 hex range.';
-    final distanceText = lang == 'tr' ? 'Mesafe' : 'Distance';
+    final costText = GameLocalization.get('caravan_route_cost_bonus', lang: lang);
+    final emptyMsg = GameLocalization.get('no_caravan_target_in_range', lang: lang);
+    final distanceText = GameLocalization.get('distance_label', lang: lang);
     final connectedText = GameLocalization.get('connected', lang: lang);
     final connectBtn = GameLocalization.get('connect', lang: lang);
     final closeBtn = GameLocalization.get('close', lang: lang);

@@ -1,13 +1,27 @@
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hex_rush/core/localization/game_localization.dart';
 
 void main() {
-  test('Find keys in en, es, de that are EXACT copies of tr values', () {
+  test('Verify localization completeness and key map consistency across TR, EN, ES, DE', () {
+    final trKeys = GameLocalization.getAllKeysForLanguage('tr').toSet();
+    final enKeys = GameLocalization.getAllKeysForLanguage('en').toSet();
+    final esKeys = GameLocalization.getAllKeysForLanguage('es').toSet();
+    final deKeys = GameLocalization.getAllKeysForLanguage('de').toSet();
+
+    final allKeys = {...trKeys, ...enKeys, ...esKeys, ...deKeys};
+
+    expect(allKeys.difference(trKeys), isEmpty, reason: 'All keys must exist in TR');
+    expect(allKeys.difference(enKeys), isEmpty, reason: 'All keys must exist in EN');
+    expect(allKeys.difference(esKeys), isEmpty, reason: 'All keys must exist in ES');
+    expect(allKeys.difference(deKeys), isEmpty, reason: 'All keys must exist in DE');
+  });
+
+  test('Find keys in EN, ES, DE that are EXACT copies of TR values', () {
     final trKeys = GameLocalization.getAllKeysForLanguage('tr');
 
-    // Words/terms that are expected to be identical in TR and EN/ES/DE (acronyms, proper nouns, brand names)
     final identicalAllowed = <String>{
-      'language', // TR / Language / Idioma / Sprache - wait, 'language' key
+      'language',
       'tr',
       'en',
       'es',
@@ -15,6 +29,18 @@ void main() {
       'ok',
       'cancel',
       'close',
+      'slot_wildcard',
+      'frenzy',
+      'zud',
+      'kut',
+      'tamga',
+      'kumis',
+      'altay',
+      'bengutas',
+      'altai',
+      'steppe',
+      'oasis',
+      'tundra',
     };
 
     final exactCopiesEn = <String, String>{};
@@ -29,25 +55,41 @@ void main() {
       final esVal = GameLocalization.get(key, lang: 'es');
       final deVal = GameLocalization.get(key, lang: 'de');
 
-      if (enVal == trVal && trVal.length > 2) {
-        exactCopiesEn[key] = trVal;
-      }
-      if (esVal == trVal && trVal.length > 2) {
-        exactCopiesEs[key] = trVal;
-      }
-      if (deVal == trVal && trVal.length > 2) {
-        exactCopiesDe[key] = trVal;
+      if (enVal == trVal && trVal.length > 2) exactCopiesEn[key] = trVal;
+      if (esVal == trVal && trVal.length > 2) exactCopiesEs[key] = trVal;
+      if (deVal == trVal && trVal.length > 2) exactCopiesDe[key] = trVal;
+    }
+
+    expect(exactCopiesEn, isEmpty, reason: 'No unlocalized TR copies allowed in EN');
+    expect(exactCopiesEs, isEmpty, reason: 'No unlocalized TR copies allowed in ES');
+    expect(exactCopiesDe, isEmpty, reason: 'No unlocalized TR copies allowed in DE');
+  });
+
+  test('Verify UI files in lib/ have no hardcoded Turkish strings', () {
+    final libDir = Directory('lib');
+    final dartFiles = libDir.listSync(recursive: true).whereType<File>().where((f) => f.path.endsWith('.dart'));
+
+    final turkishCharRegExp = RegExp(r'[çğıöşüÇĞİÖŞÜ]');
+    final hardcodedTurkishInCode = <String, List<String>>{};
+
+    for (final file in dartFiles) {
+      if (file.path.contains('game_localization.dart')) continue;
+
+      final lines = file.readAsLinesSync();
+      for (var i = 0; i < lines.length; i++) {
+        final line = lines[i];
+        if (line.trim().startsWith('//') || line.contains('print(') || line.contains('debugPrint(') || line.contains('log(')) continue;
+
+        if (turkishCharRegExp.hasMatch(line)) {
+          hardcodedTurkishInCode.putIfAbsent('${file.path}:${i + 1}', () => []).add(line.trim());
+        }
       }
     }
 
     // ignore_for_file: avoid_print
-    print('=== EXACT TR COPIES IN EN (${exactCopiesEn.length}) ===');
-    exactCopiesEn.forEach((k, v) => print('  EN "$k": "$v"'));
-
-    print('=== EXACT TR COPIES IN ES (${exactCopiesEs.length}) ===');
-    exactCopiesEs.forEach((k, v) => print('  ES "$k": "$v"'));
-
-    print('=== EXACT TR COPIES IN DE (${exactCopiesDe.length}) ===');
-    exactCopiesDe.forEach((k, v) => print('  DE "$k": "$v"'));
+    if (hardcodedTurkishInCode.isNotEmpty) {
+      print('=== HARDCODED TURKISH CHARACTERS IN CODE (${hardcodedTurkishInCode.length}) ===');
+      hardcodedTurkishInCode.forEach((loc, lines) => print('  $loc -> ${lines.first}'));
+    }
   });
 }

@@ -318,9 +318,9 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                                 fit: BoxFit.scaleDown,
                                 child: Column(
                                   children: [
-                                    const Text(
-                                      'TAŞIMA',
-                                      style: TextStyle(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w800),
+                                    Text(
+                                      GameLocalization.get('transport_capacity', lang: lang),
+                                      style: const TextStyle(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w800),
                                       textAlign: TextAlign.center,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -386,7 +386,7 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                           label: GameLocalization.get('migration_logistics_mult_summary', lang: lang),
                           beforeText: '${currentKut.toStringAsFixed(2)}x (+%$currentLogisticsPercent)',
                           afterText: '${nextKut.toStringAsFixed(2)}x (+%$nextLogisticsPercent)',
-                          badgeText: '+$prodGainPercent% KAPASİTE',
+                          badgeText: GameLocalization.get('capacity_gain_badge', lang: lang, args: [prodGainPercent.toString()]),
                           badgeColor: const Color(0xFFF59E0B),
                         ),
                         const Divider(color: Color(0xFF334155), height: 12),
@@ -396,7 +396,7 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                           label: GameLocalization.get('migration_tamga_summary', lang: lang),
                           beforeText: '$currentTamgas Tamga',
                           afterText: '$totalTamgasAfter Tamga',
-                          badgeText: '+$newTamgas TAMGA',
+                          badgeText: '+$newTamgas ${GameLocalization.get('ancestral_tamga', lang: lang).toUpperCase()}',
                           badgeColor: const Color(0xFF38BDF8),
                         ),
                         const Divider(color: Color(0xFF334155), height: 12),
@@ -404,9 +404,9 @@ class _GreatMigrationDialogState extends ConsumerState<GreatMigrationDialog> {
                           icon: Icons.workspace_premium_outlined,
                           iconColor: const Color(0xFFFFD700),
                           label: GameLocalization.get('migration_crowns_summary', lang: lang),
-                          beforeText: '${gameState.resources.crowns} Taç',
-                          afterText: '${gameState.resources.crowns + breakdown.totalCrowns} Taç',
-                          badgeText: '+${breakdown.totalCrowns} TAÇ',
+                          beforeText: '${gameState.resources.crowns} ${GameLocalization.get('crowns', lang: lang)}',
+                          afterText: '${gameState.resources.crowns + breakdown.totalCrowns} ${GameLocalization.get('crowns', lang: lang)}',
+                          badgeText: GameLocalization.get('crowns_gain_badge', lang: lang, args: [breakdown.totalCrowns.toString()]),
                           badgeColor: const Color(0xFFFFD700),
                         ),
                       ],

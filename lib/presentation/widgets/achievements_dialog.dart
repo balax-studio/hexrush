@@ -201,7 +201,7 @@ class _AchievementsDialogState extends ConsumerState<AchievementsDialog> {
               child: filtered.isEmpty
                   ? Center(
                       child: Text(
-                        lang == 'tr' ? 'Bu kategoride başarım bulunamadı.' : 'No achievements in this category.',
+                        GameLocalization.get('no_achievements_in_category', lang: lang),
                         style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
                       ),
                     )

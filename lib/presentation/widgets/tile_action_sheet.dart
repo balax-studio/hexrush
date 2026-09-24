@@ -181,9 +181,9 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                             ),
                             child: Text(
                               tile.hasShrine
-                                  ? 'KUTSAL ALAN'
+                                  ? GameLocalization.get('shrine_realm', lang: lang)
                                   : (tile.building?.type == BuildingType.castle
-                                      ? 'BAŞKENT'
+                                      ? GameLocalization.get('capital', lang: lang)
                                       : (tile.isOwned
                                           ? GameLocalization.get('owned', lang: lang).toUpperCase()
                                           : GameLocalization.get('wild', lang: lang).toUpperCase())),
@@ -505,6 +505,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
 
   Widget _buildCaravanAndSoilRow(
       BuildContext context, WidgetRef ref, HexTileModel tile, GameState state, NeoBrutalistThemeData theme) {
+    final lang = state.settings.language;
     final bool hasRoute = state.caravanRoutes.any((r) => r.startCoord == tile.coord || r.endCoord == tile.coord);
 
     return Container(
@@ -554,7 +555,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 Icon(hasRoute ? Icons.check : Icons.swap_calls, size: 14, color: Colors.white),
                 const SizedBox(width: 4),
                 Text(
-                  hasRoute ? 'KERVAN AKTİF' : 'KERVAN BAĞLA',
+                  hasRoute ? GameLocalization.get('caravan_active', lang: lang) : GameLocalization.get('connect_caravan', lang: lang),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 10,
@@ -571,6 +572,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
 
   Widget _buildDamageAndRepairBanner(
       BuildContext context, WidgetRef ref, HexTileModel tile, GameState gameState, NeoBrutalistThemeData theme) {
+    final lang = gameState.settings.language;
     final cost = CombatCalculator.calculateTileRepairCost(tile);
     final currentRes = gameState.resources;
 
@@ -609,13 +611,13 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 18),
-              SizedBox(width: 6),
+              const Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 18),
+              const SizedBox(width: 6),
               Text(
-                'TAHRİP EDİLDİ (%50 ÜRETİM KAYBI)',
-                style: TextStyle(
+                GameLocalization.get('damaged_tile_warning', lang: lang),
+                style: const TextStyle(
                   color: Color(0xFFFCA5A5),
                   fontSize: 11,
                   fontWeight: FontWeight.w900,
@@ -626,7 +628,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
           ),
           const SizedBox(height: 6),
           Text(
-            'Düşman akınında hasar aldı. Normal üretime dönmek için onarın:',
+            GameLocalization.get('damaged_tile_desc', lang: lang),
             style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 10),
           ),
           const SizedBox(height: 8),
@@ -672,6 +674,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
 
   Widget _buildWallManagementRow(
       BuildContext context, WidgetRef ref, HexTileModel tile, GameState gameState, NeoBrutalistThemeData theme) {
+    final lang = gameState.settings.language;
     final notifier = ref.read(gameStateProvider.notifier);
     final wall = tile.wall;
 
@@ -768,14 +771,14 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                     height: 28,
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     alignment: Alignment.center,
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.arrow_upward, size: 11, color: Colors.black),
-                        SizedBox(width: 3),
+                        const Icon(Icons.arrow_upward, size: 11, color: Colors.black),
+                        const SizedBox(width: 3),
                         Text(
-                          'GELİŞTİR',
-                          style: TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.w900),
+                          GameLocalization.get('upgrade', lang: lang).toUpperCase(),
+                          style: const TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.w900),
                         ),
                       ],
                     ),
@@ -816,14 +819,14 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
             height: 28,
             padding: const EdgeInsets.symmetric(horizontal: 8),
             alignment: Alignment.center,
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.add, size: 12, color: Colors.white),
-                SizedBox(width: 4),
+                const Icon(Icons.add, size: 12, color: Colors.white),
+                const SizedBox(width: 4),
                 Text(
-                  'SUR DİK',
-                  style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
+                  GameLocalization.get('build_wall', lang: lang),
+                  style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
                 ),
               ],
             ),
@@ -835,6 +838,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
 
   void _showWallBuildDialog(
       BuildContext context, WidgetRef ref, HexTileModel tile, GameState gameState, NeoBrutalistThemeData theme) {
+    final lang = gameState.settings.language;
     final notifier = ref.read(gameStateProvider.notifier);
     final currentWall = tile.wall;
     final availableTiers = currentWall == null
@@ -868,12 +872,12 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    currentWall != null ? 'SURI YÜKSELT' : 'SAVUNMA SURU SEÇİN',
+                    currentWall != null ? GameLocalization.get('upgrade_wall', lang: lang) : GameLocalization.get('select_defense_wall', lang: lang),
                     style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900),
                   ),
-                  const Text(
-                    'Düşman akınlarına ve koçbaşlarına karşı tahkimat kurun',
-                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9),
+                  Text(
+                    GameLocalization.get('defense_wall_desc', lang: lang),
+                    style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9),
                   ),
                 ],
               ),
@@ -1247,7 +1251,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                   children: [
                     Flexible(
                       child: Text(
-                        'GELİŞTİRME GEREKSİNİMLERİ (SEVİYE $nextLvl)',
+                        GameLocalization.get('upgrade_requirements', lang: lang, args: [nextLvl.toString()]),
                         style: const TextStyle(
                           color: Color(0xFF94A3B8),
                           fontSize: 9.5,
@@ -1260,9 +1264,9 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                     ),
                     if (!canAfford) ...[
                       const SizedBox(width: 4),
-                      const Text(
-                        'YETERSİZ',
-                        style: TextStyle(
+                      Text(
+                        GameLocalization.get('insufficient', lang: lang),
+                        style: const TextStyle(
                           color: Color(0xFFEF4444),
                           fontSize: 9,
                           fontWeight: FontWeight.w900,
@@ -1468,9 +1472,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isTr
-                              ? 'KUTLU TAPINAK: ${shrine.titleTr.toUpperCase()}'
-                              : 'SACRED SHRINE: ${shrine.titleEn.toUpperCase()}',
+                          GameLocalization.get('shrine_card_title', lang: lang, args: [shrine.getTitle(lang).toUpperCase()]),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 13,
@@ -1489,7 +1491,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                                 border: Border.all(color: const Color(0xFF10B981), width: 1),
                               ),
                               child: Text(
-                                isTr ? 'KUT BUFF AKTİF' : 'BUFF ACTIVE',
+                                GameLocalization.get('shrine_buff_active', lang: lang),
                                 style: const TextStyle(
                                   color: Color(0xFF6EE7B7),
                                   fontSize: 9,
@@ -1499,7 +1501,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              isTr ? tile.formattedShrineBonusTr : tile.formattedShrineBonusEn,
+                              tile.shrine.getFormattedBonus(lang, 0, tile.shrineMultiplierValue),
                               style: TextStyle(
                                 color: lightColor,
                                 fontSize: 11,
@@ -1517,9 +1519,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
               const Divider(color: Color(0xFF334155), height: 1),
               const SizedBox(height: 10),
               Text(
-                isTr
-                    ? 'Bu kadim adak alanı Kağanlığın kut gücünü artırır. Tüm imparatorluk genelinde x${tile.shrineMultiplierValue.toInt()} (+%${(tile.shrineMultiplierValue * 100).toInt()}) ${tile.shrine.titleTr.toLowerCase()} sağlar ve Büyük Göçte +5 Taç kazandırır.'
-                    : 'This ancient shrine channels sacred blessings. Grants x${tile.shrineMultiplierValue.toInt()} (+${(tile.shrineMultiplierValue * 100).toInt()}%) ${tile.shrine.titleEn.toLowerCase()} globally and +5 Crowns upon Great Migration.',
+                GameLocalization.get('shrine_card_desc', lang: lang, args: [tile.shrineMultiplierValue.toInt().toString(), (tile.shrineMultiplierValue * 100).toInt().toString(), tile.shrine.getTitle(lang).toLowerCase()]),
                 style: const TextStyle(
                   color: Color(0xFFCBD5E1),
                   fontSize: 11,
@@ -1546,9 +1546,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  isTr
-                      ? 'KUTSAL ARAZİ: Bu alana bina inşa edilemez. Bereket doğrudan tüm topraklara yayılır.'
-                      : 'SACRED TILE: No buildings can be placed here. Blessings emanate realm-wide.',
+                  GameLocalization.get('shrine_tile_notice', lang: lang),
                   style: const TextStyle(
                     color: Color(0xFF94A3B8),
                     fontSize: 10,
@@ -2213,8 +2211,8 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 soundType: TactileSoundType.tap,
                 child: Text(
                   tile.isWarmed
-                      ? 'ISITMA AÇIK (-${warmWoodPerSec.toStringAsFixed(2)}/sn)'
-                      : 'ISIT (-${warmWoodPerSec.toStringAsFixed(2)}/sn ODUN)',
+                      ? GameLocalization.get('heating_active', lang: lang, args: [warmWoodPerSec.toStringAsFixed(2)])
+                      : '${GameLocalization.get('heat', lang: lang).toUpperCase()} (-${warmWoodPerSec.toStringAsFixed(2)}/sn ${GameLocalization.get('wood', lang: lang).toUpperCase()})',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 10,
@@ -2249,7 +2247,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      tile.isAutoHeatEnabled ? 'OTO-ISIT: AÇIK' : 'OTO-ISIT: KAPALI',
+                      tile.isAutoHeatEnabled ? GameLocalization.get('auto_heat_on', lang: lang) : GameLocalization.get('auto_heat_off', lang: lang),
                       style: TextStyle(
                         color: tile.isAutoHeatEnabled ? Colors.white : const Color(0xFF94A3B8),
                         fontSize: 9.5,
@@ -2311,7 +2309,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
               ),
               const SizedBox(height: 10),
               Text(
-                'Bu yapıyı kaldırarak toprağı boşaltmak istiyor musunuz? İade: +${NumberFormatter.format(refund)} Gıda.',
+                GameLocalization.get('demolish_confirm_body', lang: lang, args: [NumberFormatter.format(refund)]),
                 style: const TextStyle(color: Colors.white70, fontSize: 11),
                 textAlign: TextAlign.center,
               ),
@@ -2327,10 +2325,10 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                       height: 36,
                       padding: EdgeInsets.zero,
                       alignment: Alignment.center,
-                      child: const Center(
+                      child: Center(
                         child: Text(
-                          'VAZGEÇ',
-                          style: TextStyle(
+                          GameLocalization.get('cancel', lang: lang).toUpperCase(),
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,
                             fontWeight: FontWeight.w900,
@@ -2403,7 +2401,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'İNŞA SEÇENEKLERİ (${unlocked.length} AKTİF)',
+                  GameLocalization.get('build_options', lang: lang, args: [unlocked.length.toString()]),
                   style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 10,
@@ -2438,7 +2436,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '${locked.length} KİLİTLİ',
+                            GameLocalization.get('locked_structures', lang: lang, args: [locked.length.toString()]),
                             style: TextStyle(
                               color: _showLockedBuildings ? Colors.black : const Color(0xFF94A3B8),
                               fontSize: 9,

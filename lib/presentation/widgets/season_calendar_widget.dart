@@ -28,6 +28,7 @@ class SeasonCalendarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = language;
     const seasons = ['SPRING', 'SUMMER', 'AUTUMN', 'WINTER'];
     final int currentIdx = seasons.indexOf(season.current.toUpperCase());
     final int validIdx = currentIdx >= 0 ? currentIdx : 0;
@@ -58,7 +59,7 @@ class SeasonCalendarWidget extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'MEVSİM TAKVİMİ (YIL ${season.year})',
+                    GameLocalization.get('season_calendar_title', lang: lang, args: [season.year.toString()]),
                     style: NeoBrutalistTheme.fontHeaderMonolith.copyWith(
                       color: const Color(0xFFD97706),
                       fontSize: 13,
@@ -216,18 +217,17 @@ class SeasonCalendarWidget extends StatelessWidget {
   }
 
   String _getSeasonBonusText(String sName, bool isZud, String lang) {
-    final bool isTr = lang == 'tr';
-    if (isZud) return isTr ? 'ZUD -%80' : 'ZUD -80%';
+    if (isZud) return GameLocalization.get('mod_zud', lang: lang);
     switch (sName) {
       case 'SPRING':
-        return isTr ? '+%20 Gıda' : '+20% Food';
+        return GameLocalization.get('mod_food', lang: lang);
       case 'SUMMER':
-        return isTr ? '+%15 Odun' : '+15% Wood';
+        return GameLocalization.get('mod_wood', lang: lang);
       case 'AUTUMN':
-        return isTr ? '+%15 Maden' : '+15% Mine';
+        return GameLocalization.get('mod_mine', lang: lang);
       case 'WINTER':
       default:
-        return isTr ? '-%50 Don' : '-50% Freeze';
+        return GameLocalization.get('mod_freeze', lang: lang);
     }
   }
 }

@@ -83,11 +83,7 @@ class CouncilManagementDialog extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                lang == 'tr'
-                                    ? 'KURULTAY & YÖNETİM'
-                                    : (lang == 'es'
-                                        ? 'CONSEJO Y GESTIÓN'
-                                        : (lang == 'de' ? 'RAT & VERWALTUNG' : 'COUNCIL & MANAGEMENT')),
+                                GameLocalization.get('council_and_management', lang: lang),
                                 style: TextStyle(
                                   color: theme.primaryGold,
                                   fontSize: 13,
@@ -98,11 +94,7 @@ class CouncilManagementDialog extends ConsumerWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                lang == 'tr'
-                                    ? 'Kağanlık İdari İşleri'
-                                    : (lang == 'es'
-                                        ? 'Administración del Kaganato'
-                                        : (lang == 'de' ? 'Reichsverwaltung' : 'Realm Administration')),
+                                GameLocalization.get('khaganate_administrative', lang: lang),
                                 style: const TextStyle(
                                   color: Color(0xFF94A3B8),
                                   fontSize: 9.5,
@@ -140,14 +132,8 @@ class CouncilManagementDialog extends ConsumerWidget {
                   final notifier = ref.read(gameStateProvider.notifier);
                   final completed = await showAdRewardProgressDialog(
                     context,
-                    title: lang == 'tr'
-                        ? '10X TOY COŞKUSU'
-                        : (lang == 'es'
-                            ? '10X FRENESÍ REAL'
-                            : (lang == 'de' ? '10X REICHSFRENZY' : '10X REALM FRENZY')),
-                    message: lang == 'tr'
-                        ? 'Ödül alınıyor lütfen bekleyiniz...'
-                        : 'Claiming reward, please wait...',
+                    title: GameLocalization.get('toy_frenzy_10x', lang: lang),
+                    message: GameLocalization.get('reward_processing_wait', lang: lang),
                   );
                   if (completed) {
                     await notifier.claimAdReward(
@@ -191,18 +177,8 @@ class CouncilManagementDialog extends ConsumerWidget {
                           children: [
                             Text(
                               gameState.frenzyTimer > 0
-                                  ? (lang == 'tr'
-                                      ? '10X TOY COŞKUSU (${gameState.frenzyTimer.toInt()}s)'
-                                      : (lang == 'es'
-                                          ? '10X FRENESÍ REAL (${gameState.frenzyTimer.toInt()}s)'
-                                          : (lang == 'de'
-                                              ? '10X REICHSFRENZY (${gameState.frenzyTimer.toInt()}s)'
-                                              : '10X REALM FRENZY (${gameState.frenzyTimer.toInt()}s)')))
-                                  : (lang == 'tr'
-                                      ? '10X TOY COŞKUSU'
-                                      : (lang == 'es'
-                                          ? '10X FRENESÍ REAL'
-                                          : (lang == 'de' ? '10X REICHSFRENZY' : '10X REALM FRENZY'))),
+                                  ? '${GameLocalization.get('toy_frenzy_10x', lang: lang)} (${gameState.frenzyTimer.toInt()}s)'
+                                  : GameLocalization.get('toy_frenzy_10x', lang: lang),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 12,
@@ -212,20 +188,8 @@ class CouncilManagementDialog extends ConsumerWidget {
                             ),
                             Text(
                               gameState.frenzyTimer > 0
-                                  ? (lang == 'tr'
-                                      ? '10x üretim & lojistik verimi devrede'
-                                      : (lang == 'es'
-                                          ? '10x producción y logística activa'
-                                          : (lang == 'de'
-                                              ? '10x Produktion & Logistik aktiv'
-                                              : '10x production & logistics active')))
-                                  : (lang == 'tr'
-                                      ? '4 dk boyunca 10x üretim ve lojistik verimi'
-                                      : (lang == 'es'
-                                          ? '10x producción y logística por 4 min'
-                                          : (lang == 'de'
-                                              ? '10x Produktion & Logistik für 4 Min'
-                                              : '10x production & logistics efficiency for 4 min'))),
+                                  ? GameLocalization.get('toy_frenzy_active', lang: lang)
+                                  : GameLocalization.get('frenzy_boost', lang: lang),
                               style: const TextStyle(
                                 color: Color(0xFFFEF3C7),
                                 fontSize: 9.5,
@@ -271,16 +235,8 @@ class CouncilManagementDialog extends ConsumerWidget {
                   // İpek Yolu Pazarı
                   Expanded(
                     child: _buildMenuCard(
-                      title: lang == 'tr'
-                          ? 'İPEK YOLU PAZARI'
-                          : (lang == 'es'
-                              ? 'MERCADO DE LA SEDA'
-                              : (lang == 'de' ? 'SEIDENSTRASSE-MARKT' : 'SILK ROAD MARKET')),
-                      subtitle: lang == 'tr'
-                          ? 'Takas & Ticaret'
-                          : (lang == 'es'
-                              ? 'Comercio'
-                              : (lang == 'de' ? 'Ressourcentausch' : 'Resource Trade')),
+                      title: GameLocalization.get('silk_road_market_tab', lang: lang),
+                      subtitle: GameLocalization.get('category_trade', lang: lang),
                       iconType: GameIconType.market,
                       theme: theme,
                       onTap: () {
@@ -293,16 +249,8 @@ class CouncilManagementDialog extends ConsumerWidget {
                   // Töre & Meclis
                   Expanded(
                     child: _buildMenuCard(
-                      title: lang == 'tr'
-                          ? 'TÖRE & DOKTRİN'
-                          : (lang == 'es'
-                              ? 'TRADICIÓN Y TALENTOS'
-                              : (lang == 'de' ? 'TRADITION & TALENTE' : 'CUSTOM & TALENTS')),
-                      subtitle: lang == 'tr'
-                          ? 'Kalıcı Yetenekler'
-                          : (lang == 'es'
-                              ? 'Árbol de Talentos'
-                              : (lang == 'de' ? 'Talentbaum' : 'Steppe Lore Tree')),
+                      title: GameLocalization.get('tore_and_doctrine_tab', lang: lang),
+                      subtitle: GameLocalization.get('permanent_skills', lang: lang),
                       iconType: GameIconType.tore,
                       badgeCount: gameState.resources.crowns.toInt(),
                       theme: theme,
@@ -367,16 +315,8 @@ class CouncilManagementDialog extends ConsumerWidget {
                   // Büyük Göç (Prestij)
                   Expanded(
                     child: _buildMenuCard(
-                      title: lang == 'tr'
-                          ? 'BÜYÜK GÖÇ'
-                          : (lang == 'es'
-                              ? 'GRAN MIGRACIÓN'
-                              : (lang == 'de' ? 'GROSSE WANDERUNG' : 'GREAT MIGRATION')),
-                      subtitle: lang == 'tr'
-                          ? 'Yeni Çağ & Tamgalar'
-                          : (lang == 'es'
-                              ? 'Prestigio y Sellos'
-                              : (lang == 'de' ? 'Prestige & Siegel' : 'Prestige & Seals')),
+                      title: GameLocalization.get('great_migration_tab', lang: lang),
+                      subtitle: GameLocalization.get('new_era_and_tamgas', lang: lang),
                       icon: Icons.flight_takeoff,
                       iconColor: const Color(0xFFFFD700),
                       theme: theme,
@@ -395,16 +335,8 @@ class CouncilManagementDialog extends ConsumerWidget {
                   // Ayarlar & Obayı Yönet
                   Expanded(
                     child: _buildMenuCard(
-                      title: lang == 'tr'
-                          ? 'OBAYI YÖNET'
-                          : (lang == 'es'
-                              ? 'AJUSTES DEL REINO'
-                              : (lang == 'de' ? 'REICHSOPTIONEN' : 'REALM SETTINGS')),
-                      subtitle: lang == 'tr'
-                          ? 'Ses, Dil & Veriler'
-                          : (lang == 'es'
-                              ? 'Audio e Idioma'
-                              : (lang == 'de' ? 'Audio & Sprache' : 'Audio & Language')),
+                      title: GameLocalization.get('manage_settlement_tab', lang: lang),
+                      subtitle: GameLocalization.get('settings', lang: lang),
                       iconType: GameIconType.settings,
                       theme: theme,
                       onTap: () {

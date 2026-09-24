@@ -270,7 +270,7 @@ class SettingsDialog extends ConsumerWidget {
 
               // Görsel Konfor & Erişilebilirlik
               Text(
-                lang == 'tr' ? 'Görsel Konfor & Erişilebilirlik' : 'Visual Comfort & Accessibility',
+                GameLocalization.get('visual_comfort_access', lang: lang),
                 style: NeoBrutalistTheme.fontLabel,
               ),
               const SizedBox(height: 6),
@@ -287,16 +287,12 @@ class SettingsDialog extends ConsumerWidget {
                 child: Column(
                   children: [
                     _buildNotificationToggle(
-                      lang == 'tr'
-                          ? 'Sakin Görsel Mod (Düşük Hareket)'
-                          : 'Calm Visual Mode (Reduced Motion)',
+                      GameLocalization.get('calm_visual_mode', lang: lang),
                       settings.reducedMotion,
                       (val) => notifier.setReducedMotion(val),
                     ),
                     _buildNotificationToggle(
-                      lang == 'tr'
-                          ? 'Görev Panelini Gizle'
-                          : 'Hide Quest Panel',
+                      GameLocalization.get('hide_quest_tracker', lang: lang),
                       settings.notifications.questPanelHidden,
                       (val) => notifier.updateNotificationSettings(
                         questPanelHidden: val,

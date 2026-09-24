@@ -23,22 +23,20 @@ class HornOfSteppeDialog extends ConsumerWidget {
     final victoryReward = CombatCalculator.calculateWaveVictoryReward(currentTier);
     final bool isCastleDamaged = combat.isCastleDestroyed || combat.castleCurrentHp < combat.castleMaxHp;
 
-    final headerTitle = '${lang == 'tr' ? 'BOZKIR AKINI' : 'STEPPE RAID'}: ${lang == 'tr' ? 'SEVİYE' : 'LEVEL'} $currentTier';
-    final infoTitle = lang == 'tr' ? 'AKIN BİLGİSİ & SAVUNMA PLANI' : 'RAID INFO & DEFENSE STRATEGY';
-    final infoDesc = lang == 'tr'
-        ? 'Bozkır Yağmacıları sınır karolardan Kağan Otağı\'na doğru taarruz edecek. Geçtikleri karolar tahrip olur (%50 üretim kaybı). Gözcü Kuleleri (R=3) ve Surlar ile Otağ\'ı savunun!'
-        : 'Steppe raiders attack from border tiles towards the Khan Yurt. Damaged tiles suffer -50% yield. Defend with Watchtowers (R=3) and Walls!';
+    final headerTitle = '${GameLocalization.get('steppe_raid_title', lang: lang)}: ${GameLocalization.get('level', lang: lang)} $currentTier';
+    final infoTitle = GameLocalization.get('steppe_raid_info_title', lang: lang);
+    final infoDesc = GameLocalization.get('steppe_raid_info_desc', lang: lang);
 
-    final castleLabel = '${lang == 'tr' ? 'KAĞAN OTAĞI' : 'KHAGAN YURT'} (${lang == 'tr' ? 'SV' : 'LV'}. $castleLevel)';
-    final hpLabel = '${lang == 'tr' ? 'Can Puanı' : 'Hit Points'}: ${combat.castleCurrentHp.toInt()} / ${combat.castleMaxHp.toInt()} HP';
+    final castleLabel = '${GameLocalization.get('khagan_yurt_label', lang: lang)} (${GameLocalization.get('level', lang: lang)}. $castleLevel)';
+    final hpLabel = '${GameLocalization.get('hit_points_label', lang: lang)}: ${combat.castleCurrentHp.toInt()} / ${combat.castleMaxHp.toInt()} HP';
 
-    final victoryTitle = lang == 'tr' ? 'SEVİYE ZAFER GANİMETİ (TEK SEFERLİK)' : 'LEVEL VICTORY REWARD (ONE-TIME)';
-    final crownsLabel = '+${victoryReward.crowns} ${lang == 'tr' ? 'TAÇ' : 'CROWNS'}';
-    final tamgaLabel = '+${victoryReward.tamgas} ${lang == 'tr' ? 'ATALAR TAMGASI' : 'ANCESTRAL TAMGAS'}';
+    final victoryTitle = GameLocalization.get('level_victory_reward_title', lang: lang);
+    final crownsLabel = '+${victoryReward.crowns} ${GameLocalization.get('crowns', lang: lang).toUpperCase()}';
+    final tamgaLabel = '+${victoryReward.tamgas} ${GameLocalization.get('ancestral_tamga', lang: lang).toUpperCase()}';
 
     final actionBtnText = combat.isCastleDestroyed
-        ? (lang == 'tr' ? 'ÖNCE ŞATOYU ONARIN' : 'REPAIR YURT FIRST')
-        : (lang == 'tr' ? 'BORUYU ÇAL (AKINI BAŞLAT)' : 'SOUND HORN (START RAID)');
+        ? GameLocalization.get('repair_yurt_first', lang: lang)
+        : GameLocalization.get('sound_horn_start', lang: lang);
 
     return Center(
       child: Material(
@@ -204,7 +202,7 @@ class HornOfSteppeDialog extends ConsumerWidget {
                       final costStr = castleRepairCost.entries
                           .map((e) => '${e.value.toInt()} ${e.key == 'wood' ? woodName : stoneName}')
                           .join(', ');
-                      final repairLabel = '${lang == 'tr' ? 'ONAR' : 'REPAIR'} ($costStr)';
+                      final repairLabel = '${GameLocalization.get('repair_castle', lang: lang).toUpperCase()} ($costStr)';
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.end,

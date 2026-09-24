@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/localization/game_localization.dart';
 import '../../../core/theme/neo_brutalist_theme.dart';
 import '../../providers/game_state_notifier.dart';
 import '../icons/game_vector_icons.dart';
@@ -16,6 +17,8 @@ class TactileContextHint extends ConsumerWidget {
     final int castleLevel = gameState.progression.castleLevel;
     final int ownedHexes = gameState.progression.ownedCount;
 
+    final lang = gameState.settings.language;
+
     // Bağlamsal ipucu belirleme (Öncelik sırasına göre)
     String? hintTitle;
     String? hintDesc;
@@ -23,16 +26,16 @@ class TactileContextHint extends ConsumerWidget {
 
     // 1. Zud Kışı Yaklaşıyorsa
     if (season == 'AUTUMN' && gameState.season.timer >= 45) {
-      hintTitle = 'ZUD KIŞI YAKLAŞIYOR';
-      hintDesc = 'Tarlalar donacak. Odun stoklayarak binaları ısıtın veya Mahzen kurun.';
+      hintTitle = GameLocalization.get('hint_zud_approaching_title', lang: lang);
+      hintDesc = GameLocalization.get('hint_zud_approaching_desc', lang: lang);
       iconType = GameIconType.winter;
     }
     // 2. Erken Aşama İşçi Menzil Uyarısı
     else if (ownedHexes >= 5 && castleLevel >= 2) {
       final hasWorker = gameState.tiles.values.any((t) => t.isOwned && t.building?.type != null && t.building!.type.name.contains('worker'));
       if (!hasWorker) {
-        hintTitle = 'BOZKIR LOJİSTİĞİ';
-        hintDesc = 'İşçi Çadırı kurarak 4 heks yarıçapındaki kaynakları otomatik toplayın.';
+        hintTitle = GameLocalization.get('hint_steppe_logistics_title', lang: lang);
+        hintDesc = GameLocalization.get('hint_steppe_logistics_desc', lang: lang);
         iconType = GameIconType.food;
       }
     }

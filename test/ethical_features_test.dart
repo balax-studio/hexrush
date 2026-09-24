@@ -77,7 +77,7 @@ void main() {
       );
 
       await tester.pumpAndSettle();
-      expect(find.textContaining('OTAĞ LV.1'), findsOneWidget);
+      expect(find.textContaining('KAĞAN OTAĞI LV.1'), findsOneWidget);
     });
   });
 

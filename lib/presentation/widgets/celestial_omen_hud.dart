@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/economy/economy_calculator.dart';
 import '../../domain/models/ad_reward_model.dart';
@@ -115,29 +116,14 @@ class _ShamanBlessingDialog extends ConsumerWidget {
     final title = omen.getTitle(lang);
     final desc = omen.getDescription(lang);
 
-    final dialogTitle = lang == 'tr'
-        ? 'ŞAMAN KEHANETİ & GÖK BEREKETİ'
-        : 'SHAMAN PROPHECY & CELESTIAL BLESSING';
-
-    final activeYearLabel = lang == 'tr'
-        ? 'AKTİF YIL: ${title.toUpperCase()}'
-        : 'ACTIVE YEAR: ${title.toUpperCase()}';
-
-    final prayerTitle = lang == 'tr'
-        ? 'GÖK TENGRİ DUASI (+%25 KUT)'
-        : 'PRAYER TO GÖK TENGRİ (+25% GLORY)';
-
-    final prayerDesc = lang == 'tr'
-        ? 'Şaman duasıyla tüm toprakların üretim ve bereketini 10 dakika boyunca %25 güçlendir.'
-        : 'Empower all production and pasture yields by +25% for 10 minutes through shamanic prayer.';
+    final dialogTitle = GameLocalization.get('shaman_prophecy_title', lang: lang);
+    final activeYearLabel = GameLocalization.get('active_year_label', lang: lang, args: [title.toUpperCase()]);
+    final prayerTitle = GameLocalization.get('gok_tengri_prayer', lang: lang);
+    final prayerDesc = GameLocalization.get('gok_tengri_prayer_desc', lang: lang);
 
     final btnText = canBlessing
-        ? (lang == 'tr'
-            ? 'DUAYI KABUL ET ($blessingWatches/$maxBlessing)'
-            : 'ACCEPT PRAYER ($blessingWatches/$maxBlessing)')
-        : (lang == 'tr'
-            ? 'GÜNLÜK DUA LİMİTİ DOLDU'
-            : 'DAILY PRAYER LIMIT REACHED');
+        ? '${GameLocalization.get('claim', lang: lang)} ($blessingWatches/$maxBlessing)'
+        : GameLocalization.get('daily_prayer_limit_reached', lang: lang);
 
     return Dialog(
       backgroundColor: Colors.transparent,

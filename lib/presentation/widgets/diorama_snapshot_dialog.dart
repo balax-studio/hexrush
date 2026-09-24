@@ -75,7 +75,7 @@ class DioramaSnapshotDialog extends ConsumerWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Aktif İpek Yolları: ${state.caravanRoutes.length} Hat | Ata Mirasları: ${state.discoveredKurgans.length} Kurgan',
+                    GameLocalization.get('diorama_caravans_and_kurgans', lang: lang, args: [state.caravanRoutes.length.toString(), state.discoveredKurgans.length.toString()]),
                     style: const TextStyle(
                       color: Color(0xFFFDE68A),
                       fontSize: 11,

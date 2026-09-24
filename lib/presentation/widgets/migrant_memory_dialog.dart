@@ -88,9 +88,9 @@ class MigrantMemoryDialog extends ConsumerWidget {
                 children: [
                   Column(
                     children: [
-                      const Text(
-                        'TOPLAM GÖÇ',
-                        style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w800),
+                      Text(
+                        GameLocalization.get('total_migrations_header', lang: lang),
+                        style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 2),
                       Text(
@@ -144,10 +144,10 @@ class MigrantMemoryDialog extends ConsumerWidget {
                         borderRadius: NeoBrutalistTheme.sharpRadius,
                         border: Border.all(color: const Color(0xFF334155), width: 1),
                       ),
-                      child: const Text(
-                        'Henüz bir Büyük Göç tamamlanmadı.\nİlk göçünüz sonrasında kadim bozkır hafızası burada kaydedilecektir.',
+                      child: Text(
+                        GameLocalization.get('no_migrant_memory', lang: lang),
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white60, fontSize: 11, height: 1.4),
+                        style: const TextStyle(color: Colors.white60, fontSize: 11, height: 1.4),
                       ),
                     )
                   : ListView.builder(
@@ -170,7 +170,7 @@ class MigrantMemoryDialog extends ConsumerWidget {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    '${record.migrationNumber}. BÜYÜK GÖÇ',
+                                    GameLocalization.get('migration_number_title', lang: lang, args: [record.migrationNumber.toString()]),
                                     style: const TextStyle(
                                       color: Color(0xFFD97706),
                                       fontSize: 12,

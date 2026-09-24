@@ -95,7 +95,7 @@ class _HexpediaDialogState extends ConsumerState<HexpediaDialog> {
                       border: Border.all(color: const Color(0xFF10B981), width: 1),
                     ),
                     child: Text(
-                      '${entries.length} ${lang == 'tr' ? 'REHBER' : (lang == 'es' ? 'GUÍAS' : (lang == 'de' ? 'GUIDES' : 'GUIDES'))}',
+                      '${entries.length} ${GameLocalization.get('guides_count', lang: lang)}',
                       style: const TextStyle(
                         color: Color(0xFF6EE7B7),
                         fontSize: 10,

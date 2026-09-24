@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/localization/game_localization.dart';
 import '../providers/game_state_notifier.dart';
 
 class TranshumanceBannerWidget extends ConsumerWidget {
@@ -13,29 +14,10 @@ class TranshumanceBannerWidget extends ConsumerWidget {
     final int combo = state.rhythmCombo;
     final double rhythmMult = state.rhythmMultiplier;
 
-    final rhythmText = lang == 'tr'
-        ? '${combo}x RİTİM (${rhythmMult.toStringAsFixed(1)}x)'
-        : (lang == 'es'
-            ? '${combo}x RITMO (${rhythmMult.toStringAsFixed(1)}x)'
-            : (lang == 'de'
-                ? '${combo}x RHYTHMUS (${rhythmMult.toStringAsFixed(1)}x)'
-                : '${combo}x RHYTHM (${rhythmMult.toStringAsFixed(1)}x)'));
-
+    final rhythmText = GameLocalization.get('transhumance_rhythm', lang: lang, args: [combo.toString(), rhythmMult.toStringAsFixed(1)]);
     final restingText = anyResting
-        ? (lang == 'tr'
-            ? 'YAYLAKTA DİNLENİYOR'
-            : (lang == 'es'
-                ? 'DESCANSANDO EN HIGHLANDS'
-                : (lang == 'de'
-                    ? 'SOMMERWEIDE RUHT'
-                    : 'RESTING IN HIGHLANDS')))
-        : (lang == 'tr'
-            ? 'KIŞLAKTA OTLUYOR'
-            : (lang == 'es'
-                ? 'PASTAN EN QUINTERÍAS'
-                : (lang == 'de'
-                    ? 'WINTERWEIDE GRASIERT'
-                    : 'GRAZING IN WINTER QUARTERS')));
+        ? GameLocalization.get('resting_in_summer_pasture', lang: lang)
+        : GameLocalization.get('grazing_in_winter_camp', lang: lang);
 
     return Row(
       mainAxisSize: MainAxisSize.min,

@@ -802,9 +802,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     children: [
                       Semantics(
                         button: true,
-                        label: lang == 'tr'
-                            ? 'Kurultay ve Yönetim Menüsü'
-                            : 'Council and Management Menu',
+                        label: GameLocalization.get('council_management_menu', lang: lang),
                         child: TactileNeoButton(
                           onTap: () {
                             unawaited(
@@ -853,7 +851,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                               Text(
                                 gameState.frenzyTimer > 0
                                     ? '10x ${gameState.frenzyTimer.toInt()}s'
-                                    : (lang == 'tr' ? 'MECLİS' : 'COUNCIL'),
+                                    : GameLocalization.get('council_btn_label', lang: lang),
                                 style: TextStyle(
                                   color: gameState.frenzyTimer > 0
                                       ? Colors.white
@@ -1269,20 +1267,12 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                 GestureDetector(
                   onTap: () => _showResourceExplanation(
                     context,
-                    title: lang == 'tr'
-                        ? 'KAĞAN OTAĞI & KÜRESEL BONUS'
-                        : 'KHAGAN YURT & GLOBAL BONUS',
+                    title: GameLocalization.get('khagan_yurt_tooltip_title', lang: lang),
                     iconType: GameIconType.crown,
                     iconColor: theme.primaryGold,
-                    currentStock: lang == 'tr'
-                        ? 'Kağan Otağı Seviye ${gameState.progression.castleLevel}'
-                        : 'Khagan Yurt Level ${gameState.progression.castleLevel}',
-                    description: lang == 'tr'
-                        ? 'Kağanlığınızın ana yönetim merkezi. Otağı büyüttükçe tüm obanın küresel üretim hızı katlanır, yeni yapılar ve kurultay yuvaları açılır.'
-                        : 'The main administrative center of your realm. Upgrading expands production speed and unlocks council slots.',
-                    strategicHint: lang == 'tr'
-                        ? 'Otağı merkez karoya dokunarak gerekli erzak ve malzemelerle büyütebilirsiniz.'
-                        : 'Tap the center tile to upgrade with required provisions and materials.',
+                    currentStock: GameLocalization.get('khagan_yurt_stock_title', lang: lang, args: [gameState.progression.castleLevel.toString()]),
+                    description: GameLocalization.get('khagan_yurt_stock_desc', lang: lang),
+                    strategicHint: GameLocalization.get('khagan_yurt_strategic_hint', lang: lang),
                     theme: theme,
                   ),
                   child: Stack(
@@ -1302,9 +1292,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Text(
-                              lang == 'tr'
-                                  ? 'OTAĞ LV.${gameState.progression.castleLevel}'
-                                  : 'YURT LV.${gameState.progression.castleLevel}',
+                              '${GameLocalization.get('khagan_yurt_label', lang: lang)} LV.${gameState.progression.castleLevel}',
                               style: TextStyle(
                                 color: theme.primaryGold,
                                 fontSize: 10,
@@ -1325,7 +1313,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                                 borderRadius: BorderRadius.circular(2),
                               ),
                               child: Text(
-                                '+${((globalMult - 1.0) * 100).toInt()}% ${lang == 'tr' ? 'HIZ' : 'SPEED'}',
+                                '+${((globalMult - 1.0) * 100).toInt()}% ${GameLocalization.get('speed_label', lang: lang)}',
                                 style: const TextStyle(
                                   color: Color(0xFF10B981),
                                   fontSize: 9,

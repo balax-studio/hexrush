@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/tactile_audio_service.dart';
+import '../../core/localization/game_localization.dart';
 import '../../core/notifications/local_notification_service.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/economy/economy_calculator.dart';
@@ -124,6 +125,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final activePalette = ref.watch(gameStateProvider.select((s) => s.settings.activeThemePalette));
     final isDioramaMode = ref.watch(gameStateProvider.select((s) => s.isDioramaMode));
     final isRaidActive = ref.watch(gameStateProvider.select((s) => s.combatState.isActiveWave));
+    final lang = ref.watch(gameStateProvider.select((s) => s.settings.language));
     final theme = NeoBrutalistTheme.getTheme(activePalette);
 
     return Scaffold(
@@ -305,14 +307,14 @@ class _GameScreenState extends ConsumerState<GameScreen>
                     height: 38,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     alignment: Alignment.center,
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.close, size: 16, color: Colors.black),
-                        SizedBox(width: 6),
+                        const Icon(Icons.close, size: 16, color: Colors.black),
+                        const SizedBox(width: 6),
                         Text(
-                          'DİORAMADAN ÇIK',
-                          style: TextStyle(
+                          GameLocalization.get('exit_diorama', lang: lang),
+                          style: const TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.w900,
                             fontSize: 11,

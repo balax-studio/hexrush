@@ -48,12 +48,12 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
+                Row(
                   children: [
-                    GameVectorIcon(type: GameIconType.tore, size: 20),
-                    SizedBox(width: 8),
+                    const GameVectorIcon(type: GameIconType.tore, size: 20),
+                    const SizedBox(width: 8),
                     Text(
-                      'TÖRE & KURULTAY MECLİSİ',
+                      GameLocalization.get('tore_and_council', lang: lang),
                       style: NeoBrutalistTheme.fontHeaderMonolith,
                     ),
                   ],
@@ -177,9 +177,9 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'YÜRÜRLÜKTEKİ TÖRE YUVALARI:',
-            style: TextStyle(
+          Text(
+            GameLocalization.get('active_custom_slots', lang: lang),
+            style: const TextStyle(
               color: Color(0xFFFFC700),
               fontSize: 11,
               fontWeight: FontWeight.w900,
@@ -199,7 +199,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
             children: [
               _buildSlotCard(
                 DoctrineSlotType.economic,
-                'İKTİSADİ',
+                GameLocalization.get('economic', lang: lang),
                 slots[DoctrineSlotType.economic],
                 doctrines,
                 notifier,
@@ -208,7 +208,7 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
               ),
               _buildSlotCard(
                 DoctrineSlotType.military,
-                'ASKERİ',
+                GameLocalization.get('military', lang: lang),
                 slots[DoctrineSlotType.military],
                 doctrines,
                 notifier,
@@ -226,13 +226,13 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
               ),
               _buildSlotCard(
                 DoctrineSlotType.wildcard,
-                'KAĞANLIK (JOKER)',
+                GameLocalization.get('khaganate_wildcard', lang: lang),
                 slots[DoctrineSlotType.wildcard],
                 doctrines,
                 notifier,
                 castleLvl >= 12,
                 lang,
-                lockMsg: 'Otağ Lv.12 Gerekli',
+                lockMsg: GameLocalization.get('yurt_lv12_required', lang: lang),
               ),
             ],
           ),
@@ -381,8 +381,8 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                       alignment: Alignment.center,
                       child: Text(
                         castleLvl < doc.unlockCastleLevel
-                            ? 'ŞATO LV.${doc.unlockCastleLevel}'
-                            : 'KABUL ET (${doc.costCrowns} ŞAN)',
+                            ? '${GameLocalization.get('castle_title', lang: lang).toUpperCase()} LV.${doc.unlockCastleLevel}'
+                            : GameLocalization.get('accept_glory', lang: lang, args: [doc.costCrowns.toString()]),
                         style: const TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.w900),
                       ),
                     ),
@@ -462,9 +462,9 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
               overflow: TextOverflow.ellipsis,
             )
           else
-            const Text(
-              '[ BOŞ YUVA ]',
-              style: TextStyle(color: Colors.white38, fontSize: 9, fontWeight: FontWeight.w700),
+            Text(
+              GameLocalization.get('empty_slot', lang: lang),
+              style: const TextStyle(color: Colors.white38, fontSize: 9, fontWeight: FontWeight.w700),
             ),
         ],
       ),
@@ -703,9 +703,9 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'BOZKIR KAĞANLIK UNVANLARI & DİNAMİK TEMALAR:',
-            style: TextStyle(
+          Text(
+            GameLocalization.get('titles_and_themes', lang: lang),
+            style: const TextStyle(
               color: Color(0xFFFFC700),
               fontSize: 11,
               fontWeight: FontWeight.w900,
@@ -807,14 +807,14 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                         border: Border.all(color: Colors.black, width: 1.5),
                         boxShadow: NeoBrutalistTheme.hardShadowSmall,
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.check, size: 12, color: Colors.black),
-                          SizedBox(width: 4),
+                          const Icon(Icons.check, size: 12, color: Colors.black),
+                          const SizedBox(width: 4),
                           Text(
-                            'KUŞANILDI',
-                            style: TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.w900),
+                            GameLocalization.get('equipped', lang: lang),
+                            style: const TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.w900),
                           ),
                         ],
                       ),
@@ -830,9 +830,9 @@ class _ToreDialogState extends ConsumerState<ToreDialog> {
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       alignment: Alignment.center,
                       soundType: TactileSoundType.reward,
-                      child: const Text(
-                        'TEMAYI KUŞAN',
-                        style: TextStyle(
+                      child: Text(
+                        GameLocalization.get('equip_theme', lang: lang),
+                        style: const TextStyle(
                           color: Colors.black,
                           fontSize: 9,
                           fontWeight: FontWeight.w900,

@@ -51,21 +51,8 @@ class _OfflineGainsDialogState extends ConsumerState<OfflineGainsDialog> {
         ? '$hours $hUnit $minutes $mUnit'
         : (minutes > 0 ? '$minutes $mUnit' : '$seconds $sUnit');
 
-    final String subTitle = lang == 'tr'
-        ? 'Otağ ve toygunların yokluğunda $timeStr boyunca üretim yaptı.'
-        : (lang == 'es'
-            ? 'Tu campamento produjo durante $timeStr en tu ausencia.'
-            : (lang == 'de'
-                ? 'Ihr Lager produzierte $timeStr während Ihrer Abwesenheit.'
-                : 'Your realm produced resources for $timeStr in your absence.'));
-
-    final String adBanner = lang == 'tr'
-        ? 'BOZKIR BEREKETİ: Reklam izleyerek tüm kaynakları 2 katına çıkarın!'
-        : (lang == 'es'
-            ? 'BENDICIÓN DE LA ESTEPA: ¡Mira un anuncio para duplicar todos los recursos!'
-            : (lang == 'de'
-                ? 'STEPPENSEGEN: Verdoppeln Sie alle Ressourcen mit Werbung!'
-                : 'STEPPE BLESSING: Watch an ad to double all offline gains!'));
+    final String subTitle = GameLocalization.get('offline_gains_subtitle', lang: lang, args: [timeStr]);
+    final String adBanner = GameLocalization.get('offline_gains_ad_banner', lang: lang);
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -334,7 +321,7 @@ class _OfflineGainsDialogState extends ConsumerState<OfflineGainsDialog> {
                     onTap: () async {
                       final completed = await showAdRewardProgressDialog(
                         context,
-                        title: lang == 'tr' ? 'BOZKIR BEREKETİ' : 'STEPPE BLESSING',
+                        title: GameLocalization.get('steppe_blessing', lang: lang),
                         message: GameLocalization.get('reward_please_wait', lang: lang),
                       );
                       if (completed && context.mounted) {
@@ -353,8 +340,8 @@ class _OfflineGainsDialogState extends ConsumerState<OfflineGainsDialog> {
                     child: Center(
                       child: Text(
                         canWatchAd
-                            ? (lang == 'tr' ? 'REKLAM İZLE ($_watchedCount/$_maxWatches)' : 'WATCH AD ($_watchedCount/$_maxWatches)')
-                            : (lang == 'tr' ? 'LİMİT DOLDU ($_maxWatches/$_maxWatches)' : 'MAX REACHED ($_maxWatches/$_maxWatches)'),
+                            ? GameLocalization.get('watch_ad', lang: lang, args: ['$_watchedCount', '$_maxWatches'])
+                            : GameLocalization.get('max_reached', lang: lang, args: ['$_maxWatches', '$_maxWatches']),
                         style: TextStyle(
                           color: canWatchAd ? Colors.black : const Color(0xFF94A3B8),
                           fontSize: 11,

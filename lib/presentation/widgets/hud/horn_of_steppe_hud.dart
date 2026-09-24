@@ -195,14 +195,14 @@ class HornOfSteppeHUD extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10),
             alignment: Alignment.center,
             soundType: TactileSoundType.tap,
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.campaign, size: 14, color: Colors.black),
-                SizedBox(width: 5),
+                const Icon(Icons.campaign, size: 14, color: Colors.black),
+                const SizedBox(width: 5),
                 Text(
-                  'BORUYU ÇAL',
-                  style: TextStyle(
+                  GameLocalization.get('sound_horn', lang: lang),
+                  style: const TextStyle(
                     color: Colors.black,
                     fontSize: 10,
                     fontWeight: FontWeight.w900,

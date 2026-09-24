@@ -51,13 +51,13 @@ class MarketDialog extends ConsumerWidget {
       default:
         seasonIcon = gameState.season.isZud ? GameIconType.zud : GameIconType.winter;
         seasonName = gameState.season.isZud
-            ? (lang == 'tr' ? 'ZUD (AFET)' : 'ZUD BLIZZARD')
+            ? GameLocalization.get('zud_blizzard_tag', lang: lang)
             : GameLocalization.get('winter', lang: lang).toUpperCase();
         break;
     }
 
-    final marketTitle = lang == 'tr' ? 'BOZKIR PİYASASI' : 'STEPPE BAZAAR';
-    final yearTitle = lang == 'tr' ? 'YIL' : 'YEAR';
+    final marketTitle = GameLocalization.get('steppe_bazaar', lang: lang);
+    final yearTitle = GameLocalization.get('year', lang: lang).toUpperCase();
 
     return Dialog(
       backgroundColor: NeoBrutalistTheme.surface,
@@ -145,13 +145,11 @@ class MarketDialog extends ConsumerWidget {
                 final maxCaravan = EconomyCalculator.getMaxDailyWatches(AdRewardType.caravanBonus);
                 final bool canCaravan = caravanWatches < maxCaravan;
 
-                final giftTitle = lang == 'tr' ? 'GEZGİN KERVAN İKRAMI' : 'TRAVELING CARAVAN GIFT';
-                final giftDesc = lang == 'tr'
-                    ? 'Bozkır tüccarından karşılıksız acil hammadde desteği.'
-                    : 'Emergency supplies gift from traveling steppe merchants.';
+                final giftTitle = GameLocalization.get('traveling_caravan_gift', lang: lang);
+                final giftDesc = GameLocalization.get('traveling_caravan_gift_desc', lang: lang);
                 final giftBtn = canCaravan
-                    ? '${lang == 'tr' ? 'AL' : 'CLAIM'} ($caravanWatches/$maxCaravan)'
-                    : (lang == 'tr' ? 'DOLDU' : 'FULL');
+                    ? '${GameLocalization.get('claim', lang: lang)} ($caravanWatches/$maxCaravan)'
+                    : GameLocalization.get('full', lang: lang);
 
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -227,7 +225,7 @@ class MarketDialog extends ConsumerWidget {
                   const GameVectorIcon(type: GameIconType.tradeOrders, size: 16, color: Color(0xFFFDE047)),
                   const SizedBox(width: 8),
                   Text(
-                    lang == 'tr' ? 'İPEK YOLU ELÇİ SİPARİŞLERİ' : 'SILK ROAD ENVOY ORDERS',
+                    GameLocalization.get('silk_road_envoy_orders', lang: lang),
                     style: const TextStyle(
                       color: Color(0xFFFDE047),
                       fontSize: 11,

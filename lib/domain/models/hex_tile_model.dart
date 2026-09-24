@@ -64,6 +64,29 @@ extension ShrineTypeExtension on ShrineType {
     }
   }
 
+  String getTitle(String lang) {
+    if (lang == 'tr') return titleTr;
+    if (lang == 'es') {
+      switch (this) {
+        case ShrineType.foodBoost: return 'Abundancia de Comida';
+        case ShrineType.woodBoost: return 'Abundancia de Madera';
+        case ShrineType.stoneBoost: return 'Abundancia de Piedra';
+        case ShrineType.speedBoost: return 'Velocidad de Logística';
+        case ShrineType.none: return '';
+      }
+    }
+    if (lang == 'de') {
+      switch (this) {
+        case ShrineType.foodBoost: return 'Nahrungsüberfluss';
+        case ShrineType.woodBoost: return 'Holzüberfluss';
+        case ShrineType.stoneBoost: return 'Steinüberfluss';
+        case ShrineType.speedBoost: return 'Logistikgeschwindigkeit';
+        case ShrineType.none: return '';
+      }
+    }
+    return titleEn;
+  }
+
   double get boostPercentage => 200.0;
 
   double calculateBoostPercentage(int distance) => 200.0;
@@ -75,17 +98,20 @@ extension ShrineTypeExtension on ShrineType {
   String get formattedBonusTr => 'x2 $titleTr (+%200)';
   String get formattedBonusEn => 'x2 $titleEn (+200%)';
 
-  String getFormattedBonusTr(int distance, [double multiplierVal = 2.0]) {
-    final String multText = multiplierVal >= 3.0 ? 'x3 (3 Kat)' : 'x2 (2 Kat)';
+  String getFormattedBonus(String lang, [int distance = 0, double multiplierVal = 2.0]) {
+    final String title = getTitle(lang);
     final int pct = (multiplierVal * 100).toInt();
-    return '$multText $titleTr (+%$pct)';
+    if (lang == 'tr') {
+      final String multText = multiplierVal >= 3.0 ? 'x3 (3 Kat)' : 'x2 (2 Kat)';
+      return '$multText $title (+%$pct)';
+    }
+    final String multText = multiplierVal >= 3.0 ? 'x3 (3x)' : 'x2 (2x)';
+    return '$multText $title (+$pct%)';
   }
 
-  String getFormattedBonusEn(int distance, [double multiplierVal = 2.0]) {
-    final String multText = multiplierVal >= 3.0 ? 'x3 (3x)' : 'x2 (2x)';
-    final int pct = (multiplierVal * 100).toInt();
-    return '$multText $titleEn (+$pct%)';
-  }
+  String getFormattedBonusTr(int distance, [double multiplierVal = 2.0]) => getFormattedBonus('tr', distance, multiplierVal);
+
+  String getFormattedBonusEn(int distance, [double multiplierVal = 2.0]) => getFormattedBonus('en', distance, multiplierVal);
 }
 
 class HexTileModel {

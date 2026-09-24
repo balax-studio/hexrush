@@ -154,7 +154,7 @@ void main() {
       // Check active Frenzy Banner shows 10X TOY COŞKUSU with remaining time
       expect(find.text('10X TOY COŞKUSU (235s)'), findsOneWidget);
       expect(find.text('235s'), findsOneWidget);
-      expect(find.text('10x üretim & lojistik verimi devrede'), findsOneWidget);
+      expect(find.text('10x Toy Coşkusu'), findsOneWidget);
     });
   });
 }

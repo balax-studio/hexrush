@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/tactile_audio_service.dart';
+import '../../core/localization/game_localization.dart';
 import '../../core/theme/neo_brutalist_theme.dart';
 import '../providers/game_state_notifier.dart';
 import 'tactile_neo_button.dart';
@@ -29,6 +30,48 @@ class IntroStoryScene {
     required this.icon,
     required this.themeColor,
   });
+
+  String getChapter(String lang) {
+    if (lang == 'tr') return chapterTr;
+    if (lang == 'es') return chapterEn == 'CHAPTER I' ? 'CAPÍTULO I' : (chapterEn == 'CHAPTER II' ? 'CAPÍTULO II' : 'CAPÍTULO III');
+    if (lang == 'de') return chapterEn == 'CHAPTER I' ? 'KAPITEL I' : (chapterEn == 'CHAPTER II' ? 'KAPITEL II' : 'KAPITEL III');
+    return chapterEn;
+  }
+
+  String getTitle(String lang) {
+    if (lang == 'tr') return titleTr;
+    if (lang == 'es') {
+      if (titleEn == 'DAWN OF THE STEPPE') return 'AMANECER DE LA ESTEPA';
+      if (titleEn == 'RUNIC STELE & SACRED LAW') return 'ESTELA RÚNICA Y LEY SAGRADA';
+      if (titleEn == 'CONQUEST & COSMIC PEAK') return 'CONQUISTA Y CUMBRE CÓSMICA';
+    }
+    if (lang == 'de') {
+      if (titleEn == 'DAWN OF THE STEPPE') return 'ERWACHEN DER STEPPE';
+      if (titleEn == 'RUNIC STELE & SACRED LAW') return 'RUNENSTELE & HEILIGES GESETZ';
+      if (titleEn == 'CONQUEST & COSMIC PEAK') return 'EROBERUNG & KOSMISCHER GIPFEL';
+    }
+    return titleEn;
+  }
+
+  String getNarrative(String lang) {
+    if (lang == 'tr') return narrativeTr;
+    if (lang == 'es') {
+      if (titleEn == 'DAWN OF THE STEPPE') return 'El viento se calma en la vasta estepa euroasiática. Las tribus nómadas esperan la unificación bajo el estandarte sagrado del Kagan. Levanta tu tienda, enciende el hogar ancestral y escucha la tierra.';
+      if (titleEn == 'RUNIC STELE & SACRED LAW') return 'Las estelas rúnicas de Orkhon susurran las leyes sagradas grabadas en la piedra. La fuerza sin sabiduría fracasa. Levanta monumentos rúnicos para despertar el conocimiento antiguo.';
+      if (titleEn == 'CONQUEST & COSMIC PEAK') return 'Las tierras hexagonales se expanden bajo tu firme voluntad. Mientras la cúpula dorada de la Yurta del Kagan toca las nubes, construyes murallas contra los incursores.';
+    }
+    if (lang == 'de') {
+      if (titleEn == 'DAWN OF THE STEPPE') return 'Der Wind legt sich über die weite eurasische Steppe. Die Nomadenstämme warten auf die Vereinigung unter dem heiligen Banner des Khagans. Schlage dein Zelt auf und entzünde die Ahnenfeuerstelle.';
+      if (titleEn == 'RUNIC STELE & SACRED LAW') return 'Die Orchon-Runenstelen flüstern die in Stein gemeißelten heiligen Gesetze. Stärke ohne Weisheit wankt. Errichte Denkmäler, um altes Steppenwissen zu erwecken.';
+      if (titleEn == 'CONQUEST & COSMIC PEAK') return 'Sechseckige Länder dehnen sich unter deinem eisernen Willen aus. Während die goldene Kuppel der Khans-Jurte die Wolken berührt, erheben sich Steinmauern gegen Angreifer.';
+    }
+    return narrativeEn;
+  }
+
+  String getQuote(String lang) {
+    if (lang == 'tr') return quoteTr;
+    return quoteEn;
+  }
 }
 
 class IntroStoryDialog extends ConsumerStatefulWidget {
@@ -177,7 +220,7 @@ class _IntroStoryDialogState extends ConsumerState<IntroStoryDialog> {
                         const Icon(Icons.history_edu, color: Color(0xFFF59E0B), size: 18),
                         const SizedBox(width: 8),
                         Text(
-                          lang == 'tr' ? 'BOZKIRIN DOĞUŞU' : 'DAWN OF THE STEPPE',
+                          GameLocalization.get('dawn_of_steppe', lang: lang),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 13,
@@ -214,7 +257,7 @@ class _IntroStoryDialogState extends ConsumerState<IntroStoryDialog> {
                           height: 26,
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           child: Text(
-                            lang == 'tr' ? 'ATLA' : 'SKIP',
+                            GameLocalization.get('skip', lang: lang),
                             style: const TextStyle(
                               color: Color(0xFF94A3B8),
                               fontSize: 10,
@@ -274,7 +317,7 @@ class _IntroStoryDialogState extends ConsumerState<IntroStoryDialog> {
                             const Icon(Icons.arrow_back, size: 14, color: Colors.white),
                             const SizedBox(width: 6),
                             Text(
-                              lang == 'tr' ? 'GERİ' : 'PREV',
+                              GameLocalization.get('prev', lang: lang),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 11,
@@ -305,7 +348,7 @@ class _IntroStoryDialogState extends ConsumerState<IntroStoryDialog> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              lang == 'tr' ? 'İLERİ' : 'NEXT',
+                              GameLocalization.get('next', lang: lang),
                               style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 12,
@@ -332,7 +375,7 @@ class _IntroStoryDialogState extends ConsumerState<IntroStoryDialog> {
                             const Icon(Icons.explore, size: 16, color: Colors.black),
                             const SizedBox(width: 8),
                             Text(
-                              lang == 'tr' ? 'MACERAYA BAŞLA' : 'BEGIN ADVENTURE',
+                              GameLocalization.get('begin_adventure', lang: lang),
                               style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 13,
@@ -365,10 +408,10 @@ class _IntroStoryDialogState extends ConsumerState<IntroStoryDialog> {
   }
 
   Widget _buildScenePage(IntroStoryScene scene, int index, String lang, NeoBrutalistThemeData theme) {
-    final title = lang == 'tr' ? scene.titleTr : scene.titleEn;
-    final chapter = lang == 'tr' ? scene.chapterTr : scene.chapterEn;
-    final narrative = lang == 'tr' ? scene.narrativeTr : scene.narrativeEn;
-    final quote = lang == 'tr' ? scene.quoteTr : scene.quoteEn;
+    final title = scene.getTitle(lang);
+    final chapter = scene.getChapter(lang);
+    final narrative = scene.getNarrative(lang);
+    final quote = scene.getQuote(lang);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(14),

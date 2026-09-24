@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hex_rush/core/localization/game_localization.dart';
 import 'package:hex_rush/domain/models/ad_reward_model.dart';
 import 'package:hex_rush/domain/services/ad_reward_service.dart';
 import 'package:hex_rush/presentation/widgets/celestial_omen_hud.dart';
@@ -46,7 +47,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap ad blessing button
-      final blessingBtn = find.textContaining('DUAYI KABUL ET');
+      final blessingBtn = find.textContaining(GameLocalization.get('claim', lang: 'tr'));
       await tester.tap(blessingBtn);
       await tester.pumpAndSettle();
 

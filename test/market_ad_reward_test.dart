@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hex_rush/core/localization/game_localization.dart';
 import 'package:hex_rush/domain/models/ad_reward_model.dart';
 import 'package:hex_rush/domain/services/ad_reward_service.dart';
 import 'package:hex_rush/presentation/widgets/market_dialog.dart';
@@ -36,7 +37,7 @@ void main() {
       await tester.pumpWidget(createMarketUnderTest(adService: mockAdService));
       await tester.pumpAndSettle();
 
-      final caravanBtn = find.textContaining('AL (');
+      final caravanBtn = find.textContaining(GameLocalization.get('claim', lang: 'tr'));
       await tester.tap(caravanBtn);
       await tester.pumpAndSettle();
 

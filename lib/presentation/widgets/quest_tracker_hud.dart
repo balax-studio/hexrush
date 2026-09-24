@@ -154,8 +154,8 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                           alignment: Alignment.centerLeft,
                           child: Text(
                             _isCollapsed && !allDone
-                                ? '${isTr ? 'GÖREV' : 'QUEST'}: ${activeQuest.currentAmount}/${activeQuest.targetAmount}'
-                                : (isTr ? 'GÖREV' : 'OBJECTIVE'),
+                                ? '${GameLocalization.get('quest', lang: lang)}: ${activeQuest.currentAmount}/${activeQuest.targetAmount}'
+                                : GameLocalization.get('objective', lang: lang),
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w900,
@@ -211,7 +211,7 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              isTr ? 'İlerleme' : 'Progress',
+                              GameLocalization.get('progress', lang: lang),
                               style: const TextStyle(
                                 fontSize: 9,
                               fontWeight: FontWeight.w700,
@@ -274,9 +274,7 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                                   ),
                                   const SizedBox(width: 3),
                                   Text(
-                                    isTr
-                                        ? 'ÖDÜLÜ AL (+${activeQuest.rewardAmount} ${activeQuest.rewardType.name.toUpperCase()})'
-                                        : 'CLAIM (+${activeQuest.rewardAmount} ${activeQuest.rewardType.name.toUpperCase()})',
+                                    GameLocalization.get('claim_reward_btn', lang: lang, args: [activeQuest.rewardAmount.toString(), activeQuest.rewardType.name.toUpperCase()]),
                                     style: const TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w900,
@@ -315,9 +313,7 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
                                   fit: BoxFit.scaleDown,
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    isTr
-                                        ? 'Ödül: +${activeQuest.rewardAmount} ${activeQuest.rewardType.name.toUpperCase()}'
-                                        : 'Reward: +${activeQuest.rewardAmount} ${activeQuest.rewardType.name.toUpperCase()}',
+                                    GameLocalization.get('reward_label', lang: lang, args: [activeQuest.rewardAmount.toString(), activeQuest.rewardType.name.toUpperCase()]),
                                     style: NeoBrutalistTheme.fontBadge.copyWith(
                                       color: theme.primaryGold,
                                       fontSize: 8.5,
