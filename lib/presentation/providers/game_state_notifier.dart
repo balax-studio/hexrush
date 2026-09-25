@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/tactile_audio_service.dart';
 import '../../core/notifications/local_notification_service.dart';
@@ -784,6 +785,15 @@ class GameStateNotifier extends StateNotifier<GameState> {
             );
           }
         }
+      } else {
+        final deviceLanguage = WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+        final language = GameLocalization.supportedLanguages.contains(deviceLanguage)
+            ? deviceLanguage
+            : 'en';
+        state = state.copyWith(
+          settings: state.settings.copyWith(language: language),
+        );
+        await saveGame();
       }
     } catch (_) {
       // Güvenli başlatma: Hata durumunda varsayılan harita korunur
@@ -980,7 +990,16 @@ class GameStateNotifier extends StateNotifier<GameState> {
           t.building!.type == BuildingType.fishermanHut ||
           t.building!.type == BuildingType.granaryVault) {
         workerSourceCoords.add(t.coord);
-        workerSourceCapacities.add(t.building!.currentCarryingCapacity * workerTransferMult);
+        final double granarySynergy =
+            EconomyCalculator.calculateGranarySynergyMultiplier(
+          t,
+          state.tiles,
+        );
+        workerSourceCapacities.add(
+          t.building!.currentCarryingCapacity *
+              workerTransferMult *
+              granarySynergy,
+        );
         workerSourceTypes.add(t.building!.type);
       }
     }
@@ -1025,7 +1044,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
       ..sort((a, b) {
         final prioA = a.value.building?.type.logisticsPriority ?? 0;
         final prioB = b.value.building?.type.logisticsPriority ?? 0;
-        return prioB.compareTo(prioA);
+        if (prioA != prioB) return prioB.compareTo(prioA);
+        final qCompare = a.key.q.compareTo(b.key.q);
+        return qCompare != 0 ? qCompare : a.key.r.compareTo(b.key.r);
       });
 
     for (final entry in sortedTileEntries) {
@@ -1162,6 +1183,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
           if (isFood && workerSourceTypes[i] == BuildingType.worker) {
             continue; // İşçi kulübesi gıda depolayamaz / taşıyamaz
           }
+          if (workerSourceTypes[i] == BuildingType.granaryVault && !isFood) {
+            continue;
+          }
           if (tile.coord.distanceTo(workerSourceCoords[i]) <= 4 && workerSourceCapacities[i] > 0.0) {
             inRangeIndices.add(i);
           }
@@ -1287,6 +1311,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
           for (int i = 0; i < workerSourceCoords.length; i++) {
             if (isFood && workerSourceTypes[i] == BuildingType.worker) {
               continue; // İşçi kulübesi gıda depolayamaz / taşıyamaz
+            }
+            if (workerSourceTypes[i] == BuildingType.granaryVault && !isFood) {
+              continue;
             }
             if (tile.coord.distanceTo(workerSourceCoords[i]) <= 4 && workerSourceCapacities[i] > 0.0) {
               inRangeIndices.add(i);

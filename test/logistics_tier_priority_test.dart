@@ -85,5 +85,43 @@ void main() {
       expect(untransported[cornCoord], greaterThan(0.0),
           reason: 'Mısır kalan kapasiteyi almalı ve arta kalan taşınamamış görünmelidir');
     });
+
+    test('Eşit öncelikli üreticiler kapasiteyi koordinata göre deterministik paylaşmalıdır', () {
+      const workerCoord = HexAxial(0, 0);
+      const firstLumberjack = HexAxial(-2, 0);
+      const secondLumberjack = HexAxial(2, 0);
+      final tiles = <HexAxial, HexTileModel>{
+        // Map sırası koordinat sırasının tersidir.
+        secondLumberjack: const HexTileModel(
+          coord: secondLumberjack,
+          biome: TileBiome.forest,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.lumberjack),
+        ),
+        workerCoord: const HexTileModel(
+          coord: workerCoord,
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.worker),
+        ),
+        firstLumberjack: const HexTileModel(
+          coord: firstLumberjack,
+          biome: TileBiome.forest,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.lumberjack),
+        ),
+      };
+
+      final untransported = EconomyCalculator.allocateGreedyLogistics(
+        tiles: tiles,
+        producerDemands: const {
+          secondLumberjack: 3.36,
+          firstLumberjack: 3.36,
+        },
+      );
+
+      expect(untransported[firstLumberjack], 0.0);
+      expect(untransported[secondLumberjack], 3.36);
+    });
   });
 }

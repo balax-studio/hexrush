@@ -2198,7 +2198,8 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
             ),
             if (isWinter) ...[
               const SizedBox(width: 8),
-              TactileNeoButton(
+              Expanded(
+                child: TactileNeoButton(
                 onTap: canWarm ? () => notifier.warmTile(tile.coord) : null,
                 isEnabled: canWarm,
                 backgroundColor: tile.isWarmed ? const Color(0xFFEA580C) : const Color(0xFFF97316),
@@ -2206,10 +2207,12 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 shadowColor: theme.shadowColor,
                 shadowOffset: 2.5,
                 height: 38,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 5),
                 alignment: Alignment.center,
                 soundType: TactileSoundType.tap,
-                child: Text(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
                   tile.isWarmed
                       ? GameLocalization.get('heating_active', lang: lang, args: [warmWoodPerSec.toStringAsFixed(2)])
                       : '${GameLocalization.get('heat', lang: lang).toUpperCase()} (-${warmWoodPerSec.toStringAsFixed(2)}/sn ${GameLocalization.get('wood', lang: lang).toUpperCase()})',
@@ -2219,9 +2222,12 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                     fontWeight: FontWeight.w900,
                   ),
                 ),
+                ),
+              ),
               ),
               const SizedBox(width: 8),
-              TactileNeoButton(
+              Expanded(
+                child: TactileNeoButton(
                 onTap: () => notifier.toggleAutoHeat(tile.coord),
                 backgroundColor: tile.isAutoHeatEnabled
                     ? const Color(0xFF15803D)
@@ -2232,10 +2238,12 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 shadowColor: theme.shadowColor,
                 shadowOffset: 2.5,
                 height: 38,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 5),
                 alignment: Alignment.center,
                 soundType: TactileSoundType.tap,
-                child: Row(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
@@ -2255,23 +2263,26 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                       ),
                     ),
                   ],
+                  ),
+                ),
                 ),
               ),
             ],
             if (b.type != BuildingType.castle) ...[
               const SizedBox(width: 8),
-              TactileNeoButton(
+              Expanded(
+                child: TactileNeoButton(
                 onTap: () => _confirmDemolish(context, notifier, tile, b, theme),
                 backgroundColor: const Color(0xFFDC2626),
                 borderColor: theme.border,
                 shadowColor: theme.shadowColor,
                 shadowOffset: 2.5,
                 height: 38,
-                width: 38,
                 padding: EdgeInsets.zero,
                 alignment: Alignment.center,
                 soundType: TactileSoundType.tap,
                 child: const Icon(Icons.delete_outline, color: Colors.white, size: 16),
+                ),
               ),
             ],
           ],

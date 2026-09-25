@@ -777,18 +777,6 @@ class HexTileComponent extends PositionComponent {
       }
     }
 
-    // 10x Toy Coşkusu Devredeyken Fethedilmiş Topraklarda Altın Aurası
-    if (isFrenzyActive && tileModel.isOwned) {
-      final frenzyShaderPaint = HexShaderService.getFrenzyShaderPaint(
-        resolution: const Size(hexRadius * 2, hexRadius * 2),
-        time: _animTimer,
-        intensity: 0.85,
-      );
-      if (frenzyShaderPaint != null) {
-        canvas.drawPath(_topPath, frenzyShaderPaint);
-      }
-    }
-
     // Sahipsiz vs Sahip Olunan Dış Sınır Çerçevesi (İç kesişimlerde çizilmez, sadece dış sınırda birleşik altın çerçeve)
     if (tileModel.isOwned && !isSelected && unownedNeighborMask != 0) {
       const List<int> dirStartCorners = [0, 5, 4, 3, 2, 1];

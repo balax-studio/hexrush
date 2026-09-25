@@ -115,6 +115,12 @@ void main() {
     test('4. İleri Bozkır Zanaatı (Advanced Converters Yields & Rates)', () {
       final tiles = <HexTileModel>[
         const HexTileModel(
+          coord: HexAxial(0, 0),
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.castle, level: 1),
+        ),
+        const HexTileModel(
           coord: HexAxial(0, 1),
           biome: TileBiome.meadow,
           state: TileState.owned,

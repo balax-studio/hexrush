@@ -51,9 +51,13 @@ void main() {
       expect(NumberFormatter.formatRate(0), equals('0.00/sn'));
       expect(NumberFormatter.formatRate(250), equals('+250/sn'));
       expect(NumberFormatter.formatRate(-220), equals('-220/sn'));
-      expect(NumberFormatter.formatRate(1200), equals('+1.2K/sn'));
-      expect(NumberFormatter.formatRate(1000000), equals('+1M/sn'));
-      expect(NumberFormatter.formatRate(-5000000), equals('-5M/sn'));
+      expect(NumberFormatter.formatRate(1200), equals('+1.2k/sn'));
+      expect(NumberFormatter.formatRate(1000000), equals('+1m/sn'));
+      expect(NumberFormatter.formatRate(-5000000), equals('-5m/sn'));
+      expect(NumberFormatter.formatRate(1656.9), equals('+1.7k/sn'));
+      expect(NumberFormatter.formatRate(1600), equals('+1.6k/sn'));
+      expect(NumberFormatter.formatRate(1600000), equals('+1.6m/sn'));
+      expect(NumberFormatter.formatRate(1e15), equals('+1e15/sn'));
     });
 
     test('EconomyCalculator.formatCompactNumber delegates correctly', () {

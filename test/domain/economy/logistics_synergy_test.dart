@@ -88,5 +88,83 @@ void main() {
         closeTo(1.40, 0.001),
       );
     });
+
+    test('Castle transport matches the 1 per second used by the game tick', () {
+      const producerCoord = HexAxial(0, 0);
+      const castleCoord = HexAxial(1, 0);
+      final tiles = <HexAxial, HexTileModel>{
+        producerCoord: const HexTileModel(
+          coord: producerCoord,
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.corn, level: 1),
+        ),
+        castleCoord: const HexTileModel(
+          coord: castleCoord,
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.castle, level: 10),
+        ),
+      };
+
+      final remaining = EconomyCalculator.allocateGreedyLogistics(
+        tiles: tiles,
+        producerDemands: {producerCoord: 2.0},
+      );
+
+      expect(remaining[producerCoord], 1.0);
+    });
+
+    test('Owned shrine contributes logistics capacity to rate estimates', () {
+      const producerCoord = HexAxial(0, 0);
+      const shrineCoord = HexAxial(1, 0);
+      final tiles = <HexAxial, HexTileModel>{
+        producerCoord: const HexTileModel(
+          coord: producerCoord,
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.corn, level: 1),
+        ),
+        shrineCoord: const HexTileModel(
+          coord: shrineCoord,
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          shrine: ShrineType.foodBoost,
+        ),
+      };
+
+      final remaining = EconomyCalculator.allocateGreedyLogistics(
+        tiles: tiles,
+        producerDemands: {producerCoord: 5.0},
+      );
+
+      expect(remaining[producerCoord], 0.0);
+    });
+
+    test('Granary utilization excludes non-food producers', () {
+      const granaryCoord = HexAxial(0, 0);
+      const lumberCoord = HexAxial(1, 0);
+      final granary = const HexTileModel(
+        coord: granaryCoord,
+        biome: TileBiome.meadow,
+        state: TileState.owned,
+        building: BuildingModel(type: BuildingType.granaryVault, level: 1),
+      );
+      final stats = EconomyCalculator.calculateWorkerLogisticsStats(
+        workerTile: granary,
+        tiles: {
+          granaryCoord: granary,
+          lumberCoord: const HexTileModel(
+            coord: lumberCoord,
+            biome: TileBiome.forest,
+            state: TileState.owned,
+            building: BuildingModel(type: BuildingType.lumberjack, level: 1),
+          ),
+        },
+      );
+
+      expect(stats.utilizationRatio, 0.0);
+      expect(stats.coveredBuildingsCount, 0);
+    });
   });
 }

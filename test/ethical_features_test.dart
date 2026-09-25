@@ -199,8 +199,16 @@ void main() {
         ),
       );
 
+      const castle = HexTileModel(
+        coord: HexAxial(-3, 0),
+        biome: TileBiome.meadow,
+        state: TileState.owned,
+        building: BuildingModel(type: BuildingType.castle, level: 1),
+      );
+      final tiles = [castle, tile];
+
       final ratesSpring = EconomyCalculator.calculateNetRates(
-        tiles: [tile],
+        tiles: tiles,
         globalMultiplier: 1.0,
         seasonMultiplier: 1.0,
         shrineMultiplier: 1.0,
@@ -211,7 +219,7 @@ void main() {
       expect(ratesSpring.food, closeTo(0.504, 0.001));
 
       final ratesSummer = EconomyCalculator.calculateNetRates(
-        tiles: [tile],
+        tiles: tiles,
         globalMultiplier: 1.0,
         seasonMultiplier: 1.0,
         shrineMultiplier: 1.0,

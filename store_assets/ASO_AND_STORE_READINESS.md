@@ -1,200 +1,241 @@
-# HexRush — Complete App Store & Google Play Optimization (ASO) Package
+# HexRush ASO Planı ve Mağaza Metinleri
 
-This document contains production-ready metadata, keyword strategies, screenshot sequences, visual directions, and compliance specifications for submitting **HexRush** (`com.balax.hexrush`) to both **Apple App Store** and **Google Play Store**.
+Bu belge, HexRush'ın mevcut oyun döngüsüne göre Google Play ve Apple App Store mağaza sayfalarını düzenlemek için hazırlanmıştır. Ana hedef, arama sonucundan mağaza sayfasına geçişi (CTR) ve mağaza sayfasından yüklemeye dönüşümü artırmaktır. Anahtar kelime hacmi ve rekabeti için ülke bazlı mağaza verisi henüz yoktur; aşağıdaki kümeler başlangıç hipotezidir ve yayın sonrası ölçülmelidir.
 
----
+## Ürün ve konumlandırma
 
-## 1. Executive Summary & Brand Positioning
+Kod ve README'ye göre HexRush; sis altındaki altıgen arazileri açma, kaynak karolarını fethetme, üretim binaları kurma, pazarda takas yapma ve kalıcı ilerleme etrafında şekilleniyor. Görsel kimlik izometrik voksel, anlatı çerçevesi ise bozkır ve Kağanlık. Önerilen kısa vaat: **Sisleri aç, altıgenleri fethet, bozkırını büyüt.**
 
-- **Game Title:** HexRush
-- **Bundle ID / Application ID:** `com.balax.hexrush`
-- **Genre:** Casual / Strategy / Idle Incremental / Tile Conquest
-- **Target Audience:** Fans of satisfying tactile games, hex grid builders, idle empire games, and minimalist isometric aesthetics (*e.g., Dorfromantik, Polytopia, Hexagon Dungeon, Idle Town Master*).
-- **Core Value Proposition:** Satisfying instant conquest feedback (dopamine poofs, floating resource numbers), relaxing isometric voxel visuals, strategic building synergies, and prestige progression without forced ads or microtransaction fatigue.
+Hedef kitle; altıgen harita ve kaynak yönetimi seven strateji oyuncuları, idle üretim oyuncuları ve izometrik voksel diorama arayan tek oyunculu/casual kitleleridir.
 
----
+Kodda Google Mobile Ads SDK ve ödüllü reklam akışları mevcut; bu nedenle “reklamsız” denmemeli. Çevrimdışı oynanış iddiası mağaza vaadi yapılmadan önce uçak modunda gerçek cihazda doğrulanmalı. Gizlilik dosyasındaki veri toplama beyanı da reklam SDK'sının gerçek yapılandırmasıyla eşleştirilmeli.
 
-## 2. Apple App Store Listing (iOS)
+## Arama temaları
 
-### 2.1 Metadata Fields
+Aşağıdakiler hacim sıralaması değil, test edilecek başlangıç hipotezleridir. Ülke ve mağaza dili bazında veriler geldikçe güncelleyin.
 
-| Field | Character Limit | Proposed Copy | Length |
-|---|---|---|---|
-| **App Name** | 30 chars | `HexRush: Voxel Hex Tactics` | 27 chars |
-| **Subtitle** | 30 chars | `Conquer Hexagons & Build Realm` | 30 chars |
-| **Promotional Text** | 170 chars | `Expand your hexagonal kingdom! Tap to conquer lush voxel tiles, construct production guilds, trade at the market, and unlock royal titles in a relaxing idle journey.` | 168 chars |
-| **Primary Category** | N/A | Games > Strategy | - |
-| **Secondary Category** | N/A | Games > Casual (or Simulation) | - |
-| **Keywords** | 100 chars | `hex,voxel,idle,conquest,strategy,hexagon,builder,empire,isometric,offline,relaxing,tactics,diorama` | 99 chars |
-
-### 2.2 Full Description (Apple App Store)
-
-```markdown
-Step into HexRush — an ultra-satisfying isometric hexagon conquest and idle strategy game where every tap expands your vibrant voxel kingdom!
-
-Uncover fog-shrouded frontiers, claim untapped resource tiles, construct bustling workshops, and build the ultimate hexagonal empire. Designed with tactile micro-animations and soothing voxel aesthetics, HexRush delivers the perfect blend of casual relaxation and engaging tactical depth.
-
-◆ TACTILE CONQUEST & SATISFYING POP
-Feel the instant thrill of clearing the fog of war! Tap adjacent hexagonal territories to conquer lush forests, fertile wheat fields, rich stone quarries, and glistening gold mines with crisp poof animations and floating resource yields.
-
-◆ STRATEGIC BUILDING & PRODUCTION SYNERGIES
-Upgrade your central Castle and construct specialized buildings to automate your economy:
-• Lumber Mills & Stonecutters for rapid territorial expansion
-• Windmills & Bakeries for nourishing bread production
-• Iron Forges & Gold Mints for high-value strategic yields
-• Watchtowers that pierce through the dense surrounding fog
-
-◆ DYNAMIC COMMERCE & TACTICAL TRADING
-Fluctuating market prices reward smart merchants! Trade surplus flour for premium stone or wood when supply is high, or invest in deep talent trees using Royal Crowns.
-
-◆ PRESTIGE & ROYAL HONORS
-Rise from a humble Baron to an illustrious Emperor! Achieve grand milestones to claim prestigious titles that permanently boost production speeds, territory radius, and offline earnings.
-
-◆ RELAXING & 100% PLAYABLE OFFLINE
-Play anytime, anywhere without an internet connection. Enjoy smooth 60fps performance, battery-efficient rendering, and zero invasive interruptions.
-
-Build your legacy, one hexagon at a time. Download HexRush today!
-```
-
----
-
-## 3. Google Play Store Listing (Android)
-
-### 3.1 Metadata Fields
-
-| Field | Character Limit | Proposed Copy | Length |
-|---|---|---|---|
-| **App Title** | 30 chars | `HexRush: Hexagon Idle Strategy` | 30 chars |
-| **Short Description** | 80 chars | `Expand your hexagonal empire, gather resources, and build an isometric realm!` | 78 chars |
-| **Tags / Categories** | Max 5 tags | `Strategy`, `Casual`, `Idle`, `Offline`, `Single Player` | - |
-
-### 3.2 Full Description (Google Play Store)
-
-```markdown
-Welcome to HexRush — a captivating hexagonal conquest and idle strategy builder crafted in a stunning isometric voxel world!
-
-Start with a single Castle and expand into an expansive, thriving realm. Tap to clear the fog of war, capture abundant resource tiles, establish automated production chains, and master the royal marketplace.
-
-🏆 WHY PLAYERS LOVE HEXRUSH:
-
-★ SATISFYING TILE CONQUEST
-Every tile capture bursts with rewarding visual effects, vibrant color transitions, and floating income notifications that keep your progression intensely satisfying.
-
-★ BUILD, AUTOMATE & HARVEST
-Construct specialized buildings to maximize your income per second:
-- Timber Camps & Quarries for essential building materials
-- Windmills, Bakeries, and Farms for sustained bread output
-- Foundries and Mints for rare gold extraction
-- Watchtowers to reveal extensive territory across the map
-
-★ VIBRANT ISOMETRIC VOXEL DIORAMA
-Experience a living diorama with soft shadows, dynamic lighting, seasonal warmth mechanics, and handcrafted 3D voxel assets designed to look stunning on any screen.
-
-★ ROYAL TALENTS & PRESTIGE
-Earn Royal Crowns to unlock powerful permanent perks in the kingdom talent tree. Scale your multipliers, boost your storage capacity, and claim legendary sovereign titles.
-
-★ OFFLINE PLAY & ZERO BATTERY DRAIN
-HexRush requires no Wi-Fi or cellular connection. All progress is saved securely on your device for instant on-the-go play.
-
-Take the crown and rush into the hex frontier! Download HexRush now and build your empire!
-```
-
----
-
-## 4. Turkish Store Listing (Yerelleştirme / TR Metadata)
-
-### 4.1 iOS & Android Türkçe Başlık ve Açıklamalar
-
-| Alan | Limit | Türkçe Metin |
+| Dil | Öncelikli temalar | Uzun kuyruk / niyet |
 |---|---|---|
-| **Başlık (Title)** | 30 karakter | `HexRush: Altıgen Fetih Strateji` (30 kar.) |
-| **Alt Başlık / Kısa Açıklama** | 30/80 kar. | `Altıgenleri fethet, krallığını büyüt!` (37 kar.) |
-| **Kelimeler (Keywords)** | 100 kar. | `altıgen,fetih,strateji,idle,krallık,voksel,izometrik,rahatlatıcı,çevrimdışı,oyun,inşa,taktik` (91 kar.) |
+| Türkçe | altıgen strateji, strateji oyunu, şehir kurma, kaynak yönetimi, boşta oyun | altıgen fetih, çevrimdışı strateji oyunu, izometrik oyun, voksel oyun |
+| İngilizce | hex strategy, idle strategy, hexagon game, territory builder | voxel strategy, isometric builder, offline idle game, tile conquest |
 
-### 4.2 Türkçe Detaylı Açıklama
+“Offline/çevrimdışı” kelimesini yalnızca bağlantısız açılış ve oynanış test edilirse kullanın. “Şehir kurma” ve “empire builder” geniş ve rekabetçi terimlerdir; yanlış beklenti oluşturmadıklarını dönüşüm ve yorumlarla ölçün. Rakip oyun adlarını anahtar kelime olarak kullanmayın.
 
-```markdown
-HexRush ile büyüleyici bir altıgen fetih ve krallık kurma macerasına adım atın!
+## Google Play taslağı
 
-Sislerle kaplı gizemli toprakları keşfedin, bereketli kaynak karolarını tek dokunuşla ele geçirin, üretim binaları inşa edin ve küçük bir kaleden devasa bir imparatorluğa uzanan yolculuğun tadını çıkarın.
+Google Play başlığı 30, kısa açıklaması 80 karakterle sınırlıdır. Taslaklar bu sınırların içindedir.
 
-ÖNE ÇIKAN ÖZELLİKLER:
-• Tatmin Edici Fetih Hissi: Sisleri dağıtın, odun, taş, buğday ve altın karolarını ele geçirirken eğlenceli görsel efektlerin ve yükselen sayıların keyfini çıkarın.
-• Stratejik Üretim Zinciri: Değirmenler, fırınlar, madenler ve gözetleme kuleleri kurarak imparatorluğunuzun gelirini katlayın.
-• Pazar Yeri ve Ticaret: Kaynaklarınızı doğru zamanda takas edin, kraliyet tacı kazanarak yetenek ağacından kalıcı güçlendirmeler açın.
-• İzometrik Voksel Sanatı: Göz yormayan, estetik ve akıcı 60 FPS grafiklerle yaşayan bir minyatür diyar.
-• Tamamen İnternetsiz (Offline): İnternet bağlantısı gerekmeden her yerde ve her an oynayın.
+| Alan | Türkçe | Karakter |
+|---|---|---:|
+| Başlık | `HexRush: Altıgen Strateji` | 25 |
+| Kısa açıklama | `Sisleri aç, altıgenleri fethet; kaynak topla ve bozkırını büyüt.` | 64 |
 
-Krallığını kurmaya hazır mısın? HexRush'ı şimdi indir ve fethetmeye başla!
-```
+**Tam açıklama (TR)**
 
----
+Altıgen toprakları keşfet, sisleri aç ve kendi bozkırını kur. HexRush; bölge fetihlerini, kaynak üretimini ve izometrik voksel dünyayı bir araya getiren tek oyunculu bir strateji oyunudur.
 
-## 5. Visual Asset & Screenshot Strategy (A/B Testing Ready)
+Haritada komşu arazileri açarak orman, çayır, dağ ve farklı kaynak alanlarına ulaş. Odun, taş, gıda ve diğer kaynakları üret; uygun karolara binalar kur ve üretimini geliştir.
 
-### 5.1 Screenshot Storyboard (5-Card Narrative Flow)
+- Altıgen haritada adım adım genişle
+- Üretim binalarını yerleştir ve kaynak akışını planla
+- Pazarda kaynaklarını takas et
+- Kalıcı ilerleme ve unvanlar için gelişimini sürdür
+- İzometrik voksel bozkırını yakınlaştırıp keşfet
 
-1. **Card 1 (Hero - Value Proposition):**
-   - *Headline:* **TAP & CONQUER THE REALM**
-   - *Subtext:* Clear the fog of war and claim fertile hex tiles with instant dopamine pops.
-   - *Visual:* Castle surrounded by green and gold hexes, poof particles radiating outwards.
+Her yeni karo, yerleşimini ve kaynak planını büyütür. HexRush'ta küçük bir başlangıçtan geniş bir kağanlığa doğru ilerle.
 
-2. **Card 2 (Economy & Buildings):**
-   - *Headline:* **BUILD THRIVING GUILDS**
-   - *Subtext:* Automate resource chains with Mills, Bakeries, Forges, and Watchtowers.
-   - *Visual:* Close-up of active voxel buildings with floating production numbers (+12/s, +25/s).
+**English title:** `HexRush: Hex Strategy` (21 characters)
 
-3. **Card 3 (Market & Strategy):**
-   - *Headline:* **TRADE & EXPAND AT THE MARKET**
-   - *Subtext:* Exploit dynamic pricing cycles and reinvest profits for maximum growth.
-   - *Visual:* Sleek dark glassmorphic Market overlay showing resource trade cards.
+**English short description:** `Claim hex tiles, gather resources, and grow a voxel steppe kingdom.` (66 characters)
 
-4. **Card 4 (Talents & Titles):**
-   - *Headline:* **ASCEND FROM BARON TO EMPEROR**
-   - *Subtext:* Unlock prestigious crowns, powerful dynasty talents, and legendary titles.
-   - *Visual:* Royal talent constellation and glowing title unlocked badge.
+**Full description (EN)**
 
-5. **Card 5 (Offline & Calming):**
-   - *Headline:* **PLAY ANYWHERE, 100% OFFLINE**
-   - *Subtext:* Relax with buttery-smooth voxel diorama visuals and zero interruptions.
-   - *Visual:* Beautiful zoomed-out full diorama view in pristine isometric framing.
+Explore a hexagonal frontier, clear the fog, and shape your own steppe realm. HexRush combines tile conquest, resource production, and an isometric voxel world in a single-player strategy game.
 
-### 5.2 Icon Strategy & A/B Variations
+Expand across neighboring tiles to reach forests, grasslands, mountains, and new resources. Gather what your settlement needs, place buildings on suitable terrain, and improve your production.
 
-- **Variant A (Minimalist Gold Crown & Hex):** Glowing golden hexagonal prism crowned with a royal tiara on a deep midnight blue gradient (`#0F172A`). Strongest contrast for high tap-through rate in Dark Mode.
-- **Variant B (Voxel Castle Diorama):** Tiny isometric floating voxel fortress with lush green grass skirt and crystal river. Highlights the builder aesthetic.
-- **Variant C (Conquest Poof Action):** Dynamic sword/banner plunging into a hex tile with glowing particle burst. Maximizes action and curiosity.
+- Expand one hex at a time
+- Place production buildings and plan your resource flow
+- Trade resources at the market
+- Progress through lasting upgrades and titles
+- Explore an isometric voxel steppe
 
-### 5.3 Google Play Feature Graphic (1024 x 500 px)
-- Centered stylized 3D chrome/gold **HexRush** typography.
-- Left side: Castle diorama with lush pine trees and flowing wheat fields.
-- Right side: Particle burst effect revealing unexplored misty hex tiles.
+Every new tile gives your settlement room to grow. Start small and build a wider realm in HexRush.
 
----
+**Título ES:** `HexRush: Estrategia Hex` (23 caracteres)
 
-## 6. Store Privacy & Compliance Questionnaire Answers
+**Descripción breve ES:** `Conquista hexágonos, reúne recursos y expande tu reino voxel.` (61 caracteres)
 
-### 6.1 Apple App Store Connect (App Privacy Nutrition Label)
-- **Data Collection:** "No, we do not collect data from this app."
-- **Tracking:** "No, we do not track users across apps and websites owned by other companies."
-- **Export Compliance:** `ITSAppUsesNonExemptEncryption = false` (configured in `Info.plist`).
+**Descripción completa (ES)**
 
-### 6.2 Google Play Console (Data Safety Section)
-- **Data Collection and Sharing:** Does your app collect or share any user data? -> **No**.
-- **Security Practices:** Data is not collected or transmitted over an encrypted network because no data is transferred off the device.
-- **Account Deletion URL:** Not applicable (app has no user accounts or online authentication).
-- **Target Audience:** Everyone (All ages).
-- **Ads:** Does your app contain ads? -> **No** (or standard disclaimer if integrated in future).
+Explora una frontera de hexágonos, despeja la niebla y construye tu propio territorio de la estepa. HexRush combina conquista de tierras, producción de recursos y un mundo isométrico de vóxeles en un juego de estrategia para un jugador.
 
----
+Expande tu territorio hacia bosques, praderas y montañas. Reúne recursos, coloca edificios de producción en terrenos adecuados y mejora tu economía.
 
-## 7. Submission Preflight Checklist
+- Amplía el mapa hexágono a hexágono
+- Construye edificios y planifica la producción
+- Intercambia recursos en el mercado
+- Avanza con mejoras permanentes y títulos
+- Explora una estepa isométrica de vóxeles
 
-- [x] Bundle ID verified: `com.balax.hexrush`
-- [x] Apple Privacy Manifest created: `ios/Runner/PrivacyInfo.xcprivacy`
-- [x] Apple Preflight verified: **GREENLIT (0 Critical Issues)**
-- [x] Export Compliance exemption added to `Info.plist`
-- [x] Android ProGuard & R8 rules defined: `android/app/proguard-rules.pro`
-- [x] Android Release keystore template created: `android/key.properties.example`
-- [x] Privacy Policy published: `store_assets/PRIVACY_POLICY.md`
-- [x] Full ASO copy, keywords, and screenshot storyboard finalized
+Cada nueva parcela da espacio para crecer. Empieza con un pequeño asentamiento y amplía tu reino en HexRush.
+
+**Titel DE:** `HexRush: Hex-Strategie` (22 Zeichen)
+
+**Kurzbeschreibung DE:** `Erobere Hexfelder, sammle Rohstoffe und baue dein Voxelreich aus.` (64 Zeichen)
+
+**Vollständige Beschreibung (DE)**
+
+Erkunde eine sechseckige Grenze, lüfte den Nebel und gestalte deine eigene Steppe. HexRush verbindet Gebietseroberung, Rohstoffproduktion und eine isometrische Voxelwelt in einem Einzelspieler-Strategiespiel.
+
+Erweitere dein Gebiet in Wälder, Grasland und Gebirge. Sammle Rohstoffe, errichte Produktionsgebäude auf geeignetem Gelände und entwickle deine Wirtschaft weiter.
+
+- Erweitere die Karte Hexfeld für Hexfeld
+- Baue Produktionsgebäude und plane deine Rohstoffflüsse
+- Tausche Rohstoffe auf dem Markt
+- Entwickle dich mit dauerhaften Verbesserungen und Titeln weiter
+- Erkunde eine isometrische Voxelsteppe
+
+Jedes neue Feld bietet Platz zum Wachsen. Beginne mit einer kleinen Siedlung und erweitere dein Reich in HexRush.
+
+## Apple App Store taslağı
+
+Apple'da ad ve alt başlık 30 karakter; anahtar kelime alanı 100 karakterdir. Açıklama metnini arama sıralamasını yükseltecek bir alan gibi değerlendirmeyin; kullanıcıya ürünün ne sunduğunu net biçimde anlatın.
+
+| Alan | Türkçe | Karakter |
+|---|---|---:|
+| Ad | `HexRush: Altıgen Strateji` | 25 |
+| Alt başlık | `Sisleri aç, bozkırını büyüt` | 27 |
+| Promosyon metni | `Yeni araziler aç, kaynak üretimini planla ve kağanlığını altıgen altıgen genişlet.` | 81 |
+
+**TR keywords (91 karakter):**
+
+`altıgen,fetih,boşta,kaynak,izometrik,voksel,bozkır,kağanlık,üretim,ticaret,harita`
+
+**EN name:** `HexRush: Hex Strategy` (21 characters)
+
+**EN subtitle:** `Claim tiles, build your realm` (29 characters)
+
+**EN promotional text:** `Clear the fog, claim new hexes, and plan a growing voxel settlement across the steppe.`
+
+**EN keywords (95 characters):**
+
+`hex,idle,voxel,isometric,tiles,conquest,steppe,kingdom,resource,builder,trading,frontier`
+
+**Açıklama (TR)**
+
+Sislerle kaplı altıgen haritayı aç, yeni arazileri fethet ve bozkırındaki üretimi planla. HexRush; bölge genişletme, kaynak yönetimi ve izometrik voksel görünümünü tek oyunculu bir strateji oyununda buluşturur.
+
+Komşu karoları açarak ormanlara, çayırlara ve dağlara ulaş. Kaynak topla, araziye uygun üretim binaları kur ve yerleşimini geliştirmek için pazarda takas yap.
+
+- Altıgen arazilerde adım adım genişle
+- Üretim binalarını kur ve geliştir
+- Kaynaklarını yönet, pazarda takas et
+- Kalıcı gelişim ve unvanlar kazan
+- Voksel bozkırını izometrik açıdan keşfet
+
+Küçük bir başlangıçtan büyüyen bir kağanlığa ilerle. Her karo, kurduğun düzeni genişletir.
+
+**Description (EN)**
+
+Clear the fog across a hexagonal map, claim new land, and plan a growing steppe settlement. HexRush brings territory expansion, resource management, and an isometric voxel world together in a single-player strategy game.
+
+Reveal neighboring tiles to reach forests, grasslands, and mountains. Gather resources, place production buildings on suitable terrain, and trade at the market as your settlement grows.
+
+- Expand across a hex map one tile at a time
+- Build and upgrade production buildings
+- Manage resources and trade at the market
+- Earn lasting progression and titles
+- Explore an isometric voxel steppe
+
+Begin with a small settlement and shape a wider realm, one hex at a time.
+
+**Nombre ES:** `HexRush: Estrategia Hex` (23 caracteres)
+
+**Subtítulo ES:** `Conquista tierras hexagonales` (29 caracteres)
+
+**Texto promocional ES:** `Despeja la niebla, conquista nuevas tierras y planifica la producción de tu reino voxel.`
+
+**Palabras clave ES (92 caracteres):**
+
+`hexágono,conquista,recursos,estepa,vóxel,isométrico,territorio,producción,mercado,estrategia`
+
+**Descripción (ES)**
+
+Abre caminos entre hexágonos cubiertos por la niebla y desarrolla tu territorio en la estepa. HexRush combina expansión, gestión de recursos y una estética isométrica de vóxeles en una experiencia de estrategia para un jugador.
+
+Explora bosques, praderas y montañas al revelar parcelas vecinas. Reúne recursos, construye edificios de producción en el terreno adecuado e intercambia bienes en el mercado.
+
+- Expande tu territorio parcela a parcela
+- Construye y mejora edificios de producción
+- Gestiona e intercambia recursos
+- Desbloquea progreso permanente y títulos
+- Explora una estepa isométrica de vóxeles
+
+Empieza con un pequeño asentamiento y dale forma a un reino cada vez más amplio.
+
+**Name DE:** `HexRush: Hex-Strategie` (22 Zeichen)
+
+**Untertitel DE:** `Erobere Felder, baue dein Reich` (30 Zeichen)
+
+**Werbetext DE:** `Lüfte den Nebel, erobere neue Hexfelder und plane die Produktion deiner Voxelsteppe.`
+
+**Keywords DE (97 Zeichen):**
+
+`hexagon,strategie,eroberung,rohstoffe,steppe,voksel,isometrisch,gebiet,produktion,handel,aufbau`
+
+**Beschreibung (DE)**
+
+Lüfte den Nebel über einer sechseckigen Karte und baue dein Gebiet in der Steppe aus. HexRush verbindet Gebietserweiterung, Rohstoffverwaltung und eine isometrische Voxelwelt in einem Einzelspieler-Strategiespiel.
+
+Decke benachbarte Felder auf und erreiche Wälder, Grasland und Gebirge. Sammle Rohstoffe, errichte passende Produktionsgebäude und tausche Waren auf dem Markt.
+
+- Erweitere dein Gebiet Feld für Feld
+- Errichte und verbessere Produktionsgebäude
+- Verwalte und tausche Rohstoffe
+- Schalte dauerhafte Fortschritte und Titel frei
+- Erkunde eine isometrische Voxelsteppe
+
+Beginne mit einer kleinen Siedlung und forme Schritt für Schritt ein größeres Reich.
+
+## Mağaza görseli ve tıklanabilirlik planı
+
+İlk ekran görüntüsünde en güçlü gerçek oyun sahnesini ve tek, okunur mesajı kullanın. Telefon çerçevesi veya pazarlama yazısı oyun alanını kapatmamalı.
+
+| Sıra | Ekrandaki mesaj | Gösterilecek gerçek sahne |
+|---:|---|---|
+| 1 | **SİSLERİ AÇ. TOPRAĞINI BÜYÜT.** | Kağan otağı, açılan sis sınırı ve farklı altıgen araziler |
+| 2 | **YENİ ALTIGENLER FETHET** | Yeni komşu karonun açılması ve kaynak geri bildirimi |
+| 3 | **ÜRETİMİNİ PLANLA** | Farklı arazi türlerine kurulmuş gerçek üretim binaları |
+| 4 | **KAYNAKLARINI TAKAS ET** | Pazar arayüzü ve takas edilebilir kaynaklar |
+| 5 | **KAĞANLIĞINI GELİŞTİR** | Otağ, kalıcı ilerleme veya unvan ekranı; sürümde gerçekten varsa |
+
+İlk görseli iki vaatle sınayın: A) altıgen fetih, B) izometrik voksel dünya. Simge küçük boyutta ayırt edilen tek bir güçlü şekle odaklansın; küçük yazı kullanmayın. Google Play mağaza deneylerinde ve App Store Product Page Optimization'da ikon/ilk ekran görüntüsü varyantlarını test edin. Her testte tek ana değişkeni değiştirin.
+
+Video açılışı ilk saniyede sisin açılması ve yeni karonun görünmesini göstermeli; sonra bina kurma, üretim ve pazar akışını sergilemeli. Gerçek oynanış kullanın.
+
+## Ölçüm ve iterasyon
+
+1. Türkçe, İngilizce, İspanyolca ve Almanca listelemeleri ayrı yerelleştirin; metinleri hedef dilde doğal arama ifadelerine göre düzenleyin.
+2. Bağlantısız açılış, çevrimdışı üretim, reklam sıklığı ve içerik kapsamı gibi her iddiayı cihazda doğrulayın.
+3. İlk beş ekran görüntüsünü gerçek cihazda okunabilirlik ve metin kırpılması açısından kontrol edin.
+4. Yayından sonra ülke, dil ve mağaza arama terimine göre gösterim, ürün sayfası ziyareti ve yükleme dönüşümünü takip edin. Düşük gösterim keşif/sorgu eşleşmesi; yüksek ziyaret ama düşük yükleme ise görseller veya sayfa vaadi sorunu olabilir.
+5. Başlık ve anahtar kelime değişikliklerini küçük partiler halinde yapın; aynı anda çok alan değiştirirseniz etkiyi ayıramazsınız.
+6. Yeterli trafik oluşunca Google Play Store Listing Experiments ve App Store Product Page Optimization testlerini çalıştırın; istatistiksel güven oluşmadan kazanan ilan etmeyin.
+
+## Doğruluk ve mağaza beyanı denetimi
+
+- **Ödüllü reklam:** Google Mobile Ads SDK ve ödüllü reklam servisleri mevcut. “Reklamsız” veya “reklam içermez” yazmayın.
+- **Çevrimdışı:** Offline kazanç akışı var; bu, oyunun tamamen çevrimdışı oynandığını tek başına kanıtlamaz. Uçak modunda açılış ve temel döngüyü doğrulamadan bu vaadi eklemeyin.
+- **Görsel iddialar:** “60 FPS”, “sıfır pil tüketimi”, “en iyi/benzersiz” gibi kanıt gerektiren mutlak iddiaları kullanmayın.
+- **Veri güvenliği:** Gizlilik politikası ve Data Safety/App Privacy beyanlarını reklam SDK'sı dahil tüm SDK'ların güncel yapılandırması ve gerçek veri akışıyla doğrulayın.
+- **Sınıflandırma:** Yaş derecelendirmesini “her yaş” varsayımıyla belirlemeyin; reklam, bildirim ve içerik özelliklerine göre mağaza anketini doldurun.
+
+## Kapsam ve referanslar
+
+Bu çalışma depodaki README, oyun özellik izleri, reklam entegrasyonu ve önceki `store_assets` taslağına dayanır. Mağaza hesabı analitiği, ülke bazlı sorgu hacmi, rakip sıralaması ve canlı dönüşüm verisi olmadan kesin hacim veya CTR artışı vaat edilemez.
+
+- Apple metadata ve anahtar kelime alanı: [Creating Your Product Page](https://developer.apple.com/app-store/product-page/)
+- Apple ürün sayfası varyant testi: [Product Page Optimization](https://developer.apple.com/help/app-store-connect/create-product-page-optimization-tests/overview)
+- Google Play ad ve açıklama karakter sınırları: [Set up your app](https://support.google.com/googleplay/android-developer/answer/9859152)
+- Google Play mağaza listeleme deneyleri: [Run A/B tests on your store listing](https://support.google.com/googleplay/android-developer/answer/12053285)

@@ -139,7 +139,8 @@ class ResourceBreakdownStats {
     this.totalUntransported = 0.0,
   });
 
-  double get netRate => totalProduction - totalConsumption;
+  double get netRate =>
+      totalProduction - totalConsumption - totalUntransported;
 }
 
 class OfflineGainsResult {
@@ -550,8 +551,7 @@ class EconomyCalculator {
       if (!t.isOwned || t.building == null) continue;
       if (t.building!.type == BuildingType.castle) {
         workerTiles.add(t);
-        final double cap =
-            t.building!.currentCarryingCapacity * workerTransferMult;
+        final double cap = 1.0 * workerTransferMult;
         totalCapacities[t.coord] = cap;
         remainingCapacities[t.coord] = cap;
         assignedTransports[t.coord] = 0.0;
@@ -618,6 +618,10 @@ class EconomyCalculator {
 
       // Kapsayan işçi kulübelerini tespit edip sayaçlara ekle
       for (final wt in workerTiles) {
+        if (wt.building?.type == BuildingType.granaryVault &&
+            !tile.building!.type.isFoodProducer) {
+          continue;
+        }
         if (tile.building!.type.isFoodProducer &&
             wt.building?.type == BuildingType.worker) {
           continue; // İşçi kulübesi gıda depolayamaz / taşıyamaz
@@ -638,6 +642,10 @@ class EconomyCalculator {
       final bool isFood = pt.building!.type.isFoodProducer;
       final inRangeWorkers =
           workerTiles.where((wt) {
+            if (wt.building?.type == BuildingType.granaryVault &&
+                !isFood) {
+              return false;
+            }
             if (isFood && wt.building?.type == BuildingType.worker) {
               return false; // İşçi kulübesi gıda depolayamaz
             }
@@ -803,11 +811,21 @@ class EconomyCalculator {
         continue;
       }
 
+      final double effectiveSeasonMultiplier =
+          season.toUpperCase() == 'WINTER' || isZud
+          ? getSeasonProductionMultiplier(
+              season: season,
+              isZud: isZud,
+              isTileWarmed: tile.isWarmed,
+              titles: titles,
+            )
+          : seasonMultiplier;
+
       final double rate = calculateTileEffectiveProductionRate(
         tile: tile,
         tileMap: tiles,
         globalMultiplier: globalMult,
-        seasonMultiplier: seasonMultiplier,
+        seasonMultiplier: effectiveSeasonMultiplier,
         shrineMultiplier: shrineMultiplier,
         season: season,
         isZud: isZud,
@@ -1120,6 +1138,26 @@ class EconomyCalculator {
       }
     }
 
+    if (rKey == 'wood' && (season.toUpperCase() == 'WINTER' || isZud)) {
+      for (final tile in tiles.values) {
+        final building = tile.building;
+        if (!tile.isOwned || !tile.isWarmed || building == null) continue;
+        consumers.add(
+          ResourceContributor(
+            buildingType: building.type,
+            level: building.level,
+            coord: tile.coord,
+            rate: getHeatingWoodConsumptionRate(
+              buildingLevel: building.level,
+              activeDoctrines: activeDoctrines,
+            ),
+            isProducer: false,
+            customLabel: 'Isıtma',
+          ),
+        );
+      }
+    }
+
     // Lojistik Taşıma Kapasitesi Dağıtımı (allocateGreedyLogistics ile Tek Doğruluk Kaynağı)
     final double workerTransferMult = getWorkerTransferMultiplier(
       castleLevel: castleLevel,
@@ -1133,7 +1171,8 @@ class EconomyCalculator {
     );
 
     final Map<HexAxial, double> producerDemands = {
-      for (final p in producers) p.coord: p.rate,
+      for (final p in producers)
+        if (p.customLabel == null) p.coord: p.rate,
     };
     final Map<HexAxial, double> untransportedByCoord = allocateGreedyLogistics(
       tiles: tiles,
@@ -1145,7 +1184,9 @@ class EconomyCalculator {
     double totalUntransported = 0.0;
 
     for (final prod in producers) {
-      final double untransported = untransportedByCoord[prod.coord] ?? 0.0;
+      final double untransported = prod.customLabel == null
+          ? untransportedByCoord[prod.coord] ?? 0.0
+          : 0.0;
       totalUntransported += untransported;
       finalProducers.add(
         ResourceContributor(
@@ -1649,9 +1690,7 @@ class EconomyCalculator {
       if (!t.isOwned || t.building == null) continue;
       if (t.building!.type == BuildingType.castle) {
         workerSourceCoords.add(t.coord);
-        workerSourceCapacities.add(
-          t.building!.currentCarryingCapacity * workerTransferMult,
-        );
+        workerSourceCapacities.add(1.0 * workerTransferMult);
         workerSourceTypes.add(BuildingType.castle);
       } else if (t.building!.type == BuildingType.worker ||
           t.building!.type == BuildingType.fishermanHut ||
@@ -1665,6 +1704,14 @@ class EconomyCalculator {
               granarySynergy,
         );
         workerSourceTypes.add(t.building!.type);
+      }
+    }
+
+    for (final t in tiles.values) {
+      if (t.isOwned && t.hasShrine) {
+        workerSourceCoords.add(t.coord);
+        workerSourceCapacities.add(5.0 * workerTransferMult);
+        workerSourceTypes.add(null);
       }
     }
 
@@ -1682,7 +1729,10 @@ class EconomyCalculator {
         if (prioA != prioB) {
           return prioB.compareTo(prioA); // Yüksek öncelikli ürünler (Kımız, Şam Çeliği vb.) önce taşınır
         }
-        return b.value.compareTo(a.value);
+        // Gerçek saniyelik üretim döngüsüyle aynı sabit sıra: eşit öncelikte
+        // kaynak kapasitesi karo koordinatına göre paylaştırılır.
+        final qCompare = a.key.q.compareTo(b.key.q);
+        return qCompare != 0 ? qCompare : a.key.r.compareTo(b.key.r);
       });
 
     for (final entry in sortedEntries) {
@@ -1698,6 +1748,10 @@ class EconomyCalculator {
       for (int i = 0; i < workerSourceCoords.length; i++) {
         if (isFood && workerSourceTypes[i] == BuildingType.worker) {
           continue; // İşçi kulübesi gıda depolayamaz / taşıyamaz
+        }
+        if (workerSourceTypes[i] == BuildingType.granaryVault &&
+            !(pTile?.building?.type.isFoodProducer ?? false)) {
+          continue;
         }
         if (pCoord.distanceTo(workerSourceCoords[i]) <= 4 &&
             workerSourceCapacities[i] > 0.0) {
@@ -2185,7 +2239,7 @@ class EconomyCalculator {
     );
   }
 
-  /// Anlık Saniyelik Brüt Üretim Debisi (HUD Rozetleri ve Analitik için)
+  /// Taşınan üretimden tüketimler çıkarıldıktan sonraki envanter değişim hızı.
   static NetResourceRates calculateNetRates({
     required Iterable<HexTileModel> tiles,
     required double globalMultiplier,
@@ -2245,24 +2299,6 @@ class EconomyCalculator {
       tiles: map,
       frenzyMultiplier: frenzyMultiplier,
     );
-    final List<HexAxial> workerSourceCoords = [];
-    final List<double> workerSourceCapacities = [];
-
-    for (final t in tiles) {
-      if (!t.isOwned || t.building == null) continue;
-      if (t.building!.type == BuildingType.castle) {
-        workerSourceCoords.add(t.coord);
-        workerSourceCapacities.add(1.0 * workerTransferMult);
-      } else if (t.building!.type == BuildingType.worker ||
-          t.building!.type == BuildingType.fishermanHut ||
-          t.building!.type == BuildingType.granaryVault) {
-        workerSourceCoords.add(t.coord);
-        workerSourceCapacities.add(
-          t.building!.currentCarryingCapacity * workerTransferMult,
-        );
-      }
-    }
-
     if (activeDoctrines.any(
       (d) => d.effectType == DoctrineEffectType.meadowGrazeYield,
     )) {
@@ -2301,6 +2337,7 @@ class EconomyCalculator {
         caravanRoutes: caravanRoutes,
         celestialOmen: celestialOmen,
         discoveredKurgans: discoveredKurgans,
+        frenzyMultiplier: frenzyMultiplier,
         titles: titles,
       );
       if (r > 0.0) {
@@ -2320,108 +2357,115 @@ class EconomyCalculator {
       final b = t.building!;
       final double rate = buildingRates[t.coord] ?? 0.0;
       final double untransportedRate = untransportedByCoord[t.coord] ?? 0.0;
+      final double transportedRate = math.max(0.0, rate - untransportedRate);
 
       switch (b.type) {
         case BuildingType.corn:
         case BuildingType.barley:
         case BuildingType.pasture:
         case BuildingType.orchard:
-          netFood += rate;
+          netFood += transportedRate;
           untransportedFood += untransportedRate;
           break;
         case BuildingType.lumberjack:
         case BuildingType.resinCamp:
-          netWood += rate;
+          netWood += transportedRate;
           untransportedWood += untransportedRate;
           break;
         case BuildingType.quarry:
-          netStone += rate;
+          netStone += transportedRate;
           untransportedStone += untransportedRate;
           break;
         case BuildingType.windmill:
-          netFlour += rate;
+          netFood -= rate * 0.5;
+          netFlour += transportedRate;
           untransportedFlour += untransportedRate;
           break;
         case BuildingType.sawmill:
-          netPlank += rate;
+          netWood -= rate * 0.5;
+          netPlank += transportedRate;
           untransportedPlank += untransportedRate;
           break;
         case BuildingType.bakery:
-          netBread += rate;
+          netFood -= rate * 0.4;
+          netFlour -= rate * 0.4;
+          netBread += transportedRate;
           untransportedBread += untransportedRate;
           break;
         case BuildingType.furniture:
-          netFurniture += rate;
+          netWood -= rate * 0.4;
+          netPlank -= rate * 0.4;
+          netFurniture += transportedRate;
           untransportedFurniture += untransportedRate;
           break;
         case BuildingType.mine:
-          netStone += rate;
-          netIron += rate * 0.3;
+          netStone += transportedRate;
+          netIron += transportedRate * 0.3;
           untransportedStone += untransportedRate;
           untransportedIron += untransportedRate * 0.3;
           break;
         case BuildingType.fisherman:
-          netFish += rate;
+          netFish += transportedRate;
           untransportedFish += untransportedRate;
           break;
         case BuildingType.oasisCistern:
         case BuildingType.reindeerSanctuary:
         case BuildingType.herbalistYurt:
-          netFood += rate;
+          netFood += transportedRate;
           untransportedFood += untransportedRate;
           break;
         case BuildingType.caravanserai:
-          netBread += rate;
-          netFood += rate * 0.5;
+          netBread += transportedRate;
+          netFood += transportedRate * 0.5;
           untransportedBread += untransportedRate;
           untransportedFood += untransportedRate * 0.5;
           break;
         case BuildingType.scribeWorkshop:
-          netPlank += rate;
+          netPlank += transportedRate;
           untransportedPlank += untransportedRate;
           break;
         case BuildingType.geothermalBath:
         case BuildingType.steamVent:
-          netStone += rate;
+          netStone += transportedRate;
           untransportedStone += untransportedRate;
           break;
         case BuildingType.obsidianForge:
         case BuildingType.permafrostDig:
-          netStone += rate * 0.5;
-          netIron += rate * 0.5;
+          netStone += transportedRate * 0.5;
+          netIron += transportedRate * 0.5;
           untransportedStone += untransportedRate * 0.5;
           untransportedIron += untransportedRate * 0.5;
           break;
         case BuildingType.celestialAnvil:
-          netStone += rate * 0.5;
-          netIron += rate * 0.5;
+          netStone += transportedRate * 0.5;
+          netIron += transportedRate * 0.5;
           untransportedStone += untransportedRate * 0.5;
           untransportedIron += untransportedRate * 0.5;
           break;
         case BuildingType.astrolabe:
         case BuildingType.ancestralTotem:
         case BuildingType.prismaticResonator:
-          netFood += rate * 0.4;
-          netWood += rate * 0.4;
-          netStone += rate * 0.4;
+          netFood += transportedRate * 0.4;
+          netWood += transportedRate * 0.4;
+          netStone += transportedRate * 0.4;
           untransportedFood += untransportedRate * 0.4;
           untransportedWood += untransportedRate * 0.4;
           untransportedStone += untransportedRate * 0.4;
           break;
         case BuildingType.kumisYurt:
-          netKumis += rate;
+          netKumis += transportedRate;
           untransportedKumis += untransportedRate;
           break;
         case BuildingType.feltTentWorkshop:
-          netFelt += rate;
+          netFelt += transportedRate;
           untransportedFelt += untransportedRate;
           break;
         case BuildingType.damascusForge:
-          netDamascusSteel += rate;
+          netDamascusSteel += transportedRate;
           untransportedDamascusSteel += untransportedRate;
           break;
         case BuildingType.runicStele:
-          netWisdom += rate;
+          netWisdom += transportedRate;
           untransportedWisdom += untransportedRate;
           break;
         case BuildingType.granaryVault:

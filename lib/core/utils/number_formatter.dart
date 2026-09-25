@@ -107,12 +107,51 @@ class NumberFormatter {
     if (rate == 0 || rate.toDouble().abs() < 0.001) {
       return '0.00$unitSuffix';
     }
-    final String formatted = format(
-      rate,
-      decimals: decimals,
-      explicitSign: true,
-      stripTrailingZeros: true,
-    );
-    return '$formatted$unitSuffix';
+
+    final double value = rate.toDouble();
+    final double absoluteValue = value.abs();
+    String magnitude;
+
+    if (absoluteValue < 1000) {
+      magnitude = format(
+        absoluteValue,
+        decimals: decimals,
+        stripTrailingZeros: true,
+      );
+    } else {
+      final int tier = (math.log(absoluteValue) / math.ln10 / 3).floor();
+      if (tier >= 5) {
+        final int exponent = (math.log(absoluteValue) / math.ln10).floor();
+        double mantissa = absoluteValue / math.pow(10, exponent);
+        mantissa = double.parse(mantissa.toStringAsFixed(decimals));
+        final int roundedExponent = mantissa >= 10 ? exponent + 1 : exponent;
+        if (mantissa >= 10) mantissa /= 10;
+        magnitude = '${_trimDecimal(mantissa.toStringAsFixed(decimals))}e$roundedExponent';
+      } else {
+        const suffixes = ['', 'k', 'm', 'b', 't'];
+        double scaledValue = absoluteValue / math.pow(1000, tier);
+        scaledValue = double.parse(scaledValue.toStringAsFixed(decimals));
+        int roundedTier = tier;
+        if (scaledValue >= 1000) {
+          roundedTier++;
+          scaledValue /= 1000;
+        }
+        if (roundedTier >= suffixes.length) {
+          final int exponent = roundedTier * 3;
+          magnitude = '1e$exponent';
+        } else {
+          magnitude =
+              '${_trimDecimal(scaledValue.toStringAsFixed(decimals))}${suffixes[roundedTier]}';
+        }
+      }
+    }
+
+    final String sign = value > 0 ? '+' : '-';
+    return '$sign$magnitude$unitSuffix';
+  }
+
+  static String _trimDecimal(String value) {
+    if (!value.contains('.')) return value;
+    return value.replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\.$'), '');
   }
 }

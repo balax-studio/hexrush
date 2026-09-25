@@ -67,8 +67,14 @@ void main() {
         ),
       );
 
+      const castle = HexTileModel(
+        coord: HexAxial(-3, 0),
+        biome: TileBiome.meadow,
+        state: TileState.owned,
+        building: BuildingModel(type: BuildingType.castle, level: 1),
+      );
       final rates = EconomyCalculator.calculateNetRates(
-        tiles: [tile],
+        tiles: [castle, tile],
         globalMultiplier: 1.0,
         seasonMultiplier: 1.0,
         shrineMultiplier: 1.0,

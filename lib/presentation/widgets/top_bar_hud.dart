@@ -92,8 +92,9 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
         discoveredKurgans: gameState.discoveredKurgans,
         shrineMultiplier: gameState.shrineMultiplier,
         cumulativeBiomeCounts: gameState.progression.cumulativeBiomeCounts,
+        totalMigrations: gameState.progression.totalMigrations,
         frenzyMultiplier: gameState.frenzyMultiplier,
-        seasonMultiplier: seasonMult * gameState.frenzyMultiplier.toDouble(),
+        seasonMultiplier: seasonMult,
       );
     }
 
@@ -255,7 +256,11 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                                   ),
                                 ),
                                 child: Text(
-                                  '+${breakdown.totalProduction.toStringAsFixed(2)}${GameLocalization.get('per_sec', lang: lang)}',
+                                  NumberFormatter.formatRate(
+                                    breakdown.totalProduction -
+                                        breakdown.totalConsumption,
+                                    unitSuffix: GameLocalization.get('per_sec', lang: lang),
+                                  ),
                                   style: const TextStyle(
                                     color: Color(0xFF6EE7B7),
                                     fontSize: 9.5,
@@ -361,7 +366,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    '${GameLocalization.get('total_production', lang: lang)}: +${breakdown.totalProduction.toStringAsFixed(2)}/sn',
+                                    '${GameLocalization.get('total_production', lang: lang)}: ${NumberFormatter.formatRate(breakdown.totalProduction)}',
                                     style: const TextStyle(
                                       color: Color(0xFF34D399),
                                       fontSize: 9,
@@ -369,11 +374,39 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                                     ),
                                   ),
                                   Text(
-                                    '${GameLocalization.get('total_consumption', lang: lang)}: -${breakdown.totalConsumption.toStringAsFixed(2)}/sn',
+                                    '${GameLocalization.get('total_consumption', lang: lang)}: ${NumberFormatter.formatRate(-breakdown.totalConsumption)}',
                                     style: const TextStyle(
                                       color: Color(0xFFF87171),
                                       fontSize: 9,
                                       fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    GameLocalization.get(
+                                      'net_total_label',
+                                      lang: lang,
+                                    ),
+                                    style: const TextStyle(
+                                      color: Color(0xFF6EE7B7),
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                  Text(
+                                    NumberFormatter.formatRate(
+                                      breakdown.netRate,
+                                    ),
+                                    style: const TextStyle(
+                                      color: Color(0xFF6EE7B7),
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w900,
                                     ),
                                   ),
                                 ],
@@ -393,7 +426,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                                       ),
                                     ),
                                     Text(
-                                      '-${breakdown.totalUntransported.toStringAsFixed(2)}/sn',
+                                      NumberFormatter.formatRate(-breakdown.totalUntransported),
                                       style: const TextStyle(
                                         color: Color(0xFFEF4444),
                                         fontSize: 9,
@@ -529,7 +562,10 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                   borderRadius: BorderRadius.circular(2),
                 ),
                 child: Text(
-                  '${isProducer ? '+' : '-'}${item.rate.toStringAsFixed(2)}${GameLocalization.get('per_sec', lang: lang)}',
+                  NumberFormatter.formatRate(
+                    isProducer ? item.rate : -item.rate,
+                    unitSuffix: GameLocalization.get('per_sec', lang: lang),
+                  ),
                   style: TextStyle(
                     color: isProducer
                         ? const Color(0xFF6EE7B7)
@@ -542,7 +578,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
               if (hasUntransported) ...[
                 const SizedBox(height: 1),
                 Text(
-                  '-${item.untransportedRate.toStringAsFixed(2)}/sn (Taşınamayan)',
+                  '${NumberFormatter.formatRate(-item.untransportedRate)} (Taşınamayan)',
                   style: const TextStyle(
                     color: Color(0xFFEF4444),
                     fontSize: 8,
@@ -612,6 +648,11 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
       gameState.celestialOmen.animal.name,
       gameState.discoveredKurgans.length,
       gameState.progression.kutMultiplier,
+      Object.hashAll(
+        gameState.progression.cumulativeBiomeCounts.entries.map(
+          (entry) => Object.hash(entry.key, entry.value),
+        ),
+      ),
       gameState.season.current,
       gameState.season.isZud,
       gameState.frenzyMultiplier,
@@ -631,11 +672,12 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
       _cachedNetRates = EconomyCalculator.calculateNetRates(
         tiles: gameState.tiles.values,
         globalMultiplier: globalMult,
-        seasonMultiplier: seasonMult * gameState.frenzyMultiplier.toDouble(),
+        seasonMultiplier: seasonMult,
         shrineMultiplier: gameState.shrineMultiplier,
         tileMap: gameState.tiles,
         season: gameState.season.current,
         isZud: gameState.season.isZud,
+        cumulativeBiomeCounts: gameState.progression.cumulativeBiomeCounts,
         activeDoctrines: activeDoctrines,
         caravanRoutes: gameState.caravanRoutes,
         celestialOmen: gameState.celestialOmen,
@@ -682,7 +724,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     type: GameIconType.food,
                     value: resources.food,
                     color: const Color(0xFFFBBF24),
-                    rate: netRates.food,
+                    rate: netRates.food + netRates.untransportedFood,
                     untransportedRate: netRates.untransportedFood,
                     theme: theme,
                     onTap: () => _showResourceExplanation(
@@ -709,7 +751,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                     type: GameIconType.wood,
                     value: resources.wood,
                     color: const Color(0xFFD97706),
-                    rate: netRates.wood,
+                    rate: netRates.wood + netRates.untransportedWood,
                     untransportedRate: netRates.untransportedWood,
                     theme: theme,
                     onTap: () => _showResourceExplanation(
@@ -913,7 +955,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       type: GameIconType.stone,
                       value: resources.stone,
                       color: const Color(0xFF94A3B8),
-                      rate: netRates.stone,
+                      rate: netRates.stone + netRates.untransportedStone,
                       untransportedRate: netRates.untransportedStone,
                       theme: theme,
                       onTap: () => _showResourceExplanation(
@@ -940,7 +982,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       type: GameIconType.flour,
                       value: resources.flour,
                       color: const Color(0xFFFEF08A),
-                      rate: netRates.flour,
+                      rate: netRates.flour + netRates.untransportedFlour,
                       untransportedRate: netRates.untransportedFlour,
                       theme: theme,
                       onTap: () => _showResourceExplanation(
@@ -967,7 +1009,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       type: GameIconType.plank,
                       value: resources.plank,
                       color: const Color(0xFFD97706),
-                      rate: netRates.plank,
+                      rate: netRates.plank + netRates.untransportedPlank,
                       untransportedRate: netRates.untransportedPlank,
                       theme: theme,
                       onTap: () => _showResourceExplanation(
@@ -994,7 +1036,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       type: GameIconType.bread,
                       value: resources.bread,
                       color: const Color(0xFFF59E0B),
-                      rate: netRates.bread,
+                      rate: netRates.bread + netRates.untransportedBread,
                       untransportedRate: netRates.untransportedBread,
                       theme: theme,
                       onTap: () => _showResourceExplanation(
@@ -1021,7 +1063,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       type: GameIconType.furniture,
                       value: resources.furniture,
                       color: const Color(0xFFB45309),
-                      rate: netRates.furniture,
+                      rate: netRates.furniture + netRates.untransportedFurniture,
                       untransportedRate: netRates.untransportedFurniture,
                       theme: theme,
                       onTap: () => _showResourceExplanation(
@@ -1050,7 +1092,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       type: GameIconType.iron,
                       value: resources.iron,
                       color: const Color(0xFFCBD5E1),
-                      rate: netRates.iron,
+                      rate: netRates.iron + netRates.untransportedIron,
                       untransportedRate: netRates.untransportedIron,
                       theme: theme,
                       onTap: () => _showResourceExplanation(
@@ -1077,7 +1119,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       type: GameIconType.wisdom,
                       value: resources.wisdom,
                       color: const Color(0xFF06B6D4),
-                      rate: netRates.wisdom,
+                      rate: netRates.wisdom + netRates.untransportedWisdom,
                       untransportedRate: netRates.untransportedWisdom,
                       theme: theme,
                       onTap: () => _showResourceExplanation(
@@ -1104,7 +1146,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       type: GameIconType.kumis,
                       value: resources.kumis,
                       color: const Color(0xFF10B981),
-                      rate: netRates.kumis,
+                      rate: netRates.kumis + netRates.untransportedKumis,
                       untransportedRate: netRates.untransportedKumis,
                       theme: theme,
                       onTap: () => _showResourceExplanation(
@@ -1131,7 +1173,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       type: GameIconType.felt,
                       value: resources.felt,
                       color: const Color(0xFFF59E0B),
-                      rate: netRates.felt,
+                      rate: netRates.felt + netRates.untransportedFelt,
                       untransportedRate: netRates.untransportedFelt,
                       theme: theme,
                       onTap: () => _showResourceExplanation(
@@ -1158,7 +1200,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                       type: GameIconType.damascusSteel,
                       value: resources.damascusSteel,
                       color: const Color(0xFF818CF8),
-                      rate: netRates.damascusSteel,
+                      rate:
+                          netRates.damascusSteel + netRates.untransportedDamascusSteel,
                       untransportedRate: netRates.untransportedDamascusSteel,
                       theme: theme,
                       onTap: () => _showResourceExplanation(
@@ -1586,7 +1629,7 @@ class _ResourcePulseChipState extends State<ResourcePulseChip>
         ? NumberFormatter.format(widget.value.toInt())
         : NumberFormatter.format(widget.value, decimals: 1);
     final String rateStr = hasRate
-        ? ' (Hız: ${widget.rate! >= 0 ? "+" : ""}${NumberFormatter.formatRate(widget.rate!, decimals: 1, unitSuffix: "/sn")})'
+        ? ' (Hız: ${NumberFormatter.formatRate(widget.rate!, decimals: 1, unitSuffix: "/s")})'
         : '';
 
     return RepaintBoundary(
@@ -1639,7 +1682,11 @@ class _ResourcePulseChipState extends State<ResourcePulseChip>
                         children: [
                           if (hasRate)
                             Text(
-                              '${isPositive ? '+' : ''}${widget.rate!.toStringAsFixed(1)}/s',
+                              NumberFormatter.formatRate(
+                                widget.rate!,
+                                decimals: 1,
+                                unitSuffix: '/s',
+                              ),
                               style: TextStyle(
                                 color: isPositive
                                     ? const Color(0xFF10B981)
@@ -1652,7 +1699,11 @@ class _ResourcePulseChipState extends State<ResourcePulseChip>
                           if (hasUntransported) ...[
                             if (hasRate) const SizedBox(height: 1.0),
                             Text(
-                              '-${widget.untransportedRate!.toStringAsFixed(1)}/s',
+                              NumberFormatter.formatRate(
+                                -widget.untransportedRate!,
+                                decimals: 1,
+                                unitSuffix: '/s',
+                              ),
                               style: const TextStyle(
                                 color: Color(0xFFEF4444),
                                 fontSize: 7.5,

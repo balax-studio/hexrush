@@ -291,8 +291,60 @@ void main() {
         shrineMultiplier: 1.0,
       );
 
-      // Taşınan miktar şato kapasitesi (0.0 veya sınırlı), taşınamayan miktar ise > 0 olmalı
+      // Taşıma kaynağı olmadığında gelir gösterilmemeli; tüm üretim birikmeli.
+      expect(netRates.food, 0.0);
       expect(netRates.untransportedFood, greaterThan(0.0));
+    });
+
+    test('calculateNetRates reports transported gross production at the frenzy multiplier', () {
+      const castleCoord = HexAxial(0, 0);
+      const cornCoord = HexAxial(2, 0);
+      final tiles = <HexAxial, HexTileModel>{
+        castleCoord: const HexTileModel(
+          coord: castleCoord,
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.castle, level: 1),
+        ),
+        cornCoord: const HexTileModel(
+          coord: cornCoord,
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.corn, level: 1),
+        ),
+      };
+
+      final rates = EconomyCalculator.calculateNetRates(
+        tiles: tiles.values,
+        globalMultiplier: 1.0,
+        seasonMultiplier: 1.0,
+        shrineMultiplier: 1.0,
+        tileMap: tiles,
+        season: 'SUMMER',
+        frenzyMultiplier: 10,
+      );
+
+      expect(rates.food, closeTo(4.2, 0.001));
+      expect(rates.untransportedFood, equals(0.0));
+
+      final breakdown = EconomyCalculator.calculateResourceBreakdown(
+        resourceKey: 'food',
+        tiles: tiles,
+        castleLevel: 1,
+        crowns: 0,
+        season: 'SUMMER',
+        frenzyMultiplier: 10,
+        seasonMultiplier: 1.0,
+      );
+      expect(
+        rates.food + rates.untransportedFood,
+        closeTo(
+          breakdown.totalProduction - breakdown.totalConsumption,
+          0.001,
+        ),
+      );
+      expect(rates.food, closeTo(breakdown.netRate, 0.001));
+      expect(rates.untransportedFood, closeTo(breakdown.totalUntransported, 0.001));
     });
 
     test('calculateResourceBreakdown computes totalUntransported and marks producer untransportedRate', () {
@@ -316,6 +368,7 @@ void main() {
       expect(breakdown.totalProduction, greaterThan(0.0));
       expect(breakdown.totalUntransported, greaterThan(0.0));
       expect(breakdown.producers.first.untransportedRate, greaterThan(0.0));
+      expect(breakdown.netRate, equals(0.0));
     });
   });
 }

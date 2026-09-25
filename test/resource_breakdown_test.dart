@@ -23,12 +23,41 @@ void main() {
       expect(breakdown.netRate, equals(0.0));
     });
 
-    test('Food breakdown correctly lists corn/barley as producers and windmill/bakery as consumers', () {
+    test('Winter wood breakdown includes active heating as consumption', () {
+      const coord = HexAxial(0, 0);
+      final breakdown = EconomyCalculator.calculateResourceBreakdown(
+        resourceKey: 'wood',
+        tiles: {
+          coord: const HexTileModel(
+            coord: coord,
+            biome: TileBiome.forest,
+            state: TileState.owned,
+            isWarmed: true,
+            building: BuildingModel(type: BuildingType.lumberjack, level: 1),
+          ),
+        },
+        castleLevel: 1,
+        crowns: 0,
+        season: 'WINTER',
+      );
+
+      expect(breakdown.totalConsumption, greaterThan(0.0));
+      expect(breakdown.consumers.any((c) => c.customLabel == 'Isıtma'), isTrue);
+    });
+
+    test('Food breakdown lists gross production, consumption, transport loss, and net income', () {
       const cornCoord = HexAxial(0, 0);
       const windmillCoord = HexAxial(1, 0);
       const bakeryCoord = HexAxial(2, 0);
+      const castleCoord = HexAxial(0, 3);
 
       final tiles = <HexAxial, HexTileModel>{
+        castleCoord: const HexTileModel(
+          coord: castleCoord,
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.castle, level: 1),
+        ),
         cornCoord: const HexTileModel(
           coord: cornCoord,
           biome: TileBiome.meadow,
@@ -77,15 +106,33 @@ void main() {
       expect(consumerTypes, contains(BuildingType.windmill));
       expect(consumerTypes, contains(BuildingType.bakery));
       expect(foodBreakdown.totalConsumption, greaterThan(0.0));
-      expect(foodBreakdown.netRate, equals(foodBreakdown.totalProduction - foodBreakdown.totalConsumption));
+      expect(
+        foodBreakdown.netRate,
+        equals(
+          foodBreakdown.totalProduction -
+              foodBreakdown.totalConsumption -
+              foodBreakdown.totalUntransported,
+        ),
+      );
+      expect(
+        foodBreakdown.producers.first.rate,
+        greaterThan(foodBreakdown.producers.first.untransportedRate),
+      );
     });
 
     test('Wood breakdown correctly lists lumberjack as producer and sawmill/damascusForge as consumers', () {
       const lumberCoord = HexAxial(0, 0);
       const sawmillCoord = HexAxial(1, 0);
       const forgeCoord = HexAxial(2, 0);
+      const castleCoord = HexAxial(0, 3);
 
       final tiles = <HexAxial, HexTileModel>{
+        castleCoord: const HexTileModel(
+          coord: castleCoord,
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.castle, level: 1),
+        ),
         lumberCoord: const HexTileModel(
           coord: lumberCoord,
           biome: TileBiome.forest,
@@ -132,11 +179,18 @@ void main() {
     });
 
     test('Flour breakdown shows windmill as producer and bakery as consumer', () {
-      const windmillCoord = HexAxial(0, 0);
-      const bakeryCoord = HexAxial(1, 0);
+        const windmillCoord = HexAxial(0, 0);
+        const bakeryCoord = HexAxial(1, 0);
+        const castleCoord = HexAxial(0, 3);
 
-      final tiles = <HexAxial, HexTileModel>{
-        windmillCoord: const HexTileModel(
+        final tiles = <HexAxial, HexTileModel>{
+          castleCoord: const HexTileModel(
+            coord: castleCoord,
+            biome: TileBiome.meadow,
+            state: TileState.owned,
+            building: BuildingModel(type: BuildingType.castle, level: 1),
+          ),
+          windmillCoord: const HexTileModel(
           coord: windmillCoord,
           biome: TileBiome.meadow,
           state: TileState.owned,

@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
+
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flutter/services.dart';
 
 enum TactileSoundType {
@@ -39,6 +40,15 @@ class TactileAudioService {
 
   // SFX Player Pool (Zero-GC, Düşük Gecikme, Eşzamanlı Oynatma)
   static const int _sfxPoolSize = 6;
+  static final AudioContext _sfxAudioContext = AudioContext(
+    android: const AudioContextAndroid(audioFocus: AndroidAudioFocus.none),
+    iOS: AudioContextIOS(
+      category: AVAudioSessionCategory.playback,
+      options: const {AVAudioSessionOptions.mixWithOthers},
+    ),
+  );
+  @visibleForTesting
+  static AudioContext get sfxAudioContextForTesting => _sfxAudioContext;
   final List<AudioPlayer> _sfxPool = [];
   int _sfxPoolIndex = 0;
   bool _isInitialized = false;
@@ -200,7 +210,7 @@ class TactileAudioService {
 
           await player.setVolume(_sfxVolume);
           await player.stop();
-          await player.play(AssetSource(assetPath));
+          await player.play(AssetSource(assetPath), ctx: _sfxAudioContext);
           return;
         } catch (_) {
           _isPluginSupported = false;
