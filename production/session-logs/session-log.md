@@ -28,3 +28,15 @@ test/logistics_tier_priority_test.dart
 test/worker_logistics_test.dart
 ---
 
+## Session End: 20260926_132002
+### Commits
+810be93 Polish voxel rendering and gameplay UI
+---
+
+## Session End: 20260926_132042
+### Commits
+810be93 Polish voxel rendering and gameplay UI
+### Uncommitted Changes
+production/session-logs/session-log.md
+---
+
