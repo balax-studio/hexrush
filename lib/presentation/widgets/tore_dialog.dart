@@ -10,14 +10,22 @@ import 'icons/game_vector_icons.dart';
 import 'tactile_neo_button.dart';
 
 class ToreDialog extends ConsumerStatefulWidget {
-  const ToreDialog({super.key});
+  const ToreDialog({super.key, this.initialTab = 0});
+
+  final int initialTab;
 
   @override
   ConsumerState<ToreDialog> createState() => _ToreDialogState();
 }
 
 class _ToreDialogState extends ConsumerState<ToreDialog> {
-  int _selectedTab = 0; // 0: Doktrinler, 1: Yetenekler, 2: Unvanlar
+  late int _selectedTab; // 0: Doktrinler, 1: Yetenekler, 2: Unvanlar
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedTab = widget.initialTab;
+  }
 
   @override
   Widget build(BuildContext context) {

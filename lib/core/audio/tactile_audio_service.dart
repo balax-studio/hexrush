@@ -52,6 +52,7 @@ class TactileAudioService {
   final List<AudioPlayer> _sfxPool = [];
   int _sfxPoolIndex = 0;
   bool _isInitialized = false;
+  Future<void>? _initializationFuture;
 
   bool get isSoundEnabled => _isSoundEnabled;
   bool get isMusicEnabled => _isMusicEnabled;
@@ -59,16 +60,19 @@ class TactileAudioService {
   double get sfxVolume => _sfxVolume;
   double get musicVolume => _musicVolume;
 
-  void init() {
-    if (_isInitialized) return;
-    _isInitialized = true;
+  Future<void> init() {
+    if (_isInitialized) return Future<void>.value();
+    return _initializationFuture ??= _initialize();
+  }
 
+  Future<void> _initialize() async {
     // Unit test ortamında plugin çağrılarını bypass et
     if (!kIsWeb) {
       try {
         if (Platform.environment.containsKey('FLUTTER_TEST') ||
             Platform.environment['FLUTTER_TEST'] == 'true') {
           _isPluginSupported = false;
+          _isInitialized = true;
           return;
         }
       } catch (_) {}
@@ -80,11 +84,21 @@ class TactileAudioService {
 
       for (int i = 0; i < _sfxPoolSize; i++) {
         final player = AudioPlayer();
-        player.setReleaseMode(ReleaseMode.stop);
         _sfxPool.add(player);
       }
+      await Future.wait([
+        _musicPlayer!.setReleaseMode(ReleaseMode.loop),
+        ..._sfxPool.map((player) => player.setReleaseMode(ReleaseMode.stop)),
+      ]);
+      _isInitialized = true;
     } catch (_) {
-      _isPluginSupported = false;
+      _musicPlayer?.dispose();
+      for (final player in _sfxPool) {
+        player.dispose();
+      }
+      _musicPlayer = null;
+      _sfxPool.clear();
+      _initializationFuture = null;
     }
   }
 
@@ -120,7 +134,7 @@ class TactileAudioService {
 
   /// Rahatlatıcı Bozkır Arka Plan Müziğini Başlatır / Döngüye Alır
   Future<void> startBackgroundMusic() async {
-    init();
+    await init();
     if (!_isMusicEnabled || !_isPluginSupported) return;
 
     try {
@@ -148,7 +162,7 @@ class TactileAudioService {
 
   /// Müziği Devam Ettirir
   Future<void> resumeBackgroundMusic() async {
-    init();
+    await init();
     if (!_isMusicEnabled || !_isPluginSupported) return;
 
     try {
@@ -200,7 +214,7 @@ class TactileAudioService {
 
     // 2. Ses Efekti (Organik Akustik Taktil Sesler)
     if (_isSoundEnabled && _sfxVolume > 0.0) {
-      init();
+      await init();
       final String? assetPath = _getAssetForSoundType(type);
 
       if (_isPluginSupported && assetPath != null && _sfxPool.isNotEmpty) {
@@ -213,7 +227,7 @@ class TactileAudioService {
           await player.play(AssetSource(assetPath), ctx: _sfxAudioContext);
           return;
         } catch (_) {
-          _isPluginSupported = false;
+          // Tek bir oynatma hatası, sonraki ses efektlerini devre dışı bırakmamalı.
         }
       }
 
@@ -264,5 +278,9 @@ class TactileAudioService {
       }
       _sfxPool.clear();
     } catch (_) {}
+    _musicPlayer = null;
+    _sfxPoolIndex = 0;
+    _isInitialized = false;
+    _initializationFuture = null;
   }
 }

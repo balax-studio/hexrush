@@ -8,6 +8,7 @@ import '../providers/game_state_notifier.dart';
 import 'great_migration_dialog.dart';
 import 'icons/game_vector_icons.dart';
 import 'tactile_neo_button.dart';
+import 'tore_dialog.dart';
 
 class CrownBreakdownDialog extends ConsumerWidget {
   const CrownBreakdownDialog({super.key});
@@ -249,13 +250,19 @@ class CrownBreakdownDialog extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: TactileNeoButton(
-                      onTap: () => Navigator.of(context).pop(),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        showDialog<void>(
+                          context: context,
+                          builder: (_) => const ToreDialog(initialTab: 1),
+                        );
+                      },
                       height: 36,
                       backgroundColor: const Color(0xFF1E293B),
                       borderColor: theme.slateBorder,
                       alignment: Alignment.center,
                       child: Text(
-                        GameLocalization.get('close', lang: lang).toUpperCase(),
+                        GameLocalization.get('spend_crown', lang: lang).toUpperCase(),
                         style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900),
                       ),
                     ),
