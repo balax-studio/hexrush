@@ -32,59 +32,62 @@ void main() {
       );
     });
 
-    test('Ambar kapasitesi kısıtlı olduğunda Kımız Mısırdan önce taşınmalıdır', () {
-      const origin = HexAxial(0, 0); // Gıda Ambarı
-      const cornCoord = HexAxial(1, 0); // Mısır Tarlası (Mesafe 1)
-      const kumisCoord = HexAxial(2, 0); // Kımız Otağı (Mesafe 2)
+    test(
+      'Ambar kapasitesi kısıtlı olduğunda Kımız Mısırdan önce taşınmalıdır',
+      () {
+        const origin = HexAxial(0, 0); // Gıda Ambarı
+        const cornCoord = HexAxial(1, 0); // Mısır Tarlası (Mesafe 1)
+        const kumisCoord = HexAxial(2, 0); // Kımız Otağı (Mesafe 2)
 
-      final tiles = <HexAxial, HexTileModel>{
-        origin: const HexTileModel(
-          coord: origin,
-          biome: TileBiome.meadow,
-          state: TileState.owned,
-          building: BuildingModel(
-            type: BuildingType.granaryVault,
-            level: 1, // Kapasite: 33.6
+        final tiles = <HexAxial, HexTileModel>{
+          origin: const HexTileModel(
+            coord: origin,
+            biome: TileBiome.meadow,
+            state: TileState.owned,
+            building: BuildingModel(
+              type: BuildingType.granaryVault,
+              level: 1, // Kapasite: 33.6
+            ),
           ),
-        ),
-        cornCoord: const HexTileModel(
-          coord: cornCoord,
-          biome: TileBiome.meadow,
-          state: TileState.owned,
-          building: BuildingModel(
-            type: BuildingType.corn,
-            level: 5,
+          cornCoord: const HexTileModel(
+            coord: cornCoord,
+            biome: TileBiome.meadow,
+            state: TileState.owned,
+            building: BuildingModel(type: BuildingType.corn, level: 5),
           ),
-        ),
-        kumisCoord: const HexTileModel(
-          coord: kumisCoord,
-          biome: TileBiome.meadow,
-          state: TileState.owned,
-          building: BuildingModel(
-            type: BuildingType.kumisYurt,
-            level: 1,
+          kumisCoord: const HexTileModel(
+            coord: kumisCoord,
+            biome: TileBiome.meadow,
+            state: TileState.owned,
+            building: BuildingModel(type: BuildingType.kumisYurt, level: 1),
           ),
-        ),
-      };
+        };
 
-      // Mısır 40 talep ediyor, Kımız 10 talep ediyor.
-      final producerDemands = <HexAxial, double>{
-        cornCoord: 40.0,
-        kumisCoord: 10.0,
-      };
+        // Mısır 40 talep ediyor, Kımız 10 talep ediyor.
+        final producerDemands = <HexAxial, double>{
+          cornCoord: 40.0,
+          kumisCoord: 10.0,
+        };
 
-      final untransported = EconomyCalculator.allocateGreedyLogistics(
-        tiles: tiles,
-        producerDemands: producerDemands,
-        workerTransferMult: 1.0,
-      );
+        final untransported = EconomyCalculator.allocateGreedyLogistics(
+          tiles: tiles,
+          producerDemands: producerDemands,
+          workerTransferMult: 1.0,
+        );
 
-      // Kımız (10.0 talep) önce işlenir -> 10.0'ı taşınır, untransported = 0.0 kalır!
-      expect(untransported[kumisCoord], 0.0,
-          reason: 'Kımız yüksek öncelikli olduğu için tamamı taşınmalıdır');
-      expect(untransported[cornCoord], greaterThan(0.0),
-          reason: 'Mısır kalan kapasiteyi almalı ve arta kalan taşınamamış görünmelidir');
-    });
+        // Kımız (10.0 talep) önce işlenir -> 10.0'ı taşınır, untransported = 0.0 kalır!
+        expect(
+          untransported[kumisCoord],
+          0.0,
+          reason: 'Kımız yüksek öncelikli olduğu için tamamı taşınmalıdır',
+        );
+        expect(
+          untransported[cornCoord],
+          greaterThan(0.0),
+          reason: 'Mısır kalan kapasiteyi almalı ve arta kalan taşınamamış görünmelidir',
+        );
+      },
+    );
 
     test('Eşit öncelikli üreticiler kapasiteyi koordinata göre deterministik paylaşmalıdır', () {
       const workerCoord = HexAxial(0, 0);
@@ -114,10 +117,7 @@ void main() {
 
       final untransported = EconomyCalculator.allocateGreedyLogistics(
         tiles: tiles,
-        producerDemands: const {
-          secondLumberjack: 3.36,
-          firstLumberjack: 3.36,
-        },
+          producerDemands: {secondLumberjack: 3.36, firstLumberjack: 3.36},
       );
 
       expect(untransported[firstLumberjack], 0.0);

@@ -139,8 +139,7 @@ class ResourceBreakdownStats {
     this.totalUntransported = 0.0,
   });
 
-  double get netRate =>
-      totalProduction - totalConsumption - totalUntransported;
+  double get netRate => totalProduction - totalConsumption - totalUntransported;
 }
 
 class OfflineGainsResult {
@@ -536,6 +535,9 @@ class EconomyCalculator {
     List<CaravanRoute> caravanRoutes = const [],
     List<DoctrineCardModel> activeDoctrines = const [],
     List<AncestralKurgan> discoveredKurgans = const [],
+    CelestialOmen? celestialOmen,
+    int frenzyMultiplier = 1,
+    Map<String, dynamic> titles = const {},
   }) {
     final Map<HexAxial, WorkerLogisticsStats> result = {};
 
@@ -561,8 +563,10 @@ class EconomyCalculator {
           t.building!.type == BuildingType.fishermanHut ||
           t.building!.type == BuildingType.granaryVault) {
         workerTiles.add(t);
-        final double granarySynergy =
-            calculateGranarySynergyMultiplier(t, tiles);
+        final double granarySynergy = calculateGranarySynergyMultiplier(
+          t,
+          tiles,
+        );
         final double cap =
             t.building!.currentCarryingCapacity *
             workerTransferMult *
@@ -597,6 +601,7 @@ class EconomyCalculator {
         season: season,
         isZud: isZud,
         isTileWarmed: tile.isWarmed,
+        titles: titles,
       );
 
       final double realRate = calculateTileEffectiveProductionRate(
@@ -610,7 +615,10 @@ class EconomyCalculator {
         cumulativeBiomeCounts: cumulativeBiomeCounts,
         activeDoctrines: activeDoctrines,
         caravanRoutes: caravanRoutes,
+        celestialOmen: celestialOmen,
         discoveredKurgans: discoveredKurgans,
+        frenzyMultiplier: frenzyMultiplier,
+        titles: titles,
       );
 
       remainingProductionToTransport[tile.coord] = realRate;
@@ -628,22 +636,34 @@ class EconomyCalculator {
         }
         if (tile.coord.distanceTo(wt.coord) <= 4) {
           demandInCoverage[wt.coord] =
-              (demandInCoverage[wt.coord] ?? 0.0) + realRate;
+              (demandInCoverage[wt.coord] ?? 0.0) +
+              realRate +
+              b.accumulatedResource;
           coveredCounts[wt.coord] = (coveredCounts[wt.coord] ?? 0) + 1;
         }
       }
     }
 
     // 3. Greedy Dağıtım: Her üretim binası için menzildeki kulübeleri en yakından uzağa sıralayarak yükü paylaştır
+    producerTiles.sort((a, b) {
+      final priorityCompare = b.building!.type.logisticsPriority.compareTo(
+        a.building!.type.logisticsPriority,
+      );
+      if (priorityCompare != 0) return priorityCompare;
+      final qCompare = a.coord.q.compareTo(b.coord.q);
+      return qCompare != 0 ? qCompare : a.coord.r.compareTo(b.coord.r);
+    });
+
     for (final pt in producerTiles) {
-      double needed = remainingProductionToTransport[pt.coord] ?? 0.0;
+      double needed =
+          (remainingProductionToTransport[pt.coord] ?? 0.0) +
+          pt.building!.accumulatedResource;
       if (needed <= 0.0) continue;
 
       final bool isFood = pt.building!.type.isFoodProducer;
       final inRangeWorkers =
           workerTiles.where((wt) {
-            if (wt.building?.type == BuildingType.granaryVault &&
-                !isFood) {
+            if (wt.building?.type == BuildingType.granaryVault && !isFood) {
               return false;
             }
             if (isFood && wt.building?.type == BuildingType.worker) {
@@ -704,6 +724,9 @@ class EconomyCalculator {
     List<CaravanRoute> caravanRoutes = const [],
     List<DoctrineCardModel> activeDoctrines = const [],
     List<AncestralKurgan> discoveredKurgans = const [],
+    CelestialOmen? celestialOmen,
+    int frenzyMultiplier = 1,
+    Map<String, dynamic> titles = const {},
   }) {
     if (workerTile.building == null) {
       return const WorkerLogisticsStats(
@@ -727,6 +750,9 @@ class EconomyCalculator {
       caravanRoutes: caravanRoutes,
       activeDoctrines: activeDoctrines,
       discoveredKurgans: discoveredKurgans,
+      celestialOmen: celestialOmen,
+      frenzyMultiplier: frenzyMultiplier,
+      titles: titles,
     );
 
     return allStats[workerTile.coord] ??
@@ -1696,8 +1722,10 @@ class EconomyCalculator {
           t.building!.type == BuildingType.fishermanHut ||
           t.building!.type == BuildingType.granaryVault) {
         workerSourceCoords.add(t.coord);
-        final double granarySynergy =
-            calculateGranarySynergyMultiplier(t, tiles);
+        final double granarySynergy = calculateGranarySynergyMultiplier(
+          t,
+          tiles,
+        );
         workerSourceCapacities.add(
           t.building!.currentCarryingCapacity *
               workerTransferMult *
@@ -1727,7 +1755,9 @@ class EconomyCalculator {
         final prioA = bTypeA?.logisticsPriority ?? 0;
         final prioB = bTypeB?.logisticsPriority ?? 0;
         if (prioA != prioB) {
-          return prioB.compareTo(prioA); // Yüksek öncelikli ürünler (Kımız, Şam Çeliği vb.) önce taşınır
+          return prioB.compareTo(
+            prioA,
+          ); // Yüksek öncelikli ürünler (Kımız, Şam Çeliği vb.) önce taşınır
         }
         // Gerçek saniyelik üretim döngüsüyle aynı sabit sıra: eşit öncelikte
         // kaynak kapasitesi karo koordinatına göre paylaştırılır.
@@ -3263,7 +3293,11 @@ class EconomyCalculator {
         id: 'order_persian_1',
         title: 'Sasani Hanı Kımız & Keçe Seferi',
         requesterName: 'İsfahan Saray Kethüdası',
-        requiredResources: {'furniture': 4000.0, 'bread': 5000.0, 'food': 10000.0},
+        requiredResources: {
+          'furniture': 4000.0,
+          'bread': 5000.0,
+          'food': 10000.0,
+        },
         rewardCrowns: 0,
         rewardSpeedMultiplier: 1.75,
         buffDurationSeconds: 3600, // 60 dakika (3x)
@@ -3275,7 +3309,10 @@ class EconomyCalculator {
   }
 
   /// 17.1. Yenilenen İpek Yolu Siparişi Üretici (30 dk bekleme sonrası, günlük 10x artış periyodu)
-  static TradeOrderModel generateTradeOrderForSlot(int slotIndex, {int dailyCycleIndex = 0}) {
+  static TradeOrderModel generateTradeOrderForSlot(
+    int slotIndex, {
+    int dailyCycleIndex = 0,
+  }) {
     final double mult = math.pow(10.0, dailyCycleIndex).toDouble();
     final int timestamp = DateTime.now().millisecondsSinceEpoch;
 
@@ -3291,35 +3328,55 @@ class EconomyCalculator {
       {
         'title': 'Soğd Kervanı Taş & Demir Takası',
         'requester': 'Semerkant Başkâtibi',
-        'base': <String, double>{'stone': 6000.0, 'flour': 5000.0, 'iron': 2000.0},
+        'base': <String, double>{
+          'stone': 6000.0,
+          'flour': 5000.0,
+          'iron': 2000.0,
+        },
         'speed': 1.50,
         'duration': 2700, // 45 dk
       },
       {
         'title': 'Sasani Hanı Kımız & Mobilya Seferi',
         'requester': 'İsfahan Saray Kethüdası',
-        'base': <String, double>{'furniture': 4000.0, 'bread': 5000.0, 'food': 10000.0},
+        'base': <String, double>{
+          'furniture': 4000.0,
+          'bread': 5000.0,
+          'food': 10000.0,
+        },
         'speed': 1.75,
         'duration': 3600, // 60 dk
       },
       {
         'title': 'Tang Hanedanı İpek & Şam Çeliği Alımı',
         'requester': 'Çang\'an Başelçisi',
-        'base': <String, double>{'damascus_steel': 500.0, 'felt': 3000.0, 'kumis': 4000.0},
+        'base': <String, double>{
+          'damascus_steel': 500.0,
+          'felt': 3000.0,
+          'kumis': 4000.0,
+        },
         'speed': 1.60,
         'duration': 2400, // 40 dk
       },
       {
         'title': 'Hazar Kağanlığı Balık & Kalas Anlaşması',
         'requester': 'İtil Gümrük Beyi',
-        'base': <String, double>{'fish': 8000.0, 'plank': 5000.0, 'stone': 4000.0},
+        'base': <String, double>{
+          'fish': 8000.0,
+          'plank': 5000.0,
+          'stone': 4000.0,
+        },
         'speed': 1.45,
         'duration': 2100, // 35 dk
       },
       {
         'title': 'Abbasi Divanı Obsidyen & Zanaat Siparişi',
         'requester': 'Bağdat Saray Taciri',
-        'base': <String, double>{'obsidian': 1000.0, 'furniture': 6000.0, 'flour': 8000.0},
+        'base': <String, double>{
+          'obsidian': 1000.0,
+          'furniture': 6000.0,
+          'flour': 8000.0,
+        },
         'speed': 1.80,
         'duration': 3600, // 60 dk
       },
@@ -3339,7 +3396,8 @@ class EconomyCalculator {
       requesterName: t['requester'] as String,
       requiredResources: scaledReqs,
       rewardCrowns: 0,
-      rewardSpeedMultiplier: (t['speed'] as double) + math.min(0.5, dailyCycleIndex * 0.05),
+      rewardSpeedMultiplier:
+          (t['speed'] as double) + math.min(0.5, dailyCycleIndex * 0.05),
       buffDurationSeconds: t['duration'] as int,
       isFulfilled: false,
       createdAt: DateTime.now().toIso8601String(),

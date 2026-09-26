@@ -1638,9 +1638,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
       toreTalents: gameState.toreTalents,
       totalMigrations: gameState.progression.totalMigrations,
       kutMultiplier: gameState.progression.kutMultiplier,
-      frenzyMultiplier: (gameState.frenzyTimer > 0 && gameState.frenzyMultiplier > 1)
-          ? gameState.frenzyMultiplier
-          : 1,
+      frenzyMultiplier: gameState.frenzyMultiplier,
     );
     final isLogisticsBuilding = b.currentCarryingCapacity > 0 && b.baseProductionRate == 0.0;
 
@@ -1657,13 +1655,18 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
             workerTile: tile,
             tiles: gameState.tiles,
             workerTransferMult: workerTransferMult,
-            globalMultiplier: globalMult,
+            globalMultiplier: globalMult * gameState.frenzyMultiplier,
             season: gameState.season.current,
             isZud: gameState.season.isZud,
+            cumulativeBiomeCounts:
+                gameState.progression.cumulativeBiomeCounts,
             shrineMultiplier: gameState.shrineMultiplier,
             caravanRoutes: gameState.caravanRoutes,
             activeDoctrines: notifier.getActiveDoctrines(),
             discoveredKurgans: gameState.discoveredKurgans,
+            celestialOmen: gameState.celestialOmen,
+            frenzyMultiplier: gameState.frenzyMultiplier,
+            titles: gameState.titles,
           )
         : null;
 

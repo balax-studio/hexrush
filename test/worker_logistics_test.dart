@@ -34,6 +34,39 @@ void main() {
       expect(stats.idleCapacity, equals(3.36));
     });
 
+    test('Worker utilization includes frenzy production and accumulated cargo', () {
+      const workerCoord = HexAxial(0, 0);
+      const lumberjackCoord = HexAxial(1, 0);
+      const workerTile = HexTileModel(
+        coord: workerCoord,
+        biome: TileBiome.meadow,
+        state: TileState.owned,
+        building: BuildingModel(type: BuildingType.worker),
+      );
+      const lumberjackTile = HexTileModel(
+        coord: lumberjackCoord,
+        biome: TileBiome.forest,
+        state: TileState.owned,
+        building: BuildingModel(
+          type: BuildingType.lumberjack,
+          accumulatedResource: 3.0,
+        ),
+      );
+      final tiles = <HexAxial, HexTileModel>{
+        workerCoord: workerTile,
+        lumberjackCoord: lumberjackTile,
+      };
+
+      final stats = EconomyCalculator.calculateWorkerLogisticsStats(
+        workerTile: workerTile,
+        tiles: tiles,
+        frenzyMultiplier: 10,
+      );
+
+      expect(stats.utilizationRatio, 1.0);
+      expect(stats.utilizedCapacity, stats.totalCapacity);
+    });
+
     test('Worker with nearby lumberjack camp within 4 hexes calculates correct utilization', () {
       const workerCoord = HexAxial(0, 0);
       const lumberjackCoord = HexAxial(1, 0); // distance = 1 (within 4)
