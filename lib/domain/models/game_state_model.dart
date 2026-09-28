@@ -529,6 +529,7 @@ class SettingsModel {
   final String activeThemePalette;
   final String activeTitle;
   final bool reducedMotion;
+  final bool ratingPromptShown;
 
   const SettingsModel({
     this.language = 'tr',
@@ -540,6 +541,7 @@ class SettingsModel {
     this.activeThemePalette = 'basalt',
     this.activeTitle = 'nomad',
     this.reducedMotion = false,
+    this.ratingPromptShown = false,
   });
 
   SettingsModel copyWith({
@@ -552,6 +554,7 @@ class SettingsModel {
     String? activeThemePalette,
     String? activeTitle,
     bool? reducedMotion,
+    bool? ratingPromptShown,
   }) {
     return SettingsModel(
       language: language ?? this.language,
@@ -563,6 +566,7 @@ class SettingsModel {
       activeThemePalette: activeThemePalette ?? this.activeThemePalette,
       activeTitle: activeTitle ?? this.activeTitle,
       reducedMotion: reducedMotion ?? this.reducedMotion,
+      ratingPromptShown: ratingPromptShown ?? this.ratingPromptShown,
     );
   }
 
@@ -576,6 +580,7 @@ class SettingsModel {
         'active_theme_palette': activeThemePalette,
         'active_title': activeTitle,
         'reduced_motion': reducedMotion,
+        'rating_prompt_shown': ratingPromptShown,
       };
 
   factory SettingsModel.fromJson(Map<String, dynamic> json) {
@@ -595,6 +600,7 @@ class SettingsModel {
       activeThemePalette: json['active_theme_palette'] as String? ?? 'basalt',
       activeTitle: json['active_title'] as String? ?? 'nomad',
       reducedMotion: json['reduced_motion'] as bool? ?? false,
+      ratingPromptShown: json['rating_prompt_shown'] as bool? ?? false,
     );
   }
 }

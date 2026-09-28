@@ -4102,6 +4102,13 @@ class GameStateNotifier extends StateNotifier<GameState> {
     bool? questPanelHidden,
   }) async {
     final currentNotifs = state.settings.notifications;
+    final scheduleChanged =
+        enabled != null ||
+        idle1hAlert != null ||
+        idle4hAlert != null ||
+        dailyCouncilAlert != null ||
+        dailyHarvestAlert != null ||
+        inactivityAlert != null;
     final newNotifs = currentNotifs.copyWith(
       enabled: enabled,
       idle1hAlert: idle1hAlert,
@@ -4127,7 +4134,20 @@ class GameStateNotifier extends StateNotifier<GameState> {
     state = state.copyWith(
       settings: state.settings.copyWith(notifications: newNotifs),
     );
+    if (newNotifs.enabled && scheduleChanged) {
+      await LocalNotificationService.instance.refreshSettings(
+        settings: state.settings,
+      );
+    }
     unawaited(TactileAudioService.instance.play(TactileSoundType.tap));
+    await saveGame();
+  }
+
+  Future<void> markRatingPromptShown() async {
+    if (state.settings.ratingPromptShown) return;
+    state = state.copyWith(
+      settings: state.settings.copyWith(ratingPromptShown: true),
+    );
     await saveGame();
   }
 

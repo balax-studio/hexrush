@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/tactile_audio_service.dart';
@@ -25,6 +27,7 @@ import '../widgets/season_transition_banner.dart';
 import '../widgets/migration_waypoint_banner.dart';
 import '../widgets/hud/tactile_context_hint.dart';
 import '../widgets/intro_story_dialog.dart';
+import '../widgets/rate_game_dialog.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
@@ -36,6 +39,8 @@ class GameScreen extends ConsumerStatefulWidget {
 class _GameScreenState extends ConsumerState<GameScreen>
     with WidgetsBindingObserver {
   bool _isOfflineDialogShowing = false;
+  bool _isRatingDialogShowing = false;
+  bool _notificationsScheduledForBackground = false;
   bool _isManualStoryOpen = false;
 
   @override
@@ -46,6 +51,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
     LocalNotificationService.instance.cancelIdleNotifications();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkPendingOfflineGains();
+      _maybeShowRatingPrompt();
       final settings = ref.read(gameStateProvider).settings;
       TactileAudioService.instance.updateSettings(
         isSoundEnabled: !settings.sfxMuted,
@@ -67,15 +73,23 @@ class _GameScreenState extends ConsumerState<GameScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      if (!_notificationsScheduledForBackground) {
+        _notificationsScheduledForBackground = true;
+        final currentSettings = ref.read(gameStateProvider).settings;
+        LocalNotificationService.instance.scheduleOnAppBackground(
+          settings: currentSettings,
+        );
+      }
+    }
+
+    if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive ||
         state == AppLifecycleState.hidden) {
-      final currentSettings = ref.read(gameStateProvider).settings;
-      LocalNotificationService.instance.scheduleOnAppBackground(
-        settings: currentSettings,
-      );
       TactileAudioService.instance.pauseBackgroundMusic();
       ref.read(gameStateProvider.notifier).pauseGameLoop();
     } else if (state == AppLifecycleState.resumed) {
+      _notificationsScheduledForBackground = false;
       LocalNotificationService.instance.cancelIdleNotifications();
       TactileAudioService.instance.resumeBackgroundMusic();
       ref.read(gameStateProvider.notifier).resumeGameLoop().then((_) {
@@ -106,8 +120,33 @@ class _GameScreenState extends ConsumerState<GameScreen>
     } finally {
       if (mounted) {
         _isOfflineDialogShowing = false;
+        _maybeShowRatingPrompt();
       }
     }
+  }
+
+  void _maybeShowRatingPrompt() {
+    if (!mounted || _isOfflineDialogShowing || _isRatingDialogShowing) return;
+    final gameState = ref.read(gameStateProvider);
+    if (gameState.progression.castleLevel < 10 ||
+        !gameState.progression.hasSeenIntro ||
+        gameState.settings.ratingPromptShown) {
+      return;
+    }
+
+    _isRatingDialogShowing = true;
+    unawaited(ref.read(gameStateProvider.notifier).markRatingPromptShown());
+    showNeoTactileDialog<void>(
+      context: context,
+      builder: (_) => RateGameDialog(
+        language: gameState.settings.language,
+        theme: NeoBrutalistTheme.getTheme(
+          gameState.settings.activeThemePalette,
+        ),
+      ),
+    ).whenComplete(() {
+      _isRatingDialogShowing = false;
+    });
   }
 
   @override
@@ -117,6 +156,26 @@ class _GameScreenState extends ConsumerState<GameScreen>
       (previous, next) {
         if (next != null && next.hasGains && mounted && !_isOfflineDialogShowing) {
           _showOfflineGainsDialog(next);
+        }
+      },
+    );
+    ref.listen<int>(
+      gameStateProvider.select((s) => s.progression.castleLevel),
+      (previous, next) {
+        if (next >= 10) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _maybeShowRatingPrompt();
+          });
+        }
+      },
+    );
+    ref.listen<bool>(
+      gameStateProvider.select((s) => s.progression.hasSeenIntro),
+      (previous, next) {
+        if (next) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _maybeShowRatingPrompt();
+          });
         }
       },
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/audio/tactile_audio_service.dart';
@@ -267,6 +268,71 @@ class SettingsDialog extends ConsumerWidget {
               ],
 
               const SizedBox(height: 16),
+
+              Text(
+                GameLocalization.get('notifications', lang: lang).toUpperCase(),
+                style: NeoBrutalistTheme.fontLabel,
+              ),
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: NeoBrutalistTheme.sharpRadius,
+                  border: Border.all(
+                    color: const Color(0xFF334155),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    _buildNotificationToggle(
+                      GameLocalization.get('notifications', lang: lang),
+                      settings.notifications.enabled,
+                      (value) {
+                        HapticFeedback.lightImpact();
+                        notifier.updateNotificationSettings(enabled: value);
+                      },
+                    ),
+                    Text(
+                      GameLocalization.get(
+                        'notifications_desc',
+                        lang: lang,
+                      ),
+                      style: const TextStyle(
+                        color: Color(0xFF94A3B8),
+                        fontSize: 10,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: TactileNeoButton(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          notifier.updateNotificationSettings(enabled: true);
+                        },
+                        backgroundColor: const Color(0xFF0F172A),
+                        borderColor: const Color(0xFF38BDF8),
+                        height: 36,
+                        alignment: Alignment.center,
+                        padding: EdgeInsets.zero,
+                        child: Text(
+                          GameLocalization.get(
+                            'notification_permission_action',
+                            lang: lang,
+                          ).toUpperCase(),
+                          style: const TextStyle(
+                            color: Color(0xFFBAE6FD),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
               // Görsel Konfor & Erişilebilirlik
               Text(

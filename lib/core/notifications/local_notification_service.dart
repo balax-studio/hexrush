@@ -14,6 +14,7 @@ class LocalNotificationService {
       _pluginInstance ??= FlutterLocalNotificationsPlugin();
 
   bool _isInitialized = false;
+  Future<void>? _initialization;
 
   static const int idIdle1h = 100;
   static const int idIdle4h = 101;
@@ -29,6 +30,10 @@ class LocalNotificationService {
     if (kIsWeb) return;
     if (_isInitialized) return;
 
+    await (_initialization ??= _initialize());
+  }
+
+  Future<void> _initialize() async {
     try {
       tz.initializeTimeZones();
 
@@ -48,7 +53,9 @@ class LocalNotificationService {
       await _plugin.initialize(initSettings);
       _isInitialized = true;
     } catch (e) {
-      // Test ve desteklenmeyen ortamlarda sessizce atla
+      debugPrint('[LocalNotificationService] Initialize error: $e');
+    } finally {
+      _initialization = null;
     }
   }
 
@@ -122,22 +129,30 @@ class LocalNotificationService {
   /// Oyuncu oyundan ayrıldığında (arka plana geçtiğinde) tüm bildirimleri takvimler.
   Future<void> scheduleOnAppBackground({
     required SettingsModel settings,
+  }) => _schedule(settings: settings, includeIdleAlerts: true);
+
+  /// Günlük tercihleri uygularken boşta uyarılarını ertele.
+  Future<void> refreshSettings({required SettingsModel settings}) =>
+      _schedule(settings: settings, includeIdleAlerts: false);
+
+  Future<void> _schedule({
+    required SettingsModel settings,
+    required bool includeIdleAlerts,
   }) async {
     if (kIsWeb) return;
+    await initialize();
     if (!settings.notifications.enabled) {
       await cancelAll();
       return;
     }
 
-    if (!_isInitialized) {
-      await initialize();
-    }
-
     final lang = settings.language;
 
     try {
+      await _plugin.cancelAll();
+
       // 1. 1 Saat Sonra: Bozkır Devriyesi
-      if (settings.notifications.idle1hAlert) {
+      if (includeIdleAlerts && settings.notifications.idle1hAlert) {
         final title1h = GameLocalization.get('notif_idle_1h_title', lang: lang);
         final body1h = GameLocalization.get('notif_idle_1h_body', lang: lang);
         final scheduleTime1h = tz.TZDateTime.now(tz.local).add(const Duration(hours: 1));
@@ -155,7 +170,7 @@ class LocalNotificationService {
       }
 
       // 2. 4 Saat Sonra: Bozkır Üretimi Hazır
-      if (settings.notifications.idle4hAlert) {
+      if (includeIdleAlerts && settings.notifications.idle4hAlert) {
         final title4h = GameLocalization.get('notif_idle_4h_title', lang: lang);
         final body4h = GameLocalization.get('notif_idle_4h_body', lang: lang);
         final scheduleTime4h = tz.TZDateTime.now(tz.local).add(const Duration(hours: 4));
@@ -173,7 +188,7 @@ class LocalNotificationService {
       }
 
       // 3. 24 Saat Sonra: Bozkırda Yeni Gün (İnaktiflik)
-      if (settings.notifications.inactivityAlert) {
+      if (includeIdleAlerts && settings.notifications.inactivityAlert) {
         final title24h = GameLocalization.get('notif_inactivity_title', lang: lang);
         final body24h = GameLocalization.get('notif_inactivity_body', lang: lang);
         final scheduleTime24h = tz.TZDateTime.now(tz.local).add(const Duration(hours: 24));
@@ -236,6 +251,7 @@ class LocalNotificationService {
   Future<void> cancelIdleNotifications() async {
     if (kIsWeb) return;
     try {
+      await initialize();
       await _plugin.cancel(idIdle1h);
       await _plugin.cancel(idIdle4h);
       await _plugin.cancel(idInactivity24h);
@@ -248,6 +264,7 @@ class LocalNotificationService {
   Future<void> cancelAll() async {
     if (kIsWeb) return;
     try {
+      await initialize();
       await _plugin.cancelAll();
     } catch (e) {
       debugPrint('[LocalNotificationService] Cancel all error: $e');

@@ -155,3 +155,34 @@ production/session-logs/session-log.md
 pubspec.yaml
 ---
 
+## Session End: 20260928_161547
+### Commits
+f035a39 sunak hesap revize
+1a921f0 fix: reflect shrine transport bonus in logistics load
+### Uncommitted Changes
+android/app/src/main/AndroidManifest.xml
+ios/Runner/AppDelegate.swift
+lib/core/localization/game_localization.dart
+lib/core/notifications/local_notification_service.dart
+lib/domain/models/game_state_model.dart
+lib/presentation/providers/game_state_notifier.dart
+lib/presentation/screens/game_screen.dart
+lib/presentation/widgets/settings_dialog.dart
+---
+
+## Session End: 20260928_162136
+### Commits
+f035a39 sunak hesap revize
+1a921f0 fix: reflect shrine transport bonus in logistics load
+### Uncommitted Changes
+android/app/src/main/AndroidManifest.xml
+ios/Runner/AppDelegate.swift
+lib/core/localization/game_localization.dart
+lib/core/notifications/local_notification_service.dart
+lib/domain/models/game_state_model.dart
+lib/presentation/providers/game_state_notifier.dart
+lib/presentation/screens/game_screen.dart
+lib/presentation/widgets/settings_dialog.dart
+production/session-logs/session-log.md
+---
+
