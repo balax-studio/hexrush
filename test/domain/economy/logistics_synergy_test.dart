@@ -166,5 +166,47 @@ void main() {
       expect(stats.utilizationRatio, 0.0);
       expect(stats.coveredBuildingsCount, 0);
     });
+
+    test('owned transport shrine increases granary load bar capacity', () {
+      const granaryCoord = HexAxial(0, 0);
+      const foodCoord = HexAxial(1, 0);
+      const shrineCoord = HexAxial(0, 1);
+      const granary = HexTileModel(
+        coord: granaryCoord,
+        biome: TileBiome.meadow,
+        state: TileState.owned,
+        building: BuildingModel(type: BuildingType.granaryVault, level: 1),
+      );
+      final tiles = <HexAxial, HexTileModel>{
+        granaryCoord: granary,
+        foodCoord: const HexTileModel(
+          coord: foodCoord,
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.corn, level: 20),
+        ),
+        shrineCoord: const HexTileModel(
+          coord: shrineCoord,
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          shrine: ShrineType.speedBoost,
+          shrineMultiplierValue: 3.0,
+        ),
+      };
+      final base = EconomyCalculator.calculateWorkerLogisticsStats(
+        workerTile: granary,
+        tiles: tiles,
+      );
+      final boosted = EconomyCalculator.calculateWorkerLogisticsStats(
+        workerTile: granary,
+        tiles: tiles,
+        workerTransferMult: EconomyCalculator.getWorkerTransferMultiplier(
+          tiles: tiles,
+        ),
+      );
+
+      expect(boosted.totalCapacity, closeTo(base.totalCapacity * 3.0, 0.001));
+      expect(boosted.utilizationRatio, lessThan(base.utilizationRatio));
+    });
   });
 }

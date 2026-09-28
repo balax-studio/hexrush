@@ -1638,6 +1638,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
       toreTalents: gameState.toreTalents,
       totalMigrations: gameState.progression.totalMigrations,
       kutMultiplier: gameState.progression.kutMultiplier,
+      tiles: gameState.tiles,
       frenzyMultiplier: gameState.frenzyMultiplier,
     );
     final isLogisticsBuilding = b.currentCarryingCapacity > 0 && b.baseProductionRate == 0.0;
