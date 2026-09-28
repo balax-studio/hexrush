@@ -128,3 +128,30 @@ lib/presentation/widgets/tore_dialog.dart
 production/session-logs/session-log.md
 ---
 
+## Session End: 20260926_214034
+### Commits
+cabda1c Improve audio initialization and crown spending navigation
+---
+
+## Session End: 20260928_131407
+### Uncommitted Changes
+production/session-logs/session-log.md
+pubspec.yaml
+---
+
+## Session End: 20260928_133825
+### Uncommitted Changes
+lib/presentation/widgets/tile_action_sheet.dart
+production/session-logs/session-log.md
+pubspec.yaml
+test/domain/economy/logistics_synergy_test.dart
+---
+
+## Session End: 20260928_140209
+### Commits
+1a921f0 fix: reflect shrine transport bonus in logistics load
+### Uncommitted Changes
+production/session-logs/session-log.md
+pubspec.yaml
+---
+
