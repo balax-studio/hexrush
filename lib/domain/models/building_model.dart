@@ -324,7 +324,7 @@ class BuildingModel {
   /// Şato (Kağan Otağı) görsel evrim kilometre taşları: 5, 15, 30, 50
   static const List<int> castleVisualMilestoneLevels = [5, 15, 30, 50];
 
-  /// Verilen seviyenin ulaştığı kilometre taşı kademesi (0..5)
+  /// Verilen seviyenin ulaştığı kilometre taşı kademesi (0..5) (Maliyet ve Görsel Evrim İçin)
   static int getMilestoneTier(int lvl) {
     if (lvl >= 200) return 5;
     if (lvl >= 100) return 4;
@@ -332,6 +332,32 @@ class BuildingModel {
     if (lvl >= 25) return 2;
     if (lvl >= 10) return 1;
     return 0;
+  }
+
+  /// Seviyeye göre kilometre taşı kümülatif üretim çarpanı
+  /// Seviye 1-9: 1x
+  /// Seviye 10-24: 2x
+  /// Seviye 25-49: 5x
+  /// Seviye 50-99: 10x
+  /// Seviye 100-199: 20x
+  /// Seviye 200+: 40x
+  static double getMilestoneProductionMultiplier(int lvl) {
+    if (lvl >= 200) return 40.0;
+    if (lvl >= 100) return 20.0;
+    if (lvl >= 50) return 10.0;
+    if (lvl >= 25) return 5.0;
+    if (lvl >= 10) return 2.0;
+    return 1.0;
+  }
+
+  /// Bir sonraki kilometre taşı seviyesinde kazanılacak kümülatif çarpan etiketi (örn: "2X", "5X", "10X", "20X")
+  static String getMilestoneMultiplierLabel(int lvl) {
+    if (lvl >= 200) return '40X';
+    if (lvl >= 100) return '20X';
+    if (lvl >= 50) return '10X';
+    if (lvl >= 25) return '5X';
+    if (lvl >= 10) return '2X';
+    return '1X';
   }
 
   /// Yapının görsel evrim kademesi (Visual Tier)
@@ -452,23 +478,20 @@ class BuildingModel {
 
   /// Seviyeye göre anlık üretim hızı
   double get currentProductionRate {
-    final int k = getMilestoneTier(level);
-    final double milestoneBoost = math.pow(2.0, k).toDouble();
+    final double milestoneBoost = getMilestoneProductionMultiplier(level);
     return baseProductionRate * level * milestoneBoost;
   }
 
   /// Bir sonraki seviyedeki baz üretim hızı (çarpanlar hariç)
   double get nextLevelProductionRate {
     final int nextLvl = level + 1;
-    final int k = getMilestoneTier(nextLvl);
-    final double milestoneBoost = math.pow(2.0, k).toDouble();
+    final double milestoneBoost = getMilestoneProductionMultiplier(nextLvl);
     return baseProductionRate * nextLvl * milestoneBoost;
   }
 
   /// Seviyeye göre anlık taşıma kapasitesi
   double get currentCarryingCapacity {
-    final int k = getMilestoneTier(level);
-    final double milestoneBoost = math.pow(2.0, k).toDouble();
+    final double milestoneBoost = getMilestoneProductionMultiplier(level);
     return baseCarryingCapacity * level * milestoneBoost;
   }
 

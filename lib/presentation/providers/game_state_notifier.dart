@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -574,8 +573,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
       final int dist = HexMath.hexDistance(const HexAxial(0, 0), c);
       if (dist != 4) return false;
       final t = map[c]!;
-      if (t.biome == TileBiome.sea || t.biome == TileBiome.mountain)
+      if (t.biome == TileBiome.sea || t.biome == TileBiome.mountain) {
         return false;
+      }
       if (t.biome == TileBiome.celestialCrater ||
           t.biome == TileBiome.kurganValley ||
           t.biome == TileBiome.crystalChasm) {
@@ -597,8 +597,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
       if (dist <= 4) return false;
       if (c == guaranteedSpeedShrineCoord) return false;
       final t = map[c]!;
-      if (t.biome == TileBiome.sea || t.biome == TileBiome.mountain)
+      if (t.biome == TileBiome.sea || t.biome == TileBiome.mountain) {
         return false;
+      }
       if (t.biome == TileBiome.celestialCrater ||
           t.biome == TileBiome.kurganValley ||
           t.biome == TileBiome.crystalChasm) {
@@ -787,12 +788,29 @@ class GameStateNotifier extends StateNotifier<GameState> {
             crowns: save.resources.crowns,
             toreTalents: save.toreTalents,
             titles: save.titles,
+            kutMultiplier: save.progression.kutMultiplier,
           );
+          final double seasonMult =
+              EconomyCalculator.getSeasonProductionMultiplier(
+                season: save.season.current,
+                isZud: save.season.isZud,
+                titles: save.titles,
+              );
           final offline = EconomyCalculator.calculateOfflineGains(
             tiles: save.tiles,
             elapsedSeconds: effectiveSeconds.toDouble(),
             globalMultiplier: globalMult,
             minThresholdSeconds: minAfkSeconds.toDouble(),
+            seasonMultiplier: seasonMult,
+            shrineMultiplier: state.shrineMultiplier,
+            season: save.season.current,
+            isZud: save.season.isZud,
+            cumulativeBiomeCounts: save.progression.cumulativeBiomeCounts,
+            activeDoctrines: state.doctrines,
+            caravanRoutes: save.caravanRoutes,
+            celestialOmen: save.celestialOmen,
+            discoveredKurgans: save.discoveredKurgans,
+            titles: save.titles,
           );
 
           if (offline.hasGains && mounted) {
@@ -861,13 +879,30 @@ class GameStateNotifier extends StateNotifier<GameState> {
           crowns: state.resources.crowns,
           toreTalents: state.toreTalents,
           titles: state.titles,
+          kutMultiplier: state.progression.kutMultiplier,
         );
 
+        final double seasonMult =
+            EconomyCalculator.getSeasonProductionMultiplier(
+              season: state.season.current,
+              isZud: state.season.isZud,
+              titles: state.titles,
+            );
         final offline = EconomyCalculator.calculateOfflineGains(
           tiles: state.tiles.values.toList(),
           elapsedSeconds: effectiveSeconds.toDouble(),
           globalMultiplier: globalMult,
           minThresholdSeconds: minAfkSeconds.toDouble(),
+          seasonMultiplier: seasonMult,
+          shrineMultiplier: state.shrineMultiplier,
+          season: state.season.current,
+          isZud: state.season.isZud,
+          cumulativeBiomeCounts: state.progression.cumulativeBiomeCounts,
+          activeDoctrines: getActiveDoctrines(),
+          caravanRoutes: state.caravanRoutes,
+          celestialOmen: state.celestialOmen,
+          discoveredKurgans: state.discoveredKurgans,
+          titles: state.titles,
         );
 
         if (offline.hasGains && mounted) {
@@ -2062,8 +2097,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
     ResourcesModel res = state.resources;
     int nextTutorial = state.progression.tutorialStep;
-    if (b.type == BuildingType.corn && nextTutorial == 4)
+    if (b.type == BuildingType.corn && nextTutorial == 4) {
       nextTutorial = 6; // Skip to forest tutorial
+    }
 
     if (b.type == BuildingType.corn ||
         b.type == BuildingType.barley ||
@@ -2800,13 +2836,30 @@ class GameStateNotifier extends StateNotifier<GameState> {
       crowns: state.resources.crowns,
       toreTalents: state.toreTalents,
       titles: state.titles,
+      kutMultiplier: state.progression.kutMultiplier,
     );
 
+    final double seasonMult =
+        EconomyCalculator.getSeasonProductionMultiplier(
+          season: state.season.current,
+          isZud: state.season.isZud,
+          titles: state.titles,
+        );
     final offline = EconomyCalculator.calculateOfflineGains(
       tiles: state.tiles.values.toList(),
       elapsedSeconds: effectiveSeconds.toDouble(),
       globalMultiplier: globalMult,
       minThresholdSeconds: minAfkSeconds.toDouble(),
+      seasonMultiplier: seasonMult,
+      shrineMultiplier: state.shrineMultiplier,
+      season: state.season.current,
+      isZud: state.season.isZud,
+      cumulativeBiomeCounts: state.progression.cumulativeBiomeCounts,
+      activeDoctrines: getActiveDoctrines(),
+      caravanRoutes: state.caravanRoutes,
+      celestialOmen: state.celestialOmen,
+      discoveredKurgans: state.discoveredKurgans,
+      titles: state.titles,
     );
 
     if (offline.hasGains && mounted) {

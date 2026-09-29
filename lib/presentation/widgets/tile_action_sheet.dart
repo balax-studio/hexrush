@@ -1402,7 +1402,6 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
 
   Widget _buildShrineDetailSection(BuildContext context, WidgetRef ref,
       HexTileModel tile, GameState gameState, String lang, NeoBrutalistThemeData theme) {
-    final bool isTr = lang == 'tr';
     final shrine = tile.shrine;
     final color = shrine == ShrineType.foodBoost
         ? const Color(0xFF10B981)
@@ -2125,7 +2124,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                       const SizedBox(width: 6),
                       Flexible(
                         child: Text(
-                          'BİR SONRAKİ 2X SIÇRAMA: SEVİYE $nextMilestone ($remaining SEVİYE KALDI)',
+                          'BİR SONRAKİ ${BuildingModel.getMilestoneMultiplierLabel(nextMilestone)} SIÇRAMA: SEVİYE $nextMilestone ($remaining SEVİYE KALDI)',
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Color(0xFF94A3B8),
@@ -2187,7 +2186,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 child: Center(
                   child: Text(
                     b.isNextLevelMilestone
-                        ? '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} (${NumberFormatter.format(cost)}) • 2X GELİR'
+                        ? '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} (${NumberFormatter.format(cost)}) • ${BuildingModel.getMilestoneMultiplierLabel(b.level + 1)} GELİR'
                         : '${GameLocalization.get('upgrade', lang: lang).toUpperCase()} (${NumberFormatter.format(cost)})',
                     style: const TextStyle(
                       color: Colors.black,

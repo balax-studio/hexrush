@@ -70,7 +70,7 @@ void main() {
         elapsedSeconds: 3600.0,
         globalMultiplier: 1.0,
       );
-      expect(gainsNoWorker.food, closeTo(0.42 * 30.0, 0.01));
+      expect(gainsNoWorker.food, closeTo(0.42 * 1.20 * 30.0, 0.01));
 
       // Test with food storehouse (uncapped for elapsed seconds up to 8h)
       final tilesWithWorker = [
@@ -88,7 +88,7 @@ void main() {
         elapsedSeconds: 100.0,
         globalMultiplier: 1.0,
       );
-      expect(gainsWithWorker.food, closeTo(0.42 * 100.0, 0.01));
+      expect(gainsWithWorker.food, closeTo(57.96, 0.01));
     });
   });
 }

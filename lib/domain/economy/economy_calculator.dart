@@ -1539,11 +1539,8 @@ class EconomyCalculator {
     double biomeMasteryMultiplier = 1.0,
     double seasonalBoostMultiplier = 1.0,
   }) {
-    // Eşik Çarpanı (k)
-    final int k = BuildingModel.getMilestoneTier(level);
-
-    // P_net = (P_base * Level * 2^k) * (1 + sum S_boost) * modifiers
-    final double milestoneBoost = math.pow(2.0, k).toDouble();
+    // Eşik Çarpanı (Seviye 10 -> 2x, Seviye 25 -> 5x, Seviye 50 -> 10x, Seviye 100 -> 20x, Seviye 200 -> 40x)
+    final double milestoneBoost = BuildingModel.getMilestoneProductionMultiplier(level);
 
     return (baseRate * level * milestoneBoost) *
         globalMultiplier *
@@ -1823,7 +1820,7 @@ class EconomyCalculator {
   static double getSeasonProductionMultiplier({
     required String season,
     required bool isZud,
-    required bool isTileWarmed,
+    bool isTileWarmed = false,
     Map<String, dynamic> titles = const {},
   }) {
     if (isTileWarmed) {
@@ -2037,6 +2034,16 @@ class EconomyCalculator {
     required double elapsedSeconds,
     required double globalMultiplier,
     double minThresholdSeconds = 60.0,
+    double seasonMultiplier = 1.0,
+    double shrineMultiplier = 1.0,
+    String season = 'SPRING',
+    bool isZud = false,
+    Map<String, int> cumulativeBiomeCounts = const {},
+    List<DoctrineCardModel> activeDoctrines = const [],
+    List<CaravanRoute> caravanRoutes = const [],
+    CelestialOmen? celestialOmen,
+    List<AncestralKurgan> discoveredKurgans = const [],
+    Map<String, dynamic> titles = const {},
   }) {
     const double maxOfflineSeconds = 8 * 3600.0;
     final double rawSeconds = math.max(0.0, elapsedSeconds);
@@ -2055,6 +2062,7 @@ class EconomyCalculator {
       effectiveSeconds = 7200.0 + (excess * 0.60);
     }
     final double cappedSeconds = effectiveSeconds;
+    final tilesMap = {for (final t in tiles) t.coord: t};
 
     final foodStorageCoords = tiles
         .where(
@@ -2094,6 +2102,19 @@ class EconomyCalculator {
     double gainedKumis = 0.0;
     double gainedFelt = 0.0;
     double gainedDamascusSteel = 0.0;
+    // Doktrin: Göçer İaşesi (Boş çayırlardan iaşe)
+    final bool hasGrazeDoctrine = activeDoctrines.any(
+      (d) => d.effectType == DoctrineEffectType.meadowGrazeYield,
+    );
+    if (hasGrazeDoctrine) {
+      int emptyMeadowCount = 0;
+      for (final t in tiles) {
+        if (t.isOwned && t.biome == TileBiome.meadow && !t.hasBuilding) {
+          emptyMeadowCount++;
+        }
+      }
+      gainedFood += emptyMeadowCount * 0.5 * cappedSeconds;
+    }
 
     for (final t in tiles) {
       final b = t.building;
@@ -2104,10 +2125,22 @@ class EconomyCalculator {
           ? foodStorageCoords.any((wc) => t.coord.distanceTo(wc) <= 4)
           : generalWorkerCoords.any((wc) => t.coord.distanceTo(wc) <= 4);
 
-      final double rate = calculateBuildingProduction(
-        type: b.type,
-        level: b.level,
-        baseRate: b.baseProductionRate,
+      final double rate = calculateTileEffectiveProductionRate(
+        tile: t,
+        tileMap: tilesMap,
+        seasonMultiplier: seasonMultiplier,
+        shrineMultiplier: shrineMultiplier,
+        season: season,
+        isZud: isZud,
+        cumulativeBiomeCounts: cumulativeBiomeCounts,
+        activeDoctrines: activeDoctrines,
+        caravanRoutes: caravanRoutes,
+        celestialOmen: celestialOmen,
+        discoveredKurgans: discoveredKurgans,
+        frenzyMultiplier: 1,
+        titles: titles,
+
+
         globalMultiplier: globalMultiplier,
       );
       final double maxCap = rate * 30.0;

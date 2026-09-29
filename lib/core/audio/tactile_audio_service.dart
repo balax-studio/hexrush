@@ -80,7 +80,6 @@ class TactileAudioService {
 
     try {
       _musicPlayer = AudioPlayer();
-      _musicPlayer?.setReleaseMode(ReleaseMode.loop);
 
       for (int i = 0; i < _sfxPoolSize; i++) {
         final player = AudioPlayer();
@@ -92,9 +91,9 @@ class TactileAudioService {
       ]);
       _isInitialized = true;
     } catch (_) {
-      _musicPlayer?.dispose();
+      await _musicPlayer?.dispose();
       for (final player in _sfxPool) {
-        player.dispose();
+        await player.dispose();
       }
       _musicPlayer = null;
       _sfxPool.clear();

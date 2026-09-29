@@ -83,7 +83,6 @@ class _QuestTrackerHUDState extends ConsumerState<QuestTrackerHUD>
     final double progressRatio = activeQuest.progress;
     final String title = activeQuest.getTitle(lang);
     final String description = activeQuest.getDescription(lang);
-    final bool isTr = lang == 'tr';
 
     // Animasyon Ticker'ı sadece görev tamamlandığında çalıştırılır (60 FPS CPU döngüsünü sıfırlar)
     if (isCompleted) {

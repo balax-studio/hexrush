@@ -144,7 +144,7 @@ void main() {
     test('Granary utilization excludes non-food producers', () {
       const granaryCoord = HexAxial(0, 0);
       const lumberCoord = HexAxial(1, 0);
-      final granary = const HexTileModel(
+      const granary = HexTileModel(
         coord: granaryCoord,
         biome: TileBiome.meadow,
         state: TileState.owned,

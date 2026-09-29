@@ -127,7 +127,42 @@ class _OfflineGainsDialogState extends ConsumerState<OfflineGainsDialog> {
                 fontSize: 12,
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 8),
+
+            // AFK Verim Bilgilendirme Kutusu
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: NeoBrutalistTheme.standardRadius,
+                border: Border.all(color: const Color(0xFF334155), width: 1.0),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 2),
+                    child: GameVectorIcon(
+                      type: GameIconType.granary,
+                      size: 13,
+                      color: Color(0xFF94A3B8),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      GameLocalization.get('offline_retention_info', lang: lang),
+                      style: NeoBrutalistTheme.fontLabel.copyWith(
+                        color: const Color(0xFF94A3B8),
+                        fontSize: 10.5,
+                        height: 1.3,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
 
             // Kaynak Izgarası
             Container(

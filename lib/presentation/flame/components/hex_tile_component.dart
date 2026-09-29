@@ -90,9 +90,6 @@ class HexTileComponent extends PositionComponent {
   // Zero-GC Reusable static drawing tools
   static final Paint _sharedFillPaint = Paint()..style = PaintingStyle.fill;
   static final Paint _sharedStrokePaint = Paint()..style = PaintingStyle.stroke;
-  static final Paint _highlightPaint = Paint()
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 1.0;
   static final Paint _selectBorderPaint = Paint()
     ..color = const Color(0xFFFFD700)
     ..style = PaintingStyle.stroke

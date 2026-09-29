@@ -61,7 +61,7 @@ void main() {
       );
       expect(exact60Gains.hasGains, isTrue);
       expect(exact60Gains.seconds, equals(60));
-      expect(exact60Gains.food, closeTo(0.42 * 60.0, 0.01));
+      expect(exact60Gains.food, closeTo(34.776, 0.01));
 
       // 3. 10 hours (36000s) is capped at 8 hours (28800s with golden retention formula)
       final cappedGains = EconomyCalculator.calculateOfflineGains(

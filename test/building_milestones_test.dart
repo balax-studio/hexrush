@@ -17,7 +17,7 @@ void main() {
   });
 
   group('Building Milestones Production and Cost Tests', () {
-    test('Building production boosts by 2x at milestone levels 10, 25, 50, 100, 200', () {
+    test('Building production boosts at milestone levels (10 -> 2x, 25 -> 5x, 50 -> 10x, 100 -> 20x, 200 -> 40x)', () {
       const bType = BuildingType.corn;
       const b1 = BuildingModel(type: bType, level: 1);
       const b9 = BuildingModel(type: bType, level: 9);
@@ -33,38 +33,38 @@ void main() {
 
       final base = b1.baseProductionRate;
 
-      // Level 1: base * 1 * 2^0
+      // Level 1: base * 1 * 1x
       expect(b1.currentProductionRate, closeTo(base * 1, 0.001));
 
-      // Level 9: base * 9 * 2^0
+      // Level 9: base * 9 * 1x
       expect(b9.currentProductionRate, closeTo(base * 9, 0.001));
 
-      // Level 10: base * 10 * 2^1 (2x boost)
+      // Level 10: base * 10 * 2x boost
       expect(b10.currentProductionRate, closeTo(base * 10 * 2, 0.001));
 
-      // Level 24: base * 24 * 2^1
+      // Level 24: base * 24 * 2x boost
       expect(b24.currentProductionRate, closeTo(base * 24 * 2, 0.001));
 
-      // Level 25: base * 25 * 2^2 (4x total milestone boost)
-      expect(b25.currentProductionRate, closeTo(base * 25 * 4, 0.001));
+      // Level 25: base * 25 * 5x boost
+      expect(b25.currentProductionRate, closeTo(base * 25 * 5, 0.001));
 
-      // Level 49: base * 49 * 2^2
-      expect(b49.currentProductionRate, closeTo(base * 49 * 4, 0.001));
+      // Level 49: base * 49 * 5x boost
+      expect(b49.currentProductionRate, closeTo(base * 49 * 5, 0.001));
 
-      // Level 50: base * 50 * 2^3 (8x total milestone boost)
-      expect(b50.currentProductionRate, closeTo(base * 50 * 8, 0.001));
+      // Level 50: base * 50 * 10x boost
+      expect(b50.currentProductionRate, closeTo(base * 50 * 10, 0.001));
 
-      // Level 99: base * 99 * 2^3
-      expect(b99.currentProductionRate, closeTo(base * 99 * 8, 0.001));
+      // Level 99: base * 99 * 10x boost
+      expect(b99.currentProductionRate, closeTo(base * 99 * 10, 0.001));
 
-      // Level 100: base * 100 * 2^4 (16x total milestone boost)
-      expect(b100.currentProductionRate, closeTo(base * 100 * 16, 0.001));
+      // Level 100: base * 100 * 20x boost
+      expect(b100.currentProductionRate, closeTo(base * 100 * 20, 0.001));
 
-      // Level 199: base * 199 * 2^4
-      expect(b199.currentProductionRate, closeTo(base * 199 * 16, 0.001));
+      // Level 199: base * 199 * 20x boost
+      expect(b199.currentProductionRate, closeTo(base * 199 * 20, 0.001));
 
-      // Level 200: base * 200 * 2^5 (32x total milestone boost)
-      expect(b200.currentProductionRate, closeTo(base * 200 * 32, 0.001));
+      // Level 200: base * 200 * 40x boost
+      expect(b200.currentProductionRate, closeTo(base * 200 * 40, 0.001));
     });
 
     test('Upgrade cost increases by 10x normal rate at milestone steps', () {
