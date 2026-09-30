@@ -283,3 +283,8 @@ test/tile_action_sheet_collapsible_hint_test.dart
 test/ui_motion_test.dart
 ---
 
+## Session End: 20260930_175052
+### Commits
+2343e26 Add fair hauling, timed buffs, and obsidian production
+---
+
