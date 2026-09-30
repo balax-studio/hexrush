@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hex_rush/core/hex/hex_coordinates.dart';
+import 'package:hex_rush/domain/models/building_model.dart';
 import 'package:hex_rush/domain/models/hex_tile_model.dart';
 import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
 import 'package:hex_rush/presentation/widgets/tile_action_sheet.dart';
@@ -70,5 +71,32 @@ void main() {
 
     // Tutorial hint is visible again
     expect(find.textContaining('Ötüken ovasında ilk obanı'), findsOneWidget);
+  });
+
+  testWidgets('milestone description shows the multiplier for its target level', (tester) async {
+    const coord = HexAxial(1, 0);
+    const tile = HexTileModel(
+      coord: coord,
+      biome: TileBiome.forest,
+      state: TileState.owned,
+      building: BuildingModel(type: BuildingType.lumberjack, level: 24),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          gameStateProvider.overrideWith((ref) {
+            final notifier = GameStateNotifier();
+            notifier.state = notifier.state.copyWith(selectedCoord: coord, tiles: {coord: tile});
+            return notifier;
+          }),
+        ],
+        child: const MaterialApp(home: Scaffold(body: TileActionSheet())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('5X GELİR KİLOMETRE TAŞI (SEVİYE 25)'), findsOneWidget);
+    expect(find.text('2X GELİR KİLOMETRE TAŞI (SEVİYE 25)'), findsNothing);
   });
 }

@@ -454,7 +454,7 @@ class BuildingModel {
       case BuildingType.damascusForge:
         return 0.18; // Şam çeliği üretimi
       case BuildingType.runicStele:
-        return 0.15; // Saniyelik Bilgelik / Lore üretimi
+        return 0.0015; // Bitig bilgelik geliri, önceki değerin yüzde biri
       default:
         return 0.0;
     }

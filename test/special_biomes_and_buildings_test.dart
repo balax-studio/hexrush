@@ -7,6 +7,11 @@ import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
 
 void main() {
   group('Özel Biyomlar ve Binalar Test Paketi', () {
+    test('Runic Stele bilgelik geliri önceki taban değerin yüzde biridir', () {
+      const stele = BuildingModel(type: BuildingType.runicStele, level: 1);
+      expect(stele.baseProductionRate, closeTo(0.0015, 0.000001));
+    });
+
     test('13 Yeni Bina için Castle Level Kilitleri ve Temel Veriler Doğru Olmalıdır', () {
       // Seviye 10 & 25 Binalar
       expect(BuildingType.herbalistYurt.requiredCastleLevel, 10);

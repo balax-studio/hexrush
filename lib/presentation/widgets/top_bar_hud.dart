@@ -93,7 +93,9 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
         shrineMultiplier: gameState.shrineMultiplier,
         cumulativeBiomeCounts: gameState.progression.cumulativeBiomeCounts,
         totalMigrations: gameState.progression.totalMigrations,
-        frenzyMultiplier: gameState.frenzyMultiplier,
+        frenzyMultiplier: (gameState.frenzyMultiplier *
+                gameState.temporaryProductionMultiplier)
+            .toDouble(),
         seasonMultiplier: seasonMult,
       );
     }
@@ -655,7 +657,8 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
       ),
       gameState.season.current,
       gameState.season.isZud,
-      gameState.frenzyMultiplier,
+      (gameState.frenzyMultiplier * gameState.temporaryProductionMultiplier)
+          .toDouble(),
       gameState.shrineMultiplier,
     );
 
@@ -686,7 +689,9 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
         toreTalents: gameState.toreTalents,
         totalMigrations: gameState.progression.totalMigrations,
         kutMultiplier: gameState.progression.kutMultiplier,
-        frenzyMultiplier: gameState.frenzyMultiplier,
+        frenzyMultiplier: (gameState.frenzyMultiplier *
+                gameState.temporaryProductionMultiplier)
+            .toDouble(),
       );
     }
 
@@ -944,7 +949,7 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
               ),
             ),
 
-            // Genişletilmiş Kaynak Çekmecesi (Taş, Un, Kereste, Ekmek, Mobilya, Demir)
+            // Genişletilmiş kaynak çekmecesi.
             if (_isDrawerExpanded) ...[
               const SizedBox(height: 8),
               SingleChildScrollView(
@@ -1111,6 +1116,33 @@ class _TopBarHUDState extends ConsumerState<TopBarHUD> {
                             'Madenlerden çıkarılan dayanıklı metal. Ağır donanım, kuleler ve anıtlar için kullanılır.',
                         strategicHint:
                             'Sadece DAĞ biyomunda inşa edilen Demir Madeni ile (Kağan Otağı Sv.15) çıkarılır veya İpek Yolu Pazarından takas edilir. İleri seviye Otağ yükseltmeleri için elzemdir.',
+                        theme: theme,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    ResourcePulseChip(
+                      type: GameIconType.volcano,
+                      value: resources.obsidian,
+                      color: const Color(0xFF7C3AED),
+                      rate: netRates.obsidian + netRates.untransportedObsidian,
+                      untransportedRate: netRates.untransportedObsidian,
+                      theme: theme,
+                      onTap: () => _showResourceExplanation(
+                        context,
+                        resourceKey: 'obsidian',
+                        title: 'OBSIDYEN',
+                        iconType: GameIconType.volcano,
+                        iconColor: const Color(0xFF7C3AED),
+                        currentStock: NumberFormatter.format(resources.obsidian),
+                        netRate: NumberFormatter.formatRate(
+                          netRates.obsidian,
+                          decimals: 1,
+                          unitSuffix: '/saniye',
+                        ),
+                        description:
+                            'Volkanik camdan dökülen obsidyen, Şam Çeliği üretiminde kullanılır.',
+                        strategicHint:
+                            'Yanardağ karosundaki Obsidyen Dökümhanesi üretir; taşıma kapasitesi gerekir.',
                         theme: theme,
                       ),
                     ),

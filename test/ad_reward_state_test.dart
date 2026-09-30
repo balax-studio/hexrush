@@ -4,6 +4,7 @@ import 'package:hex_rush/domain/models/ad_reward_model.dart';
 import 'package:hex_rush/domain/models/game_state.dart';
 import 'package:hex_rush/domain/models/game_state_model.dart';
 import 'package:hex_rush/domain/services/ad_reward_service.dart';
+import 'package:hex_rush/domain/models/timed_production_buff_model.dart';
 import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -61,6 +62,38 @@ void main() {
       expect(success, true);
       expect(notifier.state.adTracking.getWatchCount(AdRewardType.offlineProgressBoost), 1);
       expect(notifier.state.activeToast, isNotNull);
+    });
+
+    test('Only the frenzy ad activates the top bar 10x state', () async {
+      final notifier = GameStateNotifier();
+      final mockAdService = MockAdRewardService(shouldSucceed: true);
+      final success = await notifier.claimAdReward(
+        AdRewardType.frenzyBoost,
+        adService: mockAdService,
+      );
+
+      expect(success, true);
+      expect(notifier.state.frenzyMultiplier, 10);
+      expect(notifier.state.frenzyTimer, 240.0);
+      expect(notifier.state.temporaryProductionBuffs, isEmpty);
+    });
+
+    test('SaveRepository preserves promised task buff multiplier and duration', () async {
+      await SaveRepository.saveGame(
+        resources: const ResourcesModel(),
+        progression: const ProgressionModel(),
+        season: const SeasonModel(),
+        settings: const SettingsModel(),
+        tiles: const [],
+        temporaryProductionBuffs: const [
+          TimedProductionBuff(multiplier: 1.5, remainingSeconds: 900.0),
+        ],
+      );
+
+      final bundle = await SaveRepository.loadGame();
+      expect(bundle!.temporaryProductionBuffs, hasLength(1));
+      expect(bundle.temporaryProductionBuffs.single.multiplier, 1.5);
+      expect(bundle.temporaryProductionBuffs.single.remainingSeconds, 900.0);
     });
 
     test('GameStateNotifier.claimAdReward fails gracefully if ad service fails', () async {

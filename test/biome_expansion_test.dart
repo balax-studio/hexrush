@@ -51,15 +51,15 @@ void main() {
         baseCosts[biome] = cost;
       }
 
-      // Check hierarchy: meadow < desert < forest < wetland < sea < tundra < mountain < volcano
-      expect(baseCosts[TileBiome.meadow]!, 5.0);
-      expect(baseCosts[TileBiome.desert]!, 8.0);
-      expect(baseCosts[TileBiome.forest]!, 10.0);
-      expect(baseCosts[TileBiome.wetland]!, 12.0);
-      expect(baseCosts[TileBiome.sea]!, 15.0);
-      expect(baseCosts[TileBiome.tundra]!, 18.0);
-      expect(baseCosts[TileBiome.mountain]!, 20.0);
-      expect(baseCosts[TileBiome.volcano]!, 25.0);
+      // Costs are halved exactly, including half-food costs.
+      expect(baseCosts[TileBiome.meadow]!, 2.5);
+      expect(baseCosts[TileBiome.desert]!, 4.0);
+      expect(baseCosts[TileBiome.forest]!, 5.0);
+      expect(baseCosts[TileBiome.wetland]!, 6.0);
+      expect(baseCosts[TileBiome.sea]!, 7.5);
+      expect(baseCosts[TileBiome.tundra]!, 9.0);
+      expect(baseCosts[TileBiome.mountain]!, 10.0);
+      expect(baseCosts[TileBiome.volcano]!, 12.5);
     });
 
     test('Mountain procedural seed variation mapping produces 4 distinct variants deterministically', () {

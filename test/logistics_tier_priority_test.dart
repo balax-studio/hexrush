@@ -33,7 +33,7 @@ void main() {
     });
 
     test(
-      'Ambar kapasitesi kısıtlı olduğunda Kımız Mısırdan önce taşınmalıdır',
+      'Kısıtlı kapasite önce üreticiler arasında paylaşılır, kalanı öncelik kullanır',
       () {
         const origin = HexAxial(0, 0); // Gıda Ambarı
         const cornCoord = HexAxial(1, 0); // Mısır Tarlası (Mesafe 1)
@@ -75,21 +75,22 @@ void main() {
           workerTransferMult: 1.0,
         );
 
-        // Kımız (10.0 talep) önce işlenir -> 10.0'ı taşınır, untransported = 0.0 kalır!
+        // Kımız ve Mısır önce eşit taban payı alır. Kımız'ın talebi bitince
+        // kapasite fazlası öncelik sırasıyla Mısır'a gider.
         expect(
           untransported[kumisCoord],
           0.0,
-          reason: 'Kımız yüksek öncelikli olduğu için tamamı taşınmalıdır',
+          reason: 'Boş kapasiteyle Kımız talebi tamamlanır',
         );
         expect(
           untransported[cornCoord],
-          greaterThan(0.0),
-          reason: 'Mısır kalan kapasiteyi almalı ve arta kalan taşınamamış görünmelidir',
+          closeTo(9.68, 0.001),
+          reason: 'Mısır eşit payını ve Kımızdan kalan kapasiteyi alır',
         );
       },
     );
 
-    test('Eşit öncelikli üreticiler kapasiteyi koordinata göre deterministik paylaşmalıdır', () {
+    test('Eşit öncelikli üreticiler koordinattan bağımsız eşit taban payı almalıdır', () {
       const workerCoord = HexAxial(0, 0);
       const firstLumberjack = HexAxial(-2, 0);
       const secondLumberjack = HexAxial(2, 0);
@@ -120,8 +121,8 @@ void main() {
           producerDemands: {secondLumberjack: 3.36, firstLumberjack: 3.36},
       );
 
-      expect(untransported[firstLumberjack], 0.0);
-      expect(untransported[secondLumberjack], 3.36);
+      expect(untransported[firstLumberjack], closeTo(1.68, 0.001));
+      expect(untransported[secondLumberjack], closeTo(1.68, 0.001));
     });
   });
 }

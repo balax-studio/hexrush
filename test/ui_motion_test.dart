@@ -9,6 +9,7 @@ import 'package:hex_rush/presentation/widgets/quest_tracker_hud.dart';
 import 'package:hex_rush/presentation/widgets/tactile_neo_button.dart';
 import 'package:hex_rush/presentation/widgets/tile_action_sheet.dart';
 import 'package:hex_rush/presentation/widgets/top_bar_hud.dart';
+import 'package:hex_rush/presentation/widgets/icons/game_vector_icons.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -100,6 +101,14 @@ void main() {
 
       expect(find.byType(TopBarHUD), findsOneWidget);
       expect(find.byType(TactileNeoButton), findsWidgets);
+
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
+      await tester.pumpAndSettle();
+      expect(
+        tester.widgetList<ResourcePulseChip>(find.byType(ResourcePulseChip))
+            .any((chip) => chip.type == GameIconType.volcano),
+        isTrue,
+      );
 
       container.dispose();
     });

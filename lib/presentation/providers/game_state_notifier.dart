@@ -30,6 +30,7 @@ import '../../core/theme/neo_brutalist_theme.dart';
 import '../../domain/models/hex_tile_model.dart';
 import '../../domain/models/quest_model.dart';
 import '../../domain/models/trade_order_model.dart';
+import '../../domain/models/timed_production_buff_model.dart';
 import '../../domain/models/steppe_lore_tree_model.dart';
 import '../../domain/services/symbiosis_engine.dart';
 
@@ -763,6 +764,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
           yearIndex: save.yearIndex,
           discoveredKurgans: save.discoveredKurgans,
           adTracking: save.adTracking.checkDailyReset(),
+          temporaryProductionBuffs: save.temporaryProductionBuffs,
           combatState: save.combatState ?? state.combatState,
           achievements: save.achievements.isNotEmpty
               ? save.achievements
@@ -917,7 +919,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
   void _startGameLoop() {
     _gameLoopTimer?.cancel();
-    _gameLoopTimer = Timer.periodic(const Duration(milliseconds: 1000), (_) {
+    _gameLoopTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) _tick();
     });
   }
@@ -940,15 +942,16 @@ class GameStateNotifier extends StateNotifier<GameState> {
       _isSaveDirty = true;
       _autoSaveTickCounter = 0;
     }
-    final double globalMult =
-        EconomyCalculator.getGlobalMultiplier(
+    final double globalMult = EconomyCalculator.getGlobalMultiplier(
           castleLevel: state.progression.castleLevel,
           crowns: state.resources.crowns,
           toreTalents: state.toreTalents,
           titles: state.titles,
           kutMultiplier: state.progression.kutMultiplier,
-        ) *
-        state.frenzyMultiplier;
+        );
+    final double temporaryBuffMultiplier =
+        (state.frenzyMultiplier * state.temporaryProductionMultiplier)
+            .toDouble();
 
     // İşçi transfer hız çarpanı (Büyük Göç Kut verim artış çarpanı ve Toy Coşkusu ile birebir uyumlu)
     final double workerTransferMult =
@@ -956,7 +959,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
           toreTalents: state.toreTalents,
           totalMigrations: state.progression.totalMigrations,
           kutMultiplier: state.progression.kutMultiplier,
-          frenzyMultiplier: state.frenzyMultiplier,
+          frenzyMultiplier: temporaryBuffMultiplier,
         );
 
     // Sezon güncellemesi (300 saniyede bir sezon değişir - 5 Dakika)
@@ -998,6 +1001,10 @@ class GameStateNotifier extends StateNotifier<GameState> {
     final int newFrenzyMultiplier = newFrenzyTimer > 0
         ? state.frenzyMultiplier
         : 1;
+    final updatedTemporaryProductionBuffs = state.temporaryProductionBuffs
+        .map((buff) => buff.copyWith(remainingSeconds: buff.remainingSeconds - 1.0))
+        .where((buff) => buff.remainingSeconds > 0.0)
+        .toList();
 
     // İpek Yolu Kervan Siparişleri Kilit & Günlük Sıfırlama Kontrolü (30 dk bekleme)
     final int nowMs = DateTime.now().millisecondsSinceEpoch;
@@ -1065,6 +1072,48 @@ class GameStateNotifier extends StateNotifier<GameState> {
       }
     }
 
+    final List<double> fairShareBySource = List<double>.filled(
+      workerSourceCoords.length,
+      0.0,
+    );
+    final List<double> unclaimedFairShareBySource = List<double>.filled(
+      workerSourceCoords.length,
+      0.0,
+    );
+    final List<int> eligibleProducerCounts = List<int>.filled(
+      workerSourceCoords.length,
+      0,
+    );
+    for (final tile in state.tiles.values) {
+      if (!tile.isOwned || tile.building == null) continue;
+      final BuildingType producerType = tile.building!.type;
+      if (producerType == BuildingType.castle ||
+          producerType == BuildingType.worker ||
+          producerType == BuildingType.watchtower ||
+          producerType == BuildingType.bridge ||
+          producerType == BuildingType.fishermanHut ||
+          producerType == BuildingType.granaryVault) {
+        continue;
+      }
+      final bool isFood = producerType.isFoodProducer;
+      for (int i = 0; i < workerSourceCoords.length; i++) {
+        if (isFood && workerSourceTypes[i] == BuildingType.worker) continue;
+        if (workerSourceTypes[i] == BuildingType.granaryVault && !isFood) {
+          continue;
+        }
+        if (tile.coord.distanceTo(workerSourceCoords[i]) <= 4 &&
+            workerSourceCapacities[i] > 0.0) {
+          eligibleProducerCounts[i]++;
+        }
+      }
+    }
+    for (int i = 0; i < fairShareBySource.length; i++) {
+      if (eligibleProducerCounts[i] > 0) {
+        fairShareBySource[i] =
+            workerSourceCapacities[i] / eligibleProducerCounts[i];
+      }
+    }
+
     double addedFood = 0.0;
     double addedWood = 0.0;
     double addedFish = 0.0;
@@ -1074,6 +1123,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     double addedFurniture = 0.0;
     double addedStone = 0.0;
     double addedIron = 0.0;
+    double addedObsidian = 0.0;
     double addedWisdom = 0.0;
     double addedKumis = 0.0;
     double addedFelt = 0.0;
@@ -1102,9 +1152,17 @@ class GameStateNotifier extends StateNotifier<GameState> {
     double currentFlour = state.resources.flour;
     double currentPlank = state.resources.plank;
 
-    // Karoları Katma Değer / Lojistik Önceliğine (logisticsPriority) göre işle
+    // Düşük talepli üreticiler önce pay alır ve kullanmadıkları payı bırakır.
     final sortedTileEntries = state.tiles.entries.toList()
       ..sort((a, b) {
+        final double demandA =
+            (a.value.building?.currentProductionRate ?? 0.0) +
+            (a.value.building?.accumulatedResource ?? 0.0);
+        final double demandB =
+            (b.value.building?.currentProductionRate ?? 0.0) +
+            (b.value.building?.accumulatedResource ?? 0.0);
+        final demandCompare = demandA.compareTo(demandB);
+        if (demandCompare != 0) return demandCompare;
         final prioA = a.value.building?.type.logisticsPriority ?? 0;
         final prioB = b.value.building?.type.logisticsPriority ?? 0;
         if (prioA != prioB) return prioB.compareTo(prioA);
@@ -1173,7 +1231,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
             caravanRoutes: state.caravanRoutes,
             celestialOmen: state.celestialOmen,
             discoveredKurgans: state.discoveredKurgans,
-            frenzyMultiplier: state.frenzyMultiplier,
+            frenzyMultiplier: temporaryBuffMultiplier,
             titles: state.titles,
           );
 
@@ -1262,16 +1320,16 @@ class GameStateNotifier extends StateNotifier<GameState> {
         );
 
         for (final idx in inRangeIndices) {
-          if (neededAmount <= 0.0) break;
-          if (workerSourceCapacities[idx] > 0.0) {
-            final double take = math.min(
-              neededAmount,
-              workerSourceCapacities[idx],
-            );
-            workerSourceCapacities[idx] -= take;
-            carriedAmount += take;
-            neededAmount -= take;
-          }
+          final double fairShare =
+              fairShareBySource[idx] + unclaimedFairShareBySource[idx];
+          final double take = math.min(
+            neededAmount,
+            math.min(workerSourceCapacities[idx], fairShare),
+          );
+          workerSourceCapacities[idx] -= take;
+          carriedAmount += take;
+          neededAmount -= take;
+          unclaimedFairShareBySource[idx] = fairShare - take;
         }
 
         // Taşınanları ekle
@@ -1335,8 +1393,10 @@ class GameStateNotifier extends StateNotifier<GameState> {
           case BuildingType.steamVent:
             addedStone += carriedAmount;
             break;
-          case BuildingType.permafrostDig:
           case BuildingType.obsidianForge:
+            addedObsidian += carriedAmount;
+            break;
+          case BuildingType.permafrostDig:
           case BuildingType.celestialAnvil:
             addedStone += carriedAmount;
             addedIron += carriedAmount * 0.5;
@@ -1344,10 +1404,10 @@ class GameStateNotifier extends StateNotifier<GameState> {
           case BuildingType.ancestralTotem:
           case BuildingType.prismaticResonator:
           case BuildingType.astrolabe:
-            final double mBonus = 1.0 + state.progression.totalMigrations * 0.1;
-            addedFood += carriedAmount * 0.4 * mBonus;
-            addedWood += carriedAmount * 0.4 * mBonus;
-            addedStone += carriedAmount * 0.4 * mBonus;
+            // Kut çarpanı üretim ve nakliyeyi zaten birlikte ölçeklendirir.
+            addedFood += carriedAmount * 0.4;
+            addedWood += carriedAmount * 0.4;
+            addedStone += carriedAmount * 0.4;
             break;
           case BuildingType.runicStele:
             addedWisdom += carriedAmount;
@@ -1406,16 +1466,16 @@ class GameStateNotifier extends StateNotifier<GameState> {
           );
 
           for (final idx in inRangeIndices) {
-            if (neededAmount <= 0.0) break;
-            if (workerSourceCapacities[idx] > 0.0) {
-              final double take = math.min(
-                neededAmount,
-                workerSourceCapacities[idx],
-              );
-              workerSourceCapacities[idx] -= take;
-              carriedAmount += take;
-              neededAmount -= take;
-            }
+            final double fairShare =
+                fairShareBySource[idx] + unclaimedFairShareBySource[idx];
+            final double take = math.min(
+              neededAmount,
+              math.min(workerSourceCapacities[idx], fairShare),
+            );
+            workerSourceCapacities[idx] -= take;
+            carriedAmount += take;
+            neededAmount -= take;
+            unclaimedFairShareBySource[idx] = fairShare - take;
           }
 
           if (carriedAmount > 0.0) {
@@ -1479,8 +1539,10 @@ class GameStateNotifier extends StateNotifier<GameState> {
               case BuildingType.steamVent:
                 addedStone += carriedAmount;
                 break;
-              case BuildingType.permafrostDig:
               case BuildingType.obsidianForge:
+                addedObsidian += carriedAmount;
+                break;
+              case BuildingType.permafrostDig:
               case BuildingType.celestialAnvil:
                 addedStone += carriedAmount;
                 addedIron += carriedAmount * 0.5;
@@ -1488,11 +1550,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
               case BuildingType.ancestralTotem:
               case BuildingType.prismaticResonator:
               case BuildingType.astrolabe:
-                final double mBonus =
-                    1.0 + state.progression.totalMigrations * 0.1;
-                addedFood += carriedAmount * 0.4 * mBonus;
-                addedWood += carriedAmount * 0.4 * mBonus;
-                addedStone += carriedAmount * 0.4 * mBonus;
+                addedFood += carriedAmount * 0.4;
+                addedWood += carriedAmount * 0.4;
+                addedStone += carriedAmount * 0.4;
                 break;
               case BuildingType.runicStele:
                 addedWisdom += carriedAmount;
@@ -1508,6 +1568,21 @@ class GameStateNotifier extends StateNotifier<GameState> {
                 break;
               default:
                 break;
+            }
+          }
+        } else {
+          final bool isFood = b.type.isFoodProducer;
+          for (int i = 0; i < workerSourceCoords.length; i++) {
+            if (isFood && workerSourceTypes[i] == BuildingType.worker) {
+              continue;
+            }
+            if (workerSourceTypes[i] == BuildingType.granaryVault &&
+                !isFood) {
+              continue;
+            }
+            if (tile.coord.distanceTo(workerSourceCoords[i]) <= 4 &&
+                workerSourceCapacities[i] > 0.0) {
+              unclaimedFairShareBySource[i] += fairShareBySource[i];
             }
           }
         }
@@ -1538,6 +1613,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
         furniture: math.max(0.0, state.resources.furniture + addedFurniture),
         stone: math.max(0.0, state.resources.stone + addedStone),
         iron: math.max(0.0, state.resources.iron + addedIron),
+        obsidian: math.max(0.0, state.resources.obsidian + addedObsidian),
         wisdom: math.max(0.0, state.resources.wisdom + addedWisdom),
         kumis: math.max(0.0, state.resources.kumis + addedKumis),
         felt: math.max(0.0, state.resources.felt + addedFelt),
@@ -1554,6 +1630,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       ),
       frenzyTimer: newFrenzyTimer,
       frenzyMultiplier: newFrenzyMultiplier,
+      temporaryProductionBuffs: updatedTemporaryProductionBuffs,
       seasonLerpProgress: newLerp,
       yearIndex: newYearIndex,
       celestialOmen: newOmen,
@@ -1977,7 +2054,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
     // Gözcü Kulesi ise etrafındaki görüş hattı (Bresenham raycast) boyunca sisi aç
     if (type == BuildingType.watchtower) {
-      const int towerRadius = 2;
+      const int towerRadius = 6;
       for (int q = -towerRadius; q <= towerRadius; q++) {
         final int r1 = math.max(-towerRadius, -q - towerRadius);
         final int r2 = math.min(towerRadius, -q + towerRadius);
@@ -2042,7 +2119,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
     // Gözcü Kulesi yükseltildiğinde görüş hattı menzili genişler (Bresenham raycast)
     if (b.type == BuildingType.watchtower) {
-      final int towerRadius = math.min(5, 1 + b.level);
+      final int towerRadius = math.min(8, 6 + b.level);
       for (int q = -towerRadius; q <= towerRadius; q++) {
         final int r1 = math.max(-towerRadius, -q - towerRadius);
         final int r2 = math.min(towerRadius, -q + towerRadius);
@@ -2140,11 +2217,10 @@ class GameStateNotifier extends StateNotifier<GameState> {
     } else if (b.type == BuildingType.ancestralTotem ||
         b.type == BuildingType.prismaticResonator ||
         b.type == BuildingType.astrolabe) {
-      final double bonus = 1.0 + state.progression.totalMigrations * 0.1;
       res = res.copyWith(
-        food: res.food + (accum * 0.4 * bonus),
-        wood: res.wood + (accum * 0.4 * bonus),
-        stone: res.stone + (accum * 0.4 * bonus),
+        food: res.food + (accum * 0.4),
+        wood: res.wood + (accum * 0.4),
+        stone: res.stone + (accum * 0.4),
       );
     }
 
@@ -2590,14 +2666,6 @@ class GameStateNotifier extends StateNotifier<GameState> {
     return true;
   }
 
-  void activateFrenzy() {
-    state = state.copyWith(
-      frenzyMultiplier: 10,
-      frenzyTimer: 60.0,
-      activeToast: '10x Üretim Çılgınlığı Aktif (60 Saniye).',
-    );
-  }
-
   void setLanguage(String lang) {
     state = state.copyWith(settings: state.settings.copyWith(language: lang));
     saveGame();
@@ -2723,6 +2791,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       adTracking: state.adTracking,
       combatState: state.combatState,
       achievements: state.achievements,
+      temporaryProductionBuffs: state.temporaryProductionBuffs,
     );
   }
 
@@ -2885,6 +2954,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
         furniture: state.resources.furniture + effectiveGains.furniture,
         stone: state.resources.stone + effectiveGains.stone,
         iron: state.resources.iron + effectiveGains.iron,
+        obsidian: state.resources.obsidian + effectiveGains.obsidian,
         fish: state.resources.fish + effectiveGains.fish,
         wisdom: state.resources.wisdom + effectiveGains.wisdom,
         kumis: state.resources.kumis + effectiveGains.kumis,
@@ -3419,11 +3489,13 @@ class GameStateNotifier extends StateNotifier<GameState> {
         dailyTradeOrdersCompletedCount: nextDailyCount,
         lastTradeResetDate: lastReset,
       ),
-      frenzyMultiplier: math.max(
-        state.frenzyMultiplier,
-        (order.rewardSpeedMultiplier).toInt(),
-      ),
-      frenzyTimer: state.frenzyTimer + order.buffDurationSeconds.toDouble(),
+      temporaryProductionBuffs: [
+        ...state.temporaryProductionBuffs,
+        TimedProductionBuff(
+          multiplier: order.rewardSpeedMultiplier,
+          remainingSeconds: order.buffDurationSeconds.toDouble(),
+        ),
+      ],
       activeToast:
           '${order.title} tamamlandı! (${order.rewardSpeedMultiplier}x Altın Çağ Hızı - ${order.buffDurationSeconds ~/ 60} Dk)',
     );

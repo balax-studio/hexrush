@@ -30,6 +30,7 @@ class NetResourceRates {
   final double wood;
   final double stone;
   final double iron;
+  final double obsidian;
   final double flour;
   final double plank;
   final double bread;
@@ -45,6 +46,7 @@ class NetResourceRates {
   final double untransportedWood;
   final double untransportedStone;
   final double untransportedIron;
+  final double untransportedObsidian;
   final double untransportedFlour;
   final double untransportedPlank;
   final double untransportedBread;
@@ -60,6 +62,7 @@ class NetResourceRates {
     this.wood = 0.0,
     this.stone = 0.0,
     this.iron = 0.0,
+    this.obsidian = 0.0,
     this.flour = 0.0,
     this.plank = 0.0,
     this.bread = 0.0,
@@ -73,6 +76,7 @@ class NetResourceRates {
     this.untransportedWood = 0.0,
     this.untransportedStone = 0.0,
     this.untransportedIron = 0.0,
+    this.untransportedObsidian = 0.0,
     this.untransportedFlour = 0.0,
     this.untransportedPlank = 0.0,
     this.untransportedBread = 0.0,
@@ -152,6 +156,7 @@ class OfflineGainsResult {
   final double furniture;
   final double stone;
   final double iron;
+  final double obsidian;
   final double fish;
   final double wisdom;
   final double kumis;
@@ -168,6 +173,7 @@ class OfflineGainsResult {
     this.furniture = 0.0,
     this.stone = 0.0,
     this.iron = 0.0,
+    this.obsidian = 0.0,
     this.fish = 0.0,
     this.wisdom = 0.0,
     this.kumis = 0.0,
@@ -186,6 +192,7 @@ class OfflineGainsResult {
       furniture: furniture * factor,
       stone: stone * factor,
       iron: iron * factor,
+      obsidian: obsidian * factor,
       fish: fish * factor,
       wisdom: wisdom * factor,
       kumis: kumis * factor,
@@ -203,6 +210,7 @@ class OfflineGainsResult {
       furniture > 0 ||
       stone > 0 ||
       iron > 0 ||
+      obsidian > 0 ||
       fish > 0 ||
       wisdom > 0 ||
       kumis > 0 ||
@@ -485,7 +493,7 @@ class EconomyCalculator {
     List<String> activeOaths = const [],
     double? kutMultiplier,
     Map<HexAxial, HexTileModel>? tiles,
-    int frenzyMultiplier = 1,
+    double frenzyMultiplier = 1.0,
   }) {
     final int speedLvl = (talents['workerSpeed'] as num? ?? 0).toInt();
     int roadLvl = 0;
@@ -536,7 +544,7 @@ class EconomyCalculator {
     List<DoctrineCardModel> activeDoctrines = const [],
     List<AncestralKurgan> discoveredKurgans = const [],
     CelestialOmen? celestialOmen,
-    int frenzyMultiplier = 1,
+    double frenzyMultiplier = 1.0,
     Map<String, dynamic> titles = const {},
   }) {
     final Map<HexAxial, WorkerLogisticsStats> result = {};
@@ -644,7 +652,48 @@ class EconomyCalculator {
       }
     }
 
-    // 3. Greedy Dağıtım: Her üretim binası için menzildeki kulübeleri en yakından uzağa sıralayarak yükü paylaştır
+    // Her taşıma kaynağının kapasitesini kapsadığı üreticilere eşit taban payı olarak ayır.
+    final Map<HexAxial, List<HexTileModel>> workersByProducer = {};
+    final Map<HexAxial, int> eligibleProducerCounts = {
+      for (final worker in workerTiles) worker.coord: 0,
+    };
+    for (final producer in producerTiles) {
+      final bool isFood = producer.building!.type.isFoodProducer;
+      final eligibleWorkers = workerTiles.where((worker) {
+        if (worker.building?.type == BuildingType.granaryVault && !isFood) {
+          return false;
+        }
+        if (isFood && worker.building?.type == BuildingType.worker) {
+          return false;
+        }
+        return producer.coord.distanceTo(worker.coord) <= 4 &&
+            (totalCapacities[worker.coord] ?? 0.0) > 0.0;
+      }).toList()..sort((a, b) {
+        final distanceCompare = producer.coord
+            .distanceTo(a.coord)
+            .compareTo(producer.coord.distanceTo(b.coord));
+        if (distanceCompare != 0) return distanceCompare;
+        final qCompare = a.coord.q.compareTo(b.coord.q);
+        return qCompare != 0 ? qCompare : a.coord.r.compareTo(b.coord.r);
+      });
+      workersByProducer[producer.coord] = eligibleWorkers;
+      for (final worker in eligibleWorkers) {
+        eligibleProducerCounts[worker.coord] =
+            (eligibleProducerCounts[worker.coord] ?? 0) + 1;
+      }
+    }
+    final Map<HexAxial, double> fairShareByWorker = {
+      for (final worker in workerTiles)
+        worker.coord: (eligibleProducerCounts[worker.coord] ?? 0) > 0
+            ? (totalCapacities[worker.coord] ?? 0.0) /
+                  eligibleProducerCounts[worker.coord]!
+            : 0.0,
+    };
+    final Map<HexAxial, double> unclaimedFairShareByWorker = {
+      for (final worker in workerTiles) worker.coord: 0.0,
+    };
+
+    // 3. Adil taban payı: Öncelik puanları tek üretici türünü aç bırakmaz.
     producerTiles.sort((a, b) {
       final priorityCompare = b.building!.type.logisticsPriority.compareTo(
         a.building!.type.logisticsPriority,
@@ -658,34 +707,36 @@ class EconomyCalculator {
       double needed =
           (remainingProductionToTransport[pt.coord] ?? 0.0) +
           pt.building!.accumulatedResource;
-      if (needed <= 0.0) continue;
-
-      final bool isFood = pt.building!.type.isFoodProducer;
-      final inRangeWorkers =
-          workerTiles.where((wt) {
-            if (wt.building?.type == BuildingType.granaryVault && !isFood) {
-              return false;
-            }
-            if (isFood && wt.building?.type == BuildingType.worker) {
-              return false; // İşçi kulübesi gıda depolayamaz
-            }
-            return pt.coord.distanceTo(wt.coord) <= 4;
-          }).toList()..sort(
-            (a, b) => pt.coord
-                .distanceTo(a.coord)
-                .compareTo(pt.coord.distanceTo(b.coord)),
-          );
-
-      for (final wt in inRangeWorkers) {
-        if (needed <= 0.0) break;
+      for (final wt in workersByProducer[pt.coord] ?? const <HexTileModel>[]) {
+        final double fairShare =
+            (fairShareByWorker[wt.coord] ?? 0.0) +
+            (unclaimedFairShareByWorker[wt.coord] ?? 0.0);
         final double remCap = remainingCapacities[wt.coord] ?? 0.0;
-        if (remCap > 0.0) {
-          final double alloc = math.min(remCap, needed);
+        final double alloc = math.min(needed, math.min(remCap, fairShare));
+        if (alloc > 0.0) {
           remainingCapacities[wt.coord] = remCap - alloc;
           assignedTransports[wt.coord] =
               (assignedTransports[wt.coord] ?? 0.0) + alloc;
           needed -= alloc;
         }
+        unclaimedFairShareByWorker[wt.coord] = fairShare - alloc;
+      }
+      remainingProductionToTransport[pt.coord] = needed;
+    }
+
+    // Öncelik, taban payları dağıtıldıktan sonra boş kapasiteyi kullanır.
+    for (final pt in producerTiles) {
+      double needed = remainingProductionToTransport[pt.coord] ?? 0.0;
+      if (needed <= 0.0) continue;
+      for (final wt in workersByProducer[pt.coord] ?? const <HexTileModel>[]) {
+        final double remCap = remainingCapacities[wt.coord] ?? 0.0;
+        final double alloc = math.min(remCap, needed);
+        if (alloc <= 0.0) continue;
+        remainingCapacities[wt.coord] = remCap - alloc;
+        assignedTransports[wt.coord] =
+            (assignedTransports[wt.coord] ?? 0.0) + alloc;
+        needed -= alloc;
+        if (needed <= 0.0) break;
       }
       remainingProductionToTransport[pt.coord] = needed;
     }
@@ -725,7 +776,7 @@ class EconomyCalculator {
     List<DoctrineCardModel> activeDoctrines = const [],
     List<AncestralKurgan> discoveredKurgans = const [],
     CelestialOmen? celestialOmen,
-    int frenzyMultiplier = 1,
+    double frenzyMultiplier = 1.0,
     Map<String, dynamic> titles = const {},
   }) {
     if (workerTile.building == null) {
@@ -783,7 +834,7 @@ class EconomyCalculator {
     double shrineMultiplier = 1.0,
     List<String> unlockedLoreIds = const [],
     Map<String, int> cumulativeBiomeCounts = const {},
-    int frenzyMultiplier = 1,
+    double frenzyMultiplier = 1.0,
     double seasonMultiplier = 1.0,
     int totalMigrations = 0,
   }) {
@@ -824,6 +875,7 @@ class EconomyCalculator {
       }
     }
 
+    final Map<HexAxial, double> allProducerDemands = {};
     for (final tile in tiles.values) {
       if (!tile.isOwned || tile.building == null) continue;
       final b = tile.building!;
@@ -863,6 +915,7 @@ class EconomyCalculator {
         frenzyMultiplier: frenzyMultiplier,
         titles: titles,
       );
+      allProducerDemands[tile.coord] = rate;
 
       // Üretici Eşleşmeleri
       if (rKey == 'food') {
@@ -1068,7 +1121,6 @@ class EconomyCalculator {
       } else if (rKey == 'iron') {
         if (b.type == BuildingType.mine ||
             b.type == BuildingType.permafrostDig ||
-            b.type == BuildingType.obsidianForge ||
             b.type == BuildingType.celestialAnvil) {
           producers.add(
             ResourceContributor(
@@ -1088,6 +1140,18 @@ class EconomyCalculator {
               coord: tile.coord,
               rate: 0.5,
               isProducer: false,
+            ),
+          );
+        }
+      } else if (rKey == 'obsidian') {
+        if (b.type == BuildingType.obsidianForge) {
+          producers.add(
+            ResourceContributor(
+              buildingType: b.type,
+              level: b.level,
+              coord: tile.coord,
+              rate: rate,
+              isProducer: true,
             ),
           );
         }
@@ -1196,13 +1260,9 @@ class EconomyCalculator {
       frenzyMultiplier: frenzyMultiplier,
     );
 
-    final Map<HexAxial, double> producerDemands = {
-      for (final p in producers)
-        if (p.customLabel == null) p.coord: p.rate,
-    };
     final Map<HexAxial, double> untransportedByCoord = allocateGreedyLogistics(
       tiles: tiles,
-      producerDemands: producerDemands,
+      producerDemands: allProducerDemands,
       workerTransferMult: workerTransferMult,
     );
 
@@ -1332,8 +1392,9 @@ class EconomyCalculator {
         wallMult *
         biomeScaling *
         (1.0 - discount) *
-        distanceMult;
-    return math.max(1.0, cost.roundToDouble());
+        distanceMult *
+        0.5;
+    return math.max(1.0, cost);
   }
 
   static Map<String, double> getCastleUpgradeCost(int nextLevel) {
@@ -1567,7 +1628,7 @@ class EconomyCalculator {
     List<CaravanRoute> caravanRoutes = const [],
     CelestialOmen? celestialOmen,
     List<AncestralKurgan> discoveredKurgans = const [],
-    int frenzyMultiplier = 1,
+    double frenzyMultiplier = 1.0,
     Map<String, dynamic> titles = const {},
   }) {
     if (!tile.isOwned || !tile.hasBuilding) return 0.0;
@@ -1744,6 +1805,60 @@ class EconomyCalculator {
       return remainingDemand;
     }
 
+    final List<double> originalSourceCapacities =
+        List<double>.from(workerSourceCapacities);
+    final List<double> fairShareBySource = List<double>.filled(
+      workerSourceCoords.length,
+      0.0,
+    );
+    final List<double> unclaimedFairShareBySource = List<double>.filled(
+      workerSourceCoords.length,
+      0.0,
+    );
+    final Map<HexAxial, List<int>> eligibleSourcesByProducer = {};
+    final List<int> eligibleProducerCounts = List<int>.filled(
+      workerSourceCoords.length,
+      0,
+    );
+
+    for (final entry in producerDemands.entries) {
+      if (entry.value <= 0.0) continue;
+      final BuildingType? producerType = tiles[entry.key]?.building?.type;
+      final bool isFood = producerType?.isFoodProducer ?? false;
+      final eligibleSources = <int>[];
+      for (int i = 0; i < workerSourceCoords.length; i++) {
+        if (isFood && workerSourceTypes[i] == BuildingType.worker) continue;
+        if (workerSourceTypes[i] == BuildingType.granaryVault && !isFood) {
+          continue;
+        }
+        if (entry.key.distanceTo(workerSourceCoords[i]) > 4 ||
+            originalSourceCapacities[i] <= 0.0) {
+          continue;
+        }
+        eligibleSources.add(i);
+        eligibleProducerCounts[i]++;
+      }
+      eligibleSources.sort((a, b) {
+        final distanceCompare = entry.key
+            .distanceTo(workerSourceCoords[a])
+            .compareTo(entry.key.distanceTo(workerSourceCoords[b]));
+        if (distanceCompare != 0) return distanceCompare;
+        final qCompare = workerSourceCoords[a].q.compareTo(
+          workerSourceCoords[b].q,
+        );
+        return qCompare != 0
+            ? qCompare
+            : workerSourceCoords[a].r.compareTo(workerSourceCoords[b].r);
+      });
+      eligibleSourcesByProducer[entry.key] = eligibleSources;
+    }
+    for (int i = 0; i < fairShareBySource.length; i++) {
+      if (eligibleProducerCounts[i] > 0) {
+        fairShareBySource[i] =
+            originalSourceCapacities[i] / eligibleProducerCounts[i];
+      }
+    }
+
     // Üreticileri Kademe / Katma Değer Önceliğine (logisticsPriority) göre sırala
     final sortedEntries = producerDemands.entries.toList()
       ..sort((a, b) {
@@ -1765,41 +1880,32 @@ class EconomyCalculator {
     for (final entry in sortedEntries) {
       final HexAxial pCoord = entry.key;
       double needed = entry.value;
-      if (needed <= 0.0) continue;
-
-      final HexTileModel? pTile = tiles[pCoord];
-      final bool isFood =
-          pTile?.building != null && pTile!.building!.type.isFoodProducer;
-
-      final inRangeIndices = <int>[];
-      for (int i = 0; i < workerSourceCoords.length; i++) {
-        if (isFood && workerSourceTypes[i] == BuildingType.worker) {
-          continue; // İşçi kulübesi gıda depolayamaz / taşıyamaz
-        }
-        if (workerSourceTypes[i] == BuildingType.granaryVault &&
-            !(pTile?.building?.type.isFoodProducer ?? false)) {
-          continue;
-        }
-        if (pCoord.distanceTo(workerSourceCoords[i]) <= 4 &&
-            workerSourceCapacities[i] > 0.0) {
-          inRangeIndices.add(i);
-        }
-      }
-      inRangeIndices.sort(
-        (a, b) => pCoord
-            .distanceTo(workerSourceCoords[a])
-            .compareTo(pCoord.distanceTo(workerSourceCoords[b])),
-      );
-
-      for (final idx in inRangeIndices) {
-        if (needed <= 0.0) break;
-        if (workerSourceCapacities[idx] > 0.0) {
-          final double take = math.min(needed, workerSourceCapacities[idx]);
-          workerSourceCapacities[idx] -= take;
-          needed -= take;
-        }
+      for (final idx in eligibleSourcesByProducer[pCoord] ?? const <int>[]) {
+        final double fairShare =
+            fairShareBySource[idx] + unclaimedFairShareBySource[idx];
+        final double take = math.min(
+          needed,
+          math.min(workerSourceCapacities[idx], fairShare),
+        );
+        workerSourceCapacities[idx] -= take;
+        needed -= take;
+        unclaimedFairShareBySource[idx] = fairShare - take;
       }
       remainingDemand[pCoord] = math.max(0.0, needed);
+    }
+
+    // Öncelik, taban paylarından sonra kalan kapasiteyi dağıtır.
+    for (final entry in sortedEntries) {
+      double needed = remainingDemand[entry.key] ?? 0.0;
+      if (needed <= 0.0) continue;
+      for (final idx
+          in eligibleSourcesByProducer[entry.key] ?? const <int>[]) {
+        final double take = math.min(needed, workerSourceCapacities[idx]);
+        workerSourceCapacities[idx] -= take;
+        needed -= take;
+        if (needed <= 0.0) break;
+      }
+      remainingDemand[entry.key] = math.max(0.0, needed);
     }
 
     return remainingDemand;
@@ -2097,6 +2203,7 @@ class EconomyCalculator {
     double gainedFurniture = 0.0;
     double gainedStone = 0.0;
     double gainedIron = 0.0;
+    double gainedObsidian = 0.0;
     double gainedFish = 0.0;
     double gainedWisdom = 0.0;
     double gainedKumis = 0.0;
@@ -2224,7 +2331,6 @@ class EconomyCalculator {
               ? rate * cappedSeconds
               : math.min(maxCap, rate * cappedSeconds);
           break;
-        case BuildingType.obsidianForge:
         case BuildingType.permafrostDig:
           gainedStone += hasWorkers
               ? (rate * 0.5) * cappedSeconds
@@ -2232,6 +2338,11 @@ class EconomyCalculator {
           gainedIron += hasWorkers
               ? (rate * 0.5) * cappedSeconds
               : math.min(maxCap * 0.5, (rate * 0.5) * cappedSeconds);
+          break;
+        case BuildingType.obsidianForge:
+          gainedObsidian += hasWorkers
+              ? rate * cappedSeconds
+              : math.min(maxCap, rate * cappedSeconds);
           break;
         case BuildingType.celestialAnvil:
           gainedStone += hasWorkers
@@ -2294,6 +2405,7 @@ class EconomyCalculator {
       furniture: gainedFurniture,
       stone: gainedStone,
       iron: gainedIron,
+      obsidian: gainedObsidian,
       fish: gainedFish,
       wisdom: gainedWisdom,
       kumis: gainedKumis,
@@ -2321,12 +2433,13 @@ class EconomyCalculator {
     Map<String, dynamic> talents = const {},
     int totalMigrations = 0,
     double kutMultiplier = 1.0,
-    int frenzyMultiplier = 1,
+    double frenzyMultiplier = 1.0,
   }) {
     double netFood = 0.0;
     double netWood = 0.0;
     double netStone = 0.0;
     double netIron = 0.0;
+    double netObsidian = 0.0;
     double netFlour = 0.0;
     double netPlank = 0.0;
     double netBread = 0.0;
@@ -2341,6 +2454,7 @@ class EconomyCalculator {
     double untransportedWood = 0.0;
     double untransportedStone = 0.0;
     double untransportedIron = 0.0;
+    double untransportedObsidian = 0.0;
     double untransportedFlour = 0.0;
     double untransportedPlank = 0.0;
     double untransportedBread = 0.0;
@@ -2492,12 +2606,15 @@ class EconomyCalculator {
           netStone += transportedRate;
           untransportedStone += untransportedRate;
           break;
-        case BuildingType.obsidianForge:
         case BuildingType.permafrostDig:
           netStone += transportedRate * 0.5;
           netIron += transportedRate * 0.5;
           untransportedStone += untransportedRate * 0.5;
           untransportedIron += untransportedRate * 0.5;
+          break;
+        case BuildingType.obsidianForge:
+          netObsidian += transportedRate;
+          untransportedObsidian += untransportedRate;
           break;
         case BuildingType.celestialAnvil:
           netStone += transportedRate * 0.5;
@@ -2568,6 +2685,7 @@ class EconomyCalculator {
       wood: netWood,
       stone: netStone,
       iron: netIron,
+      obsidian: netObsidian,
       flour: netFlour,
       plank: netPlank,
       bread: netBread,
@@ -2581,6 +2699,7 @@ class EconomyCalculator {
       untransportedWood: untransportedWood,
       untransportedStone: untransportedStone,
       untransportedIron: untransportedIron,
+      untransportedObsidian: untransportedObsidian,
       untransportedFlour: untransportedFlour,
       untransportedPlank: untransportedPlank,
       untransportedBread: untransportedBread,
@@ -3152,6 +3271,7 @@ class EconomyCalculator {
       furniture: original.furniture * boost,
       stone: original.stone * boost,
       iron: original.iron * boost,
+      obsidian: original.obsidian * boost,
       fish: original.fish * boost,
       wisdom: original.wisdom * boost,
       kumis: original.kumis * boost,

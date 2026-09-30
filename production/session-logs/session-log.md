@@ -186,3 +186,100 @@ lib/presentation/widgets/settings_dialog.dart
 production/session-logs/session-log.md
 ---
 
+## Session End: 20260929_172531
+### Commits
+c777c7f feat: implement core game mechanics, hexagonal tile rendering, economy calculators, UI widgets, and unit tests
+---
+
+## Session End: 20260929_183253
+### Commits
+c777c7f feat: implement core game mechanics, hexagonal tile rendering, economy calculators, UI widgets, and unit tests
+### Uncommitted Changes
+AGENTS.md
+lib/core/localization/game_localization.dart
+lib/domain/economy/economy_calculator.dart
+lib/domain/models/building_model.dart
+lib/domain/models/hexpedia_entry_model.dart
+lib/presentation/providers/game_state_notifier.dart
+production/session-logs/session-log.md
+test/biome_expansion_test.dart
+test/game_state_test.dart
+test/logistics_tier_priority_test.dart
+test/special_biomes_and_buildings_test.dart
+---
+
+## Session End: 20260930_131525
+### Uncommitted Changes
+AGENTS.md
+lib/core/localization/game_localization.dart
+lib/data/save_repository.dart
+lib/domain/economy/economy_calculator.dart
+lib/domain/models/building_model.dart
+lib/domain/models/game_state.dart
+lib/domain/models/hexpedia_entry_model.dart
+lib/presentation/providers/game_state_notifier.dart
+lib/presentation/widgets/offline_gains_dialog.dart
+lib/presentation/widgets/tile_action_sheet.dart
+lib/presentation/widgets/top_bar_hud.dart
+production/session-logs/session-log.md
+test/ad_reward_state_test.dart
+test/biome_expansion_test.dart
+test/domain/trade_orders_mechanics_test.dart
+test/five_major_mechanics_test.dart
+test/game_state_test.dart
+test/logistics_tier_priority_test.dart
+test/special_biomes_and_buildings_test.dart
+test/tile_action_sheet_collapsible_hint_test.dart
+test/ui_motion_test.dart
+---
+
+## Session End: 20260930_141544
+### Uncommitted Changes
+AGENTS.md
+lib/core/localization/game_localization.dart
+lib/data/save_repository.dart
+lib/domain/economy/economy_calculator.dart
+lib/domain/models/building_model.dart
+lib/domain/models/game_state.dart
+lib/domain/models/hexpedia_entry_model.dart
+lib/presentation/providers/game_state_notifier.dart
+lib/presentation/widgets/offline_gains_dialog.dart
+lib/presentation/widgets/tile_action_sheet.dart
+lib/presentation/widgets/top_bar_hud.dart
+production/session-logs/session-log.md
+test/ad_reward_state_test.dart
+test/biome_expansion_test.dart
+test/domain/trade_orders_mechanics_test.dart
+test/five_major_mechanics_test.dart
+test/game_state_test.dart
+test/logistics_tier_priority_test.dart
+test/special_biomes_and_buildings_test.dart
+test/tile_action_sheet_collapsible_hint_test.dart
+test/ui_motion_test.dart
+---
+
+## Session End: 20260930_175010
+### Uncommitted Changes
+AGENTS.md
+lib/core/localization/game_localization.dart
+lib/data/save_repository.dart
+lib/domain/economy/economy_calculator.dart
+lib/domain/models/building_model.dart
+lib/domain/models/game_state.dart
+lib/domain/models/hexpedia_entry_model.dart
+lib/presentation/providers/game_state_notifier.dart
+lib/presentation/widgets/offline_gains_dialog.dart
+lib/presentation/widgets/tile_action_sheet.dart
+lib/presentation/widgets/top_bar_hud.dart
+production/session-logs/session-log.md
+test/ad_reward_state_test.dart
+test/biome_expansion_test.dart
+test/domain/trade_orders_mechanics_test.dart
+test/five_major_mechanics_test.dart
+test/game_state_test.dart
+test/logistics_tier_priority_test.dart
+test/special_biomes_and_buildings_test.dart
+test/tile_action_sheet_collapsible_hint_test.dart
+test/ui_motion_test.dart
+---
+

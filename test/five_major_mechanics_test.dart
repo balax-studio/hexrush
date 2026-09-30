@@ -50,8 +50,10 @@ void main() {
       expect(success, isTrue);
       // Taç kazanılmamalı (0 taç)
       expect(notifier.state.resources.crowns, equals(beforeCrowns));
-      // Altın Çağ hız buff'ı aktifleşmeli
-      expect(notifier.state.frenzyTimer, greaterThanOrEqualTo(1800));
+      // Sipariş buff'ı kendi katsayısı ve süresiyle ayrı saklanmalı.
+      expect(notifier.state.temporaryProductionBuffs.single.multiplier, order.rewardSpeedMultiplier);
+      expect(notifier.state.temporaryProductionBuffs.single.remainingSeconds, order.buffDurationSeconds.toDouble());
+      expect(notifier.state.frenzyTimer, 0.0);
 
       // Sipariş kilitli olmalı (30 dk / 1800s bekleme)
       final fulfilledOrder = notifier.state.progression.activeTradeOrders.firstWhere((o) => o.id == order.id);

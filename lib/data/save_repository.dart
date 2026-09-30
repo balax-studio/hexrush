@@ -10,6 +10,7 @@ import '../domain/models/doctrine_model.dart';
 import '../domain/models/game_state_model.dart';
 import '../domain/models/hex_tile_model.dart';
 import '../domain/models/quest_model.dart';
+import '../domain/models/timed_production_buff_model.dart';
 
 class SaveDataBundle {
   final int timestamp;
@@ -31,6 +32,7 @@ class SaveDataBundle {
   final AdRewardTracking adTracking;
   final CombatState? combatState;
   final List<AchievementModel> achievements;
+  final List<TimedProductionBuff> temporaryProductionBuffs;
 
   const SaveDataBundle({
     required this.timestamp,
@@ -52,6 +54,7 @@ class SaveDataBundle {
     this.adTracking = const AdRewardTracking(),
     this.combatState,
     this.achievements = const [],
+    this.temporaryProductionBuffs = const [],
   });
 }
 
@@ -178,6 +181,17 @@ class SaveRepository {
           ? AdRewardTracking.fromJson(Map<String, dynamic>.from(data['ad_tracking'] as Map))
           : const AdRewardTracking();
 
+      final temporaryProductionBuffs = <TimedProductionBuff>[];
+      if (data['temporary_production_buffs'] is List) {
+        for (final item in data['temporary_production_buffs'] as List) {
+          if (item is Map) {
+            temporaryProductionBuffs.add(
+              TimedProductionBuff.fromJson(Map<String, dynamic>.from(item)),
+            );
+          }
+        }
+      }
+
       CombatState? combatState;
       if (data['combat_state'] is Map) {
         try {
@@ -216,6 +230,7 @@ class SaveRepository {
         adTracking: adTracking,
         combatState: combatState,
         achievements: achievements.isNotEmpty ? achievements : AchievementCatalog.getInitialList(),
+        temporaryProductionBuffs: temporaryProductionBuffs,
       );
     } catch (e) {
       // JSON parse error fallback
@@ -243,6 +258,7 @@ class SaveRepository {
     AdRewardTracking adTracking = const AdRewardTracking(),
     CombatState? combatState,
     List<AchievementModel> achievements = const [],
+    List<TimedProductionBuff> temporaryProductionBuffs = const [],
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final slotsJson = <String, String?>{};
@@ -251,7 +267,7 @@ class SaveRepository {
     });
 
     final data = {
-      'version': 5,
+      'version': 6,
       'timestamp': DateTime.now().millisecondsSinceEpoch ~/ 1000,
       'resources': resources.toJson(),
       'progression': progression.toJson(),
@@ -271,6 +287,8 @@ class SaveRepository {
       'ad_tracking': adTracking.toJson(),
       'combat_state': combatState?.toJson(),
       'achievements': achievements.map((a) => a.toJson()).toList(),
+      'temporary_production_buffs':
+          temporaryProductionBuffs.map((buff) => buff.toJson()).toList(),
     };
 
     return prefs.setString(_saveKey, jsonEncode(data));

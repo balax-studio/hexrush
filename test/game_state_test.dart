@@ -118,10 +118,11 @@ void main() {
       notifier.dispose();
     });
 
-    test('watchtower construction reveals surrounding 2-radius fog', () {
+    test('watchtower construction reveals fog within six hexes', () {
       final notifier = GameStateNotifier();
       const target = HexAxial(1, 0);
-      const checkCoord = HexAxial(3, 0);
+      const checkCoord = HexAxial(7, 0);
+      const outsideCoord = HexAxial(8, 0);
 
       // Gözcü Kulesi için Şato Seviye 5 gereklidir
       notifier.state = notifier.state.copyWith(
@@ -131,6 +132,7 @@ void main() {
           ...notifier.state.tiles,
           target: notifier.state.tiles[target]!.copyWith(biome: TileBiome.meadow),
           checkCoord: notifier.state.tiles[checkCoord]!.copyWith(state: TileState.fog),
+          outsideCoord: notifier.state.tiles[outsideCoord]!.copyWith(state: TileState.fog),
         },
       );
 
@@ -144,9 +146,102 @@ void main() {
       final built = notifier.buildStructure(target, BuildingType.watchtower);
       expect(built, isTrue);
 
-      // Verify that tiles in radius 2 around (1, 0) are discovered
+      // (7, 0) is six hexes away; (8, 0) is outside the reveal radius.
       expect(notifier.state.tiles[checkCoord]?.state, equals(TileState.discovered));
+      expect(notifier.state.tiles[outsideCoord]?.state, equals(TileState.fog));
+
+      final upgraded = notifier.upgradeBuilding(target);
+      expect(upgraded, isTrue);
+      expect(notifier.state.tiles[outsideCoord]?.state, equals(TileState.discovered));
       notifier.dispose();
+    });
+
+    test('limited castle capacity transports food and kumis in the same tick', () {
+      final notifier = GameStateNotifier();
+      const castleCoord = HexAxial(0, 0);
+      const cornCoord = HexAxial(1, 0);
+      const kumisCoord = HexAxial(2, 0);
+      notifier.state = notifier.state.copyWith(
+        tiles: {
+          castleCoord: const HexTileModel(
+            coord: castleCoord,
+            biome: TileBiome.meadow,
+            state: TileState.owned,
+            building: BuildingModel(type: BuildingType.castle),
+          ),
+          cornCoord: const HexTileModel(
+            coord: cornCoord,
+            biome: TileBiome.meadow,
+            state: TileState.owned,
+            building: BuildingModel(type: BuildingType.corn),
+          ),
+          kumisCoord: const HexTileModel(
+            coord: kumisCoord,
+            biome: TileBiome.meadow,
+            state: TileState.owned,
+            building: BuildingModel(type: BuildingType.kumisYurt),
+          ),
+        },
+        resources: const ResourcesModel(food: 100.0),
+      );
+
+      notifier.testTick();
+
+      expect(notifier.state.resources.food, greaterThan(100.0));
+      expect(notifier.state.resources.kumis, greaterThan(0.0));
+      notifier.dispose();
+    });
+
+    test('ancestral production does not get a second migration-only multiplier', () {
+      const castleCoord = HexAxial(0, 0);
+      const totemCoord = HexAxial(1, 0);
+      final tiles = <HexAxial, HexTileModel>{
+        castleCoord: const HexTileModel(
+          coord: castleCoord,
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.castle),
+        ),
+        totemCoord: const HexTileModel(
+          coord: totemCoord,
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.ancestralTotem),
+        ),
+      };
+
+      GameStateNotifier createNotifier(int totalMigrations) {
+        final notifier = GameStateNotifier();
+        notifier.state = notifier.state.copyWith(
+          tiles: tiles,
+          resources: const ResourcesModel(
+            food: 100.0,
+            wood: 100.0,
+            stone: 100.0,
+          ),
+          progression: notifier.state.progression.copyWith(
+            totalMigrations: totalMigrations,
+            kutMultiplier: 1.0,
+          ),
+        );
+        return notifier;
+      }
+
+      final noMigration = createNotifier(0);
+      final afterMigrations = createNotifier(10);
+      noMigration.testTick();
+      afterMigrations.testTick();
+
+      expect(
+        afterMigrations.state.resources.food,
+        closeTo(noMigration.state.resources.food, 0.0001),
+      );
+      expect(
+        afterMigrations.state.resources.wood,
+        closeTo(noMigration.state.resources.wood, 0.0001),
+      );
+      noMigration.dispose();
+      afterMigrations.dispose();
     });
 
     test('demolishBuilding clears building and refunds 50% food cost', () {

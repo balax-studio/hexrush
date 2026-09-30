@@ -1638,7 +1638,9 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
       totalMigrations: gameState.progression.totalMigrations,
       kutMultiplier: gameState.progression.kutMultiplier,
       tiles: gameState.tiles,
-      frenzyMultiplier: gameState.frenzyMultiplier,
+      frenzyMultiplier:
+          (gameState.frenzyMultiplier * gameState.temporaryProductionMultiplier)
+              .toDouble(),
     );
     final isLogisticsBuilding = b.currentCarryingCapacity > 0 && b.baseProductionRate == 0.0;
 
@@ -1665,7 +1667,9 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
             activeDoctrines: notifier.getActiveDoctrines(),
             discoveredKurgans: gameState.discoveredKurgans,
             celestialOmen: gameState.celestialOmen,
-            frenzyMultiplier: gameState.frenzyMultiplier,
+            frenzyMultiplier:
+                (gameState.frenzyMultiplier * gameState.temporaryProductionMultiplier)
+                    .toDouble(),
             titles: gameState.titles,
           )
         : null;
@@ -1690,7 +1694,9 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
       caravanRoutes: gameState.caravanRoutes,
       celestialOmen: gameState.celestialOmen,
       discoveredKurgans: gameState.discoveredKurgans,
-      frenzyMultiplier: gameState.frenzyMultiplier,
+      frenzyMultiplier:
+          (gameState.frenzyMultiplier * gameState.temporaryProductionMultiplier)
+              .toDouble(),
       titles: gameState.titles,
     );
 
@@ -2085,7 +2091,7 @@ class _TileActionSheetState extends ConsumerState<TileActionSheet>
                 const Icon(Icons.stars, color: Color(0xFFF59E0B), size: 14),
                 const SizedBox(width: 6),
                 Text(
-                  '2X ${isLogisticsBuilding ? 'KAPASİTE' : 'GELİR'} KİLOMETRE TAŞI (SEVİYE ${b.level + 1})',
+                  '${BuildingModel.getMilestoneMultiplierLabel(b.level + 1)} ${isLogisticsBuilding ? 'KAPASİTE' : 'GELİR'} KİLOMETRE TAŞI (SEVİYE ${b.level + 1})',
                   style: const TextStyle(
                     color: Color(0xFFF59E0B),
                     fontSize: 10,

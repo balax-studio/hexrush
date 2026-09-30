@@ -10,6 +10,7 @@ import 'doctrine_model.dart';
 import 'game_state_model.dart';
 import 'hex_tile_model.dart';
 import 'quest_model.dart';
+import 'timed_production_buff_model.dart';
 
 class GameState {
   final Map<HexAxial, HexTileModel> tiles;
@@ -21,6 +22,7 @@ class GameState {
   final String? activeToast;
   final int frenzyMultiplier;
   final double frenzyTimer;
+  final List<TimedProductionBuff> temporaryProductionBuffs;
   final Map<String, dynamic> toreTalents;
   final Map<String, dynamic> titles;
   final Map<String, dynamic> stats;
@@ -54,6 +56,7 @@ class GameState {
     this.activeToast,
     this.frenzyMultiplier = 1,
     this.frenzyTimer = 0.0,
+    this.temporaryProductionBuffs = const [],
     this.toreTalents = const {},
     this.titles = const {},
     this.stats = const {},
@@ -106,6 +109,16 @@ class GameState {
     return achievements.where((a) => a.isUnlocked).length;
   }
 
+  double get temporaryProductionMultiplier {
+    double multiplier = 1.0;
+    for (final buff in temporaryProductionBuffs) {
+      if (buff.remainingSeconds > 0.0 && buff.multiplier > multiplier) {
+        multiplier = buff.multiplier;
+      }
+    }
+    return multiplier;
+  }
+
   GameState copyWith({
     Map<HexAxial, HexTileModel>? tiles,
     ResourcesModel? resources,
@@ -118,6 +131,7 @@ class GameState {
     bool clearToast = false,
     int? frenzyMultiplier,
     double? frenzyTimer,
+    List<TimedProductionBuff>? temporaryProductionBuffs,
     Map<String, dynamic>? toreTalents,
     Map<String, dynamic>? titles,
     Map<String, dynamic>? stats,
@@ -152,6 +166,8 @@ class GameState {
       activeToast: clearToast ? null : (activeToast ?? this.activeToast),
       frenzyMultiplier: frenzyMultiplier ?? this.frenzyMultiplier,
       frenzyTimer: frenzyTimer ?? this.frenzyTimer,
+      temporaryProductionBuffs:
+          temporaryProductionBuffs ?? this.temporaryProductionBuffs,
       toreTalents: toreTalents ?? this.toreTalents,
       titles: titles ?? this.titles,
       stats: stats ?? this.stats,

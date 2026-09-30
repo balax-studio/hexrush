@@ -1,5 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hex_rush/core/hex/hex_coordinates.dart';
 import 'package:hex_rush/domain/economy/economy_calculator.dart';
+import 'package:hex_rush/domain/models/building_model.dart';
+import 'package:hex_rush/domain/models/game_state_model.dart';
+import 'package:hex_rush/domain/models/hex_tile_model.dart';
+import 'package:hex_rush/domain/models/timed_production_buff_model.dart';
 import 'package:hex_rush/presentation/providers/game_state_notifier.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -51,15 +56,18 @@ void main() {
       );
 
       final beforeCrowns = notifier.state.resources.crowns;
-      final beforeFrenzy = notifier.state.frenzyTimer;
-
       final bool fulfilled = notifier.fulfillTradeOrder(order.id);
       expect(fulfilled, isTrue);
 
       // Taç değişmemeli
       expect(notifier.state.resources.crowns, equals(beforeCrowns));
-      // Altın çağ buff'ı 30 dk eklenmeli
-      expect(notifier.state.frenzyTimer, equals(beforeFrenzy + 1800.0));
+      // Sipariş buff'ı kendi katsayısı ve süresiyle ayrı saklanmalı.
+      expect(notifier.state.temporaryProductionBuffs.single.multiplier, order.rewardSpeedMultiplier);
+      expect(notifier.state.temporaryProductionBuffs.single.remainingSeconds, order.buffDurationSeconds.toDouble());
+      expect(notifier.state.frenzyMultiplier, 1);
+      expect(notifier.state.frenzyTimer, 0.0);
+      notifier.testTick();
+      expect(notifier.state.temporaryProductionBuffs.single.remainingSeconds, order.buffDurationSeconds - 1.0);
 
       // Slot kilitlenmeli
       final updatedOrder = notifier.state.progression.activeTradeOrders.firstWhere((o) => o.id == order.id);
@@ -67,6 +75,68 @@ void main() {
       expect(updatedOrder.isLocked(), isTrue);
       expect(updatedOrder.getRemainingSeconds(), greaterThanOrEqualTo(1790));
       expect(notifier.state.progression.dailyTradeOrdersCompletedCount, equals(1));
+    });
+
+    test('Task buffs keep independent multipliers and durations', () {
+      final notifier = GameStateNotifier();
+      notifier.state = notifier.state.copyWith(temporaryProductionBuffs: const [
+        TimedProductionBuff(multiplier: 1.35, remainingSeconds: 2.0),
+        TimedProductionBuff(multiplier: 1.75, remainingSeconds: 1.0),
+      ]);
+
+      expect(notifier.state.temporaryProductionMultiplier, 1.75);
+      notifier.testTick();
+      expect(notifier.state.temporaryProductionMultiplier, 1.35);
+      expect(notifier.state.temporaryProductionBuffs.single.remainingSeconds, 1.0);
+      notifier.testTick();
+      expect(notifier.state.temporaryProductionMultiplier, 1.0);
+      expect(notifier.state.temporaryProductionBuffs, isEmpty);
+    });
+
+    test('Task multiplier scales production without replacing the ad multiplier', () {
+      const castleCoord = HexAxial(0, 0);
+      const fieldCoord = HexAxial(1, 0);
+      final tiles = <HexAxial, HexTileModel>{
+        castleCoord: const HexTileModel(coord: castleCoord, biome: TileBiome.meadow, state: TileState.owned, building: BuildingModel(type: BuildingType.castle)),
+        fieldCoord: const HexTileModel(coord: fieldCoord, biome: TileBiome.meadow, state: TileState.owned, building: BuildingModel(type: BuildingType.corn)),
+      };
+      NetResourceRates calculate(double multiplier) => EconomyCalculator.calculateNetRates(
+        tiles: tiles.values, tileMap: tiles, globalMultiplier: 1.0,
+        seasonMultiplier: 1.0, shrineMultiplier: 1.0, frenzyMultiplier: multiplier,
+      );
+
+      final baseRates = calculate(1.0);
+      expect(calculate(1.35).food, closeTo(baseRates.food * 1.35, 0.001));
+      expect(calculate(13.5).food, closeTo(baseRates.food * 13.5, 0.001));
+    });
+
+    test('Game tick applies the ad 10x once and composes a separate task buff', () {
+      const castleCoord = HexAxial(0, 0);
+      const fieldCoord = HexAxial(1, 0);
+      final tiles = <HexAxial, HexTileModel>{
+        castleCoord: const HexTileModel(coord: castleCoord, biome: TileBiome.meadow, state: TileState.owned, building: BuildingModel(type: BuildingType.castle)),
+        fieldCoord: const HexTileModel(coord: fieldCoord, biome: TileBiome.meadow, state: TileState.owned, building: BuildingModel(type: BuildingType.corn)),
+      };
+      double tickFood({int adMultiplier = 1, double taskMultiplier = 1.0}) {
+        final notifier = GameStateNotifier();
+        notifier.state = notifier.state.copyWith(
+          tiles: tiles,
+          resources: const ResourcesModel(),
+          frenzyMultiplier: adMultiplier,
+          frenzyTimer: adMultiplier > 1 ? 2.0 : 0.0,
+          temporaryProductionBuffs: taskMultiplier > 1.0
+              ? [TimedProductionBuff(multiplier: taskMultiplier, remainingSeconds: 2.0)]
+              : const [],
+        );
+        notifier.testTick();
+        final gain = notifier.state.resources.food;
+        notifier.dispose();
+        return gain;
+      }
+
+      final baseGain = tickFood();
+      expect(tickFood(adMultiplier: 10), closeTo(baseGain * 10.0, 0.01));
+      expect(tickFood(adMultiplier: 10, taskMultiplier: 1.35), closeTo(baseGain * 13.5, 0.01));
     });
 
     test('3. Günlük periyot içinde 30 dk sonra gelen yeni sipariş 10 katı talep eder', () {

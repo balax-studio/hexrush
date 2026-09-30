@@ -208,6 +208,14 @@ class _OfflineGainsDialogState extends ConsumerState<OfflineGainsDialog> {
                       baseAmount: widget.gains.iron,
                       multiplier: _multiplier,
                     ),
+                  if (widget.gains.obsidian > 0)
+                    _ResourcePill(
+                      icon: GameIconType.volcano,
+                      label: GameLocalization.get('obsidian', lang: lang),
+                      amount: effectiveGains.obsidian,
+                      baseAmount: widget.gains.obsidian,
+                      multiplier: _multiplier,
+                    ),
                   if (widget.gains.flour > 0)
                     _ResourcePill(
                       icon: GameIconType.flour,
