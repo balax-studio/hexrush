@@ -288,3 +288,22 @@ test/ui_motion_test.dart
 2343e26 Add fair hauling, timed buffs, and obsidian production
 ---
 
+## Session End: 20261001_113307
+### Uncommitted Changes
+AGENTS.md
+lib/core/audio/tactile_audio_service.dart
+pubspec.lock
+pubspec.yaml
+test/core/tactile_audio_service_test.dart
+---
+
+## Session End: 20261001_121615
+### Uncommitted Changes
+AGENTS.md
+lib/core/audio/tactile_audio_service.dart
+production/session-logs/session-log.md
+pubspec.lock
+pubspec.yaml
+test/core/tactile_audio_service_test.dart
+---
+

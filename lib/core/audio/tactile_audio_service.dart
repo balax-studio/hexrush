@@ -26,7 +26,12 @@ enum TactileSoundType {
 class TactileAudioService {
   static final TactileAudioService instance = TactileAudioService._internal();
   factory TactileAudioService() => instance;
-  TactileAudioService._internal();
+  TactileAudioService._internal() : _allowPluginInTests = false;
+
+  @visibleForTesting
+  TactileAudioService.forTesting() : _allowPluginInTests = true;
+
+  final bool _allowPluginInTests;
 
   bool _isSoundEnabled = true;
   bool _isMusicEnabled = true;
@@ -52,7 +57,9 @@ class TactileAudioService {
   final List<AudioPlayer> _sfxPool = [];
   int _sfxPoolIndex = 0;
   bool _isInitialized = false;
+  bool _isSfxPoolInitialized = false;
   Future<void>? _initializationFuture;
+  Future<void>? _sfxInitializationFuture;
 
   bool get isSoundEnabled => _isSoundEnabled;
   bool get isMusicEnabled => _isMusicEnabled;
@@ -67,7 +74,7 @@ class TactileAudioService {
 
   Future<void> _initialize() async {
     // Unit test ortamında plugin çağrılarını bypass et
-    if (!kIsWeb) {
+    if (!kIsWeb && !_allowPluginInTests) {
       try {
         if (Platform.environment.containsKey('FLUTTER_TEST') ||
             Platform.environment['FLUTTER_TEST'] == 'true') {
@@ -80,25 +87,40 @@ class TactileAudioService {
 
     try {
       _musicPlayer = AudioPlayer();
-
-      for (int i = 0; i < _sfxPoolSize; i++) {
-        final player = AudioPlayer();
-        _sfxPool.add(player);
-      }
-      await Future.wait([
-        _musicPlayer!.setReleaseMode(ReleaseMode.loop),
-        ..._sfxPool.map((player) => player.setReleaseMode(ReleaseMode.stop)),
-      ]);
+      await _musicPlayer!.setReleaseMode(ReleaseMode.loop);
       _isInitialized = true;
     } catch (_) {
-      await _musicPlayer?.dispose();
-      for (final player in _sfxPool) {
-        await player.dispose();
-      }
+      try {
+        await _musicPlayer?.dispose();
+      } catch (_) {}
       _musicPlayer = null;
-      _sfxPool.clear();
       _initializationFuture = null;
     }
+  }
+
+  Future<void> _initializeSfxPool() {
+    if (_isSfxPoolInitialized || !_isPluginSupported) {
+      return Future<void>.value();
+    }
+    return _sfxInitializationFuture ??= _createSfxPool();
+  }
+
+  Future<void> _createSfxPool() async {
+    await Future.wait(
+      List.generate(_sfxPoolSize, (_) async {
+        AudioPlayer? player;
+        try {
+          player = AudioPlayer();
+          await player.setReleaseMode(ReleaseMode.stop);
+          _sfxPool.add(player);
+        } catch (_) {
+          try {
+            await player?.dispose();
+          } catch (_) {}
+        }
+      }),
+    );
+    _isSfxPoolInitialized = true;
   }
 
   void updateSettings({
@@ -122,11 +144,14 @@ class TactileAudioService {
     }
 
     if (isMusicEnabled != null) {
+      final wasMusicEnabled = _isMusicEnabled;
       _isMusicEnabled = isMusicEnabled;
-      if (!_isMusicEnabled) {
-        pauseBackgroundMusic();
-      } else {
-        resumeBackgroundMusic();
+      if (wasMusicEnabled != _isMusicEnabled) {
+        if (!_isMusicEnabled) {
+          pauseBackgroundMusic();
+        } else {
+          resumeBackgroundMusic();
+        }
       }
     }
   }
@@ -134,6 +159,9 @@ class TactileAudioService {
   /// Rahatlatıcı Bozkır Arka Plan Müziğini Başlatır / Döngüye Alır
   Future<void> startBackgroundMusic() async {
     await init();
+    if (_musicPlayer == null && _isMusicEnabled && _isPluginSupported) {
+      await init();
+    }
     if (!_isMusicEnabled || !_isPluginSupported) return;
 
     try {
@@ -144,7 +172,7 @@ class TactileAudioService {
         _isMusicPlaying = true;
       }
     } catch (_) {
-      _isPluginSupported = false;
+      _isMusicPlaying = false;
     }
   }
 
@@ -165,7 +193,7 @@ class TactileAudioService {
     if (!_isMusicEnabled || !_isPluginSupported) return;
 
     try {
-      if (_musicPlayer != null) {
+      if (_musicPlayer != null && _musicPlayer!.source != null) {
         await _musicPlayer!.setVolume(_musicVolume);
         await _musicPlayer!.resume();
         _isMusicPlaying = true;
@@ -214,6 +242,7 @@ class TactileAudioService {
     // 2. Ses Efekti (Organik Akustik Taktil Sesler)
     if (_isSoundEnabled && _sfxVolume > 0.0) {
       await init();
+      await _initializeSfxPool();
       final String? assetPath = _getAssetForSoundType(type);
 
       if (_isPluginSupported && assetPath != null && _sfxPool.isNotEmpty) {
@@ -280,6 +309,8 @@ class TactileAudioService {
     _musicPlayer = null;
     _sfxPoolIndex = 0;
     _isInitialized = false;
+    _isSfxPoolInitialized = false;
     _initializationFuture = null;
+    _sfxInitializationFuture = null;
   }
 }

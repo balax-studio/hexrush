@@ -146,3 +146,7 @@ Bu dosya, projede çalışan tüm yapay zeka ajanları ve geliştiriciler için 
     - Oyun üretim/envanter tick'i saniyede bir çalışır.
     - Üst barın 10x frenzy göstergesi yalnızca ödüllü reklamla başlar; görev ve sipariş buffları ayrı katsayı/süre kaydı tutar ve üretim ile taşımada aynı çarpanı kullanır.
     - Obsidyen Dökümhanesi çıktısı obsidyen olarak anlık üretim, gelir hesabı, döküm, çevrimdışı kazanç ve envantere bağlanır (`.agents/rules/buff_ve_obsidyen_uretim_standartlari.md`).
+
+30. **Güvenilir Müzik Başlatma ve Ses Efekti İzolasyonu:**
+    - Arka plan müziğinin başlatılması ses efekti oynatıcı havuzunun hazır olmasına bağlı olamaz; tekil ses efekti başlatma hataları müziği durduramaz (`.agents/rules/ses_ve_muzik_baslatma_guvenilirligi.md`).
+    - Başlangıçta açık olan müziğe kaynaksız `resume()` gönderilmez; ayar güncellemesi yalnızca müzik açık/kapalı durumu gerçekten değiştiğinde oynatma işlemi başlatır.
