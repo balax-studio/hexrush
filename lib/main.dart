@@ -12,16 +12,6 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await HexShaderService.initialize();
 
-  if (AdMobConfig.isSupportedPlatform) {
-    try {
-      if (defaultTargetPlatform == TargetPlatform.iOS) {
-        await AppTrackingTransparency.requestTrackingAuthorization();
-      }
-      await MobileAds.instance.initialize();
-      GoogleMobileAdsRewardService.instance.preloadAd();
-    } catch (_) {}
-  }
-
   runApp(
     const ProviderScope(
       child: HexRushApp(),
@@ -29,8 +19,39 @@ Future<void> main() async {
   );
 }
 
-class HexRushApp extends StatelessWidget {
+class HexRushApp extends StatefulWidget {
   const HexRushApp({super.key});
+
+  @override
+  State<HexRushApp> createState() => _HexRushAppState();
+}
+
+class _HexRushAppState extends State<HexRushApp> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initTrackingAndAds();
+    });
+  }
+
+  Future<void> _initTrackingAndAds() async {
+    if (!AdMobConfig.isSupportedPlatform) return;
+
+    try {
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        // Wait briefly for the UIWindow to be key & visible and UIApplication to become active
+        await Future.delayed(const Duration(milliseconds: 600));
+        final status = await AppTrackingTransparency.trackingAuthorizationStatus;
+        if (status == TrackingStatus.notDetermined) {
+          await AppTrackingTransparency.requestTrackingAuthorization();
+        }
+      }
+
+      await MobileAds.instance.initialize();
+      GoogleMobileAdsRewardService.instance.preloadAd();
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,3 +74,4 @@ class HexRushApp extends StatelessWidget {
     );
   }
 }
+
