@@ -605,6 +605,8 @@ class EconomyCalculator {
         continue;
       }
 
+      if (b.type == BuildingType.runicStele) continue;
+
       final double sMult = getSeasonProductionMultiplier(
         season: season,
         isZud: isZud,
@@ -912,6 +914,7 @@ class EconomyCalculator {
         caravanRoutes: caravanRoutes,
         celestialOmen: celestialOmen,
         discoveredKurgans: discoveredKurgans,
+        kutMultiplier: kutMultiplier,
         frenzyMultiplier: frenzyMultiplier,
         titles: titles,
       );
@@ -1628,6 +1631,7 @@ class EconomyCalculator {
     List<CaravanRoute> caravanRoutes = const [],
     CelestialOmen? celestialOmen,
     List<AncestralKurgan> discoveredKurgans = const [],
+    double kutMultiplier = 1.0,
     double frenzyMultiplier = 1.0,
     Map<String, dynamic> titles = const {},
   }) {
@@ -1678,10 +1682,13 @@ class EconomyCalculator {
       isZud: isZud,
     );
 
-    final double masteryMult = getBiomeMasteryMultiplier(
-      biome: tile.biome,
-      cumulativeBiomeCounts: cumulativeBiomeCounts,
-    );
+    final bool isBitigProducer = b.type == BuildingType.runicStele;
+    final double masteryMult = isBitigProducer
+        ? 1.0
+        : getBiomeMasteryMultiplier(
+            biome: tile.biome,
+            cumulativeBiomeCounts: cumulativeBiomeCounts,
+          );
 
     final double seasonalBoost = getSeasonalProductionBoost(
       season: season,
@@ -1699,9 +1706,13 @@ class EconomyCalculator {
       caravanRoutes,
     );
     final double symbiosisMult = calculateSymbiosisMultiplier(tile);
-    final double ancestralMult = calculateAncestralRelicMultiplier(
-      discoveredKurgans,
-    );
+    // Göçle biriken Kut, biyom ustalığı ve Kurgan bonusları Bitig'i etkilemez.
+    final double ancestralMult = isBitigProducer
+        ? 1.0
+        : calculateAncestralRelicMultiplier(discoveredKurgans);
+    final double productionGlobalMultiplier = isBitigProducer
+        ? globalMultiplier / math.max(1.0, kutMultiplier)
+        : globalMultiplier;
     final double omenMult = celestialOmen != null
         ? calculateCelestialOmenMultiplier(
             celestialOmen,
@@ -1741,7 +1752,7 @@ class EconomyCalculator {
       level: b.level,
       baseRate: b.baseProductionRate,
       globalMultiplier:
-          globalMultiplier *
+          productionGlobalMultiplier *
           docMult *
           caravanMult *
           symbiosisMult *
@@ -1765,7 +1776,12 @@ class EconomyCalculator {
     required Map<HexAxial, double> producerDemands,
     double workerTransferMult = 1.0,
   }) {
-    final Map<HexAxial, double> remainingDemand = Map.from(producerDemands);
+    final Map<HexAxial, double> logisticsDemands = {
+      for (final entry in producerDemands.entries)
+        if (tiles[entry.key]?.building?.type != BuildingType.runicStele)
+          entry.key: entry.value,
+    };
+    final Map<HexAxial, double> remainingDemand = Map.from(logisticsDemands);
     final List<HexAxial> workerSourceCoords = [];
     final List<double> workerSourceCapacities = [];
     final List<BuildingType?> workerSourceTypes = [];
@@ -1821,7 +1837,7 @@ class EconomyCalculator {
       0,
     );
 
-    for (final entry in producerDemands.entries) {
+    for (final entry in logisticsDemands.entries) {
       if (entry.value <= 0.0) continue;
       final BuildingType? producerType = tiles[entry.key]?.building?.type;
       final bool isFood = producerType?.isFoodProducer ?? false;
@@ -1860,7 +1876,7 @@ class EconomyCalculator {
     }
 
     // Üreticileri Kademe / Katma Değer Önceliğine (logisticsPriority) göre sırala
-    final sortedEntries = producerDemands.entries.toList()
+    final sortedEntries = logisticsDemands.entries.toList()
       ..sort((a, b) {
         final bTypeA = tiles[a.key]?.building?.type;
         final bTypeB = tiles[b.key]?.building?.type;
@@ -2149,6 +2165,7 @@ class EconomyCalculator {
     List<CaravanRoute> caravanRoutes = const [],
     CelestialOmen? celestialOmen,
     List<AncestralKurgan> discoveredKurgans = const [],
+    double kutMultiplier = 1.0,
     Map<String, dynamic> titles = const {},
   }) {
     const double maxOfflineSeconds = 8 * 3600.0;
@@ -2245,6 +2262,7 @@ class EconomyCalculator {
         celestialOmen: celestialOmen,
         discoveredKurgans: discoveredKurgans,
         frenzyMultiplier: 1,
+        kutMultiplier: kutMultiplier,
         titles: titles,
 
 
@@ -2381,9 +2399,7 @@ class EconomyCalculator {
               : math.min(maxCap, rate * cappedSeconds);
           break;
         case BuildingType.runicStele:
-          gainedWisdom += hasWorkers
-              ? rate * cappedSeconds
-              : math.min(maxCap, rate * cappedSeconds);
+          gainedWisdom += rate * cappedSeconds;
           break;
         case BuildingType.granaryVault:
         case BuildingType.castle:
@@ -2396,7 +2412,7 @@ class EconomyCalculator {
     }
 
     return OfflineGainsResult(
-      seconds: cappedSeconds.toInt(),
+      seconds: clampedSeconds.toInt(),
       food: gainedFood,
       wood: gainedWood,
       flour: gainedFlour,
@@ -2514,6 +2530,7 @@ class EconomyCalculator {
         caravanRoutes: caravanRoutes,
         celestialOmen: celestialOmen,
         discoveredKurgans: discoveredKurgans,
+        kutMultiplier: kutMultiplier,
         frenzyMultiplier: frenzyMultiplier,
         titles: titles,
       );

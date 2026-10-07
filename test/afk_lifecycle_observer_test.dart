@@ -63,7 +63,16 @@ void main() {
       expect(exact60Gains.seconds, equals(60));
       expect(exact60Gains.food, closeTo(34.776, 0.01));
 
-      // 3. 10 hours (36000s) is capped at 8 hours (28800s with golden retention formula)
+      // 3. The dialog reports elapsed time while production keeps the 60% buffer.
+      final sevenHoursGains = EconomyCalculator.calculateOfflineGains(
+        tiles: tiles,
+        elapsedSeconds: 7 * 3600.0,
+        globalMultiplier: 1.0,
+      );
+      expect(sevenHoursGains.seconds, equals(7 * 3600));
+      expect(sevenHoursGains.food, closeTo(0.5796 * 5 * 3600, 0.001));
+
+      // 4. More than 8 hours reports the 8-hour cap and grants the same gains.
       final cappedGains = EconomyCalculator.calculateOfflineGains(
         tiles: tiles,
         elapsedSeconds: 36000.0,
@@ -74,7 +83,8 @@ void main() {
         elapsedSeconds: 28800.0,
         globalMultiplier: 1.0,
       );
-      expect(cappedGains.seconds, equals(eightHoursGains.seconds));
+      expect(cappedGains.seconds, equals(8 * 3600));
+      expect(eightHoursGains.seconds, equals(8 * 3600));
       expect(cappedGains.food, closeTo(eightHoursGains.food, 0.001));
     });
 

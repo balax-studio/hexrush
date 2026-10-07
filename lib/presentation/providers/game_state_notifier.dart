@@ -812,6 +812,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
             caravanRoutes: save.caravanRoutes,
             celestialOmen: save.celestialOmen,
             discoveredKurgans: save.discoveredKurgans,
+            kutMultiplier: save.progression.kutMultiplier,
             titles: save.titles,
           );
 
@@ -904,6 +905,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
           caravanRoutes: state.caravanRoutes,
           celestialOmen: state.celestialOmen,
           discoveredKurgans: state.discoveredKurgans,
+          kutMultiplier: state.progression.kutMultiplier,
           titles: state.titles,
         );
 
@@ -1092,7 +1094,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
           producerType == BuildingType.watchtower ||
           producerType == BuildingType.bridge ||
           producerType == BuildingType.fishermanHut ||
-          producerType == BuildingType.granaryVault) {
+          producerType == BuildingType.granaryVault ||
+          producerType == BuildingType.runicStele) {
         continue;
       }
       final bool isFood = producerType.isFoodProducer;
@@ -1231,6 +1234,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
             caravanRoutes: state.caravanRoutes,
             celestialOmen: state.celestialOmen,
             discoveredKurgans: state.discoveredKurgans,
+            kutMultiplier: state.progression.kutMultiplier,
             frenzyMultiplier: temporaryBuffMultiplier,
             titles: state.titles,
           );
@@ -1292,6 +1296,18 @@ class GameStateNotifier extends StateNotifier<GameState> {
         currentFlour -= consumeFlour;
         addedPlank -= consumePlank;
         currentPlank -= consumePlank;
+
+        if (b.type == BuildingType.runicStele) {
+          addedWisdom += rate + b.accumulatedResource;
+          updatedTiles[entry.key] = tile.copyWith(
+            building: b.copyWith(accumulatedResource: 0.0),
+            isWarmed: isWarmed,
+            warmTimer: warmTimer,
+            soilHealth: newSoil,
+            restTimeAccumulated: newRestTime,
+          );
+          continue;
+        }
 
         // Taşıma Kapasitesi ve 4 Hex Menzil Kontrolü
         // İşçi hem yeni üretimi (rate) hem de binada önceden birikmiş olan ürünü (accumulatedResource) taşır
@@ -2928,6 +2944,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
       caravanRoutes: state.caravanRoutes,
       celestialOmen: state.celestialOmen,
       discoveredKurgans: state.discoveredKurgans,
+      kutMultiplier: state.progression.kutMultiplier,
       titles: state.titles,
     );
 

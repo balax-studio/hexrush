@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hex_rush/core/hex/hex_coordinates.dart';
+import 'package:hex_rush/domain/economy/economy_calculator.dart';
+import 'package:hex_rush/domain/models/ancestral_kurgan_model.dart';
 import 'package:hex_rush/domain/models/building_model.dart';
 import 'package:hex_rush/domain/models/game_state_model.dart';
 import 'package:hex_rush/domain/models/hex_tile_model.dart';
@@ -242,6 +244,108 @@ void main() {
       );
       noMigration.dispose();
       afterMigrations.dispose();
+    });
+
+    test('Bitig production bypasses transport and migration bonuses', () {
+      const castleCoord = HexAxial(0, 0);
+      const steleCoord = HexAxial(5, 0);
+      final tiles = <HexAxial, HexTileModel>{
+        castleCoord: const HexTileModel(
+          coord: castleCoord,
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.castle),
+        ),
+        steleCoord: const HexTileModel(
+          coord: steleCoord,
+          biome: TileBiome.meadow,
+          state: TileState.owned,
+          building: BuildingModel(type: BuildingType.runicStele),
+        ),
+      };
+      const legacyKurgan = AncestralKurgan(
+        id: 'legacy_stele',
+        coord: steleCoord,
+        formerBuildingType: BuildingType.runicStele,
+        formerLevel: 1,
+        isDiscovered: true,
+        relicTitle: 'Eski Bitig Taşı',
+        bonusMultiplier: 1.0,
+      );
+
+      GameStateNotifier createNotifier({
+        required double kutMultiplier,
+        List<AncestralKurgan> discoveredKurgans = const [],
+      }) {
+        final notifier = GameStateNotifier();
+        notifier.state = notifier.state.copyWith(
+          tiles: tiles,
+          progression: notifier.state.progression.copyWith(
+            totalMigrations: kutMultiplier > 1.0 ? 10 : 0,
+            kutMultiplier: kutMultiplier,
+            cumulativeBiomeCounts: kutMultiplier > 1.0
+                ? const {'meadow': 10}
+                : const {},
+          ),
+          discoveredKurgans: discoveredKurgans,
+        );
+        return notifier;
+      }
+
+      final baseline = createNotifier(kutMultiplier: 1.0);
+      final afterMigration = createNotifier(
+        kutMultiplier: 4.0,
+        discoveredKurgans: const [legacyKurgan],
+      );
+      baseline.testTick();
+      afterMigration.testTick();
+
+      expect(baseline.state.resources.wisdom, greaterThan(0.0));
+      expect(
+        afterMigration.state.resources.wisdom,
+        closeTo(baseline.state.resources.wisdom, 0.000001),
+      );
+      expect(
+        baseline.state.tiles[steleCoord]!.building!.accumulatedResource,
+        0.0,
+      );
+      expect(
+        afterMigration.state.tiles[steleCoord]!.building!.accumulatedResource,
+        0.0,
+      );
+
+      final rates = EconomyCalculator.calculateNetRates(
+        tiles: tiles.values,
+        tileMap: tiles,
+        globalMultiplier: 1.0,
+        seasonMultiplier: 1.0,
+        shrineMultiplier: 1.0,
+      );
+      expect(rates.wisdom, greaterThan(0.0));
+      expect(rates.untransportedWisdom, 0.0);
+
+      final logistics = EconomyCalculator.calculateAllWorkerLogisticsStats(
+        tiles: tiles,
+        globalMultiplier: 1.0,
+        seasonMultiplier: 1.0,
+        shrineMultiplier: 1.0,
+      );
+      expect(logistics[castleCoord]!.coveredBuildingsCount, 0);
+      expect(logistics[castleCoord]!.demandInCoverage, 0.0);
+
+      final offline = EconomyCalculator.calculateOfflineGains(
+        tiles: [tiles[steleCoord]!],
+        elapsedSeconds: 120.0,
+        minThresholdSeconds: 1.0,
+        globalMultiplier: 4.0,
+        kutMultiplier: 4.0,
+        cumulativeBiomeCounts: const {'meadow': 10},
+        discoveredKurgans: const [legacyKurgan],
+      );
+      expect(offline.wisdom, closeTo(0.0015 * 120.0, 0.000001));
+
+      baseline.dispose();
+      afterMigration.dispose();
     });
 
     test('demolishBuilding clears building and refunds 50% food cost', () {
